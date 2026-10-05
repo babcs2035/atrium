@@ -52,6 +52,7 @@ def shell_env(cfg: AtriumConfig) -> dict[str, str]:
         "REQUESTER": c.requester,
         "EXPERTS": " ".join(expand_host_patterns(c.expert_hosts)),
         "GPU_WORKERS": " ".join(expand_host_patterns(c.gpu_workers)),
+        "RELEASE_HUGEPAGES": "1" if c.release_hugepages else "0",
         "KIND": cfg.experiment.kind,
         "DATASET": cfg.experiment.dataset,
         "ROUTING": cfg.experiment.routing,

@@ -104,6 +104,7 @@ class ClusterConfig(_Strict):
     expert_hosts: list[str]
     shard_budget_gb: float = Field(gt=0)
     gpu_workers: list[str] = Field(default_factory=list)
+    release_hugepages: bool = False
 
 
 class MedragDataConfig(_Strict):

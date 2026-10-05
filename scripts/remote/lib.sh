@@ -71,9 +71,12 @@ run_parallel() {
 # 予約されたまま使われていない hugepages を解放し，索引と LLM が通常のメモリを使えるようにする．
 # 専門家ノード（i5-8350U，16 GB）では起動時の設定で 1 GB × 13 が予約され，通常のメモリが約 1.7 GB しか
 # 残っていなかった（2026-10-06．解放はユーザーが許可）．実行時の値だけを変えるので，再起動すると戻る
+# config.yaml の cluster.release_hugepages が true のときだけ解放する
 release_hugepages() {
   local host=$1
-  nssh "$host" "sudo -n sysctl -q -w vm.nr_hugepages=0"
+  if [ "$RELEASE_HUGEPAGES" = 1 ]; then
+    nssh "$host" "sudo -n sysctl -q -w vm.nr_hugepages=0"
+  fi
 }
 
 dataset_dir() {

@@ -46,8 +46,9 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
 
 1. データ準備の完了を確かめる（`manifest.json`・`labels.json`・`split.json`，`ragroute` なら `router.pt`）
 2. `artifacts/<dataset>/placement.json` を作る（シャードを `expert_hosts` の先頭から割り当てる）
-3. 各専門家で予約されたまま使われていない hugepages を解放し（`sysctl vm.nr_hugepages=0`．起動時の設定で
-   1 GB × 13 が予約され，通常のメモリが約 1.7 GB しか残らないため．実行時の値だけを変えるので再起動で戻る），
+3. `cluster.release_hugepages` が true なら，各専門家で予約されたまま使われていない hugepages を解放し
+   （`sysctl vm.nr_hugepages=0`．起動時の設定で 1 GB × 13 が予約され，通常のメモリが約 1.7 GB しか残らないため．
+   実行時の値だけを変えるので再起動で戻る），
    シャード・`config.yaml`・compose を配り，`docker compose up -d --force-recreate` する．
    `answer_mode=local_answer` なら `llm.expert_model` を取得する
 4. 質問者へ質問・manifest・クエリ埋め込み・ルーター・qrels・配置を配り，Ollama を起動する．
