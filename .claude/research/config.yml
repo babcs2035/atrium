@@ -1,0 +1,106 @@
+# research-cycle 設定: atrium
+# サイクル全体の手順はグローバル skill（~/.claude/skills/research-cycle/SKILL.md）が規定する．
+# ここにはこのリポジトリ固有の差分だけを書く．
+#
+# 【最初に読むもの】
+#   - plans/p0001_initialization.md（研究計画書．RQ1〜RQ3，E0〜E5，成功条件，統計の方針）
+#   - plans/p0002_implementation.md（実装計画．RAGRoute との差分の一覧）
+#   - docs/d0001_architecture.md（役割の分担・データの流れ・API）
+#   - docs/d0003_experiment_workflow.md（mise タスクの手順・所要時間・失敗時の確認先）
+#
+# 【恒久的な運用ルール】
+#   1. 実験条件は config.yaml の値だけで決まる．レバーは原則として config.yaml の 1 キーを変える．
+#      コードの変更が要るレバー（RQ1 の新しいルーティング方式など）は atrium.routing に Router を
+#      1 個追加し，make_router() に登録した上で，config.yaml の experiment.routing でその名前を選ぶ．
+#   2. 各ノードの操作は全て制御点 wafl-ctrl5 から行う（`ssh wafl-ctrl5`）．専門家は
+#      192.168.13.100〜109・192.168.14.100〜109（GPU なし），質問者は 192.168.15.100（wafl500）である．
+#      192.168.15.101〜109 は未使用の GPU PC であり，使う場合は config.yaml の cluster に追加する．
+#   3. データ準備（`mise run setup` が制御点でバックグラウンドに起動する）は，MedCPT による
+#      約 5,400 万断片の埋め込みを含み，数日かかる．`mise run deploy` はデータ準備が終わる前には
+#      失敗して止まる．終わっていなければ `mise run data-status` で進み具合を記録し，E0 などデータに
+#      依存しない作業を先に行う．データ準備を中断・削除しない（再計算に数日かかる）．
+#   4. 制御点のデータディレクトリ（/home/denjo/atrium-data）の削除，`mise run clean --full` は
+#      人間の判断を要する（autonomy.destructive_requires_human）．
+#   5. routing=all・merge=score・answer_mode=retrieval_only の実行では，analysis_report.md の
+#      「ラベル一致」が 1.0 に近いことを必ず確認する．大きく下回るならシャードの配布か索引の誤りであり，
+#      以降の比較は成立しない（ラベルは中継点で同じ埋め込みから計算しているため）．
+#   6. 方式間の正答率の比較は，同じ質問集合に対する対応ありの検定（`uv run atrium compare A B`，
+#      McNemar の正確検定）で行う．ルーターの評価は metrics.json の "test"（学習に使っていない質問）で行う．
+
+repo_name: atrium
+
+tasks:
+  setup:   "mise run setup"
+  deploy:  "mise run deploy"
+  run:     "mise run start"
+  analyze: "mise run analyze"
+  stop:    "mise run stop"           # 実験の後に実行してメモリと VRAM を解放する（削除はしない）
+  clean:   "mise run clean"          # 破壊的（--full はノード上の成果物も削除）．自動実行しない
+
+experiment:
+  name_scheme: "Iter{n}"             # results/<YYYYMMDD_HHMMSS>/ を Iter{n} に対応付けて journal に記録する
+  results_glob: "results/*/analysis_report.md"
+  # 最新の実行の metrics.json を 1 行の JSON で出す（E0 の実行には metrics.json が無く，e0_summary.md を読む）
+  metrics_cmd: "uv run atrium metrics --json"
+  # MIRAGE 全 7,663 問の所要時間は E0 の実測までは見積もりである（1 問あたり 3〜7 秒 × 7,663 問）．
+  # E0 の結果で見直すこと
+  timeout_min: 900
+  poll_interval_sec: 300
+
+journal_retention: 3
+
+# 単一レバー原則で振る候補（順序＝優先度）．1 イテレーションで動かすのは 1 つだけ．
+# 研究計画書 §8 の E0 → E1 の順に並べた．E2 以降（RQ1 の開集合ルーティングなど）は，E1 の再現が
+# 成立してから，研究計画書 §5 の方式を Router として実装するレバーとして追記する．
+levers:
+  - {name: experiment.kind, values: [e0_measure],
+     note: "E0（研究計画書 §8）．メモリ装着・ストレージ・llama-bench（qwen3 0.6B/1.7B/4B/8B，
+            pp512・pp4096・tg128）・FAISS fp16 平坦索引の検索時間・MedCPT のクエリ埋め込み・
+            RTT・iperf3 を測る．データ準備と並行できる．成功条件は e0_summary.md の表が全て埋まり，
+            宿る型で使う専門家側のモデル規模と断片数 k を決められること．
+            終わったら experiment.kind を e1_routing に戻す"}
+  - {name: experiment.routing, values: [all],
+     note: "E1-a．answer_mode=retrieval_only，merge=score．全データ源に問い合わせ，実機の統合結果と
+            中継点のラベルの一致（ラベル一致）を確かめる．基盤の正しさの確認であり，以降の全比較の前提"}
+  - {name: experiment.answer_mode, values: [snippet_return],
+     note: "E1-b．routing=all のまま LLM で回答し，正答率を得る（RAGRoute の all 方式に当たる）"}
+  - {name: experiment.routing, values: [ragroute, random, none],
+     note: "E1-c．answer_mode=snippet_return のまま 3 方式を 1 イテレーションに 1 つずつ実行する．
+            ragroute は test の質問で評価する．RAGRoute 論文の報告値（問い合わせ数の削減率・再現率）と
+            比べ，差があれば原因（埋め込みの再計算・fp16・LLM の違い・ラベルの再計算）を切り分けて記録する"}
+  - {name: retrieval.merge, values: [cross_encoder],
+     note: "E1-d．RAGRoute の既定の再ランク（bge-reranker-v2-m3）での正答率．ラベル定義（スコアで統合）
+            とは異なる点に注意"}
+  - {name: experiment.dataset, values: [feb4rag],
+     note: "E1-e．FeB4RAG の 13 エンジン．merge は qrels_oracle（RAGRoute で再ランクを無効にした場合と
+            同じ），answer_mode は retrieval_only でデータ源選択の指標だけを取る（回答はペアワイズ評価が
+            必要で，本基盤では未実装）"}
+
+# ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
+baselines:
+  - {name: rag_none, config: {experiment.routing: none}, note: "RAG なし（LLM 単体）"}
+  - {name: rag_all, config: {experiment.routing: all}, note: "全データ源に問い合わせる"}
+
+success_criteria: "E0: e0_summary.md の全表が埋まり，専門家側のモデル規模と断片数 k を数値の根拠付きで決められること．
+  E1: (1) routing=all・merge=score・retrieval_only でラベル一致 ≥ 0.99，(2) ragroute の test での
+  データ源選択の再現率と問い合わせ数の削減率が RAGRoute 論文の報告値と同程度であること（差は原因を特定して記録する）．
+  方式間の正答率の差は McNemar の正確検定で p < 0.05 のときだけ差があるとみなす"
+
+slack:
+  channel: "#research-cycle"
+  channel_id: "C0BJHRL037B"
+  mention_user_id: "U055AN8LWF6"
+
+notion:
+  parent_page: "Lab/Research"
+  database_id: "12c71cc0-c905-49b4-810f-247c230b3964"   # data_source_id（Research Cycle Log，他リポジトリと共通）
+  repo_page_id: "<impl で解決>"                         # 初回に Cycle Log へ atrium の行を作って書き戻す
+
+git:
+  enabled: true
+  branch: "main"
+  commit_per_iteration: true
+  push: true
+
+autonomy:
+  destructive_requires_human: true   # clean --full・データディレクトリの削除は停止して人間へ
