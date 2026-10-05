@@ -37,6 +37,37 @@ remote() {
   ssh "$CONTROL" "cd $REMOTE_DIR && bash scripts/remote/$script.sh $*"
 }
 
+# 操作端末から制御点の registry へつなぐローカルのポート（操作端末の 5000 番などと衝突しない番号）
+LOCAL_REGISTRY_PORT=15000
+PUSH_RETRY_WAIT_S=300
+TUNNEL_SOCKET="$REPO_ROOT/artifacts/registry-tunnel.sock"
+
+# 制御点の registry への SSH の転送を開き，スクリプトの終了時に閉じる
+open_registry_tunnel() {
+  ssh -fNT -M -S "$TUNNEL_SOCKET" -o ExitOnForwardFailure=yes \
+    -L "$LOCAL_REGISTRY_PORT:localhost:$REGISTRY_PORT" "$CONTROL"
+  trap 'ssh -S "$TUNNEL_SOCKET" -O exit "$CONTROL" 2> /dev/null || true' EXIT
+}
+
+# イメージ（node / full）を操作端末で build し，制御点の registry へ push する．setup と deploy の両方で呼び，
+# イメージを常に今のコードと config.yaml の版にそろえる（古いイメージが新しい設定を読めずに失敗したため）．
+# 変更が無ければ build も push もキャッシュで済む
+publish_images() {
+  for target in node full; do
+    local image="localhost:$LOCAL_REGISTRY_PORT/atrium-$target:latest"
+    log "building $image (git $GIT_HEAD)"
+    docker build -q --target "$target" --build-arg GIT_HEAD="$GIT_HEAD" -t "$image" . > /dev/null
+    # 数 GB の層は registry が digest を検証する間にクライアントが応答待ちで打ち切ることがある．
+    # すぐ送り直すと検証中の upload と重なって blob が壊れたため，検証が終わるまで待ってから送り直す
+    for attempt in 1 2 3; do
+      if docker push -q "$image" > /dev/null; then break; fi
+      if [ "$attempt" = 3 ]; then return 1; fi
+      log "push failed; retrying after ${PUSH_RETRY_WAIT_S}s ($attempt/3)"
+      sleep "$PUSH_RETRY_WAIT_S"
+    done
+  done
+}
+
 latest_run() {
   find results -mindepth 1 -maxdepth 1 -type d -name '20*' | sort | tail -1
 }

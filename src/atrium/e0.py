@@ -101,7 +101,7 @@ def _read_json(path: Path) -> Any:
 def summarize(e0_dir: Path) -> str:
     """e0/<host>/ 以下の実測結果を Markdown の表にまとめる．"""
     lines = ["# E0 実測結果", ""]
-    hosts = sorted(p for p in e0_dir.iterdir() if p.is_dir())
+    hosts = sorted(p for p in e0_dir.iterdir() if p.is_dir() and p.name != "net")
 
     lines += [
         "## メモリとストレージ",
@@ -167,7 +167,7 @@ def summarize(e0_dir: Path) -> str:
 
     failures = [
         f"| {h.name} | {line} |"
-        for h in hosts
+        for h in [*hosts, e0_dir / "net"]
         if (h / "errors.txt").exists()
         for line in (h / "errors.txt").read_text(encoding="utf-8").splitlines()
     ]

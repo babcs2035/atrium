@@ -42,6 +42,8 @@ measure_memory() {
 
 measure_llama() {
   local host=$1 dir=$2 name=$3 file=$4
+  # 同じ run_id でやり直すときは，完了済みの計測を飛ばす
+  if jq -e 'length > 0' "$dir/llama-bench-$name.json" > /dev/null 2>&1; then return 0; fi
   nssh "$host" "docker run --rm -v $REMOTE_DIR/gguf:/models:ro --entrypoint /app/llama-bench $LLAMA_CPP_IMAGE \
     -m /models/$file -p 512,4096 -n 128 -t $LLAMA_THREADS -o json" > "$dir/llama-bench-$name.json"
 }
@@ -49,6 +51,7 @@ measure_llama() {
 measure_python() {
   local host=$1 dir=$2 what=$3
   local rdir="$REMOTE_DIR/results/$RUN_ID"
+  if jq -e 'length > 0' "$dir/$what.json" > /dev/null 2>&1; then return 0; fi
   nssh "$host" "mkdir -p $rdir && docker run --rm --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/cache -e HF_HUB_OFFLINE=1 \
     -v $REMOTE_DIR/config.yaml:/app/config.yaml:ro -v $REMOTE_DIR/hf-cache:/cache -v $rdir:/out $IMAGE_FULL \
     atrium --config /app/config.yaml e0 $what --out /out/$what.json"
@@ -90,7 +93,8 @@ if [ "$KIND" = "e0_measure" ]; then
   done
   for pair in $E0_PAIRS; do
     log "measuring network $pair"
-    measure_pair "${pair%,*}" "${pair#*,}"
+    mkdir -p "$OUT/e0/net"
+    try_step "$OUT/e0/net" "network $pair" measure_pair "${pair%,*}" "${pair#*,}"
   done
   log "e0 done: $OUT"
   exit 0

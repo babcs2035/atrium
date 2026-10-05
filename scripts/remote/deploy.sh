@@ -25,7 +25,17 @@ stop_node_services() {
   nssh "$host" "[ -f $REMOTE_DIR/compose.yml ] && cd $REMOTE_DIR && docker compose stop || true"
 }
 
+# 制御点でも最新のイメージを使う（配置の計算に atrium-full を使う）
+docker pull -q "$IMAGE_FULL" > /dev/null
+
 # ── E0 ───────────────────────────────────────────────────────────────────────
+# iperf3 の相手になるだけのホストにも，イメージを用意する
+deploy_iperf_peer() {
+  local host=$1
+  ensure_tunnel "$host"
+  nssh "$host" "docker pull -q $IPERF_IMAGE"
+}
+
 deploy_e0_host() {
   local host=$1
   # 実測中に専門家のコンテナが CPU とメモリを使わないよう止める
@@ -43,6 +53,9 @@ deploy_e0_host() {
 if [ "$KIND" = "e0_measure" ]; then
   # shellcheck disable=SC2086
   run_parallel deploy deploy_e0_host $E0_HOSTS
+  peers=$(for pair in $E0_PAIRS; do echo "${pair%,*}"; echo "${pair#*,}"; done | sort -u)
+  # shellcheck disable=SC2086
+  run_parallel deploy deploy_iperf_peer $peers
   log "e0 deploy done"
   exit 0
 fi
