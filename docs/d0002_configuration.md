@@ -92,6 +92,7 @@
 |---|---|
 | `medrag.sources` | 4 データ源（RAGRoute と同じ順序） |
 | `medrag.article_encoder` / `query_encoder` | MedCPT の文書側・クエリ側のモデル |
+| `medrag.embed_precision` | MedCPT の埋め込みの計算精度（`fp32` / `fp16_autocast`．既定は後者．文書とクエリの両方に使う） |
 | `medrag.embed_batch_size` | 埋め込みのバッチの大きさ（既定 128．RTX 3060 の 12 GB に収まる大きさ） |
 | `medrag.medrag_commit` | StatPearls の断片化に使う MedRAG のスクリプトのコミット |
 | `medrag.descriptions` | 各データ源の自己紹介文（Agent Card の description） |

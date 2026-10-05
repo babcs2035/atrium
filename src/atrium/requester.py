@@ -30,7 +30,7 @@ import numpy as np
 from atrium import llm, prompts
 from atrium.arrays import F32Array
 from atrium.benchmarks import Question
-from atrium.config import AtriumConfig
+from atrium.config import AtriumConfig, Precision
 from atrium.manifest import Placement
 from atrium.merge import (
     NodeVote,
@@ -92,11 +92,13 @@ class CachedQueryEmbedder:
 class LiveMedcptEmbedder:
     """MedCPT のクエリ側モデルでその場で埋め込む（埋め込みにかかる時間も計測対象になる）．"""
 
-    def __init__(self, query_encoder: str, article_encoder: str) -> None:
-        """クエリ側のモデルだけを読み込む．"""
+    def __init__(self, query_encoder: str, article_encoder: str, precision: Precision) -> None:
+        """クエリ側のモデルだけを読み込む（精度は中継点で事前計算したクエリ埋め込みとそろえる）．"""
         from atrium.encoders import MedcptEncoder
 
-        self._encoder = MedcptEncoder(query_encoder, article_encoder, load_article=False)
+        self._encoder = MedcptEncoder(
+            query_encoder, article_encoder, load_article=False, precision=precision
+        )
         self._name = query_encoder
 
     def embed(self, question: Question) -> dict[str, F32Array]:

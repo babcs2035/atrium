@@ -110,6 +110,9 @@ data:
     query_encoder: "ncbi/MedCPT-Query-Encoder"
     # RTX 3060（12 GB）で 512 トークンの断片を fp32 で処理しても収まる大きさ
     embed_batch_size: 128
+    # 文書とクエリの埋め込みの計算精度（fp32 / fp16_autocast）．fp16_autocast は fp32 の 2.6 倍速く，
+    # 上位 15 件の集合の一致率は 97%（.claude/research/backlog.md の B2）
+    embed_precision: fp16_autocast
     # 上流のコミットを固定して再現性を保つ
     medrag_commit: "7599a728a28789fd601728c08d313b1148051f41"
     mirage_url: "https://raw.githubusercontent.com/Teddy-XiongGZ/MIRAGE/main/benchmark.json"

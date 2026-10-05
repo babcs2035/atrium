@@ -82,6 +82,7 @@ class Router(Protocol):
 | 項目 | RAGRoute | 本実装 | 理由 |
 |---|---|---|---|
 | MedCPT の文書埋め込み | MedRAG 配布の fp32 | 同じ手順で再計算した fp16 | 配布元が 403．fp16 は L480 のメモリに収めるため |
+| 埋め込みの計算精度 | fp32 | fp16 の混合精度（`data.medrag.embed_precision`．backlog B2） | fp32 の 2.6 倍速い．上位 15 件の集合の一致率 97% |
 | 索引 | `IndexFlatIP`（fp32） | `IndexScalarQuantizer`（fp16） | 同上 |
 | 統合（再ランク） | 既定は bge-reranker-v2-m3 | 既定は検索スコア（`retrieval.merge` で切替可） | ラベル定義（スコアで統合した上位 15 件）と揃えるため |
 | LLM の出力上限 | 40,960〜131,072 トークン | `llm.num_predict`（既定 2,048） | 打ち切りのない生成で待ち時間が発散するのを避ける |

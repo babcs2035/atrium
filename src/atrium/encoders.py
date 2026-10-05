@@ -19,6 +19,7 @@ from sentence_transformers import SentenceTransformer
 from transformers import AutoModel, AutoTokenizer, PreTrainedTokenizerBase
 
 from atrium.arrays import F32Array
+from atrium.config import Precision
 
 Doc = tuple[str, str]  # (title, text)
 MAX_LENGTH = 512
@@ -48,15 +49,25 @@ class MedcptEncoder:
     MedRAG は sentence-transformers の Transformer（max_seq_length は 512）と CLS pooling で
     埋め込んでいる．ここでは同じ処理を transformers で直接書く：文書は [title, content] を
     文の組として truncation="longest_first" で 512 トークンに切り詰め，先頭トークンの出力を使う．
+
+    precision="fp16_autocast" は GPU で fp16 の混合精度（torch.autocast）を使う．RTX 3090 の実測で
+    fp32 の 2.6 倍速く，fp32 との差は最大 0.0017（値の大きさ約 6.5 に対して），上位 50 件の一致率 99.7%，
+    上位 15 件の集合の一致率 97% だった（Textbooks の 7,070 断片と MIRAGE の 500 問）．CPU では使わない．
     """
 
     def __init__(
-        self, query_model: str, article_model: str, batch_size: int = 256, load_article: bool = True
+        self,
+        query_model: str,
+        article_model: str,
+        batch_size: int = 256,
+        load_article: bool = True,
+        precision: Precision = "fp32",
     ) -> None:
         """クエリ側のモデルと，必要なら文書側のモデルを読み込む．"""
         self.name = query_model
         self._batch_size = batch_size
         self._device = _device()
+        self._autocast = precision == "fp16_autocast" and self._device == "cuda"
         self._query = self._load(query_model)
         self._article = self._load(article_model) if load_article else None
 
@@ -90,7 +101,8 @@ class MedcptEncoder:
                 max_length=MAX_LENGTH,
                 return_tensors="pt",
             ).to(self._device)
-            hidden = model(**batch).last_hidden_state[:, 0].float().cpu().numpy()
+            with torch.autocast("cuda", dtype=torch.float16, enabled=self._autocast):
+                hidden = model(**batch).last_hidden_state[:, 0].float().cpu().numpy()
             if out.shape[1] == 0:
                 out = np.empty((len(first), hidden.shape[1]), dtype=np.float32)
             out[idx] = hidden

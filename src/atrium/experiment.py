@@ -43,7 +43,8 @@ def _make_embedder(
     if cfg.retrieval.query_embedding[dataset] == "live":
         if dataset != "medrag":
             raise ValueError("live query embedding is only supported for medrag")
-        return LiveMedcptEmbedder(cfg.data.medrag.query_encoder, cfg.data.medrag.article_encoder)
+        m = cfg.data.medrag
+        return LiveMedcptEmbedder(m.query_encoder, m.article_encoder, m.embed_precision)
     encoders = sorted({s.encoder for s in sources})
     return CachedQueryEmbedder(paths.query_ids, {e: paths.query_embeddings(e) for e in encoders})
 

@@ -164,7 +164,12 @@ def embed_corpus(
     if not pending:
         return
     m = cfg.data.medrag
-    encoder = MedcptEncoder(m.query_encoder, m.article_encoder, batch_size=m.embed_batch_size)
+    encoder = MedcptEncoder(
+        m.query_encoder,
+        m.article_encoder,
+        batch_size=m.embed_batch_size,
+        precision=m.embed_precision,
+    )
     for i, name in enumerate(pending):
         docs = _read_jsonl_docs(corpus / "chunk" / f"{name}.jsonl")
         emb = encoder.encode_docs([(d["title"], d["content"]) for d in docs]).astype(np.float16)
@@ -242,7 +247,9 @@ def embed_queries(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     if out.exists():
         return
     questions = load_questions(paths.questions)
-    encoder = MedcptEncoder(m.query_encoder, m.article_encoder, load_article=False)
+    encoder = MedcptEncoder(
+        m.query_encoder, m.article_encoder, load_article=False, precision=m.embed_precision
+    )
     emb = encoder.encode_queries([q.question for q in questions])
     paths.queries.mkdir(parents=True, exist_ok=True)
     np.save(out, emb.astype(np.float32))

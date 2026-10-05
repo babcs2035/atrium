@@ -17,6 +17,7 @@ RoutingName = Literal["ragroute", "all", "random", "none"]
 AnswerMode = Literal["snippet_return", "local_answer", "retrieval_only"]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
 QueryEmbeddingMode = Literal["live", "cached"]
+Precision = Literal["fp32", "fp16_autocast"]
 
 DEFAULT_CONFIG_PATH = Path("config.yaml")
 
@@ -114,6 +115,8 @@ class MedragDataConfig(_Strict):
     article_encoder: str
     query_encoder: str
     embed_batch_size: int = 128
+    # MedCPT の埋め込みの計算精度（文書・クエリとも．atrium.encoders.MedcptEncoder の説明を参照）
+    embed_precision: Precision = "fp16_autocast"
     medrag_commit: str
     mirage_url: str
     statpearls_url: str
