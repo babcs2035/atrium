@@ -14,6 +14,7 @@ OUT="results/$RUN_ID"
 POLL_INTERVAL_S=60
 LLAMA_CPP_IMAGE="localhost:$REGISTRY_PORT/mirror/llama.cpp:full"
 IPERF_IMAGE="localhost:$REGISTRY_PORT/mirror/iperf3:latest"
+IPERF_PORT=5202
 # llama-bench のスレッド数（i5-8250U / 8350U の物理コア数）
 LLAMA_THREADS=4
 mkdir -p "$OUT"
@@ -75,11 +76,12 @@ measure_pair() {
   local a=$1 b=$2
   local out="$OUT/e0/net/${a}_${b}.json"
   mkdir -p "$OUT/e0/net"
-  nssh "$b" "docker rm -f atrium-iperf >/dev/null 2>&1; docker run -d --rm --name atrium-iperf -p 5201:5201 $IPERF_IMAGE -s" > /dev/null
+  # 5201 番はホストの iperf3 のサービスが使っていることがあるので，計測用のサーバーは別の番号で公開する
+  nssh "$b" "docker rm -f atrium-iperf >/dev/null 2>&1; docker run -d --rm --name atrium-iperf -p $IPERF_PORT:5201 $IPERF_IMAGE -s" > /dev/null
   sleep 2
   local rtt mbps
   rtt=$(nssh "$a" "ping -c 20 -q $b" | awk -F'/' '/^rtt|^round-trip/ {print $5}')
-  mbps=$(nssh "$a" "docker run --rm $IPERF_IMAGE -c $b -t 10 -J" | jq '.end.sum_received.bits_per_second / 1e6 | floor')
+  mbps=$(nssh "$a" "docker run --rm $IPERF_IMAGE -c $b -p $IPERF_PORT -t 10 -J" | jq '.end.sum_received.bits_per_second / 1e6 | floor')
   nssh "$b" "docker stop atrium-iperf" > /dev/null
   printf '{"rtt_avg_ms": %s, "throughput_mbps": %s}\n' "${rtt:-null}" "${mbps:-null}" > "$out"
 }
