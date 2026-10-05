@@ -12,8 +12,10 @@ source "$(dirname "$0")/lib.sh"
 
 DATASETS=${*:-"feb4rag medrag"}
 REGISTRY_NAME=atrium-registry
+PUSH_RETRY_WAIT_S=300
 
-# ── registry（制御点の 127.0.0.1 だけに公開し，各ノードからは SSH の逆トンネルで使う）
+# ── registry（制御点の 127.0.0.1 だけに公開する．wafl500〜509 は既存の SSH 転送で，それ以外のノードは
+#    deploy・prepare_data が張る SSH の逆トンネルで使う）
 if docker ps -q -f "name=^${REGISTRY_NAME}$" | grep -q .; then
   log "registry already running"
 elif docker ps -aq -f "name=^${REGISTRY_NAME}$" | grep -q .; then
@@ -27,12 +29,13 @@ for target in node full; do
   image="localhost:$REGISTRY_PORT/atrium-$target:latest"
   log "building $image (git $GIT_HEAD)"
   docker build --target "$target" --build-arg GIT_HEAD="$GIT_HEAD" -t "$image" .
-  # full イメージには数 GB の層（torch と CUDA のライブラリ）があり，registry が digest を検証する間に
-  # クライアントが応答待ちで打ち切ることがある．registry 側では保存が済んでいるので，再試行すれば通る
+  # 数 GB の層は registry が digest を検証する間にクライアントが応答待ちで打ち切ることがある．
+  # すぐ送り直すと検証中の upload と重なって blob が壊れたため，検証が終わるまで待ってから送り直す
   for attempt in 1 2 3; do
     if docker push -q "$image"; then break; fi
     if [ "$attempt" = 3 ]; then exit 1; fi
-    log "push failed; retrying ($attempt/3)"
+    log "push failed; retrying after ${PUSH_RETRY_WAIT_S}s ($attempt/3)"
+    sleep "$PUSH_RETRY_WAIT_S"
   done
 done
 

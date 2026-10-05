@@ -29,6 +29,19 @@ ENV ATRIUM_GIT_HEAD=$GIT_HEAD
 
 FROM base AS full
 COPY pyproject.toml uv.lock README.md ./
+# torch と CUDA のライブラリを 1 回の uv sync で入れると 6 GB を超える 1 つの層になる．registry が
+# その digest を検証する間に push が待ち時間切れになり，再試行と重なって blob が壊れた（2026-10-05）．
+# そこで lock から書き出した依存を数 GB 以下の層に分けて先に入れ，最後の uv sync は残りだけを入れる
+RUN uv export --frozen --no-dev --extra requester --no-emit-project --no-hashes -o /tmp/requirements.txt \
+    && uv venv /opt/venv
+RUN grep -E '^nvidia-(cublas|cudnn)' /tmp/requirements.txt > /tmp/layer.txt \
+    && uv pip install --python /opt/venv/bin/python --no-deps -r /tmp/layer.txt
+RUN grep -E '^nvidia-(cusparselt|nccl|nvshmem|cufft|cusparse)' /tmp/requirements.txt > /tmp/layer.txt \
+    && uv pip install --python /opt/venv/bin/python --no-deps -r /tmp/layer.txt
+RUN grep -E '^(nvidia-|cuda-)' /tmp/requirements.txt > /tmp/layer.txt \
+    && uv pip install --python /opt/venv/bin/python --no-deps -r /tmp/layer.txt
+RUN grep -E '^(torch|triton)==' /tmp/requirements.txt > /tmp/layer.txt \
+    && uv pip install --python /opt/venv/bin/python --no-deps -r /tmp/layer.txt
 RUN uv sync --frozen --no-dev --extra requester --no-install-project
 COPY src ./src
 RUN uv sync --frozen --no-dev --extra requester --no-editable
