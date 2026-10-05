@@ -8,9 +8,13 @@ services:
     # （ノードのインターネット接続に頼らない）
     image: localhost:${REGISTRY_PORT}/mirror/ollama:${OLLAMA_TAG}
     restart: unless-stopped
+    # root で動かすと ./ollama 以下が root の所有になり，deploy のモデルの rsync が書き込めなくなる
+    user: "${HOST_UID}:${HOST_GID}"
     volumes:
-      - ./ollama:/root/.ollama
+      - ./ollama:/ollama
     environment:
+      HOME: /ollama
+      OLLAMA_MODELS: /ollama/models
       # 宿る型の連続した問い合わせのたびにモデルを読み直さないよう，起動中は保持する
       OLLAMA_KEEP_ALIVE: "-1"
 

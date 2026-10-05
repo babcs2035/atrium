@@ -74,6 +74,7 @@ deploy_expert() {
   ensure_tunnel "$host"
   # ./ollama を docker に自動で作らせると root の所有になり，モデルの rsync が書き込めなくなる
   nssh "$host" "mkdir -p $REMOTE_DIR/shards $REMOTE_DIR/ollama"
+  own_remote_dir "$host"
   for sid in ${shard_ids//,/ }; do
     # 行の先頭位置のキャッシュはノード側で作るので，--delete の対象から外す
     nrsync -aL --delete --exclude '*.offsets.npy' "$DS_DIR/shards/$sid/" "$SSH_USER@$host:$REMOTE_DIR/shards/$sid/"
@@ -93,6 +94,7 @@ deploy_requester() {
   local host=$1
   ensure_tunnel "$host"
   nssh "$host" "mkdir -p $REMOTE_DIR/data/$DATASET $REMOTE_DIR/results $REMOTE_DIR/hf-cache $REMOTE_DIR/ollama"
+  own_remote_dir "$host"
   # 質問者が使うものだけを送る（シャードの本文と埋め込みは送らない）
   for item in benchmark manifest.json queries router qrels; do
     if [ -e "$DS_DIR/$item" ]; then

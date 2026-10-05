@@ -7,12 +7,16 @@ services:
     # （ノードのインターネット接続に頼らない）
     image: localhost:${REGISTRY_PORT}/mirror/ollama:${OLLAMA_TAG}
     restart: unless-stopped
+    # root で動かすと ./ollama 以下が root の所有になり，deploy のモデルの rsync が書き込めなくなる
+    user: "${HOST_UID}:${HOST_GID}"
     volumes:
-      - ./ollama:/root/.ollama
+      - ./ollama:/ollama
     # GPU は CDI（deploy.resources.reservations.devices）ではなく runtime: nvidia で渡す．
     # wafl500〜509 の一部は nvidia-ctk が無く，CDI での GPU の検出に失敗するため（expert-mesh の記録）
     runtime: nvidia
     environment:
+      HOME: /ollama
+      OLLAMA_MODELS: /ollama/models
       OLLAMA_KEEP_ALIVE: "-1"
       NVIDIA_VISIBLE_DEVICES: all
 

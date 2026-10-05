@@ -97,6 +97,15 @@ if [ "$KIND" = "e0_measure" ]; then
 fi
 
 # ── E1 以降 ────────────────────────────────────────────────────────────────
+# 質問者に配った設定が今の config.yaml と同じかを確かめる（deploy が途中で失敗したまま古い設定で
+# 実験が走るのを防ぐ．2026-10-06 に実際に起きた）
+local_sum=$(sha256sum < config.yaml)
+remote_sum=$(nssh "$REQUESTER" "sha256sum < $REMOTE_DIR/config.yaml" || echo missing)
+if [ "$local_sum" != "$remote_sum" ]; then
+  log "config.yaml on the requester differs from the current one; run 'mise run deploy' first" >&2
+  exit 1
+fi
+
 NAME="atrium-run-$RUN_ID"
 RDIR="$REMOTE_DIR/results/$RUN_ID"
 if ! nssh "$REQUESTER" "docker ps -aq -f name=^$NAME\$" | grep -q .; then
