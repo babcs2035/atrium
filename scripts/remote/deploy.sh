@@ -29,6 +29,7 @@ deploy_e0_host() {
   local host=$1
   # 実測中に専門家のコンテナが CPU とメモリを使わないよう止める
   stop_node_services "$host"
+  release_hugepages "$host"
   ensure_tunnel "$host"
   nssh "$host" "docker pull -q $IMAGE_FULL && docker pull -q $LLAMA_CPP_IMAGE && docker pull -q $IPERF_IMAGE"
   nssh "$host" "mkdir -p $REMOTE_DIR/gguf $REMOTE_DIR/hf-cache"
@@ -71,6 +72,7 @@ log "placement: ${#SHARDS_OF[@]} expert nodes"
 deploy_expert() {
   local host=$1
   local shard_ids=${SHARDS_OF[$host]}
+  release_hugepages "$host"
   ensure_tunnel "$host"
   nssh "$host" "mkdir -p $REMOTE_DIR/shards"
   for sid in ${shard_ids//,/ }; do

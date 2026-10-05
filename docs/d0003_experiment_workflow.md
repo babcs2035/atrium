@@ -46,14 +46,16 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
 
 1. データ準備の完了を確かめる（`manifest.json`・`labels.json`・`split.json`，`ragroute` なら `router.pt`）
 2. `artifacts/<dataset>/placement.json` を作る（シャードを `expert_hosts` の先頭から割り当てる）
-3. 各専門家へシャード・`config.yaml`・compose を配り，`docker compose up -d --force-recreate` する．
+3. 各専門家で予約されたまま使われていない hugepages を解放し（`sysctl vm.nr_hugepages=0`．起動時の設定で
+   1 GB × 13 が予約され，通常のメモリが約 1.7 GB しか残らないため．実行時の値だけを変えるので再起動で戻る），
+   シャード・`config.yaml`・compose を配り，`docker compose up -d --force-recreate` する．
    `answer_mode=local_answer` なら `llm.expert_model` を取得する
 4. 質問者へ質問・manifest・クエリ埋め込み・ルーター・qrels・配置を配り，Ollama を起動する．
    `answer_mode=snippet_return` なら `llm.requester_model` を取得する
 5. 配置から外れた専門家のコンテナを止める
 6. 全専門家の `/healthz` が応答するまで待つ（最長 10 分．PubMed のシャードは索引の組み立てに数分かかる）
 
-`experiment.kind=e0_measure` のとき: 対象ホストの専門家のコンテナを止め，`atrium-full`・llama.cpp・iperf3 の
+`experiment.kind=e0_measure` のとき: 対象ホストの専門家のコンテナを止めて hugepages を解放し，`atrium-full`・llama.cpp・iperf3 の
 イメージと GGUF を用意する．
 
 各ホストの出力は制御点の `/home/denjo/atrium/artifacts/logs/deploy/<host>.log` に残る．
@@ -66,6 +68,7 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
   SSH が切れてもコンテナは動き続ける．同じ run_id で `mise run start <run_id>` を実行すると待ち直す．
   終了コードが 2 の場合は一部の質問が失敗したことを表し，結果は残る（各行の `error` を見る）．
 - `e0_measure`：対象ホストを 1 台ずつ実測し，続けてホストの組ごとに RTT と iperf3 を測る．
+  1 つの計測が失敗しても残りは続け，失敗は `e0/<host>/errors.txt` と `e0_summary.md` に残る．
 
 結果は `results/<run_id>/` に回収される（失敗した場合も途中までの結果を回収する）．
 

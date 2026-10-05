@@ -165,6 +165,15 @@ def summarize(e0_dir: Path) -> str:
                 f"{row['embed_s']['p95'] * 1e3:.1f} |"
             )
 
+    failures = [
+        f"| {h.name} | {line} |"
+        for h in hosts
+        if (h / "errors.txt").exists()
+        for line in (h / "errors.txt").read_text(encoding="utf-8").splitlines()
+    ]
+    if failures:
+        lines += ["", "## 失敗した計測", "", "| ホスト | 内容 |", "|---|---|", *failures]
+
     lines += [
         "",
         "## ネットワーク",

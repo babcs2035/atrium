@@ -19,25 +19,51 @@ LLAMA_THREADS=4
 mkdir -p "$OUT"
 
 # ── E0 ───────────────────────────────────────────────────────────────────────
-measure_e0_host() {
-  local host=$1
-  local dir="$OUT/e0/$host"
-  local rdir="$REMOTE_DIR/results/$RUN_ID"
-  mkdir -p "$dir"
+# 1 つの計測が失敗しても（例: メモリ不足で 8B のモデルが載らない）残りの計測は続け，失敗は errors.txt に残す
+try_step() {
+  local dir=$1 label=$2
+  shift 2
+  if ! "$@"; then
+    echo "$(date '+%F %T') failed: $label" >> "$dir/errors.txt"
+    log "  failed: $label"
+  fi
+}
+
+measure_memory() {
+  local host=$1 dir=$2
   nssh "$host" "sudo -n dmidecode -t memory" \
     | awk -F': ' '/^\tSize:/ && $2 !~ /No Module/ {s=$2} /^\tLocator:/ {l=$2} /^\tConfigured Memory Speed:/ && s {print l" "s" @"$2; s=""}' \
     > "$dir/dimm.txt"
-  nssh "$host" "free -b | awk '/^Mem:/ {print \$2}'; df -B1 --output=avail / | tail -1; lsblk -d -o NAME,SIZE,ROTA,MODEL" > "$dir/host.raw"
+  nssh "$host" "free -b | awk '/^Mem:/ {print \$2}'; df -B1 --output=avail / | tail -1; lsblk -d -o NAME,SIZE,ROTA,MODEL; grep -E 'MemAvailable|HugePages_Total' /proc/meminfo" > "$dir/host.raw"
   awk 'NR==1 {m=$1} NR==2 {a=$1} END {printf "{\"mem_total_gb\": %.1f, \"root_avail_gb\": %.1f}\n", m/1e9, a/1e9}' "$dir/host.raw" > "$dir/host.json"
-  for spec in $E0_GGUF; do
-    IFS='|' read -r name _ file <<< "$spec"
-    nssh "$host" "docker run --rm -v $REMOTE_DIR/gguf:/models:ro --entrypoint /app/llama-bench $LLAMA_CPP_IMAGE \
-      -m /models/$file -p 512,4096 -n 128 -t $LLAMA_THREADS -o json" > "$dir/llama-bench-$name.json"
-  done
+}
+
+measure_llama() {
+  local host=$1 dir=$2 name=$3 file=$4
+  nssh "$host" "docker run --rm -v $REMOTE_DIR/gguf:/models:ro --entrypoint /app/llama-bench $LLAMA_CPP_IMAGE \
+    -m /models/$file -p 512,4096 -n 128 -t $LLAMA_THREADS -o json" > "$dir/llama-bench-$name.json"
+}
+
+measure_python() {
+  local host=$1 dir=$2 what=$3
+  local rdir="$REMOTE_DIR/results/$RUN_ID"
   nssh "$host" "mkdir -p $rdir && docker run --rm --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/cache \
     -v $REMOTE_DIR/config.yaml:/app/config.yaml:ro -v $REMOTE_DIR/hf-cache:/cache -v $rdir:/out $IMAGE_FULL \
-    sh -c 'atrium --config /app/config.yaml e0 faiss --out /out/faiss.json && atrium --config /app/config.yaml e0 medcpt --out /out/medcpt.json'"
-  nrsync -a "$SSH_USER@$host:$rdir/faiss.json" "$SSH_USER@$host:$rdir/medcpt.json" "$dir/"
+    atrium --config /app/config.yaml e0 $what --out /out/$what.json"
+  nrsync -a "$SSH_USER@$host:$rdir/$what.json" "$dir/"
+}
+
+measure_e0_host() {
+  local host=$1
+  local dir="$OUT/e0/$host"
+  mkdir -p "$dir"
+  try_step "$dir" memory measure_memory "$host" "$dir"
+  for spec in $E0_GGUF; do
+    IFS='|' read -r name _ file <<< "$spec"
+    try_step "$dir" "llama-bench $name" measure_llama "$host" "$dir" "$name" "$file"
+  done
+  try_step "$dir" faiss measure_python "$host" "$dir" faiss
+  try_step "$dir" medcpt measure_python "$host" "$dir" medcpt
 }
 
 measure_pair() {
