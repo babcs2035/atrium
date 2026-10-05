@@ -49,7 +49,8 @@ for spec in $E0_GGUF; do
   IFS='|' read -r _ repo file <<< "$spec"
   if [ ! -s "$CACHE/gguf/$file" ]; then
     log "downloading $file"
-    curl -fL --retry 3 -o "$CACHE/gguf/$file.part" "https://huggingface.co/$repo/resolve/main/$file"
+    # 途中で切れても続きから取り直す（HTTP/2 のストリームの切断は既定の再試行の対象外のため --retry-all-errors）
+    curl -fsSL --retry 10 --retry-all-errors -C - -o "$CACHE/gguf/$file.part" "https://huggingface.co/$repo/resolve/main/$file"
     mv -f "$CACHE/gguf/$file.part" "$CACHE/gguf/$file"
   fi
 done
