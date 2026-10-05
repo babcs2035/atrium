@@ -20,7 +20,6 @@ import logging
 import random
 import shutil
 import tarfile
-import zipfile
 from collections import defaultdict
 from pathlib import Path
 
@@ -97,21 +96,33 @@ def _beir_corpus(paths: DatasetPaths, source: str) -> Path:
 
 
 def fetch_beir(cfg: AtriumConfig, paths: DatasetPaths, source: str) -> None:
-    """BEIR のコーパス（corpus.jsonl だけ）を取得する．"""
+    """BEIR のコーパスを Hugging Face（BeIR/<name> の parquet）から取得し，corpus.jsonl にする．
+
+    BEIR の配布元（ukp.informatik.tu-darmstadt.de）の zip と同じ内容である（nfcorpus で ID と本文の
+    一致を確認した）．配布元は転送が数 KB/s まで落ちることがあるため，Hugging Face を使う．
+    """
+    import pyarrow.parquet as pq
+    from huggingface_hub import snapshot_download
+
     target = _beir_corpus(paths, source)
     if target.exists():
         return
-    zip_path = target.parent / f"{source}.zip"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    download(cfg.data.feb4rag.beir_url.format(name=source), zip_path)
-    with zipfile.ZipFile(zip_path) as zf:
-        member = next(n for n in zf.namelist() if n.endswith("corpus.jsonl"))
-        tmp = target.with_suffix(".jsonl.part")
-        with zf.open(member) as src, tmp.open("wb") as dst:
-            shutil.copyfileobj(src, dst)
-        tmp.replace(target)
-    # 展開後は corpus.jsonl だけを使う．zip はこの段で作った一時ファイルなので消してよい
-    zip_path.unlink()
+    hf_dir = target.parent / "hf"
+    snapshot_download(
+        repo_id=cfg.data.feb4rag.beir_hf_repo.format(name=source),
+        repo_type="dataset",
+        allow_patterns=["corpus/*"],
+        local_dir=hf_dir,
+    )
+    tmp = target.with_suffix(".jsonl.part")
+    with tmp.open("w", encoding="utf-8") as out:
+        for parquet in sorted((hf_dir / "corpus").glob("*.parquet")):
+            for batch in pq.ParquetFile(parquet).iter_batches(columns=["_id", "title", "text"]):
+                for row in batch.to_pylist():
+                    out.write(json.dumps(row, ensure_ascii=False) + "\n")
+    tmp.replace(target)
+    # 変換後は corpus.jsonl だけを使う．parquet はこの段で取得した一時ファイルなので消してよい
+    shutil.rmtree(hf_dir)
 
 
 def _read_search_results(paths: DatasetPaths, source: str) -> dict[str, list[tuple[str, float]]]:

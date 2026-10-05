@@ -120,7 +120,8 @@ data:
     # RAGRoute と同じ 13 エンジン（signal1m・robust04・trec-news は BEIR で自由に入手できないため除く）
     sources: [arguana, climate-fever, dbpedia-entity, fever, fiqa, hotpotqa, msmarco, nfcorpus, nq, scidocs, scifact, trec-covid, webis-touche2020]
     feb4rag_commit: "b0fe9e19eddac3586fd54d30aebbb5d3d0d72118"
-    beir_url: "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/{name}.zip"
+    # BEIR のコーパスの取得元（Hugging Face のデータセット．配布元の zip と同じ内容）
+    beir_hf_repo: "BeIR/{name}"
     # 重心の推定に使う文書数（全文書の埋め込みは重いため無作為抽出で近似する）
     centroid_sample: 2000
     # 5.8B の SGPT は CPU で動かすため抽出数を減らす

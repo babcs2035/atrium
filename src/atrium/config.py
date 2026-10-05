@@ -124,7 +124,7 @@ class Feb4ragDataConfig(_Strict):
 
     sources: list[str]
     feb4rag_commit: str
-    beir_url: str
+    beir_hf_repo: str
     centroid_sample: int = 2000
     centroid_sample_overrides: dict[str, int] = Field(default_factory=dict)
 

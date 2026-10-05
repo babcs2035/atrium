@@ -58,7 +58,8 @@
 
 1. FeB4RAG のリポジトリ（コミット固定）から `dataset/` を取得する．790 件の要求を `questions.jsonl` にし，
    resource selection 用の qrels でスコアが 0 より大きいエンジンを関連ありとする．
-2. 13 エンジンの BEIR コーパス（`corpus.jsonl`）を取得する．
+2. 13 エンジンの BEIR コーパスを Hugging Face の `BeIR/<name>`（parquet）から取得し，`corpus.jsonl` に変換する
+   （BEIR の配布元の zip と同じ内容であることを nfcorpus で確認した．配布元は転送が遅くなることがあるため）．
 3. エンジンごとに 1 シャードを作る．シャードは配布された検索結果（要求ごとの上位 100 件）と，そこに現れる
    文書の本文だけを持つ（`kind="search_results"`）．重心は，コーパスから無作為に抽出した文書
    （既定 2,000 件．trec-covid は 500 件）をそのエンジンの検索器で埋め込んだ平均で近似する．

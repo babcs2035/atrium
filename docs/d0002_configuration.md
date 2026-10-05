@@ -96,4 +96,5 @@
 | `medrag.descriptions` | 各データ源の自己紹介文（Agent Card の description） |
 | `feb4rag.sources` | 13 エンジン（signal1m・robust04・trec-news を除く．RAGRoute と同じ） |
 | `feb4rag.feb4rag_commit` | FeB4RAG のリポジトリのコミット |
+| `feb4rag.beir_hf_repo` | BEIR のコーパスを取得する Hugging Face のデータセット（`{name}` はエンジン名） |
 | `feb4rag.centroid_sample` / `centroid_sample_overrides` | 重心の推定に使う文書数（5.8B の SGPT を CPU で動かす trec-covid は少なくする） |
