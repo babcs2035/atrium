@@ -19,6 +19,10 @@ PLAN_DIR="$DATA_DIR/medrag/embed_plan"
 WORK_DIR="$REMOTE_DIR/embed-work"
 mkdir -p "$LOG_DIR" "$DATA_DIR/.cache/huggingface"
 echo running > "$STATUS"
+# 開始時の config.yaml の写しを最後まで使う（実行中に同期された新しい設定を古いイメージが読めずに
+# 止まったため．2026-10-06）
+CONFIG_SNAPSHOT="$LOG_DIR/prepare-config.yaml"
+cp config.yaml "$CONFIG_SNAPSHOT"
 # 失敗の記録は EXIT trap で行う（ERR trap は関数の中の失敗では働かず，状態が running のまま残った）
 on_exit() {
   local rc=$?
@@ -35,7 +39,7 @@ hub_run() {
   docker rm -f "$name" > /dev/null 2>&1 || true
   docker run --rm --name "$name" --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all \
     --user "$HOST_UID:$HOST_GID" -e HOME=/tmp -e HF_HOME=/data/.cache/huggingface \
-    -v "$DATA_DIR:/data" -v "$PWD/config.yaml:/app/config.yaml:ro" -w /data \
+    -v "$DATA_DIR:/data" -v "$CONFIG_SNAPSHOT:/app/config.yaml:ro" -w /data \
     "$IMAGE_FULL" atrium --config /app/config.yaml "$@"
 }
 
@@ -66,7 +70,7 @@ embed_worker() {
   log "$host: sending $(wc -l < "$plan") chunk files"
   nrsync -a --files-from="$PLAN_DIR/$host.files" "$DATA_DIR/medrag/" "$SSH_USER@$host:$WORK_DIR/medrag/"
   nrsync -a "$plan" "$SSH_USER@$host:$WORK_DIR/plan.txt"
-  nrsync -a config.yaml "$SSH_USER@$host:$WORK_DIR/config.yaml"
+  nrsync -a "$CONFIG_SNAPSHOT" "$SSH_USER@$host:$WORK_DIR/config.yaml"
   # MedCPT のモデルは制御点のキャッシュから配り，GPU PC ではオフラインで読み込む
   # （GPU PC のインターネット接続に頼らない．2026-10-06 に研究室のゲートウェイが止まった）
   nssh "$host" "mkdir -p $WORK_DIR/hf/hub"
