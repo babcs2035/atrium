@@ -79,8 +79,9 @@ deploy_expert() {
   done
   nrsync -az config.yaml "$SSH_USER@$host:$REMOTE_DIR/config.yaml"
   nrsync -az docker/compose.node.yml "$SSH_USER@$host:$REMOTE_DIR/compose.yml"
+  # UID・GID はノード側で評価する（ノードの denjo の UID は制御点と同じとは限らない）
   nssh "$host" "printf 'REGISTRY_PORT=%s\nNODE_PORT=%s\nNODE_ID=%s\nSHARD_IDS=%s\nHOST_UID=%s\nHOST_GID=%s\n' \
-    $REGISTRY_PORT $NODE_PORT $host $shard_ids $HOST_UID $HOST_GID > $REMOTE_DIR/.env"
+    $REGISTRY_PORT $NODE_PORT $host $shard_ids \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
   nssh "$host" "cd $REMOTE_DIR && docker compose pull -q && docker compose up -d --force-recreate"
   if [ "$ANSWER_MODE" = "local_answer" ]; then
     nssh "$host" "cd $REMOTE_DIR && docker compose exec -T ollama ollama pull $EXPERT_MODEL"
@@ -100,7 +101,7 @@ deploy_requester() {
   nrsync -az config.yaml "$SSH_USER@$host:$REMOTE_DIR/config.yaml"
   nrsync -az "artifacts/$DATASET/placement.json" "$SSH_USER@$host:$REMOTE_DIR/placement.json"
   nrsync -az docker/compose.requester.yml "$SSH_USER@$host:$REMOTE_DIR/compose.yml"
-  nssh "$host" "printf 'REGISTRY_PORT=%s\nHOST_UID=%s\nHOST_GID=%s\n' $REGISTRY_PORT $HOST_UID $HOST_GID > $REMOTE_DIR/.env"
+  nssh "$host" "printf 'REGISTRY_PORT=%s\nHOST_UID=%s\nHOST_GID=%s\n' $REGISTRY_PORT \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
   nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q && docker compose up -d ollama"
   if [ "$ANSWER_MODE" = "snippet_return" ]; then
     nssh "$host" "cd $REMOTE_DIR && docker compose exec -T ollama ollama pull $REQUESTER_MODEL"

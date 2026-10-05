@@ -34,7 +34,7 @@ measure_e0_host() {
     nssh "$host" "docker run --rm -v $REMOTE_DIR/gguf:/models:ro --entrypoint /app/llama-bench $LLAMA_CPP_IMAGE \
       -m /models/$file -p 512,4096 -n 128 -t $LLAMA_THREADS -o json" > "$dir/llama-bench-$name.json"
   done
-  nssh "$host" "mkdir -p $rdir && docker run --rm --user $HOST_UID:$HOST_GID -e HOME=/tmp -e HF_HOME=/cache \
+  nssh "$host" "mkdir -p $rdir && docker run --rm --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/cache \
     -v $REMOTE_DIR/config.yaml:/app/config.yaml:ro -v $REMOTE_DIR/hf-cache:/cache -v $rdir:/out $IMAGE_FULL \
     sh -c 'atrium --config /app/config.yaml e0 faiss --out /out/faiss.json && atrium --config /app/config.yaml e0 medcpt --out /out/medcpt.json'"
   nrsync -a "$SSH_USER@$host:$rdir/faiss.json" "$SSH_USER@$host:$rdir/medcpt.json" "$dir/"
