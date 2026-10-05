@@ -19,7 +19,12 @@ PLAN_DIR="$DATA_DIR/medrag/embed_plan"
 WORK_DIR="$REMOTE_DIR/embed-work"
 mkdir -p "$LOG_DIR" "$DATA_DIR/.cache/huggingface"
 echo running > "$STATUS"
-trap 'echo "failed (line $LINENO)" > "$STATUS"' ERR
+# 失敗の記録は EXIT trap で行う（ERR trap は関数の中の失敗では働かず，状態が running のまま残った）
+on_exit() {
+  local rc=$?
+  if [ "$rc" -ne 0 ]; then echo "failed (exit $rc)" > "$STATUS"; fi
+}
+trap on_exit EXIT
 
 wants() { [[ " $DATASETS " == *" $1 "* ]]; }
 

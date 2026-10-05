@@ -21,7 +21,10 @@ mise run stop
 
 1. 操作端末で `uv sync --extra requester`（分析・テスト用の環境）
 2. 制御点で registry（`atrium-registry`，`127.0.0.1:5000`）を起動する
-3. 制御点で `atrium-node` と `atrium-full` のイメージを build し，registry へ push する
+3. 操作端末で `atrium-node` と `atrium-full` のイメージを build し，SSH の転送（操作端末の 15000 番 →
+   制御点の 5000 番）を通して registry へ push する．制御点の回線はデータ準備の取得で混み合い，
+   制御点で build すると PyPI や Docker Hub からの取得が失敗しやすいため，build は操作端末で行う．
+   制御点は push されたイメージを pull して使う
 4. 制御点で `scripts/remote/prepare_data.sh` を `setsid nohup` で起動し，データ準備をバックグラウンドで始める
    （SSH が切れても続く）．MedCPT の埋め込みは制御点と wafl500〜509 の GPU 11 枚で分担する
 
@@ -108,8 +111,10 @@ E0 の実測値が得られたら，この表と `.claude/research/config.yml` �
 |---|---|
 | deploy が「missing ... data preparation has not finished」で止まる | `mise run data-status`．データ準備が終わるまで待つ |
 | deploy の healthcheck が失敗する | 表示された `docker compose logs`．メモリ不足（OOM）なら `cluster.shard_budget_gb` を下げてシャードを作り直す |
+| pull で `unexpected commit digest` や `invalid tar header` が出る | registry の blob が壊れている．制御点で `docker rm -f -v atrium-registry` してから `mise run setup` で push し直す．`full` イメージは層を数 GB 以下に分けてあり，push の再試行は 5 分待ってから行う（すぐ送り直すと検証中の upload と重なって壊れた） |
 | registry からイメージを取得できない | 制御点で `docker ps` に `atrium-registry` があるか．ノードの `curl http://localhost:5000/v2/` |
 | start がすぐ終わる | `results/<run_id>/requester.log`．多くはノードの自己紹介に欠けたデータ源がある（deploy のやり直し） |
 | ラベル一致が 1.0 から大きく外れる | シャードの配布漏れ（`rsync -L` の失敗）か，`k_ret`・`k_rerank` をラベルの計算後に変えた |
+| データ準備の状態が `failed (exit N)` | `prepare.log` の末尾．取得が途中で切れた場合は `mise run setup` で再開する（取得は Content-Length と照合し，切れたファイルは捨てて取り直す）．NCBI から StatPearls が取れないときは，別の場所で取得した `statpearls_NBK430685.tar.gz` を `atrium-data/medrag/corpus/statpearls/` に置けば取得は飛ばされる |
 | FeB4RAG の取得（codeload.github.com）が極端に遅い | 制御点からの転送が 100 KB/s 程度まで落ちることがある（2026-10-05）．操作端末で同じコミットを clone し，`dataset/` を制御点の `atrium-data/feb4rag/repo/dataset` へ rsync すれば，取得の段は飛ばされる |
 | 選択肢を抽出できなかった割合が高い | `results.jsonl` の `answer`．`llm.num_predict` が足りずに JSON が途中で切れていないか |

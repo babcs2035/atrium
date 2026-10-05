@@ -32,6 +32,12 @@ def download(url: str, dest: Path) -> None:
                 tmp.open("wb") as out,
             ):
                 shutil.copyfileobj(response, out, CHUNK_BYTES)
+                expected = response.headers.get("Content-Length")
+            # 相手が途中で接続を閉じると例外にならずに短いファイルができる（NCBI で実際に起きた）ので，
+            # Content-Length があれば受信したバイト数と照合する
+            received = tmp.stat().st_size
+            if expected is not None and received != int(expected):
+                raise OSError(f"incomplete download: {received} of {expected} bytes")
             tmp.replace(dest)
             return
         except OSError as exc:  # URLError・タイムアウト・接続断はすべて OSError の派生
