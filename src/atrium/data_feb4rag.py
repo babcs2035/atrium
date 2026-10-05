@@ -15,13 +15,11 @@
 from __future__ import annotations
 
 import csv
-import io
 import json
 import logging
 import random
 import shutil
 import tarfile
-import urllib.request
 import zipfile
 from collections import defaultdict
 from pathlib import Path
@@ -30,6 +28,7 @@ import numpy as np
 
 from atrium.benchmarks import feb4rag_to_questions, load_questions, write_questions
 from atrium.config import AtriumConfig
+from atrium.download import download
 from atrium.manifest import SHARD_SPEC_FILENAME, Manifest, ShardSpec, write_json_model
 from atrium.paths import DatasetPaths
 
@@ -49,16 +48,20 @@ def fetch_repo(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     dataset_dir = _repo_dataset(paths)
     if not dataset_dir.exists():
         commit = cfg.data.feb4rag.feb4rag_commit
-        url = f"https://codeload.github.com/ielab/FeB4RAG/tar.gz/{commit}"
-        logger.info("downloading %s", url)
-        with urllib.request.urlopen(url) as response:  # noqa: S310 (URL はコミット固定)
-            data = response.read()
+        tarball = paths.root / "repo.tar.gz"
+        download(f"https://codeload.github.com/ielab/FeB4RAG/tar.gz/{commit}", tarball)
+        # 展開の途中で止まっても不完全な dataset/ が残らないよう，一時ディレクトリへ展開してから移す
+        staging = paths.root / f"{REPO_DIRNAME}.tmp"
+        shutil.rmtree(staging, ignore_errors=True)
         prefix = f"FeB4RAG-{commit}/dataset/"
-        with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
+        with tarfile.open(tarball, mode="r:gz") as tar:
             members = [m for m in tar.getmembers() if m.name.startswith(prefix)]
             for m in members:
                 m.name = "dataset/" + m.name[len(prefix) :]
-            tar.extractall(paths.root / REPO_DIRNAME, members=members, filter="data")
+            tar.extractall(staging, members=members, filter="data")
+        staging.replace(paths.root / REPO_DIRNAME)
+        # dataset/ だけを使う．tarball はこの段で作った一時ファイルなので消してよい
+        tarball.unlink()
 
     if not paths.questions.exists():
         lines = (
@@ -100,9 +103,7 @@ def fetch_beir(cfg: AtriumConfig, paths: DatasetPaths, source: str) -> None:
         return
     zip_path = target.parent / f"{source}.zip"
     target.parent.mkdir(parents=True, exist_ok=True)
-    url = cfg.data.feb4rag.beir_url.format(name=source)
-    logger.info("downloading %s", url)
-    urllib.request.urlretrieve(url, zip_path)  # noqa: S310 (URL は config.yaml の固定値)
+    download(cfg.data.feb4rag.beir_url.format(name=source), zip_path)
     with zipfile.ZipFile(zip_path) as zf:
         member = next(n for n in zf.namelist() if n.endswith("corpus.jsonl"))
         tmp = target.with_suffix(".jsonl.part")

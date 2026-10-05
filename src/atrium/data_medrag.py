@@ -20,7 +20,6 @@ import os
 import subprocess
 import sys
 import tarfile
-import urllib.request
 from pathlib import Path
 
 import numpy as np
@@ -28,6 +27,7 @@ import numpy as np
 from atrium.arrays import F32Array
 from atrium.benchmarks import load_questions, mirage_to_questions, write_questions
 from atrium.config import AtriumConfig
+from atrium.download import download
 from atrium.manifest import (
     GIB,
     SHARD_SPEC_FILENAME,
@@ -46,14 +46,6 @@ MEDCPT_DIM = 768
 STAMP = ".complete"
 
 
-def _download(url: str, dest: Path) -> None:
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    tmp = dest.with_suffix(dest.suffix + ".part")
-    logger.info("downloading %s", url)
-    urllib.request.urlretrieve(url, tmp)  # noqa: S310 (URL は config.yaml の固定値)
-    tmp.replace(dest)
-
-
 def _read_jsonl_docs(path: Path) -> list[dict[str, str]]:
     with path.open(encoding="utf-8") as f:
         return [json.loads(line) for line in f if line.strip()]
@@ -64,7 +56,7 @@ def fetch_benchmark(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     if paths.questions.exists():
         return
     raw_path = paths.root / "benchmark" / "MIRAGE.json"
-    _download(cfg.data.medrag.mirage_url, raw_path)
+    download(cfg.data.medrag.mirage_url, raw_path)
     questions = mirage_to_questions(json.loads(raw_path.read_text(encoding="utf-8")))
     write_questions(paths.questions, questions)
     logger.info("wrote %d questions", len(questions))
@@ -74,14 +66,14 @@ def _fetch_statpearls(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     corpus = paths.corpus("statpearls")
     tarball = corpus / "statpearls_NBK430685.tar.gz"
     if not tarball.exists():
-        _download(cfg.data.medrag.statpearls_url, tarball)
+        download(cfg.data.medrag.statpearls_url, tarball)
     with tarfile.open(tarball) as tar:
         tar.extractall(corpus, filter="data")
     # 断片化は MedRAG の src/data/statpearls.py（コミット固定）をそのまま使う．
     # スクリプトは "corpus/statpearls/..." を相対パスで読むので，データセットの root で実行する
     script = corpus / "statpearls_chunker.py"
     commit = cfg.data.medrag.medrag_commit
-    _download(
+    download(
         f"https://raw.githubusercontent.com/Teddy-XiongGZ/MedRAG/{commit}/src/data/statpearls.py",
         script,
     )
