@@ -4,10 +4,10 @@
 # 使い方（操作端末の `mise run setup` から呼ばれる）:
 #   bash scripts/remote/setup.sh [dataset...]   # 省略時は feb4rag medrag の順に準備する
 #
-# データ準備（コーパスの取得・埋め込み・ラベル・ルーター学習）は数日かかりうるため，
-# コンテナ atrium-data としてバックグラウンドで動かし，このスクリプトはすぐに戻る．
-# 各段は冪等なので，途中で止まっても再度 setup を実行すれば続きから再開する．
-# 進み具合は `mise run data-status` で確認する．
+# データ準備（コーパスの取得・埋め込み・ラベル・ルーター学習）は時間がかかるため，
+# scripts/remote/prepare_data.sh としてバックグラウンドで動かし，このスクリプトはすぐに戻る．
+# 埋め込みは制御点と cluster.gpu_workers の GPU で分担する．各段は冪等なので，
+# 途中で止まっても再度 setup を実行すれば続きから再開する．進み具合は `mise run data-status` で確認する．
 source "$(dirname "$0")/lib.sh"
 
 DATASETS=${*:-"feb4rag medrag"}
@@ -30,20 +30,14 @@ for target in node full; do
   docker push -q "$image"
 done
 
-# ── データ準備
-mkdir -p "$DATA_DIR/logs" "$DATA_DIR/.cache/huggingface"
-if docker ps -q -f "name=^atrium-data$" | grep -q .; then
+# ── データ準備（scripts/remote/prepare_data.sh を SSH が切れても続くように起動する）
+mkdir -p "$DATA_DIR/logs"
+PID_FILE="$DATA_DIR/logs/prepare.pid"
+if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2> /dev/null; then
   log "data preparation is already running (see: mise run data-status)"
   exit 0
 fi
-# 前回終了したコンテナ（ログは $DATA_DIR/logs に残してある）を片付けてから起動する
-docker rm atrium-data > /dev/null 2>&1 || true
-STEPS=""
-for d in $DATASETS; do
-  STEPS="$STEPS atrium --config /app/config.yaml data $d all --data-dir /data 2>&1 | tee -a /data/logs/data-$d.log;"
-done
-docker run -d --name atrium-data --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  --user "$HOST_UID:$HOST_GID" -e HOME=/tmp -e HF_HOME=/data/.cache/huggingface \
-  -v "$DATA_DIR:/data" -v "$PWD/config.yaml:/app/config.yaml:ro" -w /data \
-  "$IMAGE_FULL" bash -c "set -eo pipefail; $STEPS"
+# shellcheck disable=SC2086
+setsid nohup bash scripts/remote/prepare_data.sh $DATASETS >> "$DATA_DIR/logs/prepare.log" 2>&1 < /dev/null &
+echo $! > "$PID_FILE"
 log "started data preparation for: $DATASETS (see: mise run data-status)"

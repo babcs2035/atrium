@@ -79,6 +79,7 @@
 | `node_port` | 8100 | 専門家ノードの HTTP ポート |
 | `requester` | `192.168.15.100` | 質問者（wafl500） |
 | `expert_hosts` | `192.168.13.{100-109}`，`192.168.14.{100-109}` | 専門家の候補．`{a-b}` は範囲に展開する．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる |
+| `gpu_workers` | `192.168.15.{100-109}` | データ準備で MedCPT の埋め込みを制御点の GPU と分担する GPU PC（wafl500〜509） |
 | `shard_budget_gb` | 6.0 | 1 シャードの fp16 の埋め込みの目安．変えるとシャードの切り方が変わるので，制御点で `shards` 以降の段を作り直す必要がある |
 
 ## data
@@ -90,7 +91,7 @@
 |---|---|
 | `medrag.sources` | 4 データ源（RAGRoute と同じ順序） |
 | `medrag.article_encoder` / `query_encoder` | MedCPT の文書側・クエリ側のモデル |
-| `medrag.embed_batch_size` | 埋め込みのバッチの大きさ |
+| `medrag.embed_batch_size` | 埋め込みのバッチの大きさ（既定 128．RTX 3060 の 12 GB に収まる大きさ） |
 | `medrag.medrag_commit` | StatPearls の断片化に使う MedRAG のスクリプトのコミット |
 | `medrag.descriptions` | 各データ源の自己紹介文（Agent Card の description） |
 | `feb4rag.sources` | 13 エンジン（signal1m・robust04・trec-news を除く．RAGRoute と同じ） |

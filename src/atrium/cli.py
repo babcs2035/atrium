@@ -8,6 +8,7 @@
     node                      専門家ノードを起動する（コンテナ内）
     run                       質問者として実験を行う（コンテナ内）
     data {medrag,feb4rag} STEP   データ中継点での準備（コンテナ内）
+    embed-plan                MedRAG の埋め込みを複数の GPU で分担する表を作る（コンテナ内）
     analyze / metrics / compare  結果の分析（操作端末）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
 """
@@ -50,6 +51,7 @@ def shell_env(cfg: AtriumConfig) -> dict[str, str]:
         "NODE_PORT": str(c.node_port),
         "REQUESTER": c.requester,
         "EXPERTS": " ".join(expand_host_patterns(c.expert_hosts)),
+        "GPU_WORKERS": " ".join(expand_host_patterns(c.gpu_workers)),
         "KIND": cfg.experiment.kind,
         "DATASET": cfg.experiment.dataset,
         "ROUTING": cfg.experiment.routing,
@@ -135,8 +137,11 @@ def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
                 for s in sources:
                     d.fetch_corpus(cfg, paths, s)
             elif step == "embed":
+                only = None
+                if args.only_list:
+                    only = set(Path(args.only_list).read_text(encoding="utf-8").split())
                 for s in sources:
-                    d.embed_corpus(cfg, paths, s)
+                    d.embed_corpus(cfg, paths, s, only)
             elif step == "shards":
                 d.build_shards(cfg, paths)
             elif step == "queries":
@@ -160,6 +165,21 @@ def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         elif step == "train" and not (paths.router / "router.pt").exists():
             report = train_router.train_router(cfg, args.dataset, paths)
             print(json.dumps(report, indent=1))
+    return 0
+
+
+def cmd_embed_plan(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """未埋め込みの断片ファイルを担当者へ振り分け，担当者ごとの一覧を書く．"""
+    from atrium import data_medrag
+
+    plan = data_medrag.plan_embedding(
+        cfg, dataset_paths(Path(args.data_dir), "medrag"), args.workers
+    )
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for worker, keys in plan.items():
+        (out_dir / f"{worker}.txt").write_text("".join(f"{k}\n" for k in keys), encoding="utf-8")
+        print(f"{worker}\t{len(keys)}")
     return 0
 
 
@@ -279,7 +299,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("step", choices=sorted({*MEDRAG_STEPS, *FEB4RAG_STEPS, "all"}))
     p.add_argument("--data-dir", required=True)
     p.add_argument("--source", default=None, help="corpus / embed / beir を 1 データ源に限る")
+    p.add_argument(
+        "--only-list",
+        default=None,
+        help="embed: 分担表（1 行 1 個の source/name）にある断片だけを埋め込む",
+    )
     p.set_defaults(func=cmd_data)
+
+    p = sub.add_parser("embed-plan", help="MedRAG の埋め込みを複数の GPU で分担する表を作る")
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--workers", nargs="+", required=True)
+    p.add_argument("--out-dir", required=True, help="<worker>.txt（1 行 1 個の source/name）を書く")
+    p.set_defaults(func=cmd_embed_plan)
 
     for name, func in (("analyze", cmd_analyze), ("metrics", cmd_metrics)):
         p = sub.add_parser(name)

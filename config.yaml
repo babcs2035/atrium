@@ -95,6 +95,8 @@ cluster:
   expert_hosts: ["192.168.13.{100-109}", "192.168.14.{100-109}"]
   # 1 台の専門家に載せる索引の目安（fp16 の埋め込みのバイト数）
   shard_budget_gb: 6.0
+  # データ準備で MedCPT の埋め込みを分担する GPU PC（制御点の GPU に加えて使う）．wafl500〜509
+  gpu_workers: ["192.168.15.{100-109}"]
 
 data:
   medrag:
@@ -102,7 +104,8 @@ data:
     sources: [pubmed, statpearls, textbooks, wikipedia]
     article_encoder: "ncbi/MedCPT-Article-Encoder"
     query_encoder: "ncbi/MedCPT-Query-Encoder"
-    embed_batch_size: 256
+    # RTX 3060（12 GB）で 512 トークンの断片を fp32 で処理しても収まる大きさ
+    embed_batch_size: 128
     # 上流のコミットを固定して再現性を保つ
     medrag_commit: "7599a728a28789fd601728c08d313b1148051f41"
     mirage_url: "https://raw.githubusercontent.com/Teddy-XiongGZ/MIRAGE/main/benchmark.json"

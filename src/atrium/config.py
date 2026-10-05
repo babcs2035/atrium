@@ -103,6 +103,7 @@ class ClusterConfig(_Strict):
     requester: str
     expert_hosts: list[str]
     shard_budget_gb: float = Field(gt=0)
+    gpu_workers: list[str] = Field(default_factory=list)
 
 
 class MedragDataConfig(_Strict):
@@ -111,7 +112,7 @@ class MedragDataConfig(_Strict):
     sources: list[str]
     article_encoder: str
     query_encoder: str
-    embed_batch_size: int = 256
+    embed_batch_size: int = 128
     medrag_commit: str
     mirage_url: str
     statpearls_url: str

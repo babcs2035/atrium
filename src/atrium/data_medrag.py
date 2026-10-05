@@ -119,14 +119,56 @@ def chunk_names(paths: DatasetPaths, source: str) -> list[str]:
     return sorted(p.stem for p in chunk_dir.glob("*.jsonl") if _has_content(p))
 
 
-def embed_corpus(cfg: AtriumConfig, paths: DatasetPaths, source: str) -> None:
-    """断片ファイルごとに MedCPT-Article-Encoder で埋め込み，emb/<name>.f16.npy に保存する．"""
+def embed_key(source: str, name: str) -> str:
+    """埋め込みの分担表で断片ファイルを表すキー（"pubmed/pubmed23n0001"）．"""
+    return f"{source}/{name}"
+
+
+def balance_by_size(sizes: dict[str, int], workers: list[str]) -> dict[str, list[str]]:
+    """大きいものから順に，その時点で負荷（合計サイズ）が最小の担当者へ割り当てる（LPT 法）．"""
+    load = dict.fromkeys(workers, 0)
+    assigned: dict[str, list[str]] = {w: [] for w in workers}
+    for key in sorted(sizes, key=lambda k: (-sizes[k], k)):
+        worker = min(workers, key=lambda w: (load[w], workers.index(w)))
+        assigned[worker].append(key)
+        load[worker] += sizes[key]
+    return {w: sorted(keys) for w, keys in assigned.items()}
+
+
+def plan_embedding(
+    cfg: AtriumConfig, paths: DatasetPaths, workers: list[str]
+) -> dict[str, list[str]]:
+    """まだ埋め込んでいない断片ファイルを，ファイルのバイト数が均等になるよう担当者へ振り分ける．
+
+    埋め込みの時間は断片の総トークン数にほぼ比例し，それはファイルのバイト数にほぼ比例する．
+    """
+    sizes: dict[str, int] = {}
+    for source in cfg.data.medrag.sources:
+        corpus = paths.corpus(source)
+        for name in chunk_names(paths, source):
+            if not (corpus / "emb" / f"{name}.f16.npy").exists():
+                sizes[embed_key(source, name)] = (corpus / "chunk" / f"{name}.jsonl").stat().st_size
+    return balance_by_size(sizes, workers)
+
+
+def embed_corpus(
+    cfg: AtriumConfig, paths: DatasetPaths, source: str, only: set[str] | None = None
+) -> None:
+    """断片ファイルごとに MedCPT-Article-Encoder で埋め込み，emb/<name>.f16.npy に保存する．
+
+    only を与えると，その中にある embed_key の断片ファイルだけを埋め込む（複数の GPU で分担するとき）．
+    """
     from atrium.encoders import MedcptEncoder
 
     corpus = paths.corpus(source)
     emb_dir = corpus / "emb"
     emb_dir.mkdir(parents=True, exist_ok=True)
-    pending = [n for n in chunk_names(paths, source) if not (emb_dir / f"{n}.f16.npy").exists()]
+    pending = [
+        n
+        for n in chunk_names(paths, source)
+        if not (emb_dir / f"{n}.f16.npy").exists()
+        and (only is None or embed_key(source, n) in only)
+    ]
     if not pending:
         return
     m = cfg.data.medrag

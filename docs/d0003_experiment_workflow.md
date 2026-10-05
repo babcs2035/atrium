@@ -22,16 +22,20 @@ mise run stop
 1. 操作端末で `uv sync --extra requester`（分析・テスト用の環境）
 2. 制御点で registry（`atrium-registry`，`127.0.0.1:5002`）を起動する
 3. 制御点で `atrium-node` と `atrium-full` のイメージを build し，registry へ push する
-4. 制御点でコンテナ `atrium-data` を起動し，データ準備をバックグラウンドで始める
+4. 制御点で `scripts/remote/prepare_data.sh` を `setsid nohup` で起動し，データ準備をバックグラウンドで始める
+   （SSH が切れても続く）．MedCPT の埋め込みは制御点と wafl500〜509 の GPU 11 枚で分担する
 
 `mise run setup -- medrag` のように，データ準備の対象を絞れる（既定は `feb4rag medrag` の順）．
 データ準備の各段は冪等であり，成果物があれば飛ばす．止まった場合は再び `mise run setup` を実行すれば
-続きから再開する．ログは制御点の `/home/denjo/atrium-data/logs/data-<dataset>.log` に追記される．
+続きから再開する（中断した GPU PC に残った埋め込みも回収してから分担し直す）．
+ログは制御点の `/home/denjo/atrium-data/logs/prepare.log`（全体）と `data-feb4rag.log`（FeB4RAG），
+GPU PC ごとの埋め込みのログは制御点の `/home/denjo/atrium/artifacts/logs/embed/<host>.log` にある．
+状態は `prepare.status`（`running` / `done` / `failed (line N)`）に書かれる．
 
 ### data-status（データ準備の進み具合）
 
-コンテナ `atrium-data` の状態，各データセットの成果物の有無，MedRAG の埋め込み済みファイル数，
-ログの末尾，ディスクの空きを表示する．
+データ準備の状態，各データセットの成果物の有無，MedRAG の埋め込み済みファイル数（制御点に回収済みのもの），
+GPU PC ごとのログの末尾，ディスクの空きを表示する．
 
 ### deploy（実験準備）
 
@@ -90,6 +94,7 @@ research-cycle の `metrics_cmd` は `uv run atrium metrics --json`（最新の 
 | MedCPT による文書の埋め込み | 約 200 断片/秒（実測） | RTX 3090（他のプロセスと共有），バッチ 64，Textbooks |
 | StatPearls（約 30 万断片，9,651 ファイル）の埋め込み | 約 39 分（実測） | 1 ファイルが数十断片と小さく，ファイルごとの処理の費用が大きい |
 | 約 5,400 万断片の埋め込み（GPU 1 枚） | 3〜4 日（見積もり） | 上の速さのまま全断片を処理した場合 |
+| 同（GPU 11 枚で分担） | 半日前後（見積もり） | 上の 1/11 に，断片の配布（約 110 GB）とイメージの取得の時間を足したもの |
 | MedRAG の関連ラベル（7,663 問 × 全断片の内積） | 数時間（見積もり） | 縮小構成では数分．断片数に比例する |
 | FeB4RAG の準備（SGPT-5.8B を CPU で 790 問と 500 文書） | 数時間 | 5.8B を fp32 で CPU 推論 |
 | MIRAGE 全 7,663 問（retrieval_only） | 数時間 | 1 問あたり各シャードで fp16 の総当たり検索 |

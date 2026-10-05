@@ -28,7 +28,7 @@ gpu2（操作端末）── mise のタスク・分析
 ユーザー `denjo` で SSH できること．実験条件は全て [config.yaml](config.yaml) で決める．
 
 ```bash
-mise run setup         # 環境構築．制御点でデータ準備をバックグラウンドで始める（数日かかる）
+mise run setup         # 環境構築．制御点でデータ準備をバックグラウンドで始める（wafl500〜509 の GPU も使う）
 mise run data-status   # データ準備の進み具合を見る
 mise run deploy        # 実験準備．シャード・設定を配り，各ノードのコンテナを起動する
 mise run start         # 実験実行．結果は results/<YYYYMMDD_HHMMSS>/ に回収される

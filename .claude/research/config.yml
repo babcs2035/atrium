@@ -16,9 +16,10 @@
 #      192.168.13.100〜109・192.168.14.100〜109（GPU なし），質問者は 192.168.15.100（wafl500）である．
 #      192.168.15.101〜109 は未使用の GPU PC であり，使う場合は config.yaml の cluster に追加する．
 #   3. データ準備（`mise run setup` が制御点でバックグラウンドに起動する）は，MedCPT による
-#      約 5,400 万断片の埋め込みを含み，数日かかる．`mise run deploy` はデータ準備が終わる前には
+#      約 5,400 万断片の埋め込みを含み，制御点と wafl500〜509 の GPU で分担しても半日以上かかる．`mise run deploy` はデータ準備が終わる前には
 #      失敗して止まる．終わっていなければ `mise run data-status` で進み具合を記録し，E0 などデータに
-#      依存しない作業を先に行う．データ準備を中断・削除しない（再計算に数日かかる）．
+#      依存しない作業を先に行う．データ準備の間は wafl500〜509 の GPU を埋め込みに使うので，
+#      それらを使う実験（質問者 wafl500 を含む）は準備の完了を待つ．データ準備を中断・削除しない．
 #   4. 制御点のデータディレクトリ（/home/denjo/atrium-data）の削除，`mise run clean --full` は
 #      人間の判断を要する（autonomy.destructive_requires_human）．
 #   5. routing=all・merge=score・answer_mode=retrieval_only の実行では，analysis_report.md の
