@@ -1,0 +1,125 @@
+# atrium の実験設定（唯一の情報源）．
+# mise の各タスク（setup / deploy / start / analyze）と，各ノードで動くコンテナが共通に読む．
+# research-cycle は原則としてこのファイルの値を 1 か所だけ変えて実験する（単一レバー原則）．
+# 各項目の意味は docs/d0002_configuration.md を参照．
+
+experiment:
+  # e0_measure: 実機の性能実測（E0）／ e1_routing: 連合 RAG の実行（E1 以降）
+  kind: e1_routing
+  # medrag: MIRAGE ＋ MedRAG コーパス ／ feb4rag: FeB4RAG（13 エンジン）
+  dataset: medrag
+  # ragroute / all / random / none（RAGRoute の 4 方式）
+  routing: all
+  # snippet_return: 断片返却型 ／ local_answer: 宿る型 ／ retrieval_only: LLM を呼ばず検索まで
+  answer_mode: retrieval_only
+  # 動作確認用に各データセットの先頭 N 問へ絞る（null で全問）
+  question_limit: null
+  # 質問者が同時に処理する質問数
+  parallel: 4
+  # 乱数の種（random ルーティング・学習の分割で使う）
+  seed: 12
+
+retrieval:
+  # 各データ源（シャードではなくデータ源）から取得する件数（RAGRoute の K）
+  k_ret: 50
+  # 統合後に LLM へ渡す件数（RAGRoute の K_RERANK）
+  k_rerank: 15
+  # score: 検索スコアで統合 ／ cross_encoder: bge-reranker-v2-m3 で再ランク ／
+  # qrels_oracle: FeB4RAG の結果統合用ラベルの順に並べる（RAGRoute で再ランクを無効にした場合と同じ）
+  merge: score
+  # medrag ではクエリ埋め込みを質問者がその場で計算する（live）．
+  # feb4rag は検索器が 8 種類（5.8B を含む）あるため，中継点で事前計算したものを使う（cached）．
+  query_embedding:
+    medrag: live
+    feb4rag: cached
+
+routing:
+  # random で選ぶデータ源の数（RAGRoute: medrag 3 / feb4rag 9）
+  random_k:
+    medrag: 3
+    feb4rag: 9
+  # ragroute の判定閾値（RAGRoute の推論コードと同じ 0.5）
+  ragroute_threshold: 0.5
+
+llm:
+  # 断片返却型で回答を生成する質問者側の LLM（Ollama のモデル名）
+  requester_model: "llama3.1:8b"
+  # 宿る型で各専門家が使う LLM
+  expert_model: "qwen3:0.6b"
+  # 生成の上限トークン数と文脈長（Ollama の num_predict / num_ctx）
+  num_predict: 2048
+  num_ctx: 16384
+  # qwen3 系の思考モードを使うか（Ollama の think）
+  think: false
+  # 1 回の生成の打ち切り時間（秒）
+  timeout_s: 600
+
+local_answer:
+  # 宿る型で各専門家が自分のシャードから使う断片数
+  k_context: 15
+  # 複数の専門家の回答の統合方法（vote: 選択肢の多数決）
+  aggregate: vote
+
+e0:
+  # 実測の対象ホスト（GPU なしの専門家の代表）と，RTT・スループットを測る相手
+  hosts: ["192.168.13.100", "192.168.13.101"]
+  iperf_pairs: [["192.168.13.100", "192.168.13.101"], ["192.168.13.100", "192.168.14.100"]]
+  # llama-bench で測る GGUF（Hugging Face のリポジトリ/ファイル名）
+  gguf_models:
+    - {name: "qwen3-0.6b", repo: "unsloth/Qwen3-0.6B-GGUF", file: "Qwen3-0.6B-Q4_K_M.gguf"}
+    - {name: "qwen3-1.7b", repo: "unsloth/Qwen3-1.7B-GGUF", file: "Qwen3-1.7B-Q4_K_M.gguf"}
+    - {name: "qwen3-4b", repo: "unsloth/Qwen3-4B-GGUF", file: "Qwen3-4B-Q4_K_M.gguf"}
+    - {name: "qwen3-8b", repo: "unsloth/Qwen3-8B-GGUF", file: "Qwen3-8B-Q4_K_M.gguf"}
+  # FAISS（fp16 平坦索引）の検索時間を測るベクトル数
+  faiss_vectors: [1000000, 2000000, 3000000]
+  faiss_queries: 20
+
+cluster:
+  # 制御点：操作端末から `ssh <control>` で入る GPU PC．データ中継点（コーパス取得・埋め込み・
+  # ラベル計算・ルーター学習）を兼ね，各ノードへの SSH・イメージ配布・シャード配布もここから行う
+  control: wafl-ctrl5
+  # 制御点から各ノードへ SSH するユーザー
+  ssh_user: denjo
+  # 制御点と各ノードで本リポジトリの成果物を置くディレクトリ
+  remote_dir: /home/denjo/atrium
+  # 制御点のデータディレクトリ（atrium.paths の構成）
+  data_dir: /home/denjo/atrium-data
+  # 制御点のローカル registry のポート（5000: WAFL-PEFT，5001: expert-mesh が使用中）
+  registry_port: 5002
+  # 専門家ノードの HTTP ポート
+  node_port: 8100
+  # 質問者：ベンチマークの質問を投げ，断片返却型では回答も生成する GPU PC（wafl500）
+  requester: "192.168.15.100"
+  # 専門家ノードの候補（シャード数だけ先頭から使う）．"192.168.13.{100-109}" は .100〜.109 に展開する
+  # 13.x は wafl300〜309，14.x は wafl400〜409（i5-8350U，16 GB，GPU なし）
+  expert_hosts: ["192.168.13.{100-109}", "192.168.14.{100-109}"]
+  # 1 台の専門家に載せる索引の目安（fp16 の埋め込みのバイト数）
+  shard_budget_gb: 6.0
+
+data:
+  medrag:
+    # 4 データ源（RAGRoute と同じ順序．ルーターの one-hot の順序にもなる）
+    sources: [pubmed, statpearls, textbooks, wikipedia]
+    article_encoder: "ncbi/MedCPT-Article-Encoder"
+    query_encoder: "ncbi/MedCPT-Query-Encoder"
+    embed_batch_size: 256
+    # 上流のコミットを固定して再現性を保つ
+    medrag_commit: "7599a728a28789fd601728c08d313b1148051f41"
+    mirage_url: "https://raw.githubusercontent.com/Teddy-XiongGZ/MIRAGE/main/benchmark.json"
+    statpearls_url: "https://ftp.ncbi.nlm.nih.gov/pub/litarch/3d/12/statpearls_NBK430685.tar.gz"
+    # 自己紹介文（Agent Card の description）．MedRAG 論文の記述に基づく
+    descriptions:
+      pubmed: "PubMed abstracts: titles and abstracts of biomedical research articles."
+      statpearls: "StatPearls: clinical decision support articles for medical professionals."
+      textbooks: "Medical textbooks widely used by USMLE examinees (18 books)."
+      wikipedia: "General-domain Wikipedia articles."
+  feb4rag:
+    # RAGRoute と同じ 13 エンジン（signal1m・robust04・trec-news は BEIR で自由に入手できないため除く）
+    sources: [arguana, climate-fever, dbpedia-entity, fever, fiqa, hotpotqa, msmarco, nfcorpus, nq, scidocs, scifact, trec-covid, webis-touche2020]
+    feb4rag_commit: "b0fe9e19eddac3586fd54d30aebbb5d3d0d72118"
+    beir_url: "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/{name}.zip"
+    # 重心の推定に使う文書数（全文書の埋め込みは重いため無作為抽出で近似する）
+    centroid_sample: 2000
+    # 5.8B の SGPT は CPU で動かすため抽出数を減らす
+    centroid_sample_overrides:
+      trec-covid: 500

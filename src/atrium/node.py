@@ -1,0 +1,215 @@
+"""専門家ノードの HTTP サーバー．
+
+1 台のノードは 1 個以上のシャードを持ち，次の 2 通りで問い合わせに応じる．
+
+- 断片返却型（/v1/retrieve）: 検索した断片をそのまま返す．
+- 宿る型（/v1/answer）: 断片を自分の LLM（同じホストの Ollama）に渡し，回答文だけを返す．
+
+コンテナ内では `atrium node` で起動し，設定は環境変数で受け取る（scripts/tasks/deploy.sh が設定する）．
+
+    ATRIUM_NODE_ID     ノード名（ホスト名）
+    ATRIUM_SHARDS_DIR  シャードを置いたディレクトリ
+    ATRIUM_SHARD_IDS   読み込むシャード ID（カンマ区切り）
+    ATRIUM_OLLAMA_URL  宿る型で使う Ollama の URL
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+import time
+from collections.abc import AsyncIterator, Mapping
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+import httpx
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
+from atrium import llm, prompts
+from atrium.config import AtriumConfig, load_config
+from atrium.protocol import (
+    AnswerRequest,
+    AnswerResponse,
+    DocOut,
+    LlmUsage,
+    Problem,
+    ProfileResponse,
+    RetrieveRequest,
+    RetrieveResponse,
+    ShardProfile,
+)
+from atrium.store import RetrievedDoc, ShardStore, load_shard
+
+logger = logging.getLogger(__name__)
+
+AGENT_CARD_PATH = "/.well-known/agent-card.json"
+A2A_PROTOCOL_VERSION = "0.3.0"
+
+
+class NodeError(Exception):
+    """外部へ problem details として返す例外．"""
+
+    def __init__(self, status: int, title: str, detail: str | None = None) -> None:
+        """HTTP status と，外部へ見せてよい説明を持つ．"""
+        super().__init__(title)
+        self.problem = Problem(status=status, title=title, detail=detail)
+
+
+def build_agent_card(
+    node_id: str, base_url: str, stores: Mapping[str, ShardStore]
+) -> dict[str, object]:
+    """A2A の Agent Card を作る．シャード 1 個を 1 個のスキルとして名乗る．"""
+    skills = [
+        {
+            "id": store.spec.shard_id,
+            "name": store.spec.source,
+            "description": store.spec.description,
+            "tags": [store.spec.source, store.spec.kind],
+        }
+        for store in stores.values()
+    ]
+    sources = sorted({store.spec.source for store in stores.values()})
+    return {
+        "protocolVersion": A2A_PROTOCOL_VERSION,
+        "name": f"atrium-expert-{node_id}",
+        "description": "Expert node holding: " + ", ".join(sources),
+        "url": base_url,
+        "preferredTransport": "HTTP+JSON",
+        "version": "0.1.0",
+        "capabilities": {"streaming": False},
+        "defaultInputModes": ["application/json"],
+        "defaultOutputModes": ["application/json"],
+        "skills": skills,
+    }
+
+
+def _merge_top(docs: list[RetrievedDoc], k: int) -> list[RetrievedDoc]:
+    return sorted(docs, key=lambda d: d.score, reverse=True)[:k]
+
+
+def create_app(
+    node_id: str,
+    stores: Mapping[str, ShardStore],
+    cfg: AtriumConfig,
+    ollama_url: str,
+    llm_client: httpx.AsyncClient | None = None,
+) -> FastAPI:
+    """ノードの FastAPI アプリを作る（テストでは llm_client に MockTransport を渡す）．"""
+    client = llm_client or httpx.AsyncClient()
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        yield
+        if llm_client is None:
+            await client.aclose()
+
+    app = FastAPI(title=f"atrium expert {node_id}", lifespan=lifespan)
+
+    @app.exception_handler(NodeError)
+    async def _node_error(_: Request, exc: NodeError) -> JSONResponse:
+        return JSONResponse(
+            exc.problem.model_dump(),
+            status_code=exc.problem.status,
+            media_type="application/problem+json",
+        )
+
+    def store_of(shard_id: str) -> ShardStore:
+        if shard_id not in stores:
+            raise NodeError(404, "Unknown shard", f"this node does not hold shard {shard_id!r}")
+        return stores[shard_id]
+
+    def search(
+        store: ShardStore, k: int, embedding: list[float] | None, query_id: str | None
+    ) -> list[RetrievedDoc]:
+        try:
+            return store.search(k=k, embedding=embedding, query_id=query_id)
+        except (ValueError, KeyError) as exc:
+            # 入力の不整合（次元違い・未知の要求 ID）は呼び出し元の誤りとして 400 で返す
+            raise NodeError(400, "Invalid retrieval request", str(exc)) from exc
+
+    @app.get("/healthz")
+    def healthz() -> dict[str, object]:
+        return {"status": "ok", "node_id": node_id, "shards": sorted(stores)}
+
+    @app.get(AGENT_CARD_PATH)
+    def agent_card(request: Request) -> dict[str, object]:
+        return build_agent_card(node_id, str(request.base_url).rstrip("/"), stores)
+
+    @app.get("/v1/profile")
+    def profile() -> ProfileResponse:
+        return ProfileResponse(
+            node_id=node_id,
+            shards=[
+                ShardProfile(
+                    shard_id=s.spec.shard_id,
+                    source=s.spec.source,
+                    n_docs=s.spec.n_docs,
+                    dim=s.spec.dim,
+                    encoder=s.spec.encoder,
+                    centroid=s.spec.centroid,
+                    description=s.spec.description,
+                )
+                for s in stores.values()
+            ],
+        )
+
+    # FAISS の検索は CPU を使う同期処理なので，def のまま FastAPI のスレッドプールで動かす
+    @app.post("/v1/retrieve")
+    def retrieve(req: RetrieveRequest) -> RetrieveResponse:
+        start = time.perf_counter()
+        docs = search(store_of(req.shard_id), req.k, req.embedding, req.query_id)
+        return RetrieveResponse(
+            shard_id=req.shard_id,
+            docs=[
+                DocOut(doc_id=d.doc_id, title=d.title, content=d.content, score=d.score)
+                for d in docs
+            ],
+            duration_s=time.perf_counter() - start,
+        )
+
+    @app.post("/v1/answer")
+    async def answer(req: AnswerRequest) -> AnswerResponse:
+        start = time.perf_counter()
+        docs: list[RetrievedDoc] = []
+        for shard_id in req.shard_ids:
+            docs.extend(search(store_of(shard_id), req.k, req.embedding, req.query_id))
+        context = _merge_top(docs, req.k)
+        retrieve_s = time.perf_counter() - start
+        messages = prompts.build_messages(req.dataset, req.question, context, req.options)
+        try:
+            result = await llm.chat(client, ollama_url, cfg.llm.expert_model, messages, cfg.llm)
+        except httpx.HTTPError as exc:
+            logger.error("local LLM call failed: %s", exc)
+            raise NodeError(502, "Local LLM unavailable") from exc
+        return AnswerResponse(
+            node_id=node_id,
+            answer=result.content,
+            choice=prompts.extract_choice(result.content),
+            n_context_docs=len(context),
+            top_score=context[0].score if context else None,
+            retrieve_s=retrieve_s,
+            llm=LlmUsage(
+                prompt_tokens=result.prompt_tokens,
+                output_tokens=result.output_tokens,
+                prefill_s=result.prefill_s,
+                decode_s=result.decode_s,
+                total_s=result.total_s,
+            ),
+            duration_s=time.perf_counter() - start,
+        )
+
+    return app
+
+
+def main(config_path: Path, host: str, port: int) -> None:
+    """環境変数からシャードを読み込み，ノードを起動する．"""
+    import uvicorn
+
+    cfg = load_config(config_path)
+    node_id = os.environ["ATRIUM_NODE_ID"]
+    shards_dir = Path(os.environ["ATRIUM_SHARDS_DIR"])
+    shard_ids = [s for s in os.environ.get("ATRIUM_SHARD_IDS", "").split(",") if s]
+    ollama_url = os.environ.get("ATRIUM_OLLAMA_URL", "http://localhost:11434")
+    stores = {sid: load_shard(shards_dir / sid) for sid in shard_ids}
+    uvicorn.run(create_app(node_id, stores, cfg, ollama_url), host=host, port=port)

@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# 実験の結果（results.jsonl・metrics.json・analysis_report.md）は研究の一次記録として追跡し，
+# 大きくなるログだけを除外する．artifacts/ は deploy・analyze が毎回作り直す作業用の写し
+results/*/logs/
+results/*/requester.log
+artifacts/
+
+# research-cycle の実行時ファイル（環境固有）
+.claude/research/agent.json
+.claude/research/enabled
+.claude/research/model_mode
+.claude/research/.watchdog_*
+.claude/research/.claude_turn_state
+.claude/research/.hook_debug.log
+.claude/settings.local.json
