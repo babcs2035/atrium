@@ -9,6 +9,7 @@
     run                       質問者として実験を行う（コンテナ内）
     data {medrag,feb4rag} STEP   データ中継点での準備（コンテナ内）
     embed-plan                MedRAG の埋め込みを複数の GPU で分担する表を作る（コンテナ内）
+    fetch-models DATASET      データセットで使うモデルを Hugging Face のキャッシュへ取得する（コンテナ内）
     analyze / metrics / compare  結果の分析（操作端末）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
 """
@@ -169,6 +170,27 @@ def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def models_for(cfg: AtriumConfig, dataset: str) -> list[str]:
+    """データセットの準備と実験で使う Hugging Face のモデルの一覧．"""
+    from atrium.encoders import FEB4RAG_ENCODERS
+    from atrium.requester import CrossEncoderReranker
+
+    if dataset == "medrag":
+        m = cfg.data.medrag
+        return [m.query_encoder, m.article_encoder, CrossEncoderReranker.MODEL]
+    return sorted({spec.hf_name for spec in FEB4RAG_ENCODERS.values()})
+
+
+def cmd_fetch_models(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """モデルを Hugging Face のキャッシュ（HF_HOME）へ取得する．取得済みなら何もしない．"""
+    from huggingface_hub import snapshot_download
+
+    for name in models_for(cfg, args.dataset):
+        logging.info("fetching %s", name)
+        snapshot_download(repo_id=name)
+    return 0
+
+
 def cmd_embed_plan(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """未埋め込みの断片ファイルを担当者へ振り分け，担当者ごとの一覧を書く．"""
     from atrium import data_medrag
@@ -306,6 +328,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="embed: 分担表（1 行 1 個の source/name）にある断片だけを埋め込む",
     )
     p.set_defaults(func=cmd_data)
+
+    p = sub.add_parser("fetch-models", help="データセットで使うモデルを HF のキャッシュへ取得する")
+    p.add_argument("dataset", choices=["medrag", "feb4rag"])
+    p.set_defaults(func=cmd_fetch_models)
 
     p = sub.add_parser("embed-plan", help="MedRAG の埋め込みを複数の GPU で分担する表を作る")
     p.add_argument("--data-dir", required=True)

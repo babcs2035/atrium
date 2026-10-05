@@ -67,9 +67,13 @@ embed_worker() {
   nrsync -a --files-from="$PLAN_DIR/$host.files" "$DATA_DIR/medrag/" "$SSH_USER@$host:$WORK_DIR/medrag/"
   nrsync -a "$plan" "$SSH_USER@$host:$WORK_DIR/plan.txt"
   nrsync -a config.yaml "$SSH_USER@$host:$WORK_DIR/config.yaml"
+  # MedCPT のモデルは制御点のキャッシュから配り，GPU PC ではオフラインで読み込む
+  # （GPU PC のインターネット接続に頼らない．2026-10-06 に研究室のゲートウェイが止まった）
+  nssh "$host" "mkdir -p $WORK_DIR/hf/hub"
+  nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$SSH_USER@$host:$WORK_DIR/hf/hub/"
   log "$host: embedding"
   nssh "$host" "docker rm -f atrium-embed > /dev/null 2>&1; docker run --rm --name atrium-embed \
-    --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/work/hf \
+    --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/work/hf -e HF_HUB_OFFLINE=1 \
     -v $WORK_DIR:/work $IMAGE_FULL atrium --config /work/config.yaml data medrag embed \
     --data-dir /work --only-list /work/plan.txt"
   collect_worker "$host"
@@ -82,7 +86,10 @@ embed_worker() {
 FEB_PID=""
 if wants feb4rag; then
   log "feb4rag: started in background (log: $LOG_DIR/data-feb4rag.log)"
-  hub_run atrium-data-feb4rag data feb4rag all --data-dir /data >> "$LOG_DIR/data-feb4rag.log" 2>&1 &
+  {
+    hub_run atrium-fetch-models-feb4rag fetch-models feb4rag \
+      && hub_run atrium-data-feb4rag data feb4rag all --data-dir /data
+  } >> "$LOG_DIR/data-feb4rag.log" 2>&1 &
   FEB_PID=$!
 fi
 
@@ -100,6 +107,8 @@ if wants medrag; then
   log "medrag: planning embedding over ${#workers[@]} GPUs"
   rm -rf "$PLAN_DIR"
   hub_run atrium-embed-plan embed-plan --data-dir /data --workers "${workers[@]}" --out-dir /data/medrag/embed_plan
+  # GPU PC へ配る MedCPT のモデルを，制御点のキャッシュに用意しておく
+  hub_run atrium-fetch-models fetch-models medrag
   run_parallel embed embed_worker "${workers[@]}" \
     || log "some GPU workers failed; their files will be embedded on the control host"
   log "medrag: embedding remaining files on the control host"
