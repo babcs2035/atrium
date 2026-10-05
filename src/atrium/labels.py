@@ -28,6 +28,8 @@ MEDRAG_VAL_FRACTION_OF_TRAIN = 0.1
 FEB4RAG_SPLIT_SEED = 42
 FEB4RAG_REST_FRACTION = 0.7  # 30% を学習に使い，残りを val : test = 1 : 6 に分ける
 FEB4RAG_TEST_FRACTION_OF_REST = 6 / 7
+# 関連ラベルの計算で一度に GPU へ載せる断片数（7,663 問 × 5 万断片の得点で約 1.5 GB）
+LABEL_BLOCK_ROWS = 50_000
 
 
 def contributing_sources_from_topk(scores: dict[str, F32Array], k_rerank: int) -> list[list[str]]:
@@ -62,9 +64,14 @@ def compute_medrag_labels(cfg: AtriumConfig, paths: DatasetPaths) -> None:
         for shard in manifest.shards_of(source):
             for f in shard.files:
                 emb = np.load(paths.shards / shard.shard_id / "emb" / f"{f.name}.f16.npy")
-                block = torch.from_numpy(emb).to(device).float()
-                scores = queries @ block.T
-                best = torch.topk(torch.cat([best, scores], dim=1), k_ret, dim=1).values
+                # 断片ファイルには 30 万断片を超えるものがあり，質問数 × 断片数の得点を一度に作ると
+                # 12 GB の GPU に収まらない．区切って上位 k_ret を順に統合しても結果は同じである
+                for start in range(0, emb.shape[0], LABEL_BLOCK_ROWS):
+                    block = (
+                        torch.from_numpy(emb[start : start + LABEL_BLOCK_ROWS]).to(device).float()
+                    )
+                    scores = queries @ block.T
+                    best = torch.topk(torch.cat([best, scores], dim=1), k_ret, dim=1).values
             logger.info("labels: searched shard %s", shard.shard_id)
         top[source] = best.cpu().numpy()
     contributing = contributing_sources_from_topk(top, cfg.retrieval.k_rerank)
