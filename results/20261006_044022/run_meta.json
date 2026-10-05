@@ -1,0 +1,255 @@
+{
+ "run_id": "20261006_044022",
+ "git_head": "ffd003c136b7-dirty",
+ "dataset": "feb4rag",
+ "routing": "ragroute",
+ "answer_mode": "retrieval_only",
+ "merge": "qrels_oracle",
+ "n_questions": 790,
+ "n_nodes": 13,
+ "discovery_s": 0.0518075751606375,
+ "sources": [
+  {
+   "source": "arguana",
+   "n_docs": 8674,
+   "shards": [
+    "arguana"
+   ]
+  },
+  {
+   "source": "climate-fever",
+   "n_docs": 5416593,
+   "shards": [
+    "climate-fever"
+   ]
+  },
+  {
+   "source": "dbpedia-entity",
+   "n_docs": 4635922,
+   "shards": [
+    "dbpedia-entity"
+   ]
+  },
+  {
+   "source": "fever",
+   "n_docs": 5416568,
+   "shards": [
+    "fever"
+   ]
+  },
+  {
+   "source": "fiqa",
+   "n_docs": 57638,
+   "shards": [
+    "fiqa"
+   ]
+  },
+  {
+   "source": "hotpotqa",
+   "n_docs": 5233329,
+   "shards": [
+    "hotpotqa"
+   ]
+  },
+  {
+   "source": "msmarco",
+   "n_docs": 8841823,
+   "shards": [
+    "msmarco"
+   ]
+  },
+  {
+   "source": "nfcorpus",
+   "n_docs": 3633,
+   "shards": [
+    "nfcorpus"
+   ]
+  },
+  {
+   "source": "nq",
+   "n_docs": 2681468,
+   "shards": [
+    "nq"
+   ]
+  },
+  {
+   "source": "scidocs",
+   "n_docs": 25657,
+   "shards": [
+    "scidocs"
+   ]
+  },
+  {
+   "source": "scifact",
+   "n_docs": 5183,
+   "shards": [
+    "scifact"
+   ]
+  },
+  {
+   "source": "trec-covid",
+   "n_docs": 171332,
+   "shards": [
+    "trec-covid"
+   ]
+  },
+  {
+   "source": "webis-touche2020",
+   "n_docs": 382545,
+   "shards": [
+    "webis-touche2020"
+   ]
+  }
+ ],
+ "config": {
+  "experiment": {
+   "kind": "e1_routing",
+   "dataset": "feb4rag",
+   "routing": "ragroute",
+   "answer_mode": "retrieval_only",
+   "question_limit": null,
+   "parallel": 4,
+   "seed": 12
+  },
+  "retrieval": {
+   "k_ret": 50,
+   "k_rerank": 15,
+   "merge": "qrels_oracle",
+   "query_embedding": {
+    "medrag": "live",
+    "feb4rag": "cached"
+   }
+  },
+  "routing": {
+   "random_k": {
+    "medrag": 3,
+    "feb4rag": 9
+   },
+   "ragroute_threshold": 0.5
+  },
+  "llm": {
+   "ollama_version": "0.35.1",
+   "requester_model": "llama3.1:8b",
+   "expert_model": "qwen3:0.6b",
+   "num_predict": 2048,
+   "num_ctx": 16384,
+   "think": false,
+   "timeout_s": 600.0
+  },
+  "local_answer": {
+   "k_context": 15,
+   "aggregate": "vote"
+  },
+  "e0": {
+   "hosts": [
+    "192.168.13.100",
+    "192.168.13.101"
+   ],
+   "iperf_pairs": [
+    [
+     "192.168.13.100",
+     "192.168.13.101"
+    ],
+    [
+     "192.168.13.100",
+     "192.168.14.100"
+    ]
+   ],
+   "gguf_models": [
+    {
+     "name": "qwen3-0.6b",
+     "repo": "unsloth/Qwen3-0.6B-GGUF",
+     "file": "Qwen3-0.6B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-1.7b",
+     "repo": "unsloth/Qwen3-1.7B-GGUF",
+     "file": "Qwen3-1.7B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-4b",
+     "repo": "unsloth/Qwen3-4B-GGUF",
+     "file": "Qwen3-4B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-8b",
+     "repo": "unsloth/Qwen3-8B-GGUF",
+     "file": "Qwen3-8B-Q4_K_M.gguf"
+    }
+   ],
+   "faiss_vectors": [
+    1000000,
+    2000000,
+    3000000
+   ],
+   "faiss_queries": 20
+  },
+  "cluster": {
+   "control": "wafl-ctrl5",
+   "ssh_user": "denjo",
+   "remote_dir": "/home/denjo/atrium",
+   "data_dir": "/home/denjo/atrium-data",
+   "registry_port": 5000,
+   "node_port": 8100,
+   "requester": "192.168.15.100",
+   "expert_hosts": [
+    "192.168.14.{100-109}",
+    "192.168.13.{102-109}"
+   ],
+   "shard_budget_gb": 6.0,
+   "gpu_workers": [
+    "192.168.15.{100-109}"
+   ],
+   "release_hugepages": true
+  },
+  "data": {
+   "medrag": {
+    "sources": [
+     "pubmed",
+     "statpearls",
+     "textbooks",
+     "wikipedia"
+    ],
+    "article_encoder": "ncbi/MedCPT-Article-Encoder",
+    "query_encoder": "ncbi/MedCPT-Query-Encoder",
+    "embed_batch_size": 128,
+    "embed_precision": "fp16_autocast",
+    "medrag_commit": "7599a728a28789fd601728c08d313b1148051f41",
+    "mirage_url": "https://raw.githubusercontent.com/Teddy-XiongGZ/MIRAGE/main/benchmark.json",
+    "statpearls_url": "https://ftp.ncbi.nlm.nih.gov/pub/litarch/3d/12/statpearls_NBK430685.tar.gz",
+    "descriptions": {
+     "pubmed": "PubMed abstracts: titles and abstracts of biomedical research articles.",
+     "statpearls": "StatPearls: clinical decision support articles for medical professionals.",
+     "textbooks": "Medical textbooks widely used by USMLE examinees (18 books).",
+     "wikipedia": "General-domain Wikipedia articles."
+    }
+   },
+   "feb4rag": {
+    "sources": [
+     "arguana",
+     "climate-fever",
+     "dbpedia-entity",
+     "fever",
+     "fiqa",
+     "hotpotqa",
+     "msmarco",
+     "nfcorpus",
+     "nq",
+     "scidocs",
+     "scifact",
+     "trec-covid",
+     "webis-touche2020"
+    ],
+    "feb4rag_commit": "b0fe9e19eddac3586fd54d30aebbb5d3d0d72118",
+    "beir_hf_repo": "BeIR/{name}",
+    "centroid_sample": 2000,
+    "centroid_sample_overrides": {
+     "trec-covid": 500
+    }
+   }
+  }
+ },
+ "started_at": 1791229226.694976,
+ "finished_at": 1791229256.3585427,
+ "failures": 0
+}
