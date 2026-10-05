@@ -1,0 +1,2 @@
+ChannelA-DIMM0 8 GB @2400 MT/s
+ChannelB-DIMM0 8 GB @2400 MT/s
