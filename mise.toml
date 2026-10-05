@@ -1,0 +1,70 @@
+# atrium の mise タスク．操作端末（gpu2）で実行する．中身は scripts/tasks/*.sh にあり，
+# 各ノードの操作は制御点（config.yaml の cluster.control）の scripts/remote/*.sh が行う．
+#
+#   mise run setup        環境構築（uv・registry・イメージ・データ準備の開始）
+#   mise run data-status  データ準備の進み具合
+#   mise run deploy       実験準備（シャード・設定の配布，コンテナの起動）
+#   mise run start        実験実行（results/<run_id>/ に回収）
+#   mise run analyze      結果の分析（metrics.json・analysis_report.md）
+#   mise run stop         全ノードのコンテナを停止（メモリ・VRAM の解放）
+#   mise run clean        全ノードのコンテナを削除（--full でノード上の成果物も削除．破壊的）
+#   mise run check        テスト・lint・型検査
+
+[tools]
+uv = "0.6.13"
+
+[tasks.setup]
+description = "Environment setup: uv sync, registry, image build/push, start data preparation on the control host"
+usage = '''
+arg "[datasets]" var=#true help="Datasets to prepare (default: feb4rag medrag)"
+'''
+run = 'bash scripts/tasks/setup.sh ${usage_datasets:-}'
+
+[tasks.data-status]
+description = "Show progress of data preparation on the control host"
+run = "bash scripts/tasks/remote.sh data_status"
+
+[tasks.deploy]
+description = "Experiment preparation: placement, distribute shards/config, start containers, healthcheck"
+run = "bash scripts/tasks/deploy.sh"
+
+[tasks.start]
+description = "Run the experiment configured in config.yaml and fetch results into results/<run_id>/"
+usage = '''
+arg "[run_id]" help="Run ID (default: current time). Pass an existing ID to re-attach to a running experiment"
+'''
+run = 'bash scripts/tasks/start.sh ${usage_run_id:-}'
+
+[tasks.analyze]
+description = "Analyze a run (default: latest) into metrics.json and analysis_report.md"
+usage = '''
+arg "[run_id]" help="Run ID under results/ (default: latest)"
+'''
+run = 'bash scripts/tasks/analyze.sh ${usage_run_id:-}'
+
+[tasks.stop]
+description = "Stop (not remove) containers on all nodes to release memory and VRAM"
+run = "bash scripts/tasks/remote.sh stop"
+
+[tasks.clean]
+description = "Remove containers on all nodes; --full also removes REMOTE_DIR and Ollama models on nodes (destructive)"
+usage = '''
+flag "--full" help="Also remove REMOTE_DIR and Ollama model volumes on every node"
+'''
+run = '''
+if [ "${usage_full:-false}" = "true" ]; then
+  bash scripts/tasks/remote.sh clean --full
+else
+  bash scripts/tasks/remote.sh clean
+fi
+'''
+
+[tasks.check]
+description = "Run tests, lint, format check and type check"
+run = '''
+set -e
+uv run pytest -q
+uv run ruff check src tests
+uv run ruff format --check src tests
+uv run mypy
+'''
