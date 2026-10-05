@@ -79,7 +79,7 @@
 | `node_port` | 8100 | 専門家ノードの HTTP ポート |
 | `requester` | `192.168.15.100` | 質問者（wafl500） |
 | `expert_hosts` | `192.168.13.{100-109}`，`192.168.14.{100-109}` | 専門家の候補．`{a-b}` は範囲に展開する．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる |
-| `release_hugepages` | `false` | deploy で専門家の hugepages を解放するか（`.claude/research/backlog.md` の B1 を参照） |
+| `release_hugepages` | `true` | deploy で専門家の hugepages（起動時に 1 GB × 13 が予約される）を解放するか（2026-10-06 にユーザーが許可．`.claude/research/backlog.md` の B1） |
 | `gpu_workers` | `192.168.15.{100-109}` | データ準備で MedCPT の埋め込みを制御点の GPU と分担する GPU PC（wafl500〜509） |
 | `shard_budget_gb` | 6.0 | 1 シャードの fp16 の埋め込みの目安．変えるとシャードの切り方が変わるので，制御点で `shards` 以降の段を作り直す必要がある |
 
