@@ -73,6 +73,9 @@ class LocalAnswerConfig(_Strict):
 
     k_context: int = Field(default=15, ge=1)
     aggregate: Literal["vote"] = "vote"
+    # 1 台の専門家への回答の要求の打ち切り時間（秒）．専門家の Ollama は要求を順番に処理するので，
+    # 質問者が並列に送ると待ち時間が積み重なる（生成 1 回の上限 llm.timeout_s とは別に持つ）
+    timeout_s: float = 1800.0
 
 
 class GgufModel(_Strict):

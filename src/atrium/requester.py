@@ -273,7 +273,7 @@ class Requester:
                 query_id=question.source_qid,
             )
             response = await self.client.post(
-                f"{url}/v1/answer", json=req.model_dump(), timeout=self.cfg.llm.timeout_s
+                f"{url}/v1/answer", json=req.model_dump(), timeout=self.cfg.local_answer.timeout_s
             )
             response.raise_for_status()
             return AnswerResponse.model_validate_json(response.content), len(response.content)
