@@ -59,6 +59,7 @@ class RoutingConfig(_Strict):
 class LlmConfig(_Strict):
     """Ollama で動かす LLM の設定．"""
 
+    ollama_version: str
     requester_model: str
     expert_model: str
     num_predict: int = 2048

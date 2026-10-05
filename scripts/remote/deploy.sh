@@ -14,8 +14,9 @@
 source "$(dirname "$0")/lib.sh"
 
 DS_DIR=$(dataset_dir)
-LLAMA_CPP_IMAGE=ghcr.io/ggml-org/llama.cpp:full
-IPERF_IMAGE=networkstatic/iperf3
+# 外部のイメージは registry のミラー（scripts/tasks/fetch_assets.sh が push する）から取得する
+LLAMA_CPP_IMAGE="localhost:$REGISTRY_PORT/mirror/llama.cpp:full"
+IPERF_IMAGE="localhost:$REGISTRY_PORT/mirror/iperf3:latest"
 HEALTH_RETRIES=60
 HEALTH_INTERVAL_S=10
 
@@ -32,13 +33,10 @@ deploy_e0_host() {
   release_hugepages "$host"
   ensure_tunnel "$host"
   nssh "$host" "docker pull -q $IMAGE_FULL && docker pull -q $LLAMA_CPP_IMAGE && docker pull -q $IPERF_IMAGE"
-  nssh "$host" "mkdir -p $REMOTE_DIR/gguf $REMOTE_DIR/hf-cache"
-  for spec in $E0_GGUF; do
-    IFS='|' read -r _ repo file <<< "$spec"
-    nssh "$host" "if [ ! -s $REMOTE_DIR/gguf/$file ]; then \
-      curl -fL --retry 3 -o $REMOTE_DIR/gguf/$file.part https://huggingface.co/$repo/resolve/main/$file \
-      && mv -f $REMOTE_DIR/gguf/$file.part $REMOTE_DIR/gguf/$file; fi"
-  done
+  nssh "$host" "mkdir -p $REMOTE_DIR/gguf $REMOTE_DIR/hf-cache/hub"
+  # GGUF と MedCPT のモデルは制御点から LAN で配る（ノードはインターネットに出ない）
+  nrsync -a "$DATA_DIR/gguf/" "$SSH_USER@$host:$REMOTE_DIR/gguf/"
+  nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$SSH_USER@$host:$REMOTE_DIR/hf-cache/hub/"
   nrsync -az config.yaml "$SSH_USER@$host:$REMOTE_DIR/config.yaml"
 }
 
@@ -74,7 +72,8 @@ deploy_expert() {
   local shard_ids=${SHARDS_OF[$host]}
   release_hugepages "$host"
   ensure_tunnel "$host"
-  nssh "$host" "mkdir -p $REMOTE_DIR/shards"
+  # ./ollama を docker に自動で作らせると root の所有になり，モデルの rsync が書き込めなくなる
+  nssh "$host" "mkdir -p $REMOTE_DIR/shards $REMOTE_DIR/ollama"
   for sid in ${shard_ids//,/ }; do
     # 行の先頭位置のキャッシュはノード側で作るので，--delete の対象から外す
     nrsync -aL --delete --exclude '*.offsets.npy' "$DS_DIR/shards/$sid/" "$SSH_USER@$host:$REMOTE_DIR/shards/$sid/"
@@ -82,18 +81,18 @@ deploy_expert() {
   nrsync -az config.yaml "$SSH_USER@$host:$REMOTE_DIR/config.yaml"
   nrsync -az docker/compose.node.yml "$SSH_USER@$host:$REMOTE_DIR/compose.yml"
   # UID・GID はノード側で評価する（ノードの denjo の UID は制御点と同じとは限らない）
-  nssh "$host" "printf 'REGISTRY_PORT=%s\nNODE_PORT=%s\nNODE_ID=%s\nSHARD_IDS=%s\nHOST_UID=%s\nHOST_GID=%s\n' \
-    $REGISTRY_PORT $NODE_PORT $host $shard_ids \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
-  nssh "$host" "cd $REMOTE_DIR && docker compose pull -q && docker compose up -d --force-recreate"
+  nssh "$host" "printf 'REGISTRY_PORT=%s\nOLLAMA_TAG=%s\nNODE_PORT=%s\nNODE_ID=%s\nSHARD_IDS=%s\nHOST_UID=%s\nHOST_GID=%s\n' \
+    $REGISTRY_PORT $OLLAMA_TAG $NODE_PORT $host $shard_ids \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
   if [ "$ANSWER_MODE" = "local_answer" ]; then
-    nssh "$host" "cd $REMOTE_DIR && docker compose exec -T ollama ollama pull $EXPERT_MODEL"
+    nrsync -a "$DATA_DIR/ollama/models" "$SSH_USER@$host:$REMOTE_DIR/ollama/"
   fi
+  nssh "$host" "cd $REMOTE_DIR && docker compose pull -q && docker compose up -d --force-recreate"
 }
 
 deploy_requester() {
   local host=$1
   ensure_tunnel "$host"
-  nssh "$host" "mkdir -p $REMOTE_DIR/data/$DATASET $REMOTE_DIR/results $REMOTE_DIR/hf-cache"
+  nssh "$host" "mkdir -p $REMOTE_DIR/data/$DATASET $REMOTE_DIR/results $REMOTE_DIR/hf-cache $REMOTE_DIR/ollama"
   # 質問者が使うものだけを送る（シャードの本文と埋め込みは送らない）
   for item in benchmark manifest.json queries router qrels; do
     if [ -e "$DS_DIR/$item" ]; then
@@ -103,11 +102,13 @@ deploy_requester() {
   nrsync -az config.yaml "$SSH_USER@$host:$REMOTE_DIR/config.yaml"
   nrsync -az "artifacts/$DATASET/placement.json" "$SSH_USER@$host:$REMOTE_DIR/placement.json"
   nrsync -az docker/compose.requester.yml "$SSH_USER@$host:$REMOTE_DIR/compose.yml"
-  nssh "$host" "printf 'REGISTRY_PORT=%s\nHOST_UID=%s\nHOST_GID=%s\n' $REGISTRY_PORT \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
-  nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q && docker compose up -d ollama"
-  if [ "$ANSWER_MODE" = "snippet_return" ]; then
-    nssh "$host" "cd $REMOTE_DIR && docker compose exec -T ollama ollama pull $REQUESTER_MODEL"
-  fi
+  nssh "$host" "printf 'REGISTRY_PORT=%s\nOLLAMA_TAG=%s\nHOST_UID=%s\nHOST_GID=%s\n' $REGISTRY_PORT $OLLAMA_TAG \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
+  # 質問者のモデル（Ollama と，クエリ埋め込み・再ランクの HF のモデル）も制御点から配る
+  nrsync -a "$DATA_DIR/ollama/models" "$SSH_USER@$host:$REMOTE_DIR/ollama/"
+  nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"
+  nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$DATA_DIR"/.cache/huggingface/hub/models--BAAI--bge-reranker-v2-m3 \
+    "$SSH_USER@$host:$REMOTE_DIR/hf-cache/hub/"
+  nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q && docker compose up -d --force-recreate ollama"
 }
 
 # 配置から外れた専門家は止める（前回の実験のシャードを抱えたままメモリを使い続けないように）

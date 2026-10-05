@@ -19,8 +19,18 @@
 自前のイメージ（`atrium-node`，`atrium-full`）は制御点の registry（`127.0.0.1:5000`）に置く．
 各ノードは `localhost:5000` から取得する．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送が既に張られており，
 それ以外のノードには制御点から SSH の逆トンネル（`ssh -R 5000:localhost:5000`）を張る
-（docker は localhost の registry だけを TLS なしで使えるため）．Ollama のイメージとモデル，GGUF は，
-各ノードがインターネットから直接取得する．
+（docker は localhost の registry だけを TLS なしで使えるため）．
+
+各ノードはインターネットに出ない．研究室側の回線は不安定で，ノードからの取得が 700 KB/s 程度しか出ないことや，
+制御点がインターネットに出られなくなることがあった（2026-10-06）．そこで外部の資材は全て操作端末で取得する．
+
+| 資材 | 操作端末での取得 | ノードへの配り方 |
+|---|---|---|
+| 自前のイメージ（`atrium-node`・`atrium-full`） | build | registry |
+| 外部のイメージ（ollama・llama.cpp・iperf3） | pull（`scripts/tasks/fetch_assets.sh`） | registry の `mirror/` |
+| Ollama のモデル（`llm.expert_model`・`llm.requester_model`） | ollama pull | 制御点の `$DATA_DIR/ollama` から rsync |
+| E0 の GGUF | Hugging Face | 制御点の `$DATA_DIR/gguf` から rsync |
+| Hugging Face のモデル（MedCPT・再ランク・FeB4RAG の検索器） | 制御点の `fetch-models`，または操作端末で取得して送る | 制御点の HF のキャッシュから rsync（ノードでは `HF_HUB_OFFLINE=1`） |
 
 ## 2. データの流れ
 

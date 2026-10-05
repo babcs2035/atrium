@@ -42,6 +42,8 @@ routing:
   ragroute_threshold: 0.5
 
 llm:
+  # 各ノードで使う Ollama のバージョン（イメージは制御点の registry の mirror/ から取得する）
+  ollama_version: "0.35.1"
   # 断片返却型で回答を生成する質問者側の LLM（Ollama のモデル名）
   requester_model: "llama3.1:8b"
   # 宿る型で各専門家が使う LLM

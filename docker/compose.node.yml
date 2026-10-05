@@ -4,10 +4,12 @@
 #   node   : シャードを読み込んで HTTP API を公開する専門家（atrium.node）
 services:
   ollama:
-    image: ollama/ollama:0.35.1
+    # 制御点の registry のミラーから取得し，モデルは deploy が ./ollama/models へ rsync で配る
+    # （ノードのインターネット接続に頼らない）
+    image: localhost:${REGISTRY_PORT}/mirror/ollama:${OLLAMA_TAG}
     restart: unless-stopped
     volumes:
-      - ollama:/root/.ollama
+      - ./ollama:/root/.ollama
     environment:
       # 宿る型の連続した問い合わせのたびにモデルを読み直さないよう，起動中は保持する
       OLLAMA_KEEP_ALIVE: "-1"
@@ -31,6 +33,3 @@ services:
       - ./shards:/shards
     depends_on:
       - ollama
-
-volumes:
-  ollama:

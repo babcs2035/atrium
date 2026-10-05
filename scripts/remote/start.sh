@@ -12,8 +12,8 @@ source "$(dirname "$0")/lib.sh"
 RUN_ID=${1:?usage: start.sh <run_id>}
 OUT="results/$RUN_ID"
 POLL_INTERVAL_S=60
-LLAMA_CPP_IMAGE=ghcr.io/ggml-org/llama.cpp:full
-IPERF_IMAGE=networkstatic/iperf3
+LLAMA_CPP_IMAGE="localhost:$REGISTRY_PORT/mirror/llama.cpp:full"
+IPERF_IMAGE="localhost:$REGISTRY_PORT/mirror/iperf3:latest"
 # llama-bench のスレッド数（i5-8250U / 8350U の物理コア数）
 LLAMA_THREADS=4
 mkdir -p "$OUT"
@@ -47,7 +47,7 @@ measure_llama() {
 measure_python() {
   local host=$1 dir=$2 what=$3
   local rdir="$REMOTE_DIR/results/$RUN_ID"
-  nssh "$host" "mkdir -p $rdir && docker run --rm --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/cache \
+  nssh "$host" "mkdir -p $rdir && docker run --rm --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/cache -e HF_HUB_OFFLINE=1 \
     -v $REMOTE_DIR/config.yaml:/app/config.yaml:ro -v $REMOTE_DIR/hf-cache:/cache -v $rdir:/out $IMAGE_FULL \
     atrium --config /app/config.yaml e0 $what --out /out/$what.json"
   nrsync -a "$SSH_USER@$host:$rdir/$what.json" "$dir/"

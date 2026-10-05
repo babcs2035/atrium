@@ -58,6 +58,7 @@ def shell_env(cfg: AtriumConfig) -> dict[str, str]:
         "DATASET": cfg.experiment.dataset,
         "ROUTING": cfg.experiment.routing,
         "ANSWER_MODE": cfg.experiment.answer_mode,
+        "OLLAMA_TAG": cfg.llm.ollama_version,
         "REQUESTER_MODEL": cfg.llm.requester_model,
         "EXPERT_MODEL": cfg.llm.expert_model,
         "E0_HOSTS": " ".join(cfg.e0.hosts),

@@ -25,7 +25,10 @@ mise run stop
    制御点の 5000 番）を通して registry へ push する．制御点の回線はデータ準備の取得で混み合い，
    制御点で build すると PyPI や Docker Hub からの取得が失敗しやすいため，build は操作端末で行う．
    制御点は push されたイメージを pull して使う
-4. 制御点で `scripts/remote/prepare_data.sh` を `setsid nohup` で起動し，データ準備をバックグラウンドで始める
+4. 外部のイメージ（ollama・llama.cpp・iperf3）・Ollama のモデル・E0 の GGUF を操作端末で取得し，
+   registry の `mirror/` と制御点のデータディレクトリへ送る（`scripts/tasks/fetch_assets.sh`．各ノードは
+   インターネットに出ない）
+5. 制御点で `scripts/remote/prepare_data.sh` を `setsid nohup` で起動し，データ準備をバックグラウンドで始める
    （SSH が切れても続く）．MedCPT の埋め込みは制御点と wafl500〜509 の GPU 11 枚で分担する
 
 `mise run setup -- medrag` のように，データ準備の対象を絞れる（既定は `feb4rag medrag` の順）．

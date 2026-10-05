@@ -3,10 +3,12 @@
 #   requester : `docker compose run` で 1 回の実験ごとに起動する（scripts/remote/start.sh）
 services:
   ollama:
-    image: ollama/ollama:0.35.1
+    # 制御点の registry のミラーから取得し，モデルは deploy が ./ollama/models へ rsync で配る
+    # （ノードのインターネット接続に頼らない）
+    image: localhost:${REGISTRY_PORT}/mirror/ollama:${OLLAMA_TAG}
     restart: unless-stopped
     volumes:
-      - ollama:/root/.ollama
+      - ./ollama:/root/.ollama
     # GPU は CDI（deploy.resources.reservations.devices）ではなく runtime: nvidia で渡す．
     # wafl500〜509 の一部は nvidia-ctk が無く，CDI での GPU の検出に失敗するため（expert-mesh の記録）
     runtime: nvidia
@@ -23,6 +25,8 @@ services:
     environment:
       HOME: /tmp
       HF_HOME: /cache/huggingface
+      # モデルは deploy が ./hf-cache へ配る（質問者のインターネット接続に頼らない）
+      HF_HUB_OFFLINE: "1"
       NVIDIA_VISIBLE_DEVICES: all
     volumes:
       - ./config.yaml:/app/config.yaml:ro
@@ -32,6 +36,3 @@ services:
       - ./hf-cache:/cache/huggingface
     depends_on:
       - ollama
-
-volumes:
-  ollama:

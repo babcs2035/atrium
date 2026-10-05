@@ -43,6 +43,7 @@
 
 | キー | 既定値 | 意味 |
 |---|---|---|
+| `ollama_version` | `0.35.1` | 各ノードで使う Ollama のイメージのバージョン（registry の `mirror/ollama` を使う） |
 | `requester_model` | `llama3.1:8b` | 断片返却型で質問者が使う Ollama のモデル（RAGRoute の既定と同じ系列） |
 | `expert_model` | `qwen3:0.6b` | 宿る型で各専門家が使うモデル．E0 の実測で見直す |
 | `num_predict` | 2048 | 生成の上限トークン数 |
