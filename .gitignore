@@ -10,6 +10,7 @@ __pycache__/
 # 大きくなるログだけを除外する．artifacts/ は deploy・analyze が毎回作り直す作業用の写し
 results/*/logs/
 results/*/requester.log
+results/*/start.log
 artifacts/
 
 # research-cycle の実行時ファイル（環境固有）

@@ -68,8 +68,11 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
 
 `mise run start [run_id]`．run_id を省略すると現在時刻（`YYYYMMDD_HHMMSS`）になる．
 
-- `e1_routing`：質問者でコンテナ `atrium-run-<run_id>` を起動し，1 分ごとに処理済みの問数を表示して待つ．
-  SSH が切れてもコンテナは動き続ける．同じ run_id で `mise run start <run_id>` を実行すると待ち直す．
+制御点の `scripts/remote/start.sh` を `setsid nohup` で切り離して起動し，終了の印（`results/<run_id>/.exit`）を
+1 分ごとに確かめて待つ．操作端末との接続が切れても実験は続き，同じ run_id で `mise run start <run_id>` を
+実行すると待ち直す．制御点での出力は `results/<run_id>/start.log` にある．
+
+- `e1_routing`：質問者でコンテナ `atrium-run-<run_id>` を起動し，1 分ごとに処理済みの問数を記録して待つ．
   終了コードが 2 の場合は一部の質問が失敗したことを表し，結果は残る（各行の `error` を見る）．
 - `e0_measure`：対象ホストを 1 台ずつ実測し，続けてホストの組ごとに RTT と iperf3 を測る．
   1 つの計測が失敗しても残りは続け，失敗は `e0/<host>/errors.txt` と `e0_summary.md` に残る．

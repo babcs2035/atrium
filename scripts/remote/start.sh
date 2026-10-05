@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # 制御点での実験実行．結果を制御点の results/<run_id>/ に集める．
 #
-# 使い方（操作端末の `mise run start` から呼ばれる）:
-#   bash scripts/remote/start.sh <run_id>
+# 使い方（操作端末の `mise run start` が setsid nohup で切り離して起動する）:
+#   bash scripts/remote/start.sh <run_id>     # 出力は results/<run_id>/start.log，終了コードは results/<run_id>/.exit
 #
 # e1_routing: 質問者でコンテナ atrium-run-<run_id> を起動し，終わるまで進み具合を表示して待つ．
 #   SSH が切れてもコンテナは動き続ける．同じ run_id で再度実行すると，動いているコンテナを待ち直す．
@@ -17,6 +17,8 @@ IPERF_IMAGE="localhost:$REGISTRY_PORT/mirror/iperf3:latest"
 # llama-bench のスレッド数（i5-8250U / 8350U の物理コア数）
 LLAMA_THREADS=4
 mkdir -p "$OUT"
+# 終了コードを残す（操作端末の scripts/tasks/start.sh はこのファイルを待つ）
+trap 'echo $? > "$OUT/.exit"' EXIT
 
 # ── E0 ───────────────────────────────────────────────────────────────────────
 # 1 つの計測が失敗しても（例: メモリ不足で 8B のモデルが載らない）残りの計測は続け，失敗は errors.txt に残す
