@@ -1,0 +1,37 @@
+# 質問者（GPU PC）の compose．scripts/remote/deploy.sh が ${ATRIUM_REMOTE_DIR}/ へ置く．
+#   ollama    : 断片返却型で回答を生成する LLM（GPU）
+#   requester : `docker compose run` で 1 回の実験ごとに起動する（scripts/remote/start.sh）
+services:
+  ollama:
+    image: ollama/ollama:0.35.1
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    # GPU は CDI（deploy.resources.reservations.devices）ではなく runtime: nvidia で渡す．
+    # wafl500〜509 の一部は nvidia-ctk が無く，CDI での GPU の検出に失敗するため（expert-mesh の記録）
+    runtime: nvidia
+    environment:
+      OLLAMA_KEEP_ALIVE: "-1"
+      NVIDIA_VISIBLE_DEVICES: all
+
+  requester:
+    image: localhost:${REGISTRY_PORT}/atrium-full:latest
+    profiles: ["run"]
+    # 結果ファイルの所有者を SSH のユーザーにそろえる（制御点から rsync で回収するため）
+    user: "${HOST_UID}:${HOST_GID}"
+    runtime: nvidia
+    environment:
+      HOME: /tmp
+      HF_HOME: /cache/huggingface
+      NVIDIA_VISIBLE_DEVICES: all
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./placement.json:/app/placement.json:ro
+      - ./data:/data:ro
+      - ./results:/app/results
+      - ./hf-cache:/cache/huggingface
+    depends_on:
+      - ollama
+
+volumes:
+  ollama:
