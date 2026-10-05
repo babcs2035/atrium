@@ -27,7 +27,13 @@ for target in node full; do
   image="localhost:$REGISTRY_PORT/atrium-$target:latest"
   log "building $image (git $GIT_HEAD)"
   docker build --target "$target" --build-arg GIT_HEAD="$GIT_HEAD" -t "$image" .
-  docker push -q "$image"
+  # full イメージには数 GB の層（torch と CUDA のライブラリ）があり，registry が digest を検証する間に
+  # クライアントが応答待ちで打ち切ることがある．registry 側では保存が済んでいるので，再試行すれば通る
+  for attempt in 1 2 3; do
+    if docker push -q "$image"; then break; fi
+    if [ "$attempt" = 3 ]; then exit 1; fi
+    log "push failed; retrying ($attempt/3)"
+  done
 done
 
 # ── データ準備（scripts/remote/prepare_data.sh を SSH が切れても続くように起動する）
