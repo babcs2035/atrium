@@ -84,8 +84,9 @@ cluster:
   remote_dir: /home/denjo/atrium
   # 制御点のデータディレクトリ（atrium.paths の構成）
   data_dir: /home/denjo/atrium-data
-  # 制御点のローカル registry のポート（5000: WAFL-PEFT，5001: expert-mesh が使用中）
-  registry_port: 5002
+  # 制御点のローカル registry のポート．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送
+  # （ssh -L 5000:127.0.0.1:5000）が既に張られているので，それを使えるよう 5000 にする
+  registry_port: 5000
   # 専門家ノードの HTTP ポート
   node_port: 8100
   # 質問者：ベンチマークの質問を投げ，断片返却型では回答も生成する GPU PC（wafl500）

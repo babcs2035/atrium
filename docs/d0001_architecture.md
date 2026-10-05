@@ -16,8 +16,9 @@
 操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `/home/denjo/atrium` へ rsync し，
 `ssh wafl-ctrl5 "bash scripts/remote/<task>.sh"` を実行する．制御点は `denjo@<IP>` で各ノードへ SSH する．
 
-自前のイメージ（`atrium-node`，`atrium-full`）は制御点の registry（`127.0.0.1:5002`）に置く．
-各ノードは制御点からの SSH の逆トンネル（`ssh -R 5002:localhost:5002`）を通して `localhost:5002` から取得する
+自前のイメージ（`atrium-node`，`atrium-full`）は制御点の registry（`127.0.0.1:5000`）に置く．
+各ノードは `localhost:5000` から取得する．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送が既に張られており，
+それ以外のノードには制御点から SSH の逆トンネル（`ssh -R 5000:localhost:5000`）を張る
 （docker は localhost の registry だけを TLS なしで使えるため）．Ollama のイメージとモデル，GGUF は，
 各ノードがインターネットから直接取得する．
 

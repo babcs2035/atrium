@@ -20,7 +20,7 @@ mise run stop
 ### setup（環境構築）
 
 1. 操作端末で `uv sync --extra requester`（分析・テスト用の環境）
-2. 制御点で registry（`atrium-registry`，`127.0.0.1:5002`）を起動する
+2. 制御点で registry（`atrium-registry`，`127.0.0.1:5000`）を起動する
 3. 制御点で `atrium-node` と `atrium-full` のイメージを build し，registry へ push する
 4. 制御点で `scripts/remote/prepare_data.sh` を `setsid nohup` で起動し，データ準備をバックグラウンドで始める
    （SSH が切れても続く）．MedCPT の埋め込みは制御点と wafl500〜509 の GPU 11 枚で分担する
@@ -108,7 +108,7 @@ E0 の実測値が得られたら，この表と `.claude/research/config.yml` �
 |---|---|
 | deploy が「missing ... data preparation has not finished」で止まる | `mise run data-status`．データ準備が終わるまで待つ |
 | deploy の healthcheck が失敗する | 表示された `docker compose logs`．メモリ不足（OOM）なら `cluster.shard_budget_gb` を下げてシャードを作り直す |
-| registry からイメージを取得できない | 制御点で `docker ps` に `atrium-registry` があるか．ノードの `curl http://localhost:5002/v2/` |
+| registry からイメージを取得できない | 制御点で `docker ps` に `atrium-registry` があるか．ノードの `curl http://localhost:5000/v2/` |
 | start がすぐ終わる | `results/<run_id>/requester.log`．多くはノードの自己紹介に欠けたデータ源がある（deploy のやり直し） |
 | ラベル一致が 1.0 から大きく外れる | シャードの配布漏れ（`rsync -L` の失敗）か，`k_ret`・`k_rerank` をラベルの計算後に変えた |
 | FeB4RAG の取得（codeload.github.com）が極端に遅い | 制御点からの転送が 100 KB/s 程度まで落ちることがある（2026-10-05）．操作端末で同じコミットを clone し，`dataset/` を制御点の `atrium-data/feb4rag/repo/dataset` へ rsync すれば，取得の段は飛ばされる |

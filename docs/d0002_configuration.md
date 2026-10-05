@@ -75,7 +75,7 @@
 | `ssh_user` | `denjo` | 制御点から各ノードへ SSH するユーザー |
 | `remote_dir` | `/home/denjo/atrium` | 制御点と各ノードで成果物を置くディレクトリ |
 | `data_dir` | `/home/denjo/atrium-data` | 制御点のデータディレクトリ |
-| `registry_port` | 5002 | 制御点のローカル registry（5000 は WAFL-PEFT，5001 は expert-mesh が使う） |
+| `registry_port` | 5000 | 制御点のローカル registry．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送が既に張られており，それをそのまま使う |
 | `node_port` | 8100 | 専門家ノードの HTTP ポート |
 | `requester` | `192.168.15.100` | 質問者（wafl500） |
 | `expert_hosts` | `192.168.13.{100-109}`，`192.168.14.{100-109}` | 専門家の候補．`{a-b}` は範囲に展開する．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる |
