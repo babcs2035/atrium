@@ -30,6 +30,12 @@ ssh_dest() {
   echo "${SSH_USER_OF[$1]:-$SSH_USER}@$1"
 }
 
+# is_control_host <host>: host がこのスクリプトを動かしている制御点自身か（制御点が質問者を兼ねるため，
+# 質問者の REMOTE_DIR と制御点の REMOTE_DIR が同じ場所になる）
+is_control_host() {
+  [ "$1" = "$CONTROL" ] || [ "$1" = "$(hostname)" ]
+}
+
 # -n: 標準入力を読ませない（while read のループの中で呼ぶと，残りの行を ssh が読んでしまうため）
 nssh() {
   local host=$1

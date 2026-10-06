@@ -162,7 +162,10 @@ done
 EXIT_CODE=$(retry 3 nssh "$REQUESTER" "docker inspect -f '{{.State.ExitCode}}' $NAME")
 nssh "$REQUESTER" "docker logs $NAME" > "$OUT/requester.log" 2>&1 || true
 nssh "$REQUESTER" "docker rm $NAME" > /dev/null || true
-retry 3 nrsync -a "$(ssh_dest "$REQUESTER"):$RDIR/" "$OUT/"
+# 質問者が制御点自身なら，結果は既に $OUT にある
+if ! is_control_host "$REQUESTER"; then
+  retry 3 nrsync -a "$(ssh_dest "$REQUESTER"):$RDIR/" "$OUT/"
+fi
 # 専門家のログはこの実行の直後に集める（後で deploy すると --force-recreate で消えるため）
 mkdir -p "$OUT/logs"
 while IFS=$'\t' read -r host _; do

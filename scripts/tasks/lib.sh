@@ -26,9 +26,12 @@ log() { echo "[$(date +%H:%M:%S)] $*"; }
 
 sync_to_control() {
   ssh "$CONTROL" "mkdir -p $REMOTE_DIR/artifacts"
-  # results/ と artifacts/ は制御点側で作られるので，--delete の対象から外す（除外した名前は消されない）
+  # results/ と artifacts/ は制御点側で作られるので，--delete の対象から外す（除外した名前は消されない）．
+  # 制御点が質問者を兼ねるため，deploy が REMOTE_DIR の直下に置く質問者の資材も消さない
   rsync -az --delete \
     --exclude .git/ --exclude .venv/ --exclude .claude/ --exclude results/ --exclude artifacts/ \
+    --exclude /data/ --exclude /hf-cache/ --exclude /ollama/ \
+    --exclude /compose.yml --exclude /.env --exclude /placement.json \
     --exclude __pycache__/ --exclude .mypy_cache/ --exclude .ruff_cache/ --exclude .pytest_cache/ \
     ./ "$CONTROL:$REMOTE_DIR/"
   rsync -az artifacts/cluster.env "$CONTROL:$REMOTE_DIR/artifacts/cluster.env"

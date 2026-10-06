@@ -14,8 +14,8 @@
 #      コードの変更が要るレバー（RQ1 の新しいルーティング方式など）は atrium.routing に Router を
 #      1 個追加し，make_router() に登録した上で，config.yaml の experiment.routing でその名前を選ぶ．
 #   2. 各ノードの操作は全て制御点 wafl-ctrl5 から行う（`ssh wafl-ctrl5`）．専門家は
-#      192.168.13.100〜109・192.168.14.100〜109（GPU なし），質問者は 192.168.15.100（wafl500）である．
-#      192.168.15.101〜109 は，データ準備の埋め込みを分担する GPU PC（cluster.gpu_workers）である．
+#      192.168.13.100〜109・192.168.14.100〜109（GPU なし），質問者は制御点（wafl-ctrl5）である．
+#      192.168.15.100〜109（wafl500〜509）は，データ準備の埋め込みを分担する GPU PC（cluster.gpu_workers）である．
   #      1 台のデバイスの役割は 1 つだけで，デバイスは config.yaml の cluster の requester・experts・gpu_workers に書く．
 #   3. データ準備は 2026-10-06 に完了している（`mise run data-status` で確認できる）．作り直しには
 #      制御点と wafl500〜509 の GPU で 6 時間以上かかるので，データ準備を中断・削除しない．

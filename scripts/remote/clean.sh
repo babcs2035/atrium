@@ -3,7 +3,7 @@
 #
 # 使い方（操作端末の `mise run clean [-- --full]` から呼ばれる）:
 #   bash scripts/remote/clean.sh          # コンテナを削除する（シャード・モデル・結果は残す）
-#   bash scripts/remote/clean.sh --full   # さらに各ノードの REMOTE_DIR と Ollama のモデルを削除する
+#   bash scripts/remote/clean.sh --full   # さらに各ノードの REMOTE_DIR と Ollama のモデルを削除する（制御点は質問者の資材だけ）
 # 制御点のデータディレクトリ（DATA_DIR）は，再計算に数時間かかるため，このスクリプトでは消さない．
 # データ準備の実行中は，GPU PC の作業用の写し（REMOTE_DIR/embed-work）を壊さないよう何もせずに止まる．
 source "$(dirname "$0")/lib.sh"
@@ -20,8 +20,15 @@ clean_host() {
   local host=$1
   if [ "$FULL" = true ]; then
     nssh "$host" "[ -f $REMOTE_DIR/compose.yml ] && (cd $REMOTE_DIR && docker compose --profile run down -v) || true"
-    # 以前 root で動いていたコンテナが作ったファイルが残っていれば sudo で消す
-    nssh "$host" "rm -rf $REMOTE_DIR 2> /dev/null || sudo -n rm -rf $REMOTE_DIR"
+    if is_control_host "$host"; then
+      # 制御点の REMOTE_DIR は本リポジトリの作業ディレクトリでもあるので，質問者の資材だけを消す
+      local items="data hf-cache ollama compose.yml .env placement.json"
+      local cmd="cd $REMOTE_DIR && rm -rf $items"
+      nssh "$host" "$cmd 2> /dev/null || sudo -n bash -c '$cmd'"
+    else
+      # 以前 root で動いていたコンテナが作ったファイルが残っていれば sudo で消す
+      nssh "$host" "rm -rf $REMOTE_DIR 2> /dev/null || sudo -n rm -rf $REMOTE_DIR"
+    fi
   else
     nssh "$host" "[ -f $REMOTE_DIR/compose.yml ] && (cd $REMOTE_DIR && docker compose --profile run down) || true"
   fi

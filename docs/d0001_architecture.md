@@ -8,9 +8,8 @@
 | 役割 | ホスト | すること | 主なコード |
 |---|---|---|---|
 | 操作端末 | gpu2 | mise のタスク・イメージの build・外部の資材の取得・分析・テスト | `scripts/tasks/`，`atrium.analysis` |
-| 制御点（データ中継点） | wafl-ctrl5（RTX 3060） | registry・データ準備・各ノードの操作 | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router` |
-| 埋め込みの分担 | 192.168.15.101〜109 = wafl501〜509（RTX 3060） | データ準備の間だけ，MedCPT の埋め込みを制御点と分担する | `scripts/remote/prepare_data.sh` |
-| 質問者 | 192.168.15.100 = wafl500（RTX 3060） | クエリ埋め込み・ルーティング・統合・断片返却型の回答 | `atrium.requester`，`atrium.experiment` |
+| 制御点（データ中継点）・質問者 | wafl-ctrl5（RTX 3060） | registry・データ準備・各ノードの操作．質問者として，クエリ埋め込み・ルーティング・統合・断片返却型の回答も行う | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router`，`atrium.requester`，`atrium.experiment` |
+| 埋め込みの分担 | 192.168.15.100〜109 = wafl500〜509（RTX 3060） | データ準備の間だけ，MedCPT の埋め込みを制御点と分担する | `scripts/remote/prepare_data.sh` |
 | 専門家 | 192.168.13.100〜109，192.168.14.100〜109（GPU なし） | シャードの検索・宿る型の回答 | `atrium.node`，`atrium.store` |
 
 操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `/home/denjo/atrium` へ rsync し，
@@ -20,7 +19,11 @@
 5000 番）を通して制御点の registry（`127.0.0.1:5000`）へ push する．
 各ノードは `localhost:5000` から取得する．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送が既に張られており，
 それ以外のノードには制御点から SSH の逆トンネル（`ssh -R 5000:localhost:5000`）を張る
-（docker は localhost の registry だけを TLS なしで使えるため）．
+（docker は localhost の registry だけを TLS なしで使えるため）．質問者は制御点自身なので，トンネルは要らない．
+
+制御点は質問者を兼ねるので，制御点の `REMOTE_DIR`（`/home/denjo/atrium`）はリポジトリの作業ディレクトリと質問者の作業
+ディレクトリを兼ねる．同期（`sync_to_control`）は質問者の資材（`data/`・`hf-cache/`・`ollama/`・`compose.yml`・`.env`・
+`placement.json`）を消さないよう除外してあり，`mise run clean -- --full` もこれらだけを消す（リポジトリは残る）．
 
 各ノードはインターネットに出ない．研究室側の回線は不安定で，ノードからの取得が 700 KB/s 程度しか出ないことや，
 制御点がインターネットに出られなくなることがあった（2026-10-06）．そこで外部の資材は全て操作端末で取得する．
@@ -55,7 +58,7 @@
 2. MedRAG の断片を Hugging Face（`MedRAG/pubmed` 等）から取得する．StatPearls は NCBI の tarball を
    取得し，MedRAG の `src/data/statpearls.py`（コミット固定）で断片化する．
 3. 断片ファイル（`chunk/<name>.jsonl`）ごとに MedCPT-Article-Encoder で埋め込み，`emb/<name>.f16.npy` に
-   fp16 で保存する．制御点と `cluster.gpu_workers`（wafl501〜509）の GPU 10 枚で分担する：未埋め込みの
+   fp16 で保存する．制御点と `cluster.gpu_workers`（wafl500〜509）の GPU 11 枚で分担する：未埋め込みの
    ファイルをバイト数が均等になるよう振り分け（`atrium embed-plan`，LPT 法），各 GPU PC へ rsync で送り，
    埋め込みを制御点へ回収する．失敗した GPU PC の分は最後に制御点で補う．入力は `[title, content]` の組，512 トークンで切り詰め，CLS の出力を使う．
    MedRAG の sentence-transformers を使う手順と出力が一致することを確認してある（最大絶対誤差 0.0）．
@@ -137,8 +140,8 @@ class Router(Protocol):
 |---|---|---|
 | 専門家 | `shards/<shard_id>/` | シャード（`*.offsets.npy` は起動時に作る行の先頭位置のキャッシュ） |
 | 専門家 | `compose.yml`，`.env`，`config.yaml` | compose（`docker/compose.node.yml`）と設定 |
-| 質問者 | `data/<dataset>/` | 質問・manifest・クエリ埋め込み・ルーター・qrels |
-| 質問者 | `placement.json`，`results/<run_id>/` | 配置と実験の結果 |
+| 質問者（制御点） | `data/<dataset>/` | 質問・manifest・クエリ埋め込み・ルーター・qrels |
+| 質問者（制御点） | `placement.json`，`results/<run_id>/` | 配置と実験の結果 |
 | E0 の対象 | `gguf/`，`results/<run_id>/` | llama-bench の GGUF と実測の結果 |
 
 ## 7. メモリと容量

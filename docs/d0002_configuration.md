@@ -94,21 +94,22 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 
 ```yaml
 cluster:
-  requester: {host: "192.168.15.100"}
+  requester: {host: "wafl-ctrl5"}
   experts:
     - {host: "192.168.13.100"}
     - {host: "192.168.13.101", ssh_user: alice}   # デバイスごとに SSH のユーザーを変えられる
   gpu_workers:
-    - {host: "192.168.15.101"}
+    - {host: "192.168.15.100"}
 ```
 
 | リスト | 役割 | 現在の構成 |
 |---|---|---|
-| `requester`（1 台） | 質問者．質問を投げ，断片返却型では回答も生成する | 192.168.15.100（wafl500） |
+| `requester`（1 台） | 質問者．質問を投げ，断片返却型では回答も生成する | wafl-ctrl5（制御点が兼ねる） |
 | `experts` | 専門家．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる | 192.168.13.100〜109，192.168.14.100〜109（20 台） |
-| `gpu_workers` | データ準備で MedCPT の埋め込みを制御点の GPU と分担する GPU PC | 192.168.15.101〜109（wafl501〜509） |
+| `gpu_workers` | データ準備で MedCPT の埋め込みを制御点の GPU と分担する GPU PC | 192.168.15.100〜109（wafl500〜509） |
 
 各要素のキーは `host`（必須）と `ssh_user`（省略時は `cluster.ssh_user`）である．
+質問者には制御点（`cluster.control` と同じホスト）を指定できる．その場合の `REMOTE_DIR` の扱いは [d0001](d0001_architecture.md) §1 にある．
 `e0.hosts` と `e0.iperf_pairs` のホストは `experts` に含まれていなければならない（E0 は専門家の機種を測る実験である）．
 
 ## data

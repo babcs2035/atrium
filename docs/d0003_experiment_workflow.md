@@ -29,7 +29,7 @@ mise run stop
    registry の `mirror/` と制御点のデータディレクトリへ送る（`scripts/tasks/fetch_assets.sh`．各ノードは
    インターネットに出ない）
 5. 制御点で `scripts/remote/prepare_data.sh` を `setsid nohup` で起動し，データ準備をバックグラウンドで始める
-   （SSH が切れても続く）．MedCPT の埋め込みは制御点と wafl501〜509 の GPU 10 枚で分担する
+   （SSH が切れても続く）．MedCPT の埋め込みは制御点と wafl500〜509 の GPU 11 枚で分担する
 
 `mise run setup -- medrag` のように，データ準備の対象を絞れる（既定は `feb4rag medrag` の順）．
 データ準備の各段は冪等であり，成果物があれば飛ばす．止まった場合は再び `mise run setup` を実行すれば
