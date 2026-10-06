@@ -45,9 +45,12 @@ experiment:
   results_glob: "results/*/analysis_report.md"
   # 最新の実行の metrics.json を 1 行の JSON で出す（E0 の実行には metrics.json が無く，e0_summary.md を読む）
   metrics_cmd: "uv run atrium metrics --json"
-  # MIRAGE 全 7,663 問の所要時間は E0 の実測までは見積もりである（1 問あたり 3〜7 秒 × 7,663 問）．
-  # E0 の結果で見直すこと
-  timeout_min: 900
+  # MIRAGE 全 7,663 問の所要時間（2026-10-06 の実機での検証からの見積もり）:
+  #   retrieval_only 約 4 時間（1 問あたり約 1.9 秒．各専門家が 1 シャードの検索に約 1.2 秒）
+  #   snippet_return 約 14 時間（1 問あたり約 6.4 秒．質問者の llama3.1:8b の生成が律速）
+  #   local_answer は専門家の CPU での生成が律速で，さらに長い（1 回 30〜190 秒）
+  # 長い条件は question_limit で問題集ごとに絞った層化抽出で先に傾向を見ることを検討する
+  timeout_min: 1200
   poll_interval_sec: 300
 
 journal_retention: 3

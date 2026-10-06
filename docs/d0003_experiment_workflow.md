@@ -111,8 +111,9 @@ research-cycle の `metrics_cmd` は `uv run atrium metrics --json`（最新の 
 | MedRAG の関連ラベル（7,663 問 × 全断片の内積） | 約 25 分（実測） | 断片ファイルを 5 万断片ずつ区切って GPU で計算する |
 | FeB4RAG の準備（13 エンジン．SGPT-5.8B は CPU） | 約 4 時間（実測） | 大半は SGPT-5.8B での trec-covid の重心（500 文書）と 790 問の埋め込み |
 | E0（2 台．llama-bench 4 モデル・FAISS・MedCPT・ネットワーク） | 約 3 時間（実測） | 大半は 8B の pp4096（1 台あたり約 45 分） |
-| MIRAGE 全 7,663 問（retrieval_only） | 数時間 | 1 問あたり各シャードで fp16 の総当たり検索 |
-| MIRAGE 全 7,663 問（snippet_return，8B） | 10 時間前後 | 1 問あたり数秒の生成 |
+| MIRAGE 全 7,663 問（retrieval_only，routing=all） | 約 4 時間（100 問の実測から見積もり） | 1 問あたり約 1.9 秒．専門家は 1 シャード（約 419 万ベクトル）の検索に約 1.2 秒かかり，要求を順に処理する |
+| MIRAGE 全 7,663 問（snippet_return，llama3.1:8b） | 約 14 時間（25 問の実測から見積もり） | 1 問あたり約 6.4 秒．質問者の生成（プロンプト中央値約 4,900 トークン，出力中央値約 280 トークン）が律速 |
+| 宿る型（local_answer，qwen3:0.6b） | 1 回の回答に 30〜190 秒（実測） | 専門家の CPU での生成．並列に送ると専門家で待ち行列ができる |
 
 E0 の実測値が得られたら，この表と `.claude/research/config.yml` の `timeout_min` を見直す．
 
