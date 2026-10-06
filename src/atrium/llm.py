@@ -41,7 +41,11 @@ async def chat(
         "messages": messages,
         "stream": False,
         "think": cfg.think,
-        "options": {"num_predict": cfg.num_predict, "num_ctx": cfg.num_ctx},
+        "options": {
+            "num_predict": cfg.num_predict,
+            "num_ctx": cfg.num_ctx,
+            "temperature": cfg.temperature,
+        },
     }
     response = await client.post(f"{base_url}/api/chat", json=payload, timeout=cfg.timeout_s)
     response.raise_for_status()

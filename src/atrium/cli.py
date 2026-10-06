@@ -60,6 +60,7 @@ def shell_env(cfg: AtriumConfig) -> dict[str, str]:
         "ANSWER_MODE": cfg.experiment.answer_mode,
         "OLLAMA_TAG": cfg.llm.ollama_version,
         "REQUESTER_MODEL": cfg.llm.requester_model,
+        "REQUESTER_NUM_PARALLEL": str(cfg.llm.requester_num_parallel),
         "EXPERT_MODEL": cfg.llm.expert_model,
         "E0_HOSTS": " ".join(cfg.e0.hosts),
         "E0_PAIRS": " ".join(f"{a},{b}" for a, b in cfg.e0.iperf_pairs),

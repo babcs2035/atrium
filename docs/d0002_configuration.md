@@ -49,6 +49,8 @@
 | `num_predict` | 2048 | 生成の上限トークン数 |
 | `num_ctx` | 16384 | 文脈長．15 断片 × 約 250 トークンに質問と指示を足しても収まる長さ |
 | `think` | `false` | qwen3 系の思考モード |
+| `temperature` | 0.0 | 生成の温度．0 で貪欲な復号（同じ入力に同じ回答．backlog B3） |
+| `requester_num_parallel` | 2 | 質問者の Ollama が同時に処理する要求の数．8B・文脈長 16384 では 2 件分の KV キャッシュまでが 12 GB に収まる |
 | `timeout_s` | 600 | 1 回の生成の打ち切り時間（秒） |
 
 ## local_answer

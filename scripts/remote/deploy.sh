@@ -33,7 +33,7 @@ docker pull -q "$IMAGE_FULL" > /dev/null
 deploy_iperf_peer() {
   local host=$1
   ensure_tunnel "$host"
-  nssh "$host" "docker pull -q $IPERF_IMAGE"
+  retry 3 nssh "$host" "docker pull -q $IPERF_IMAGE"
 }
 
 deploy_e0_host() {
@@ -42,7 +42,7 @@ deploy_e0_host() {
   stop_node_services "$host"
   release_hugepages "$host"
   ensure_tunnel "$host"
-  nssh "$host" "docker pull -q $IMAGE_FULL && docker pull -q $LLAMA_CPP_IMAGE && docker pull -q $IPERF_IMAGE"
+  retry 3 nssh "$host" "docker pull -q $IMAGE_FULL && docker pull -q $LLAMA_CPP_IMAGE && docker pull -q $IPERF_IMAGE"
   nssh "$host" "mkdir -p $REMOTE_DIR/gguf $REMOTE_DIR/hf-cache/hub"
   # GGUF と MedCPT のモデルは制御点から LAN で配る（ノードはインターネットに出ない）
   nrsync -a "$DATA_DIR/gguf/" "$SSH_USER@$host:$REMOTE_DIR/gguf/"
@@ -100,7 +100,8 @@ deploy_expert() {
   if [ "$ANSWER_MODE" = "local_answer" ]; then
     nrsync -a "$DATA_DIR/ollama/models" "$SSH_USER@$host:$REMOTE_DIR/ollama/"
   fi
-  nssh "$host" "cd $REMOTE_DIR && docker compose pull -q && docker compose up -d --force-recreate"
+  retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
+  nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate"
 }
 
 deploy_requester() {
@@ -117,13 +118,15 @@ deploy_requester() {
   nrsync -az config.yaml "$SSH_USER@$host:$REMOTE_DIR/config.yaml"
   nrsync -az "artifacts/$DATASET/placement.json" "$SSH_USER@$host:$REMOTE_DIR/placement.json"
   nrsync -az docker/compose.requester.yml "$SSH_USER@$host:$REMOTE_DIR/compose.yml"
-  nssh "$host" "printf 'REGISTRY_PORT=%s\nOLLAMA_TAG=%s\nHOST_UID=%s\nHOST_GID=%s\n' $REGISTRY_PORT $OLLAMA_TAG \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
+  nssh "$host" "printf 'REGISTRY_PORT=%s\nOLLAMA_TAG=%s\nREQUESTER_NUM_PARALLEL=%s\nHOST_UID=%s\nHOST_GID=%s\n' \
+    $REGISTRY_PORT $OLLAMA_TAG $REQUESTER_NUM_PARALLEL \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
   # 質問者のモデル（Ollama と，クエリ埋め込み・再ランクの HF のモデル）も制御点から配る
   nrsync -a "$DATA_DIR/ollama/models" "$SSH_USER@$host:$REMOTE_DIR/ollama/"
   nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"
   nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$DATA_DIR"/.cache/huggingface/hub/models--BAAI--bge-reranker-v2-m3 \
     "$SSH_USER@$host:$REMOTE_DIR/hf-cache/hub/"
-  nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q && docker compose up -d --force-recreate ollama"
+  retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q"
+  nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
 }
 
 # 配置から外れた専門家は止める（前回の実験のシャードを抱えたままメモリを使い続けないように）

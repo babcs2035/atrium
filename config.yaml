@@ -53,6 +53,11 @@ llm:
   num_ctx: 16384
   # qwen3 系の思考モードを使うか（Ollama の think）
   think: false
+  # 生成の温度．0 で貪欲な復号にし，同じ入力に同じ回答を返す（.claude/research/backlog.md の B3）
+  temperature: 0.0
+  # 質問者の Ollama が同時に処理する要求の数（OLLAMA_NUM_PARALLEL）．8B と文脈長 16384 では 2 件分の
+  # KV キャッシュまでが RTX 3060（12 GB）に収まる
+  requester_num_parallel: 2
   # 1 回の生成の打ち切り時間（秒）
   timeout_s: 600
 

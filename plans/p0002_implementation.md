@@ -85,6 +85,7 @@ class Router(Protocol):
 | 埋め込みの計算精度 | fp32 | fp16 の混合精度（`data.medrag.embed_precision`．backlog B2） | fp32 の 2.6 倍速い．上位 15 件の集合の一致率 97% |
 | 索引 | `IndexFlatIP`（fp32） | `IndexScalarQuantizer`（fp16） | 同上 |
 | 統合（再ランク） | 既定は bge-reranker-v2-m3 | 既定は検索スコア（`retrieval.merge` で切替可） | ラベル定義（スコアで統合した上位 15 件）と揃えるため |
+| 生成の温度 | 指定なし（Ollama の既定 0.8） | 0（`llm.temperature`．backlog B3） | 同じ入力に同じ回答を返し，方式間を対応ありの検定で比べるため |
 | LLM の出力上限 | 40,960〜131,072 トークン | `llm.num_predict`（既定 2,048） | 打ち切りのない生成で待ち時間が発散するのを避ける |
 | FeB4RAG のデータ源 | FAISS で検索 | 配布の検索結果を返す | F1 |
 | FeB4RAG の重心 | 全文書の平均 | 無作為抽出（既定 2,000 件）の平均 | 同上 |

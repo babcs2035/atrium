@@ -144,7 +144,7 @@ class Router(Protocol):
 
 | 項目 | 値 |
 |---|---|
-| MedRAG の 4 コーパスのシャード数（6 GB ごと） | PubMed 7，Wikipedia 8，StatPearls 1，Textbooks 1 の計 17（研究計画書 §6.1 の計算値） |
+| MedRAG の 4 コーパスのシャード数（6 GiB ごと） | PubMed 6，Wikipedia 8，StatPearls 1，Textbooks 1 の計 16（実測．1 シャード最大約 419 万断片）．StatPearls は 384,050 断片で，研究計画書 §7.1 の約 30.1 万より多い（2026-10 時点の NCBI の配布物を MedRAG のスクリプトで断片化した結果） |
 | 専門家 1 台のメモリ | fp16 索引 約 6 GB ＋ 行の先頭位置（1 断片 8 バイト）＋ Ollama（宿る型のみ） |
 | 専門家 1 台のディスク | PubMed のシャードで埋め込み約 6 GB ＋ 本文約 8 GB．空きは約 70 GB |
 | 制御点のディスク | 本文 約 110 GB ＋ fp16 の埋め込み 約 83 GB．空きは 372 GB（2026-10-05） |

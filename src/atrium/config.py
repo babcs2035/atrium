@@ -65,6 +65,11 @@ class LlmConfig(_Strict):
     num_predict: int = 2048
     num_ctx: int = 16384
     think: bool = False
+    # 0 で貪欲な復号にする（同じ入力に同じ回答を返し，方式間を対応ありの検定で比べられるようにする）
+    temperature: float = 0.0
+    # 質問者の Ollama が同時に処理する要求の数（OLLAMA_NUM_PARALLEL）．8B と文脈長 16384 では，
+    # 2 件分の KV キャッシュまでが 12 GB の GPU に収まる
+    requester_num_parallel: int = Field(default=2, ge=1)
     timeout_s: float = 600.0
 
 

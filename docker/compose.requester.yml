@@ -18,6 +18,7 @@ services:
       HOME: /ollama
       OLLAMA_MODELS: /ollama/models
       OLLAMA_KEEP_ALIVE: "-1"
+      OLLAMA_NUM_PARALLEL: ${REQUESTER_NUM_PARALLEL}
       NVIDIA_VISIBLE_DEVICES: all
 
   requester:

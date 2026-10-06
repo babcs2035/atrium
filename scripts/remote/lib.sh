@@ -27,6 +27,19 @@ nssh() {
   ssh "${SSH_OPTS[@]}" "$SSH_USER@$host" "$@"
 }
 
+# retry <回数> <コマンド...>: 失敗したら 30 秒待って繰り返す（registry が混み合ってイメージの取得が
+# 一時的に失敗することがあったため．2026-10-06，シャードの配布と同時に 16 台が取得した）
+retry() {
+  local n=$1
+  shift
+  for attempt in $(seq 1 "$n"); do
+    if "$@"; then return 0; fi
+    log "retrying ($attempt/$n): $*"
+    sleep 30
+  done
+  return 1
+}
+
 nrsync() {
   rsync -e "ssh ${SSH_OPTS[*]}" "$@"
 }
