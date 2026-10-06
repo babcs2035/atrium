@@ -98,6 +98,33 @@ own_remote_dir() {
   nssh "$host" "mkdir -p $REMOTE_DIR/ollama && sudo -n chown -R \$(id -u):\$(id -g) $REMOTE_DIR/ollama"
 }
 
+# 置き換わって参照されなくなった自前のイメージ（ラベル org.atrium.project=atrium）だけを消す．
+# 19 GB の atrium-full が更新のたびに残り，専門家のディスクが 95% まで埋まったため（2026-10-06）
+prune_old_images() {
+  local host=$1
+  nssh "$host" "docker image prune -f --filter label=org.atrium.project=atrium > /dev/null"
+}
+
+# Ollama のモデル 1 個（例: qwen3:0.6b）のマニフェストと blob を，$DATA_DIR/ollama/models からの相対パスで出す
+ollama_model_files() {
+  local model=$1
+  local name=${model%%:*} tag=${model#*:}
+  local manifest="manifests/registry.ollama.ai/library/$name/$tag"
+  echo "$manifest"
+  jq -r '.config.digest, .layers[].digest' "$DATA_DIR/ollama/models/$manifest" | sed 's|^sha256:|blobs/sha256-|'
+}
+
+# Ollama のモデルを 1 個だけノードへ配る（モデルのディレクトリ全体を送ると，質問者用の 8B まで配ってしまう）
+send_ollama_model() {
+  local host=$1 model=$2
+  local list
+  list=$(mktemp)
+  ollama_model_files "$model" > "$list"
+  nssh "$host" "mkdir -p $REMOTE_DIR/ollama/models"
+  nrsync -a --files-from="$list" "$DATA_DIR/ollama/models/" "$SSH_USER@$host:$REMOTE_DIR/ollama/models/"
+  rm -f "$list"
+}
+
 dataset_dir() {
   echo "$DATA_DIR/$DATASET"
 }

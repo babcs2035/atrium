@@ -1,10 +1,12 @@
-# atrium のコンテナイメージ（制御点 wafl-ctrl5 で build し，ローカル registry から各ノードへ配る）．
+# atrium のコンテナイメージ（操作端末で build し，制御点のローカル registry から各ノードへ配る）．
 #
 #   target=node : 専門家ノード用（GPU なしの PC）．FAISS・FastAPI だけを入れた軽いイメージ
 #   target=full : 質問者・データ中継点・E0 用．torch（CUDA 版）・transformers を含む
 #
-# 使い方: scripts/remote/setup.sh が `docker build --target node|full` で作る．
+# 使い方: scripts/tasks/lib.sh の publish_images（mise run setup / deploy）が `docker build --target node|full` で作る．
 FROM python:3.12-slim AS base
+# deploy が古い自前のイメージだけを見分けて消すためのラベル（docker image prune --filter label=...）
+LABEL org.atrium.project=atrium
 # uv はイメージ内の pip で入れる（ghcr.io の uv イメージは，環境によって匿名での取得が拒否されるため）
 RUN pip install --no-cache-dir uv==0.6.13
 ENV UV_COMPILE_BYTECODE=1 \

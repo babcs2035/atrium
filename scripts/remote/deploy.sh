@@ -29,6 +29,7 @@ stop_node_services() {
 
 # 制御点でも最新のイメージを使う（配置の計算に atrium-full を使う）
 docker pull -q "$IMAGE_FULL" > /dev/null
+docker image prune -f --filter label=org.atrium.project=atrium > /dev/null
 
 # ── E0 ───────────────────────────────────────────────────────────────────────
 # iperf3 の相手になるだけのホストにも，イメージを用意する
@@ -50,6 +51,7 @@ deploy_e0_host() {
   nrsync -a "$DATA_DIR/gguf/" "$SSH_USER@$host:$REMOTE_DIR/gguf/"
   nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$SSH_USER@$host:$REMOTE_DIR/hf-cache/hub/"
   nrsync -az config.yaml "$SSH_USER@$host:$REMOTE_DIR/config.yaml"
+  prune_old_images "$host"
 }
 
 if [ "$KIND" = "e0_measure" ]; then
@@ -100,10 +102,11 @@ deploy_expert() {
   nssh "$host" "printf 'REGISTRY_PORT=%s\nOLLAMA_TAG=%s\nNODE_PORT=%s\nNODE_ID=%s\nSHARD_IDS=%s\nHOST_UID=%s\nHOST_GID=%s\n' \
     $REGISTRY_PORT $OLLAMA_TAG $NODE_PORT $host $shard_ids \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
   if [ "$ANSWER_MODE" = "local_answer" ]; then
-    nrsync -a "$DATA_DIR/ollama/models" "$SSH_USER@$host:$REMOTE_DIR/ollama/"
+    send_ollama_model "$host" "$EXPERT_MODEL"
   fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate"
+  prune_old_images "$host"
 }
 
 deploy_requester() {
@@ -123,12 +126,13 @@ deploy_requester() {
   nssh "$host" "printf 'REGISTRY_PORT=%s\nOLLAMA_TAG=%s\nREQUESTER_NUM_PARALLEL=%s\nHOST_UID=%s\nHOST_GID=%s\n' \
     $REGISTRY_PORT $OLLAMA_TAG $REQUESTER_NUM_PARALLEL \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
   # 質問者のモデル（Ollama と，クエリ埋め込み・再ランクの HF のモデル）も制御点から配る
-  nrsync -a "$DATA_DIR/ollama/models" "$SSH_USER@$host:$REMOTE_DIR/ollama/"
+  send_ollama_model "$host" "$REQUESTER_MODEL"
   nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"
   nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$DATA_DIR"/.cache/huggingface/hub/models--BAAI--bge-reranker-v2-m3 \
     "$SSH_USER@$host:$REMOTE_DIR/hf-cache/hub/"
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
+  prune_old_images "$host"
 }
 
 # 配置から外れた専門家は止める（前回の実験のシャードを抱えたままメモリを使い続けないように）

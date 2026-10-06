@@ -24,7 +24,8 @@ for d in feb4rag medrag; do
   if [ "$d" = medrag ] && [ -d "$dir/corpus" ]; then
     for src in "$dir"/corpus/*/; do
       # まだディレクトリが無い段階では find が失敗するので，0 件として数える
-      n_chunk=$(find "$src/chunk" -name '*.jsonl' 2> /dev/null | wc -l || true)
+      # 空の断片ファイル（上流でも 0 バイトのもの．埋め込まない）は数えない
+      n_chunk=$(find "$src/chunk" -name '*.jsonl' -size +0 2> /dev/null | wc -l || true)
       n_emb=$(find "$src/emb" -name '*.f16.npy' ! -name '*.tmp.npy' 2> /dev/null | wc -l || true)
       echo "  $(basename "$src"): embedded $n_emb / $n_chunk files (on the control host)"
     done
