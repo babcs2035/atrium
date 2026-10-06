@@ -43,12 +43,15 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 
 | 指標 | 定義 |
 |---|---|
+| `n` | 集計した質問数（失敗を含む） |
+| `n_unlabeled` | 成功した質問のうち関連ラベルが無いもの．データ源の選択とラベル一致の集計から除く（FeB4RAG の qrels に現れない要求など） |
+| `failure_rate` | 失敗した質問の割合 |
 | `selection.precision` / `recall` / `f1` | （質問，データ源）の組を単位にした micro 平均．正解は関連ラベル |
 | `selection.mean_selected_sources` | 1 問あたりに問い合わせたデータ源の数の平均 |
 | `selection.mean_relevant_sources` | 1 問あたりの関連ありのデータ源の数の平均 |
 | `selection.query_reduction_vs_all` | 1 − 平均問い合わせ数 ÷ データ源の数（RAGRoute の「問い合わせ数の削減率」） |
 | `selection.mean_shards_queried` | 1 問あたりに問い合わせたシャードの数の平均 |
-| `label_consistency` | `contributing_sources` が関連ラベルと完全に一致した質問の割合．MedRAG の `routing=all`・`merge=score` で 1.0 に近くなければ基盤に誤りがある．FeB4RAG のラベルは検索結果ではなく qrels から作るので，この値は基盤の検査には使えない |
+| `label_consistency` | `contributing_sources` が関連ラベルと完全に一致した質問の割合．全データ源に問い合わせたときにだけ意味を持つので，`routing=all` の実行でだけ計算する（それ以外は `null`）．MedRAG の `routing=all`・`merge=score` で 1.0 に近くなければ基盤に誤りがある．FeB4RAG のラベルは検索結果ではなく qrels から作るので，この値は基盤の検査には使えない |
 | `accuracy.overall` / `by_bank` | 正答率と Wilson の 95% 信頼区間 |
 | `accuracy.unparsed_choice_rate` | 選択肢を抽出できなかった割合（不正解として数える） |
 | `latency.<段>.p50` / `p95` | 段ごとの所要時間の中央値と 95 パーセンタイル（秒） |

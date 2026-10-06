@@ -23,14 +23,15 @@ research-cycle skill（`~/.claude/skills/research-cycle/`）は，「調査・�
 
 ## 3. 初期のレバー（`config.yml` の `levers`）
 
-研究計画書 §8 の順に並べてある．
+研究計画書 §8 の E1 の順に並べてある．E0 は準備段階で実施済みである（`results/20261006_052434/e0_summary.md`）．
 
-1. `experiment.kind=e0_measure`：E0．データ準備と並行して進められる
-2. `experiment.routing=all`（`retrieval_only`）：ラベル一致で基盤の正しさを確かめる（以降の比較の前提）
-3. `experiment.answer_mode=snippet_return`：all 方式の正答率
-4. `experiment.routing=ragroute / random / none`：RAGRoute の残りの 3 方式
-5. `retrieval.merge=cross_encoder`：RAGRoute の既定の再ランク
-6. `experiment.dataset=feb4rag`：多数のデータ源の条件
+1. E1-a `experiment.routing=all`（`retrieval_only`，`merge=score`）：MIRAGE 全問でラベル一致を確かめる（以降の比較の前提）
+2. E1-b `experiment.answer_mode=snippet_return`：all 方式の正答率
+3. E1-c `experiment.routing=ragroute / random / none`：RAGRoute の残りの 3 方式（1 イテレーションに 1 方式）
+4. E1-d `retrieval.merge=cross_encoder`：RAGRoute の既定の再ランク
+5. E1-e `experiment.dataset=feb4rag`：多数のデータ源の条件（`merge=qrels_oracle`，`retrieval_only`）
+
+MIRAGE 全問の所要時間は，retrieval_only で約 4 時間，snippet_return で約 14 時間である（[d0003](d0003_experiment_workflow.md) §3）．
 
 E1 の再現が成立したら，研究計画書 §5 の RQ1 の方式（自己紹介文の類似度・代表文書の要約・面接方式）を
 `atrium.routing` の Router として実装するレバーを追記する（[d0001](d0001_architecture.md) §5）．

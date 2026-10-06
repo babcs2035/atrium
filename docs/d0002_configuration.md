@@ -30,7 +30,11 @@
 | `query_embedding.feb4rag` | `cached` | 制御点で事前計算した埋め込みを使う（検索器が 8 種類あり，5.8B の SGPT を含むため） |
 
 関連ラベルは `k_ret` と `k_rerank` で決まる（[d0001](d0001_architecture.md) §2.1）．
-これらを変えたら，制御点の `labels/labels.json` を作り直す必要がある（現状は自動では作り直さない）．
+ラベルを作ったときの設定値は制御点の `labels/labels_meta.json` に残る（MedRAG は `data.medrag.sources`・`k_ret`・
+`k_rerank`・検索器・`embed_precision`・`cluster.shard_budget_gb`，FeB4RAG は `data.feb4rag.sources`）．
+deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば止まる．その場合は制御点で該当する段
+（`labels` 以降．`shard_budget_gb` や `embed_precision` なら `shards` や `embed` 以降）を作り直す．
+自動では作り直さない．
 
 ## routing
 

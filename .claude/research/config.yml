@@ -3,6 +3,7 @@
 # ここにはこのリポジトリ固有の差分だけを書く．
 #
 # 【最初に読むもの】
+#   - docs/d0006_research_overview.md（研究の概要・仕組み・理論・現状の要約）
 #   - plans/p0001_initialization.md（研究計画書．RQ1〜RQ3，E0〜E5，成功条件，統計の方針）
 #   - plans/p0002_implementation.md（実装計画．RAGRoute との差分の一覧）
 #   - docs/d0001_architecture.md（役割の分担・データの流れ・API）

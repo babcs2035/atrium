@@ -7,8 +7,8 @@
 
 | 役割 | ホスト | すること | 主なコード |
 |---|---|---|---|
-| 操作端末 | gpu2 | mise のタスク・分析・テスト | `scripts/tasks/`，`atrium.analysis` |
-| 制御点（データ中継点） | wafl-ctrl5（RTX 3060） | イメージの build と registry・データ準備・各ノードの操作 | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router` |
+| 操作端末 | gpu2 | mise のタスク・イメージの build・外部の資材の取得・分析・テスト | `scripts/tasks/`，`atrium.analysis` |
+| 制御点（データ中継点） | wafl-ctrl5（RTX 3060） | registry・データ準備・各ノードの操作 | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router` |
 | 埋め込みの分担 | 192.168.15.100〜109 = wafl500〜509（RTX 3060） | データ準備の間だけ，MedCPT の埋め込みを制御点と分担する | `scripts/remote/prepare_data.sh` |
 | 質問者 | 192.168.15.100 = wafl500（RTX 3060） | クエリ埋め込み・ルーティング・統合・断片返却型の回答 | `atrium.requester`，`atrium.experiment` |
 | 専門家 | 192.168.13.100〜109，192.168.14.100〜109（GPU なし） | シャードの検索・宿る型の回答 | `atrium.node`，`atrium.store` |
@@ -16,7 +16,8 @@
 操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `/home/denjo/atrium` へ rsync し，
 `ssh wafl-ctrl5 "bash scripts/remote/<task>.sh"` を実行する．制御点は `denjo@<IP>` で各ノードへ SSH する．
 
-自前のイメージ（`atrium-node`，`atrium-full`）は制御点の registry（`127.0.0.1:5000`）に置く．
+自前のイメージ（`atrium-node`，`atrium-full`）は操作端末で build し，SSH の転送（操作端末の 15000 番 → 制御点の
+5000 番）を通して制御点の registry（`127.0.0.1:5000`）へ push する．
 各ノードは `localhost:5000` から取得する．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送が既に張られており，
 それ以外のノードには制御点から SSH の逆トンネル（`ssh -R 5000:localhost:5000`）を張る
 （docker は localhost の registry だけを TLS なしで使えるため）．
@@ -140,11 +141,14 @@ class Router(Protocol):
 | 質問者 | `placement.json`，`results/<run_id>/` | 配置と実験の結果 |
 | E0 の対象 | `gguf/`，`results/<run_id>/` | llama-bench の GGUF と実測の結果 |
 
-## 7. メモリと容量の見積もり（計算値）
+## 7. メモリと容量
 
 | 項目 | 値 |
 |---|---|
-| MedRAG の 4 コーパスのシャード数（6 GiB ごと） | PubMed 6，Wikipedia 8，StatPearls 1，Textbooks 1 の計 16（実測．1 シャード最大約 419 万断片）．StatPearls は 384,050 断片で，研究計画書 §7.1 の約 30.1 万より多い（2026-10 時点の NCBI の配布物を MedRAG のスクリプトで断片化した結果） |
+| MedRAG の 4 コーパスのシャード数（6 GiB ごと） | PubMed 6，Wikipedia 8，StatPearls 1，Textbooks 1 の計 16（1 シャード最大約 419 万断片）．StatPearls は 384,050 断片で，研究計画書 §7.1 の約 30.1 万より多い（2026-10 時点の NCBI の配布物を MedRAG のスクリプトで断片化した結果） |
 | 専門家 1 台のメモリ | fp16 索引 約 6 GB ＋ 行の先頭位置（1 断片 8 バイト）＋ Ollama（宿る型のみ） |
-| 専門家 1 台のディスク | PubMed のシャードで埋め込み約 6 GB ＋ 本文約 8 GB．空きは約 70 GB |
-| 制御点のディスク | 本文 約 110 GB ＋ fp16 の埋め込み 約 83 GB．空きは 372 GB（2026-10-05） |
+| 専門家 1 台のディスク | MedRAG のシャード 1 個で 12〜18 GB（埋め込み約 6 GB ＋ 本文）．FeB4RAG のシャードは数十 MB．使用率は 41〜83%（2026-10-06．他の用途のファイルを含む） |
+| 制御点のデータディレクトリ | MedRAG 約 186 GB（本文と fp16 の埋め込み），FeB4RAG 約 16 GB，HF のモデル約 73 GB，Ollama のモデルと GGUF 約 14 GB．ディスクの空きは約 500 GB（2026-10-06） |
+
+制御点では，断片化を終えた StatPearls の tarball と展開物，BEIR の取得に使った一時ファイルは削除してある．
+コーパスの取得の段は `chunk/.complete` があれば飛ばされるので，削除しても setup の再実行には影響しない．

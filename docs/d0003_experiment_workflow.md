@@ -45,9 +45,15 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
 
 ### deploy（実験準備）
 
+最初に，操作端末でイメージを build して registry へ push する（setup の 3 と同じ．コードの変更はこれで各ノードに届く）．
+制御点と各ノードは push されたイメージを取得し，置き換わって参照されなくなった自前のイメージ
+（ラベル `org.atrium.project=atrium` を持つもの）だけを消す．
+
 `experiment.kind=e1_routing` のとき:
 
-1. データ準備の完了を確かめる（`manifest.json`・`labels.json`・`split.json`，`ragroute` なら `router.pt`）
+1. データ準備の完了を確かめる（`manifest.json`・`labels.json`・`split.json`，`ragroute` なら `router.pt`）．
+   さらに `atrium check-data` で，ラベルを作ったときの設定（`labels_meta.json`）と今の `config.yaml` を照合する
+   （[d0002](d0002_configuration.md) の retrieval）
 2. `artifacts/<dataset>/placement.json` を作る（シャードを `expert_hosts` の先頭から割り当てる）
 3. `cluster.release_hugepages` が true なら，各専門家で予約されたまま使われていない hugepages を解放し
    （`sysctl vm.nr_hugepages=0`．起動時の設定で 1 GB × 13 が予約され，通常のメモリが約 1.7 GB しか残らないため．
@@ -128,7 +134,8 @@ deploy は，別のデータセットのシャードを専門家から消さな�
 | MIRAGE 全 7,663 問（snippet_return，llama3.1:8b） | 約 14 時間（25 問の実測から見積もり） | 1 問あたり約 6.4 秒．質問者の生成（プロンプト中央値約 4,900 トークン，出力中央値約 280 トークン）が律速 |
 | 宿る型（local_answer，qwen3:0.6b） | 1 回の回答に 30〜190 秒（実測） | 専門家の CPU での生成．並列に送ると専門家で待ち行列ができる |
 
-E0 の実測値が得られたら，この表と `.claude/research/config.yml` の `timeout_min` を見直す．
+`.claude/research/config.yml` の `timeout_min`（1,200 分）は，この表の MIRAGE 全問の snippet_return が収まる長さにしてある．
+宿る型で全問を回すときは，これに収まらないので `question_limit` で絞る．
 
 ## 4. 失敗時の確認先
 
