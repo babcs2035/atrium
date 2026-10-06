@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Literal, Protocol
+from typing import Literal
 
 import numpy as np
 import torch
@@ -25,20 +25,6 @@ Doc = tuple[str, str]  # (title, text)
 MAX_LENGTH = 512
 # SGPT の sentence_bert_config.json の max_seq_length（RAGRoute が使う sentence-transformers の経路と同じ）
 SGPT_MAX_LENGTH = 300
-
-
-class Encoder(Protocol):
-    """検索器の共通インタフェース．"""
-
-    name: str
-
-    def encode_queries(self, queries: Sequence[str]) -> F32Array:
-        """クエリを埋め込む（float32，行がクエリ）．"""
-        ...
-
-    def encode_docs(self, docs: Sequence[Doc]) -> F32Array:
-        """文書を埋め込む（float32，行が文書）．"""
-        ...
 
 
 def _device() -> str:

@@ -20,8 +20,6 @@ from atrium.arrays import F32Array
 FP16_BYTES = 2
 GIB = 1024**3
 SHARD_SPEC_FILENAME = "shard.json"
-MANIFEST_FILENAME = "manifest.json"
-PLACEMENT_FILENAME = "placement.json"
 
 ShardKind = Literal["faiss", "search_results"]
 

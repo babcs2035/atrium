@@ -12,8 +12,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-QUESTIONS_FILENAME = "questions.jsonl"
-
 
 @dataclass(frozen=True)
 class Question:
