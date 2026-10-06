@@ -36,7 +36,7 @@ gpu2（操作端末）── mise のタスク・イメージの build・外部�
 - 操作端末から `ssh wafl-ctrl5` で制御点に入れること．
 - 制御点から各ノードへ，ユーザー `denjo` で SSH できること．
 
-実験条件は全て [config.yaml](config.yaml) で決める．
+実験条件も環境の構成も全て [config.yaml](config.yaml) で決める（環境変数は使わない）．
 
 ```bash
 mise run setup         # 環境構築．イメージを build して配り，制御点でデータ準備をバックグラウンドで始める
@@ -70,7 +70,7 @@ mise run check         # テスト・lint・型検査
 | `src/atrium/routing/` | ルーティング方式．新しい方式はここに `Router` を追加する |
 | `scripts/tasks/` | mise のタスクの本体（操作端末で動く） |
 | `scripts/remote/` | 制御点で動くスクリプト（データ準備と各ノードの操作） |
-| `docker/` | 専門家・質問者の compose ファイル |
+| `docker/` | 専門家・質問者の compose のひな形（deploy が `config.yaml` の値で埋める） |
 | `Dockerfile` | `node`（専門家）と `full`（質問者・データ準備）の 2 種類のイメージ |
 | `tests/` | テスト（`mise run check`） |
 | `plans/` | 研究計画書（p0001）と実装計画（p0002） |

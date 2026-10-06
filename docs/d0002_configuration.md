@@ -4,6 +4,22 @@
 型と既定値は `src/atrium/config.py` が定め，未知のキー（誤記）は読み込み時にエラーになる．
 値の確認は `uv run atrium config get <キー>`（例: `cluster.control`）で行う．
 
+## 設定の経路（環境変数を使わない）
+
+実験・環境の制御は `config.yaml` の編集だけで行い，環境変数や `.env` ファイルでは何も制御しない．
+
+| 値を使うもの | 経路 |
+|---|---|
+| Python のコード（専門家ノード・質問者・分析など） | `load_config()` が `config.yaml` を読む．コードは `os.environ` を読まない（テストで検査している） |
+| 専門家ノードのシャード・ノード ID | deploy が `atrium render-compose` で，`docker/compose.node.yml` のひな形を埋めた `compose.yml` を作り，`atrium node` の引数として渡す |
+| compose（ポート・Ollama のバージョン・並列数・UID など） | 同上．ひな形の変数は `render-compose` が `config.yaml` から埋める．埋まらない変数があればエラーになる |
+| シェルスクリプト | 操作端末が `config.yaml` から `artifacts/cluster.env` を作り，スクリプトが読む．これは設定の入力ではなく，毎回作り直す派生物であり，編集しても次のタスクで上書きされる |
+| 実験の記録に残すコミット | イメージの build 時に `/etc/atrium-git-head` へ書き込み，実験の記録（`run_meta.json`）と start の照合が同じファイルを読む |
+
+Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLAMA_MODELS`，`HF_HUB_OFFLINE`，`HF_HOME` など）は，
+そのツールの設定に必要なので compose とイメージに書いてある．これらは `config.yaml` から変えられる条件ではなく，
+基盤の固定の構成である（`OLLAMA_NUM_PARALLEL` だけは `llm.requester_num_parallel` から埋める）．
+
 ## experiment
 
 | キー | 値 | 意味 |

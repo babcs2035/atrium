@@ -87,6 +87,23 @@ declare -A SHARDS_OF=()
 while IFS=$'\t' read -r host shard_ids; do SHARDS_OF[$host]=$shard_ids; done < "artifacts/$DATASET/placement.tsv"
 log "placement: ${#SHARDS_OF[@]} expert nodes"
 
+# render_compose <host> <role> [render-compose の追加の引数...]: ひな形（docker/compose.<role>.yml）を config.yaml の値で埋め，
+# ノードの compose.yml として置く．UID・GID はノードで評価する（ノードのユーザーの UID は制御点と同じとは限らない）．
+# 環境変数や .env ファイルは使わないので，以前の deploy が置いた .env は消す
+render_compose() {
+  local host=$1 role=$2
+  shift 2
+  local uid gid
+  uid=$(nssh "$host" "id -u")
+  gid=$(nssh "$host" "id -g")
+  mkdir -p artifacts/compose
+  docker run --rm --user "$HOST_UID:$HOST_GID" -v "$PWD:/work" -w /work "$IMAGE_FULL" \
+    atrium --config config.yaml render-compose --role "$role" --uid "$uid" --gid "$gid" "$@" \
+    > "artifacts/compose/$host.yml"
+  nrsync -az "artifacts/compose/$host.yml" "$(ssh_dest "$host"):$REMOTE_DIR/compose.yml"
+  nssh "$host" "rm -f $REMOTE_DIR/.env"
+}
+
 deploy_expert() {
   local host=$1
   local shard_ids=${SHARDS_OF[$host]}
@@ -99,10 +116,7 @@ deploy_expert() {
     nrsync -aL --delete --exclude '*.offsets.npy' "$DS_DIR/shards/$sid/" "$(ssh_dest "$host"):$REMOTE_DIR/shards/$sid/"
   done
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
-  nrsync -az docker/compose.node.yml "$(ssh_dest "$host"):$REMOTE_DIR/compose.yml"
-  # UID・GID はノード側で評価する（ノードの denjo の UID は制御点と同じとは限らない）
-  nssh "$host" "printf 'REGISTRY_PORT=%s\nOLLAMA_TAG=%s\nNODE_PORT=%s\nNODE_ID=%s\nSHARD_IDS=%s\nHOST_UID=%s\nHOST_GID=%s\n' \
-    $REGISTRY_PORT $OLLAMA_TAG $NODE_PORT $host $shard_ids \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
+  render_compose "$host" node --node-id "$host" --shard-ids "$shard_ids"
   if [ "$ANSWER_MODE" = "local_answer" ]; then
     send_ollama_model "$host" "$EXPERT_MODEL"
   fi
@@ -124,9 +138,7 @@ deploy_requester() {
   done
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
   nrsync -az "artifacts/$DATASET/placement.json" "$(ssh_dest "$host"):$REMOTE_DIR/placement.json"
-  nrsync -az docker/compose.requester.yml "$(ssh_dest "$host"):$REMOTE_DIR/compose.yml"
-  nssh "$host" "printf 'REGISTRY_PORT=%s\nOLLAMA_TAG=%s\nREQUESTER_NUM_PARALLEL=%s\nHOST_UID=%s\nHOST_GID=%s\n' \
-    $REGISTRY_PORT $OLLAMA_TAG $REQUESTER_NUM_PARALLEL \$(id -u) \$(id -g) > $REMOTE_DIR/.env"
+  render_compose "$host" requester
   # 質問者のモデル（Ollama と，クエリ埋め込み・再ランクの HF のモデル）も制御点から配る
   send_ollama_model "$host" "$REQUESTER_MODEL"
   nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"

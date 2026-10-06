@@ -22,7 +22,7 @@ clean_host() {
     nssh "$host" "[ -f $REMOTE_DIR/compose.yml ] && (cd $REMOTE_DIR && docker compose --profile run down -v) || true"
     if is_control_host "$host"; then
       # 制御点の REMOTE_DIR は本リポジトリの作業ディレクトリでもあるので，質問者の資材だけを消す
-      local items="data hf-cache ollama compose.yml .env placement.json"
+      local items="data hf-cache ollama compose.yml placement.json"
       local cmd="cd $REMOTE_DIR && rm -rf $items"
       nssh "$host" "$cmd 2> /dev/null || sudo -n bash -c '$cmd'"
     else

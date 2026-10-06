@@ -1,5 +1,6 @@
-# 専門家ノード（GPU なしの PC）の compose．scripts/remote/deploy.sh が各ノードの
-# ${ATRIUM_REMOTE_DIR}/ へ .env とともに置き，`docker compose up -d` する．
+# 専門家ノード（GPU なしの PC）の compose のひな形．ドル記号と波括弧で書いた変数は config.yaml の値で，
+# deploy が `atrium render-compose` で埋めた compose.yml を各ノードの cluster.remote_dir へ置き，
+# `docker compose up -d` する（環境変数や .env は使わない）．
 #   ollama : 宿る型（local_answer）で使う CPU 推論の LLM
 #   node   : シャードを読み込んで HTTP API を公開する専門家（atrium.node）
 services:
@@ -23,14 +24,23 @@ services:
     restart: unless-stopped
     # シャードのディレクトリに書くキャッシュの所有者を SSH のユーザーにそろえる
     user: "${HOST_UID}:${HOST_GID}"
-    command: ["atrium", "--config", "/app/config.yaml", "node", "--port", "8100"]
+    command:
+      - atrium
+      - --config
+      - /app/config.yaml
+      - node
+      - --port
+      - "8100"
+      - --node-id
+      - "${NODE_ID}"
+      - --shards-dir
+      - /shards
+      - --shard-ids
+      - "${SHARD_IDS}"
+      - --ollama-url
+      - http://ollama:11434
     ports:
       - "${NODE_PORT}:8100"
-    environment:
-      ATRIUM_NODE_ID: ${NODE_ID}
-      ATRIUM_SHARDS_DIR: /shards
-      ATRIUM_SHARD_IDS: ${SHARD_IDS}
-      ATRIUM_OLLAMA_URL: http://ollama:11434
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       # 行の先頭位置のキャッシュ（*.offsets.npy）を書くので読み書き可能にする

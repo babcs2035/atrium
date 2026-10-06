@@ -55,7 +55,7 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
    さらに `atrium check-data` で，ラベルを作ったときの設定（`labels_meta.json`）と今の `config.yaml` を照合する
    （[d0002](d0002_configuration.md) の retrieval）
 2. `artifacts/<dataset>/placement.json` を作る（シャードを `cluster.experts` の先頭から割り当てる）
-3. 各専門家へシャード・`config.yaml`・compose を配り，`docker compose up -d --force-recreate` する．
+3. 各専門家へシャード・`config.yaml`・compose（ひな形を `atrium render-compose` で埋めたもの．[d0002](d0002_configuration.md)）を配り，`docker compose up -d --force-recreate` する．
    `answer_mode=local_answer` なら `llm.expert_model` を取得する
 4. 質問者へ質問・manifest・クエリ埋め込み・ルーター・qrels・配置を配り，Ollama を起動する．
    `answer_mode=snippet_return` なら `llm.requester_model` を取得する

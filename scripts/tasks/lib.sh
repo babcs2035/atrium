@@ -31,7 +31,7 @@ sync_to_control() {
   rsync -az --delete \
     --exclude .git/ --exclude .venv/ --exclude .claude/ --exclude results/ --exclude artifacts/ \
     --exclude /data/ --exclude /hf-cache/ --exclude /ollama/ \
-    --exclude /compose.yml --exclude /.env --exclude /placement.json \
+    --exclude /compose.yml --exclude /placement.json \
     --exclude __pycache__/ --exclude .mypy_cache/ --exclude .ruff_cache/ --exclude .pytest_cache/ \
     ./ "$CONTROL:$REMOTE_DIR/"
   rsync -az artifacts/cluster.env "$CONTROL:$REMOTE_DIR/artifacts/cluster.env"

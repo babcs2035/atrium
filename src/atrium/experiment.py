@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import time
 from pathlib import Path
 from typing import Any
@@ -34,6 +33,15 @@ RUN_META = "run_meta.json"
 RESULTS = "results.jsonl"
 # 50 台規模へ同時に問い合わせても接続数で詰まらないようにする
 MAX_CONNECTIONS = 512
+# イメージの build 時にコミットを書き込むファイル（Dockerfile の GIT_HEAD．start.sh も同じファイルを読む）
+IMAGE_GIT_HEAD_FILE = Path("/etc/atrium-git-head")
+
+
+def read_image_git_head() -> str:
+    """このイメージを build したときの git のコミット（イメージの外で動かしているときは unknown）．"""
+    if not IMAGE_GIT_HEAD_FILE.exists():
+        return "unknown"
+    return IMAGE_GIT_HEAD_FILE.read_text(encoding="utf-8").strip()
 
 
 def _make_embedder(
@@ -99,7 +107,7 @@ async def run_experiment(
         )
         meta: dict[str, Any] = {
             "run_id": out_dir.name,
-            "git_head": os.environ.get("ATRIUM_GIT_HEAD", "unknown"),
+            "git_head": read_image_git_head(),
             "dataset": dataset,
             "routing": cfg.experiment.routing,
             "answer_mode": cfg.experiment.answer_mode,

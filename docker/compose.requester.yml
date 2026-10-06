@@ -1,4 +1,5 @@
-# 質問者（GPU PC）の compose．scripts/remote/deploy.sh が ${ATRIUM_REMOTE_DIR}/ へ置く．
+# 質問者（GPU PC）の compose のひな形．ドル記号と波括弧で書いた変数は config.yaml の値で，deploy が `atrium render-compose` で
+# 埋めた compose.yml を cluster.remote_dir へ置く（環境変数や .env は使わない）．
 #   ollama    : 断片返却型で回答を生成する LLM（GPU）
 #   requester : `docker compose run` で 1 回の実験ごとに起動する（scripts/remote/start.sh）
 services:

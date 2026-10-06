@@ -102,7 +102,29 @@ def cmd_node(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """専門家ノードを起動する．"""
     from atrium.node import main
 
-    main(Path(args.config), args.host, args.port)
+    shard_ids = [s for s in args.shard_ids.split(",") if s]
+    main(
+        Path(args.config),
+        args.host,
+        args.port,
+        args.node_id,
+        Path(args.shards_dir),
+        shard_ids,
+        args.ollama_url,
+    )
+    return 0
+
+
+def cmd_render_compose(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """compose のひな形（docker/compose.<role>.yml）を，値を埋めた compose.yml として標準出力へ出す．"""
+    from atrium.render import render_compose
+
+    print(
+        render_compose(
+            cfg, args.role, args.uid, args.gid, node_id=args.node_id, shard_ids=args.shard_ids
+        ),
+        end="",
+    )
     return 0
 
 
@@ -332,7 +354,21 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("node", help="専門家ノードを起動する")
     p.add_argument("--host", default="0.0.0.0")  # noqa: S104 (コンテナ内で全インタフェースに公開する)
     p.add_argument("--port", type=int, default=8100)
+    p.add_argument("--node-id", required=True)
+    p.add_argument("--shards-dir", required=True)
+    p.add_argument("--shard-ids", required=True, help="カンマ区切りのシャード ID")
+    p.add_argument("--ollama-url", required=True)
     p.set_defaults(func=cmd_node)
+
+    p = sub.add_parser(
+        "render-compose", help="compose のひな形の ${...} を config.yaml の値で埋めて出す"
+    )
+    p.add_argument("--role", choices=["node", "requester"], required=True)
+    p.add_argument("--uid", type=int, required=True, help="ノードの SSH のユーザーの UID")
+    p.add_argument("--gid", type=int, required=True)
+    p.add_argument("--node-id", default=None, help="role=node のとき必須")
+    p.add_argument("--shard-ids", default=None, help="role=node のとき必須（カンマ区切り）")
+    p.set_defaults(func=cmd_render_compose)
 
     p = sub.add_parser("run", help="質問者として実験を行う")
     p.add_argument("--data-dir", required=True)

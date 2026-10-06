@@ -117,8 +117,7 @@ for host in "$REQUESTER" $(cut -f1 "$PLACEMENT_TSV"); do
     exit 1
   fi
 done
-image_head=$(nssh "$REQUESTER" "docker image inspect -f '{{range .Config.Env}}{{println .}}{{end}}' $IMAGE_FULL" \
-  | sed -n 's/^ATRIUM_GIT_HEAD=//p')
+image_head=$(nssh "$REQUESTER" "docker run --rm --entrypoint cat $IMAGE_FULL /etc/atrium-git-head")
 if [ "$image_head" != "$GIT_HEAD" ]; then
   log "requester image is built from $image_head, not $GIT_HEAD; run 'mise run deploy' first" >&2
   exit 1

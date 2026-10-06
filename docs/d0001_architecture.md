@@ -22,7 +22,7 @@
 （docker は localhost の registry だけを TLS なしで使えるため）．質問者は制御点自身なので，トンネルは要らない．
 
 制御点は質問者を兼ねるので，制御点の `REMOTE_DIR`（`cluster.remote_dir`）はリポジトリの作業ディレクトリと質問者の作業
-ディレクトリを兼ねる．同期（`sync_to_control`）は質問者の資材（`data/`・`hf-cache/`・`ollama/`・`compose.yml`・`.env`・
+ディレクトリを兼ねる．同期（`sync_to_control`）は質問者の資材（`data/`・`hf-cache/`・`ollama/`・`compose.yml`・
 `placement.json`）を消さないよう除外してあり，`mise run clean -- --full` もこれらだけを消す（リポジトリは残る）．
 
 各ノードはインターネットに出ない．研究室側の回線は不安定で，ノードからの取得が 700 KB/s 程度しか出ないことや，
@@ -139,7 +139,7 @@ class Router(Protocol):
 | ホスト | パス | 内容 |
 |---|---|---|
 | 専門家 | `shards/<shard_id>/` | シャード（`*.offsets.npy` は起動時に作る行の先頭位置のキャッシュ） |
-| 専門家 | `compose.yml`，`.env`，`config.yaml` | compose（`docker/compose.node.yml`）と設定 |
+| 専門家 | `compose.yml`，`config.yaml` | compose（`docker/compose.node.yml` のひな形を `atrium render-compose` で埋めたもの）と設定 |
 | 質問者（制御点） | `data/<dataset>/` | 質問・manifest・クエリ埋め込み・ルーター・qrels |
 | 質問者（制御点） | `placement.json`，`results/<run_id>/` | 配置と実験の結果 |
 | E0 の対象 | `gguf/`，`results/<run_id>/` | llama-bench の GGUF と実測の結果 |

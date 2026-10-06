@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 import time
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
@@ -209,14 +208,18 @@ def create_app(
     return app
 
 
-def main(config_path: Path, host: str, port: int) -> None:
-    """環境変数からシャードを読み込み，ノードを起動する．"""
+def main(
+    config_path: Path,
+    host: str,
+    port: int,
+    node_id: str,
+    shards_dir: Path,
+    shard_ids: list[str],
+    ollama_url: str,
+) -> None:
+    """指定されたシャードを読み込み，ノードを起動する（値は compose の command の引数で渡される）．"""
     import uvicorn
 
     cfg = load_config(config_path)
-    node_id = os.environ["ATRIUM_NODE_ID"]
-    shards_dir = Path(os.environ["ATRIUM_SHARDS_DIR"])
-    shard_ids = [s for s in os.environ.get("ATRIUM_SHARD_IDS", "").split(",") if s]
-    ollama_url = os.environ.get("ATRIUM_OLLAMA_URL", "http://localhost:11434")
     stores = {sid: load_shard(shards_dir / sid) for sid in shard_ids}
     uvicorn.run(create_app(node_id, stores, cfg, ollama_url), host=host, port=port)

@@ -27,7 +27,8 @@ COPY src ./src
 # 操作端末の umask（077）で作られたソースの権限のまま，コンテナ内の一般ユーザーから読めなくなる
 RUN uv sync --frozen --no-dev --no-editable
 ARG GIT_HEAD=unknown
-ENV ATRIUM_GIT_HEAD=$GIT_HEAD
+# 実験の記録とイメージの照合（start.sh）のために，build したコミットをファイルに残す
+RUN echo "$GIT_HEAD" > /etc/atrium-git-head
 
 FROM base AS full
 COPY pyproject.toml uv.lock README.md ./
@@ -48,4 +49,4 @@ RUN uv sync --frozen --no-dev --extra requester --no-install-project
 COPY src ./src
 RUN uv sync --frozen --no-dev --extra requester --no-editable
 ARG GIT_HEAD=unknown
-ENV ATRIUM_GIT_HEAD=$GIT_HEAD
+RUN echo "$GIT_HEAD" > /etc/atrium-git-head
