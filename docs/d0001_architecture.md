@@ -12,7 +12,7 @@
 | 埋め込みの分担 | 192.168.15.100〜109 = wafl500〜509（RTX 3060） | データ準備の間だけ，MedCPT の埋め込みを制御点と分担する | `scripts/remote/prepare_data.sh` |
 | 専門家 | 192.168.13.100〜109，192.168.14.100〜109（GPU なし） | シャードの検索・宿る型の回答 | `atrium.node`，`atrium.store` |
 
-操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `cluster.remote_dir`（既定は `/home/denjo/atrium`）へ rsync し，
+操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `cluster.remote_dir`（既定は `/home/denjo/workspace/ktakahashi/atrium`）へ rsync し，
 `ssh wafl-ctrl5 "bash scripts/remote/<task>.sh"` を実行する．制御点は `denjo@<IP>` で各ノードへ SSH する．
 
 自前のイメージ（`atrium-node`，`atrium-full`）は操作端末で build し，SSH の転送（操作端末の 15000 番 → 制御点の

@@ -94,7 +94,7 @@ cluster:
   ssh_user: denjo
   # 制御点と全ノード（質問者・専門家・GPU PC）で本リポジトリの成果物を置く絶対パス．全ホスト共通で，
   # deploy・start・clean など全てのスクリプトがこの値だけを参照する
-  remote_dir: /home/denjo/atrium
+  remote_dir: /home/denjo/workspace/ktakahashi/atrium
   # 制御点のデータディレクトリ（atrium.paths の構成）
   data_dir: /home/denjo/atrium-data
   # 制御点のローカル registry のポート．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送
