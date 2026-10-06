@@ -2,14 +2,16 @@
 # 制御点での実験実行．結果を制御点の results/<run_id>/ に集める．
 #
 # 使い方（操作端末の `mise run start` が setsid nohup で切り離して起動する）:
-#   bash scripts/remote/start.sh <run_id>     # 出力は results/<run_id>/start.log，終了コードは results/<run_id>/.exit
+#   bash scripts/remote/start.sh <run_id> <git_head>   # 出力は results/<run_id>/start.log，終了コードは results/<run_id>/.exit
+# git_head は操作端末のリポジトリのコミット（制御点には .git が無いため引数で受ける．質問者のイメージの照合と記録に使う）
 #
 # e1_routing: 質問者でコンテナ atrium-run-<run_id> を起動し，終わるまで進み具合を表示して待つ．
 #   SSH が切れてもコンテナは動き続ける．同じ run_id で再度実行すると，動いているコンテナを待ち直す．
 # e0_measure: 対象ホストで メモリ構成・ストレージ・llama-bench・FAISS・MedCPT・RTT・iperf3 を測る．
 source "$(dirname "$0")/lib.sh"
 
-RUN_ID=${1:?usage: start.sh <run_id>}
+RUN_ID=${1:?usage: start.sh <run_id> <git_head>}
+GIT_HEAD=${2:?usage: start.sh <run_id> <git_head>}
 OUT="results/$RUN_ID"
 POLL_INTERVAL_S=60
 LLAMA_CPP_IMAGE="localhost:$REGISTRY_PORT/mirror/llama.cpp:full"

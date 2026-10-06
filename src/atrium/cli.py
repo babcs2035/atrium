@@ -3,7 +3,6 @@
 主なサブコマンド（詳細は `atrium <cmd> --help`）:
 
     config get KEY            config.yaml の値を出す（例: cluster.control）
-    config env                シェルスクリプトが source する変数定義を出す（scripts/tasks/lib.sh）
     plan                      manifest.json から placement.json を作る（--tsv でシェル向けの表も出す）
     node                      専門家ノードを起動する（コンテナ内）
     run                       質問者として実験を行う（コンテナ内）
@@ -20,7 +19,6 @@ import argparse
 import asyncio
 import json
 import logging
-import shlex
 import sys
 from pathlib import Path
 from typing import Any
@@ -40,43 +38,8 @@ def _config_get(cfg: AtriumConfig, key: str) -> Any:
     return value
 
 
-def shell_env(cfg: AtriumConfig) -> dict[str, str]:
-    """シェルスクリプトが使う設定値（リストは空白区切り）．"""
-    c = cfg.cluster
-    return {
-        "CONTROL": c.control,
-        "SSH_USER": c.ssh_user,
-        "REMOTE_DIR": c.remote_dir,
-        "DATA_DIR": c.data_dir,
-        "REGISTRY_PORT": str(c.registry_port),
-        "NODE_PORT": str(c.node_port),
-        # 全デバイスの SSH のユーザー（host=user の空白区切り．scripts/remote/lib.sh の ssh_dest が引く）
-        "SSH_USERS": " ".join(f"{d.host}={c.ssh_user_of(d)}" for d in c.devices()),
-        "REQUESTER": c.requester.host,
-        "EXPERTS": " ".join(c.expert_hosts()),
-        "GPU_WORKERS": " ".join(c.gpu_worker_hosts()),
-        "KIND": cfg.experiment.kind,
-        "DATASET": cfg.experiment.dataset,
-        "ROUTING": cfg.experiment.routing,
-        "ANSWER_MODE": cfg.experiment.answer_mode,
-        "OLLAMA_TAG": cfg.llm.ollama_version,
-        "REQUESTER_MODEL": cfg.llm.requester_model,
-        "REQUESTER_NUM_PARALLEL": str(cfg.llm.requester_num_parallel),
-        "EXPERT_MODEL": cfg.llm.expert_model,
-        "E0_HOSTS": " ".join(cfg.e0.hosts),
-        "E0_PAIRS": " ".join(f"{a},{b}" for a, b in cfg.e0.iperf_pairs),
-        "E0_GGUF": " ".join(f"{m.name}|{m.repo}|{m.file}" for m in cfg.e0.gguf_models),
-    }
-
-
 def cmd_config(args: argparse.Namespace, cfg: AtriumConfig) -> int:
-    """config.yaml の値を出す（get: 1 項目．リストは 1 行 1 要素／env: 変数定義の一覧）．"""
-    if args.action == "env":
-        for key, value in shell_env(cfg).items():
-            print(f"{key}={shlex.quote(value)}")
-        return 0
-    if args.key is None:
-        raise SystemExit("config get requires KEY")
+    """config.yaml の値を 1 項目出す（リストは 1 行 1 要素）．"""
     value = _config_get(cfg, args.key)
     if isinstance(value, list):
         print("\n".join(str(v) for v in value))
@@ -341,8 +304,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("config", help="config.yaml の値を出す")
-    p.add_argument("action", choices=["get", "env"])
-    p.add_argument("key", nargs="?")
+    p.add_argument("action", choices=["get"])
+    p.add_argument("key")
     p.set_defaults(func=cmd_config)
 
     p = sub.add_parser("plan", help="placement.json を作る")

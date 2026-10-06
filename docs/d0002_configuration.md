@@ -13,7 +13,7 @@
 | Python のコード（専門家ノード・質問者・分析など） | `load_config()` が `config.yaml` を読む．コードは `os.environ` を読まない（テストで検査している） |
 | 専門家ノードのシャード・ノード ID | deploy が `atrium render-compose` で，`docker/compose.node.yml` のひな形を埋めた `compose.yml` を作り，`atrium node` の引数として渡す |
 | compose（ポート・Ollama のバージョン・並列数・UID など） | 同上．ひな形の変数は `render-compose` が `config.yaml` から埋める．埋まらない変数があればエラーになる |
-| シェルスクリプト | 操作端末が `config.yaml` から `artifacts/cluster.env` を作り，スクリプトが読む．これは設定の入力ではなく，毎回作り直す派生物であり，編集しても次のタスクで上書きされる |
+| シェルスクリプト | 起動のたびに `src/atrium/shell_config.py`（Python と PyYAML だけで動く）が `config.yaml` を読んでシェルの変数にする（`eval "$(python3 src/atrium/shell_config.py config.yaml)"`）．設定を書き出すファイルは無い．操作端末のタスクは，先に `atrium.config` で検証してから読む．操作端末だけが持つ git のコミットは，start の引数で制御点へ渡す |
 | 実験の記録に残すコミット | イメージの build 時に `/etc/atrium-git-head` へ書き込み，実験の記録（`run_meta.json`）と start の照合が同じファイルを読む |
 
 Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLAMA_MODELS`，`HF_HUB_OFFLINE`，`HF_HOME` など）は，

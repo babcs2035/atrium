@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # 制御点（wafl-ctrl5）側の共通処理．scripts/remote/*.sh が source する．
 #
-# artifacts/cluster.env（操作端末が config.yaml から作ったもの）を読み込み，
+# config.yaml をシェルの変数にして読み込み（src/atrium/shell_config.py．ファイルや環境変数は経由しない），
 # 各ノードへの SSH・rsync・registry の逆トンネル・並列実行の関数を定義する．
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
-# shellcheck source=/dev/null
-source artifacts/cluster.env
+eval "$(python3 src/atrium/shell_config.py config.yaml)"
 
 # 以下の 3 つは source した側のスクリプトで使う
 # shellcheck disable=SC2034

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # mise タスクの共通処理（操作端末 gpu2 側）．各タスクのスクリプトが source する．
 #
-# 1. config.yaml から artifacts/cluster.env（シェル変数の定義）を作って読み込む
+# 1. config.yaml を src/atrium/shell_config.py でシェルの変数にして読み込む（ファイルや環境変数は経由しない）
 # 2. sync_to_control: リポジトリを制御点（cluster.control）の REMOTE_DIR へ同期する
 # 3. remote <script> [args...]: 制御点で scripts/remote/<script>.sh を実行する
 set -euo pipefail
@@ -10,17 +10,14 @@ REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 cd "$REPO_ROOT"
 mkdir -p artifacts results
 
-# 同時に動く別のタスクが書きかけを読まないよう，一時ファイルに書いてから置き換える
-ENV_TMP=$(mktemp artifacts/cluster.env.XXXXXX)
-uv run --quiet atrium config env > "$ENV_TMP"
+# 設定は config.yaml だけから読む．まず atrium.config で検証し（誤記・不正な値があればここで止まる），
+# シェルの変数にする
+uv run --quiet atrium config get cluster.control > /dev/null
+eval "$(uv run --quiet python src/atrium/shell_config.py config.yaml)"
 # 未コミットの変更（追跡していない新しいファイルを含む．実験の結果は除く）がある状態で実験したことを
 # 結果から判別できるように -dirty を付ける
 GIT_HEAD="$(git rev-parse --short=12 HEAD 2>/dev/null || echo unknown)"
 if [ -n "$(git status --porcelain -- . ':!results' 2>/dev/null)" ]; then GIT_HEAD="$GIT_HEAD-dirty"; fi
-echo "GIT_HEAD=$GIT_HEAD" >> "$ENV_TMP"
-mv -f "$ENV_TMP" artifacts/cluster.env
-# shellcheck source=/dev/null
-source artifacts/cluster.env
 
 log() { echo "[$(date +%H:%M:%S)] $*"; }
 
@@ -34,7 +31,6 @@ sync_to_control() {
     --exclude /compose.yml --exclude /placement.json \
     --exclude __pycache__/ --exclude .mypy_cache/ --exclude .ruff_cache/ --exclude .pytest_cache/ \
     ./ "$CONTROL:$REMOTE_DIR/"
-  rsync -az artifacts/cluster.env "$CONTROL:$REMOTE_DIR/artifacts/cluster.env"
 }
 
 remote() {

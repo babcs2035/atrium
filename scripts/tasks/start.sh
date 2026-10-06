@@ -13,7 +13,7 @@ RDIR="$REMOTE_DIR/results/$RUN_ID"
 
 # 制御点での状態: running（実行中）／終了コード（.exit の中身）／none（未起動，または印を残さずに止まった）
 remote_state() {
-  ssh "$CONTROL" "if pgrep -f 'scripts/remote/start.sh $RUN_ID\$' > /dev/null; then echo running; \
+  ssh "$CONTROL" "if pgrep -f 'scripts/remote/start.sh $RUN_ID [^ ]*\$' > /dev/null; then echo running; \
     elif [ -f $RDIR/.exit ]; then cat $RDIR/.exit; else echo none; fi"
 }
 
@@ -23,7 +23,7 @@ state=$(remote_state)
 if [ "$state" != running ] && [ "$state" != 0 ]; then
   [ "$state" = none ] || log "previous attempt exited with $state; resuming"
   ssh "$CONTROL" "cd $REMOTE_DIR && mkdir -p $RDIR && rm -f $RDIR/.exit && \
-    setsid nohup bash scripts/remote/start.sh $RUN_ID >> $RDIR/start.log 2>&1 < /dev/null &"
+    setsid nohup bash scripts/remote/start.sh $RUN_ID $GIT_HEAD >> $RDIR/start.log 2>&1 < /dev/null &"
   sleep 5
 fi
 

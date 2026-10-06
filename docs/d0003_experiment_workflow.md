@@ -1,7 +1,6 @@
 # d0003 実験の手順：mise タスク・所要時間・失敗時の確認先
 
-全てのタスクは操作端末（gpu2）のリポジトリの直下で実行する．各タスクは最初に `config.yaml` から
-`artifacts/cluster.env` を作り，リポジトリを制御点（`ssh wafl-ctrl5`）の `cluster.remote_dir`（以下 `<remote_dir>`．既定は `/home/denjo/workspace/ktakahashi/atrium`）へ同期する．
+全てのタスクは操作端末（gpu2）のリポジトリの直下で実行する．各タスクは最初に `config.yaml` を検証して読み込み，リポジトリを制御点（`ssh wafl-ctrl5`）の `cluster.remote_dir`（以下 `<remote_dir>`．既定は `/home/denjo/workspace/ktakahashi/atrium`）へ同期する．
 
 ## 1. 一連の流れ
 
