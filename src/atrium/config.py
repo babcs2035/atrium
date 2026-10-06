@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 DatasetName = Literal["medrag", "feb4rag"]
 RoutingName = Literal["ragroute", "all", "random", "none"]
@@ -101,8 +101,16 @@ class E0Config(_Strict):
     faiss_queries: int = 20
 
 
+class DeviceConfig(_Strict):
+    """実験で使うデバイス 1 台．役割は，このデバイスを置いたリスト（requester / experts / gpu_workers）で決まる．"""
+
+    host: str
+    # 省略時は cluster.ssh_user
+    ssh_user: str | None = None
+
+
 class ClusterConfig(_Strict):
-    """実機の構成．各ノードは制御点（control）から SSH で操作する．"""
+    """実機の構成．各ノードは制御点（control）から SSH で操作する．1 台のデバイスが持つ役割は 1 つだけである．"""
 
     control: str
     ssh_user: str
@@ -110,11 +118,35 @@ class ClusterConfig(_Strict):
     data_dir: str
     registry_port: int
     node_port: int
-    requester: str
-    expert_hosts: list[str]
+    requester: DeviceConfig
+    experts: list[DeviceConfig] = Field(min_length=1)
+    gpu_workers: list[DeviceConfig] = Field(default_factory=list)
     shard_budget_gb: float = Field(gt=0)
-    gpu_workers: list[str] = Field(default_factory=list)
-    release_hugepages: bool = True
+
+    @model_validator(mode="after")
+    def _check_one_role_per_device(self) -> ClusterConfig:
+        """同じホストが複数の役割（または同じ役割に重複）に現れたら拒否する．"""
+        hosts = [d.host for d in self.devices()]
+        duplicated = sorted({h for h in hosts if hosts.count(h) > 1})
+        if duplicated:
+            raise ValueError(f"each device may have only one role; duplicated: {duplicated}")
+        return self
+
+    def devices(self) -> list[DeviceConfig]:
+        """全デバイスを，質問者・専門家・埋め込みの分担の順に返す．"""
+        return [self.requester, *self.experts, *self.gpu_workers]
+
+    def expert_hosts(self) -> list[str]:
+        """専門家のホストの一覧（config.yaml の順）．"""
+        return [d.host for d in self.experts]
+
+    def gpu_worker_hosts(self) -> list[str]:
+        """データ準備で埋め込みを分担する GPU PC のホストの一覧．"""
+        return [d.host for d in self.gpu_workers]
+
+    def ssh_user_of(self, device: DeviceConfig) -> str:
+        """デバイスへ SSH するユーザー（個別の指定が無ければ cluster.ssh_user）．"""
+        return device.ssh_user or self.ssh_user
 
 
 class MedragDataConfig(_Strict):
@@ -166,6 +198,16 @@ class AtriumConfig(_Strict):
     e0: E0Config
     cluster: ClusterConfig
     data: DataConfig
+
+    @model_validator(mode="after")
+    def _check_e0_hosts_are_experts(self) -> AtriumConfig:
+        """E0 で測るホストと iperf の相手は，cluster.experts のデバイスでなければならない．"""
+        experts = set(self.cluster.expert_hosts())
+        named = [*self.e0.hosts, *(h for pair in self.e0.iperf_pairs for h in pair)]
+        unknown = sorted({h for h in named if h not in experts})
+        if unknown:
+            raise ValueError(f"e0 hosts are not in cluster.experts: {unknown}")
+        return self
 
 
 def load_config(path: Path = DEFAULT_CONFIG_PATH) -> AtriumConfig:

@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from atrium.config import DEFAULT_CONFIG_PATH, AtriumConfig, load_config
-from atrium.manifest import expand_host_patterns, plan_placement, read_manifest, write_json_model
+from atrium.manifest import plan_placement, read_manifest, write_json_model
 from atrium.paths import dataset_paths
 
 MEDRAG_STEPS = ("benchmark", "corpus", "embed", "shards", "queries", "labels", "split", "train")
@@ -50,10 +50,11 @@ def shell_env(cfg: AtriumConfig) -> dict[str, str]:
         "DATA_DIR": c.data_dir,
         "REGISTRY_PORT": str(c.registry_port),
         "NODE_PORT": str(c.node_port),
-        "REQUESTER": c.requester,
-        "EXPERTS": " ".join(expand_host_patterns(c.expert_hosts)),
-        "GPU_WORKERS": " ".join(expand_host_patterns(c.gpu_workers)),
-        "RELEASE_HUGEPAGES": "1" if c.release_hugepages else "0",
+        # 全デバイスの SSH のユーザー（host=user の空白区切り．scripts/remote/lib.sh の ssh_dest が引く）
+        "SSH_USERS": " ".join(f"{d.host}={c.ssh_user_of(d)}" for d in c.devices()),
+        "REQUESTER": c.requester.host,
+        "EXPERTS": " ".join(c.expert_hosts()),
+        "GPU_WORKERS": " ".join(c.gpu_worker_hosts()),
         "KIND": cfg.experiment.kind,
         "DATASET": cfg.experiment.dataset,
         "ROUTING": cfg.experiment.routing,
@@ -89,9 +90,7 @@ def cmd_config(args: argparse.Namespace, cfg: AtriumConfig) -> int:
 def cmd_plan(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """シャードを専門家へ割り当てる．"""
     manifest = read_manifest(Path(args.manifest))
-    placement = plan_placement(
-        manifest, expand_host_patterns(cfg.cluster.expert_hosts), cfg.cluster.node_port
-    )
+    placement = plan_placement(manifest, cfg.cluster.expert_hosts(), cfg.cluster.node_port)
     write_json_model(Path(args.out), placement)
     if args.tsv:
         for node in placement.nodes:

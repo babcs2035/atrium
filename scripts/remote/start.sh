@@ -39,7 +39,7 @@ measure_memory() {
   dmi=$(nssh "$host" "sudo -n dmidecode -t memory") || return 1
   awk -F': ' '/^\tSize:/ && $2 !~ /No Module/ {s=$2} /^\tLocator:/ {l=$2} /^\tConfigured Memory Speed:/ && s {print l" "s" @"$2; s=""}' \
     <<< "$dmi" > "$dir/dimm.txt"
-  nssh "$host" "free -b | awk '/^Mem:/ {print \$2}'; df -B1 --output=avail / | tail -1; lsblk -d -o NAME,SIZE,ROTA,MODEL; grep -E 'MemAvailable|HugePages_Total' /proc/meminfo" > "$dir/host.raw" || return 1
+  nssh "$host" "free -b | awk '/^Mem:/ {print \$2}'; df -B1 --output=avail / | tail -1; lsblk -d -o NAME,SIZE,ROTA,MODEL; grep -E 'MemAvailable' /proc/meminfo" > "$dir/host.raw" || return 1
   awk 'NR==1 {m=$1} NR==2 {a=$1} END {printf "{\"mem_total_gb\": %.1f, \"root_avail_gb\": %.1f}\n", m/1e9, a/1e9}' "$dir/host.raw" > "$dir/host.json"
 }
 
@@ -58,7 +58,7 @@ measure_python() {
   nssh "$host" "mkdir -p $rdir && docker run --rm --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/cache -e HF_HUB_OFFLINE=1 \
     -v $REMOTE_DIR/config.yaml:/app/config.yaml:ro -v $REMOTE_DIR/hf-cache:/cache -v $rdir:/out $IMAGE_FULL \
     atrium --config /app/config.yaml e0 $what --out /out/$what.json" || return 1
-  nrsync -a "$SSH_USER@$host:$rdir/$what.json" "$dir/"
+  nrsync -a "$(ssh_dest "$host"):$rdir/$what.json" "$dir/"
 }
 
 measure_e0_host() {
@@ -162,7 +162,7 @@ done
 EXIT_CODE=$(retry 3 nssh "$REQUESTER" "docker inspect -f '{{.State.ExitCode}}' $NAME")
 nssh "$REQUESTER" "docker logs $NAME" > "$OUT/requester.log" 2>&1 || true
 nssh "$REQUESTER" "docker rm $NAME" > /dev/null || true
-retry 3 nrsync -a "$SSH_USER@$REQUESTER:$RDIR/" "$OUT/"
+retry 3 nrsync -a "$(ssh_dest "$REQUESTER"):$RDIR/" "$OUT/"
 # 専門家のログはこの実行の直後に集める（後で deploy すると --force-recreate で消えるため）
 mkdir -p "$OUT/logs"
 while IFS=$'\t' read -r host _; do

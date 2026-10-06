@@ -29,7 +29,7 @@ mise run stop
    registry の `mirror/` と制御点のデータディレクトリへ送る（`scripts/tasks/fetch_assets.sh`．各ノードは
    インターネットに出ない）
 5. 制御点で `scripts/remote/prepare_data.sh` を `setsid nohup` で起動し，データ準備をバックグラウンドで始める
-   （SSH が切れても続く）．MedCPT の埋め込みは制御点と wafl500〜509 の GPU 11 枚で分担する
+   （SSH が切れても続く）．MedCPT の埋め込みは制御点と wafl501〜509 の GPU 10 枚で分担する
 
 `mise run setup -- medrag` のように，データ準備の対象を絞れる（既定は `feb4rag medrag` の順）．
 データ準備の各段は冪等であり，成果物があれば飛ばす．止まった場合は再び `mise run setup` を実行すれば
@@ -54,18 +54,15 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
 1. データ準備の完了を確かめる（`manifest.json`・`labels.json`・`split.json`，`ragroute` なら `router.pt`）．
    さらに `atrium check-data` で，ラベルを作ったときの設定（`labels_meta.json`）と今の `config.yaml` を照合する
    （[d0002](d0002_configuration.md) の retrieval）
-2. `artifacts/<dataset>/placement.json` を作る（シャードを `expert_hosts` の先頭から割り当てる）
-3. `cluster.release_hugepages` が true なら，各専門家で予約されたまま使われていない hugepages を解放し
-   （`sysctl vm.nr_hugepages=0`．起動時の設定で 1 GB × 13 が予約され，通常のメモリが約 1.7 GB しか残らないため．
-   実行時の値だけを変えるので再起動で戻る），
-   シャード・`config.yaml`・compose を配り，`docker compose up -d --force-recreate` する．
+2. `artifacts/<dataset>/placement.json` を作る（シャードを `cluster.experts` の先頭から割り当てる）
+3. 各専門家へシャード・`config.yaml`・compose を配り，`docker compose up -d --force-recreate` する．
    `answer_mode=local_answer` なら `llm.expert_model` を取得する
 4. 質問者へ質問・manifest・クエリ埋め込み・ルーター・qrels・配置を配り，Ollama を起動する．
    `answer_mode=snippet_return` なら `llm.requester_model` を取得する
 5. 配置から外れた専門家のコンテナを止める
 6. 全専門家の `/healthz` が応答するまで待つ（最長 10 分．PubMed のシャードは索引の組み立てに数分かかる）
 
-`experiment.kind=e0_measure` のとき: 対象ホストの専門家のコンテナを止めて hugepages を解放し，`atrium-full`・llama.cpp・iperf3 の
+`experiment.kind=e0_measure` のとき: 対象ホストの専門家のコンテナを止め，`atrium-full`・llama.cpp・iperf3 の
 イメージと GGUF を用意する．
 
 各ホストの出力は制御点の `/home/denjo/atrium/artifacts/logs/deploy/<host>.log` に残る．

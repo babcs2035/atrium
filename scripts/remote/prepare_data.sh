@@ -53,7 +53,7 @@ collect_worker() {
   local host=$1
   if nssh "$host" "[ -d $WORK_DIR/medrag/corpus ]"; then
     nrsync -a --include='*/' --include='*.f16.npy' --exclude='*' \
-      "$SSH_USER@$host:$WORK_DIR/medrag/corpus/" "$DATA_DIR/medrag/corpus/" || return 1
+      "$(ssh_dest "$host"):$WORK_DIR/medrag/corpus/" "$DATA_DIR/medrag/corpus/" || return 1
   fi
 }
 
@@ -75,12 +75,12 @@ embed_worker() {
   # 分担表の source/name を，データセットの root からの断片ファイルのパスへ直す
   sed 's|^\([^/]*\)/\(.*\)$|corpus/\1/chunk/\2.jsonl|' "$plan" > "$PLAN_DIR/$host.files"
   log "$host: sending $(wc -l < "$plan") chunk files"
-  nrsync -a --files-from="$PLAN_DIR/$host.files" "$DATA_DIR/medrag/" "$SSH_USER@$host:$WORK_DIR/medrag/" || return 1
-  nrsync -a "$plan" "$SSH_USER@$host:$WORK_DIR/plan.txt" || return 1
-  nrsync -a "$CONFIG_SNAPSHOT" "$SSH_USER@$host:$WORK_DIR/config.yaml" || return 1
+  nrsync -a --files-from="$PLAN_DIR/$host.files" "$DATA_DIR/medrag/" "$(ssh_dest "$host"):$WORK_DIR/medrag/" || return 1
+  nrsync -a "$plan" "$(ssh_dest "$host"):$WORK_DIR/plan.txt" || return 1
+  nrsync -a "$CONFIG_SNAPSHOT" "$(ssh_dest "$host"):$WORK_DIR/config.yaml" || return 1
   # MedCPT のモデルは制御点のキャッシュから配り，GPU PC ではオフラインで読み込む
   # （GPU PC のインターネット接続に頼らない．2026-10-06 に研究室のゲートウェイが止まった）
-  nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$SSH_USER@$host:$WORK_DIR/hf/hub/" || return 1
+  nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$(ssh_dest "$host"):$WORK_DIR/hf/hub/" || return 1
   log "$host: embedding"
   nssh "$host" "docker rm -f atrium-embed > /dev/null 2>&1; docker run --rm --name atrium-embed \
     --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/work/hf -e HF_HUB_OFFLINE=1 \

@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import json
-import re
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
@@ -82,23 +81,6 @@ class Placement(_Model):
     def url_of_shard(self) -> dict[str, str]:
         """シャード ID からそのシャードを持つノードの URL を引く表を返す．"""
         return {sid: node.url for node in self.nodes for sid in node.shard_ids}
-
-
-_RANGE_PATTERN = re.compile(r"^(?P<prefix>[^{]*)\{(?P<start>\d+)-(?P<end>\d+)\}(?P<suffix>.*)$")
-
-
-def expand_host_patterns(patterns: Sequence[str]) -> list[str]:
-    """ "192.168.13.{100-102}" のような範囲表記をホストの一覧へ展開する．"""
-    hosts: list[str] = []
-    for pattern in patterns:
-        match = _RANGE_PATTERN.match(pattern)
-        if match is None:
-            hosts.append(pattern)
-            continue
-        width = len(match["start"])
-        for i in range(int(match["start"]), int(match["end"]) + 1):
-            hosts.append(f"{match['prefix']}{i:0{width}d}{match['suffix']}")
-    return hosts
 
 
 def group_files_into_shards(

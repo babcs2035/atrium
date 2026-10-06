@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -50,3 +51,46 @@ def test_config_rejects_unknown_keys() -> None:
     raw["experiment"]["routnig"] = "all"
     with pytest.raises(ValidationError):
         AtriumConfig.model_validate(raw)
+
+
+def _repository_config_dict() -> dict[str, Any]:
+    """config.yaml を辞書のまま読む（一部のキーを書き換えた設定の検証に使う）．"""
+    raw: dict[str, Any] = yaml.safe_load((REPO_ROOT / "config.yaml").read_text(encoding="utf-8"))
+    return raw
+
+
+def test_config_rejects_host_with_two_roles() -> None:
+    raw = _repository_config_dict()
+    raw["cluster"]["gpu_workers"] = [{"host": raw["cluster"]["requester"]["host"]}]
+    with pytest.raises(ValidationError, match="only one role"):
+        AtriumConfig.model_validate(raw)
+
+
+def test_config_rejects_duplicate_host_within_a_role() -> None:
+    raw = _repository_config_dict()
+    experts = raw["cluster"]["experts"]
+    raw["cluster"]["experts"] = [experts[0], experts[0]]
+    with pytest.raises(ValidationError, match="only one role"):
+        AtriumConfig.model_validate(raw)
+
+
+def test_config_rejects_e0_host_that_is_not_an_expert() -> None:
+    raw = _repository_config_dict()
+    raw["e0"]["hosts"] = [raw["cluster"]["requester"]["host"]]
+    with pytest.raises(ValidationError, match="not in cluster.experts"):
+        AtriumConfig.model_validate(raw)
+
+
+def test_config_rejects_removed_hugepages_key() -> None:
+    raw = _repository_config_dict()
+    raw["cluster"]["release_hugepages"] = True
+    with pytest.raises(ValidationError):
+        AtriumConfig.model_validate(raw)
+
+
+def test_device_ssh_user_overrides_cluster_default() -> None:
+    raw = _repository_config_dict()
+    raw["cluster"]["experts"][0]["ssh_user"] = "alice"
+    cluster = AtriumConfig.model_validate(raw).cluster
+    assert cluster.ssh_user_of(cluster.experts[0]) == "alice"
+    assert cluster.ssh_user_of(cluster.experts[1]) == cluster.ssh_user

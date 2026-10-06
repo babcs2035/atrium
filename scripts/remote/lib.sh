@@ -21,11 +21,20 @@ SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-
 
 log() { echo "[$(date +%H:%M:%S)] $*"; }
 
+# デバイスごとの SSH のユーザー（config.yaml の cluster の各デバイスの ssh_user．省略時は cluster.ssh_user）
+declare -A SSH_USER_OF=()
+for entry in $SSH_USERS; do SSH_USER_OF[${entry%%=*}]=${entry#*=}; done
+
+# ssh_dest <host>: ssh・rsync の宛先（user@host）
+ssh_dest() {
+  echo "${SSH_USER_OF[$1]:-$SSH_USER}@$1"
+}
+
 # -n: 標準入力を読ませない（while read のループの中で呼ぶと，残りの行を ssh が読んでしまうため）
 nssh() {
   local host=$1
   shift
-  ssh -n "${SSH_OPTS[@]}" "$SSH_USER@$host" "$@"
+  ssh -n "${SSH_OPTS[@]}" "$(ssh_dest "$host")" "$@"
 }
 
 # retry <回数> <コマンド...>: 失敗したら 30 秒待って繰り返す（registry が混み合ってイメージの取得が
@@ -56,7 +65,7 @@ ensure_tunnel() {
     return 0
   fi
   if ! ssh "${SSH_OPTS[@]}" -fNT -o ExitOnForwardFailure=yes \
-    -R "$REGISTRY_PORT:localhost:$REGISTRY_PORT" "$SSH_USER@$host"; then
+    -R "$REGISTRY_PORT:localhost:$REGISTRY_PORT" "$(ssh_dest "$host")"; then
     log "$host: could not open the registry tunnel; port $REGISTRY_PORT is held by:" >&2
     nssh "$host" "ss -ltnp 2> /dev/null | grep ':$REGISTRY_PORT '" >&2 || true
     return 1
@@ -87,17 +96,6 @@ run_parallel() {
     fi
   done
   return "$failed"
-}
-
-# 予約されたまま使われていない hugepages を解放し，索引と LLM が通常のメモリを使えるようにする．
-# 専門家ノード（i5-8350U，16 GB）では起動時の設定で 1 GB × 13 が予約され，通常のメモリが約 1.7 GB しか
-# 残っていなかった（2026-10-06．解放はユーザーが許可）．実行時の値だけを変えるので，再起動すると戻る
-# config.yaml の cluster.release_hugepages が true のときだけ解放する
-release_hugepages() {
-  local host=$1
-  if [ "$RELEASE_HUGEPAGES" = 1 ]; then
-    nssh "$host" "sudo -n sysctl -q -w vm.nr_hugepages=0"
-  fi
 }
 
 # 以前 root で動いていた Ollama が作ったファイルの所有者を SSH のユーザーへ戻す（自分の成果物だけが対象）
@@ -132,7 +130,7 @@ send_ollama_model() {
   list=$(mktemp)
   ollama_model_files "$model" > "$list"
   nssh "$host" "mkdir -p $REMOTE_DIR/ollama/models"
-  nrsync -a --files-from="$list" "$DATA_DIR/ollama/models/" "$SSH_USER@$host:$REMOTE_DIR/ollama/models/"
+  nrsync -a --files-from="$list" "$DATA_DIR/ollama/models/" "$(ssh_dest "$host"):$REMOTE_DIR/ollama/models/"
   rm -f "$list"
 }
 

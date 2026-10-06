@@ -10,23 +10,9 @@ from atrium.manifest import (
     Manifest,
     ShardSpec,
     combine_centroids,
-    expand_host_patterns,
     group_files_into_shards,
     plan_placement,
 )
-
-
-def test_expand_host_patterns_expands_ranges_and_keeps_plain_hosts() -> None:
-    assert expand_host_patterns(["192.168.13.{100-102}", "wafl-ctrl5"]) == [
-        "192.168.13.100",
-        "192.168.13.101",
-        "192.168.13.102",
-        "wafl-ctrl5",
-    ]
-
-
-def test_expand_host_patterns_keeps_zero_padding() -> None:
-    assert expand_host_patterns(["n{08-10}"]) == ["n08", "n09", "n10"]
 
 
 def test_group_files_starts_new_shard_when_budget_would_be_exceeded() -> None:

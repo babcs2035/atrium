@@ -24,7 +24,7 @@
 
 | 項目 | 値 |
 |---|---|
-| メモリ | 8 GB × 2（デュアルチャネル，DDR4-2400）．起動時に 1 GB × 13 の hugepages が予約される（deploy が解放する．backlog B1） |
+| メモリ | 8 GB × 2（デュアルチャネル，DDR4-2400） |
 | qwen3-0.6B（Q4_K_M，4 スレッド） | pp512 約 200，pp4096 約 113，tg128 約 26 tokens/s |
 | qwen3-1.7B | pp512 約 68，pp4096 約 54，tg128 約 9 tokens/s |
 | qwen3-4B | pp512 約 24，pp4096 約 20，tg128 約 4 tokens/s |
