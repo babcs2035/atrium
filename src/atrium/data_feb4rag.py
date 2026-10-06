@@ -68,15 +68,21 @@ def fetch_repo(cfg: AtriumConfig, paths: DatasetPaths) -> None:
         )
         write_questions(paths.questions, feb4rag_to_questions(lines))
 
+    # qrels に判定がある要求は全てラベルに載せる．13 エンジンの中に関連ありが無い要求は空の一覧になる
+    # （除いた 3 エンジンだけが関連する要求）．判定が 1 行も無い要求はラベルに載せない（分析で除く）
     sources = set(cfg.data.feb4rag.sources)
     labels: dict[str, list[str]] = defaultdict(list)
     with (dataset_dir / "qrels" / "BEIR-QRELS-RS.txt").open(encoding="utf-8") as f:
         for line in f:
             qid, _, engine, score = line.split()
+            relevant = labels[f"feb4rag/{qid}"]
             if engine in sources and int(score) > 0:
-                labels[f"feb4rag/{qid}"].append(engine)
+                relevant.append(engine)
     paths.labels.parent.mkdir(parents=True, exist_ok=True)
     paths.labels.write_text(json.dumps({q: sorted(v) for q, v in labels.items()}), encoding="utf-8")
+    from atrium.labels import write_labels_meta
+
+    write_labels_meta(cfg, "feb4rag", paths)
 
     paths.rm_qrels.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(dataset_dir / "qrels" / "BEIR-QRELS-RM.txt", paths.rm_qrels)

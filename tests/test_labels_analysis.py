@@ -91,3 +91,22 @@ def test_compare_runs_uses_only_shared_questions() -> None:
     result = compare_runs(a, b)
     assert result["n_shared"] == 1
     assert (result["only_a_correct"], result["only_b_correct"]) == (1, 0)
+
+
+def test_selection_ignores_questions_without_labels() -> None:
+    rows = [_row("q1", True), _row("q_unjudged", True)]
+    metrics = compute_metrics(rows, {"q1": ["a"]}, {}, n_sources=2)
+    assert metrics["all"]["n_unlabeled"] == 1
+    assert metrics["all"]["selection"]["precision"] == 1.0
+
+
+def test_label_consistency_is_only_reported_for_routing_all() -> None:
+    rows = [{**_row("q1", True), "contributing_sources": ["a"]}]
+    assert (
+        compute_metrics(rows, {"q1": ["a"]}, {}, 2, routing="all")["all"]["label_consistency"]
+        == 1.0
+    )
+    assert (
+        compute_metrics(rows, {"q1": ["a"]}, {}, 2, routing="ragroute")["all"]["label_consistency"]
+        is None
+    )

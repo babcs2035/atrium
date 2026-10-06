@@ -11,6 +11,7 @@ from typing import Any
 
 import httpx
 
+from atrium.analysis import read_results
 from atrium.benchmarks import load_questions
 from atrium.config import AtriumConfig
 from atrium.manifest import read_placement
@@ -62,8 +63,20 @@ async def run_experiment(
     dataset = cfg.experiment.dataset
     paths = dataset_paths(data_dir, dataset)
     placement = read_placement(placement_path)
-    questions = load_questions(paths.questions, cfg.experiment.question_limit)
+    all_questions = load_questions(paths.questions, cfg.experiment.question_limit)
     out_dir.mkdir(parents=True, exist_ok=True)
+    # 同じ run_id で再開したときは，成功済みの質問を飛ばす（失敗した質問はやり直す）
+    done = (
+        {r["qid"] for r in read_results(out_dir / RESULTS) if r.get("error") is None}
+        if (out_dir / RESULTS).exists()
+        else set()
+    )
+    questions = [q for q in all_questions if q.qid not in done]
+    previous: dict[str, Any] = (
+        json.loads((out_dir / RUN_META).read_text(encoding="utf-8"))
+        if (out_dir / RUN_META).exists()
+        else {}
+    )
     async with httpx.AsyncClient(limits=httpx.Limits(max_connections=MAX_CONNECTIONS)) as client:
         start = time.perf_counter()
         shards = await discover_shards(client, placement)
@@ -91,7 +104,8 @@ async def run_experiment(
             "routing": cfg.experiment.routing,
             "answer_mode": cfg.experiment.answer_mode,
             "merge": cfg.retrieval.merge,
-            "n_questions": len(questions),
+            "n_questions": len(all_questions),
+            "n_skipped_on_resume": len(done),
             "n_nodes": len(placement.nodes),
             "discovery_s": discovery_s,
             "sources": [
@@ -99,12 +113,12 @@ async def run_experiment(
                 for s in sources
             ],
             "config": cfg.model_dump(mode="json"),
-            "started_at": time.time(),
+            "started_at": previous.get("started_at", time.time()),
         }
         _write_meta(out_dir, meta)
-        failures = await run_questions(
-            requester, questions, out_dir / RESULTS, cfg.experiment.parallel
-        )
+        await run_questions(requester, questions, out_dir / RESULTS, cfg.experiment.parallel)
+        # 再開した場合も含め，各質問の最後の結果で失敗を数える
+        failures = sum(r.get("error") is not None for r in read_results(out_dir / RESULTS))
         meta.update({"finished_at": time.time(), "failures": failures})
         _write_meta(out_dir, meta)
     logger.info("finished %d questions (%d failures)", len(questions), failures)

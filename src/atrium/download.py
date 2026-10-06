@@ -6,6 +6,7 @@ urllib の既定は読み取りに timeout が無く，相手が応答を止め�
 
 from __future__ import annotations
 
+import http.client
 import logging
 import shutil
 import time
@@ -40,7 +41,8 @@ def download(url: str, dest: Path) -> None:
                 raise OSError(f"incomplete download: {received} of {expected} bytes")
             tmp.replace(dest)
             return
-        except OSError as exc:  # URLError・タイムアウト・接続断はすべて OSError の派生
+        # URLError・タイムアウト・接続断は OSError，チャンク転送の途中切れは http.client.IncompleteRead
+        except (OSError, http.client.HTTPException) as exc:
             logger.warning("download failed: %s", exc)
             if attempt == RETRIES:
                 raise

@@ -129,6 +129,11 @@ def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         if args.step == "all"
         else (args.step,)
     )
+    valid = MEDRAG_STEPS if args.dataset == "medrag" else FEB4RAG_STEPS
+    if args.step != "all" and args.step not in valid:
+        raise SystemExit(
+            f"step {args.step!r} is not defined for {args.dataset}; choose from {valid}"
+        )
     sources = [args.source] if args.source else cfg.data.sources_of(args.dataset)
     for step in steps:
         logging.info("data %s: %s", args.dataset, step)
@@ -193,6 +198,16 @@ def cmd_fetch_models(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_check_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """今の設定が，データ準備でラベルを作ったときの設定と同じかを確かめる（deploy が呼ぶ）．"""
+    from atrium.labels import check_labels_meta
+
+    check_labels_meta(
+        cfg, cfg.experiment.dataset, dataset_paths(Path(args.data_dir), cfg.experiment.dataset)
+    )
+    return 0
+
+
 def cmd_embed_plan(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """未埋め込みの断片ファイルを担当者へ振り分け，担当者ごとの一覧を書く．"""
     from atrium import data_medrag
@@ -223,7 +238,9 @@ def _analyze(run_dir: Path, artifacts_dir: Path) -> dict[str, Any]:
     labels = json.loads(paths.labels.read_text(encoding="utf-8"))
     split = json.loads(paths.split.read_text(encoding="utf-8")) if paths.split.exists() else {}
     n_sources = len(meta["sources"])
-    return compute_metrics(read_results(run_dir / "results.jsonl"), labels, split, n_sources)
+    return compute_metrics(
+        read_results(run_dir / "results.jsonl"), labels, split, n_sources, meta["routing"]
+    )
 
 
 def cmd_analyze(args: argparse.Namespace, cfg: AtriumConfig) -> int:
@@ -231,8 +248,10 @@ def cmd_analyze(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium.analysis import render_report
 
     run_dir = Path(args.run_dir) if args.run_dir else _latest_run(Path(args.results_dir))
-    metrics = _analyze(run_dir, Path(args.artifacts_dir))
     meta = json.loads((run_dir / "run_meta.json").read_text(encoding="utf-8"))
+    if meta.get("kind") == "e0_measure":
+        raise SystemExit(f"{run_dir} is an E0 run; use `atrium e0 summarize --dir {run_dir}/e0`")
+    metrics = _analyze(run_dir, Path(args.artifacts_dir))
     (run_dir / "metrics.json").write_text(json.dumps(metrics, indent=1), encoding="utf-8")
     (run_dir / "analysis_report.md").write_text(render_report(meta, metrics), encoding="utf-8")
     print(run_dir / "analysis_report.md")
@@ -275,10 +294,14 @@ def cmd_e0(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium import e0
 
     if args.what == "summarize":
+        if args.dir is None:
+            raise SystemExit("e0 summarize requires --dir")
         text = e0.summarize(Path(args.dir))
         (Path(args.dir).parent / "e0_summary.md").write_text(text, encoding="utf-8")
         print(text)
         return 0
+    if args.out is None:
+        raise SystemExit(f"e0 {args.what} requires --out")
     result = (
         e0.faiss_bench(cfg.e0.faiss_vectors, cfg.e0.faiss_queries, cfg.experiment.seed)
         if args.what == "faiss"
@@ -334,6 +357,10 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("fetch-models", help="データセットで使うモデルを HF のキャッシュへ取得する")
     p.add_argument("dataset", choices=["medrag", "feb4rag"])
     p.set_defaults(func=cmd_fetch_models)
+
+    p = sub.add_parser("check-data", help="設定がラベルを作ったときと同じかを確かめる")
+    p.add_argument("--data-dir", required=True)
+    p.set_defaults(func=cmd_check_data)
 
     p = sub.add_parser("embed-plan", help="MedRAG の埋め込みを複数の GPU で分担する表を作る")
     p.add_argument("--data-dir", required=True)

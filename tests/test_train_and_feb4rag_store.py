@@ -59,7 +59,13 @@ def test_trained_router_learns_which_source_matches_the_query(
     router = RagrouteRouter(paths.router, sources, threshold=0.5)
     profiles = [
         SourceProfile(
-            s.source, s.description, s.encoder, np.array(s.centroid, np.float32), 10, (s.shard_id,)
+            s.source,
+            s.kind,
+            s.description,
+            s.encoder,
+            np.array(s.centroid, np.float32),
+            10,
+            (s.shard_id,),
         )
         for s in shards
     ]

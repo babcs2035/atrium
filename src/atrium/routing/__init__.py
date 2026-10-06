@@ -15,7 +15,7 @@ from typing import Protocol
 
 from atrium.arrays import F32Array
 from atrium.config import AtriumConfig
-from atrium.manifest import combine_centroids
+from atrium.manifest import ShardKind, combine_centroids
 from atrium.protocol import ShardProfile
 
 
@@ -33,6 +33,7 @@ class SourceProfile:
     """データ源の自己紹介．各ノードの /v1/profile をデータ源単位にまとめたもの．"""
 
     source: str
+    kind: ShardKind
     description: str
     encoder: str
     centroid: F32Array
@@ -62,6 +63,7 @@ def build_source_profiles(
         profiles.append(
             SourceProfile(
                 source=source,
+                kind=members[0].kind,
                 description=members[0].description,
                 encoder=members[0].encoder,
                 centroid=combine_centroids(

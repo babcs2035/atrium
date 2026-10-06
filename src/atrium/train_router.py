@@ -188,7 +188,6 @@ def train_router(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -
         "n_pairs": {k: int(len(v[1])) for k, v in tensors.items()},
     }
     paths.router.mkdir(parents=True, exist_ok=True)
-    torch.save(best_state, paths.router / ROUTER_WEIGHTS)
     if use_scaler:
         np.savez(paths.router / ROUTER_SCALER, mean=mean, scale=scale)
     meta = RouterMeta(
@@ -201,4 +200,8 @@ def train_router(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -
     )
     (paths.router / ROUTER_META).write_text(meta.model_dump_json(indent=1), encoding="utf-8")
     (paths.router / "train_report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
+    # データ準備は router.pt の有無で完了を判断するので，最後に（一時ファイルからの置き換えで）書く
+    tmp = paths.router / f"{ROUTER_WEIGHTS}.tmp"
+    torch.save(best_state, tmp)
+    tmp.replace(paths.router / ROUTER_WEIGHTS)
     return report

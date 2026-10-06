@@ -188,3 +188,33 @@ async def test_none_routing_answers_without_retrieval(
     assert record["selected_sources"] == []
     assert record["bytes_received"] == 0
     assert record["correct"] is True
+
+
+class FailingEmbedder:
+    """埋め込みで想定外の例外を投げる（GPU のメモリ不足などを模す）．"""
+
+    def embed(self, question: Question) -> dict[str, F32Array]:
+        raise RuntimeError("CUDA out of memory")
+
+
+async def test_unexpected_exception_is_recorded_not_raised(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(_cfg(cfg, "retrieval_only"), tmp_path, AllRouter(), {})
+    requester.embedder = FailingEmbedder()
+    record = await requester.process(question)
+    assert record["error"] == "RuntimeError: CUDA out of memory"
+
+
+async def test_failing_shard_is_recorded_as_error_for_that_question(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"), tmp_path, AllRouter(), {question.qid: np.ones(DIM, np.float32)}
+    )
+    # node-a は pubmed-01 を持たないので 404 を返す（配置の誤りを模す）
+    requester._url_of_shard["pubmed-01"] = "http://node-a"
+    record = await requester.process(question)
+    assert record["error"] is not None and record["error"].startswith("HTTPStatusError")

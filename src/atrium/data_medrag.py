@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -227,6 +228,9 @@ def build_shards(cfg: AtriumConfig, paths: DatasetPaths) -> Manifest:
                 description=m.descriptions[source],
             )
             shard_dir = paths.shards / spec.shard_id
+            # 作り直すときに，別のシャードへ移った断片ファイルへの古いリンクを残さない
+            # （中身は corpus/ への symlink だけなので，消しても元のデータは失われない）
+            shutil.rmtree(shard_dir, ignore_errors=True)
             write_json_model(shard_dir / SHARD_SPEC_FILENAME, spec)
             for f in group:
                 _link(corpus / "chunk" / f"{f.name}.jsonl", shard_dir / "chunk" / f"{f.name}.jsonl")
@@ -234,6 +238,11 @@ def build_shards(cfg: AtriumConfig, paths: DatasetPaths) -> Manifest:
             shards.append(spec)
             logger.info("shard %s: %d files, %d docs", spec.shard_id, len(group), spec.n_docs)
     manifest = Manifest(dataset="medrag", sources=list(m.sources), shards=shards)
+    # シャードの数が減ったときに残る古いディレクトリを消す（symlink だけなので元のデータは失われない）
+    current = {s.shard_id for s in shards}
+    for stale in paths.shards.iterdir():
+        if stale.is_dir() and stale.name not in current:
+            shutil.rmtree(stale)
     write_json_model(paths.manifest, manifest)
     return manifest
 
@@ -252,5 +261,8 @@ def embed_queries(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     )
     emb = encoder.encode_queries([q.question for q in questions])
     paths.queries.mkdir(parents=True, exist_ok=True)
-    np.save(out, emb.astype(np.float32))
+    # 完成の印になる埋め込みの .npy を最後に（一時ファイルからの置き換えで）書く
     paths.query_ids.write_text(json.dumps([q.qid for q in questions]), encoding="utf-8")
+    tmp = out.with_name(out.stem + ".tmp.npy")
+    np.save(tmp, emb.astype(np.float32))
+    tmp.replace(out)

@@ -23,6 +23,8 @@ from atrium.config import Precision
 
 Doc = tuple[str, str]  # (title, text)
 MAX_LENGTH = 512
+# SGPT の sentence_bert_config.json の max_seq_length（RAGRoute が使う sentence-transformers の経路と同じ）
+SGPT_MAX_LENGTH = 300
 
 
 class Encoder(Protocol):
@@ -211,7 +213,7 @@ class HfEncoder:
         out: list[F32Array] = []
         for text in texts:
             body = tok.encode(text, add_special_tokens=False)[
-                : MAX_LENGTH - len(open_ids) - len(close_ids)
+                : SGPT_MAX_LENGTH - len(open_ids) - len(close_ids)
             ]
             ids = torch.tensor([open_ids + body + close_ids], device=self._device)
             hidden = self._model(input_ids=ids).last_hidden_state[0]

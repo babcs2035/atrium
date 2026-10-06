@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import time
@@ -144,6 +145,7 @@ def create_app(
                 ShardProfile(
                     shard_id=s.spec.shard_id,
                     source=s.spec.source,
+                    kind=s.spec.kind,
                     n_docs=s.spec.n_docs,
                     dim=s.spec.dim,
                     encoder=s.spec.encoder,
@@ -173,7 +175,12 @@ def create_app(
         start = time.perf_counter()
         docs: list[RetrievedDoc] = []
         for shard_id in req.shard_ids:
-            docs.extend(search(store_of(shard_id), req.k, req.embedding, req.query_id))
+            # FAISS の検索とディスクの読み出しは同期処理なので，イベントループを塞がないようスレッドで動かす
+            docs.extend(
+                await asyncio.to_thread(
+                    search, store_of(shard_id), req.k, req.embedding, req.query_id
+                )
+            )
         context = _merge_top(docs, req.k)
         retrieve_s = time.perf_counter() - start
         messages = prompts.build_messages(req.dataset, req.question, context, req.options)

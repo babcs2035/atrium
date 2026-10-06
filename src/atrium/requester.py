@@ -19,7 +19,7 @@ import logging
 import threading
 import time
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Coroutine, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
@@ -56,6 +56,16 @@ logger = logging.getLogger(__name__)
 
 # ノードへの 1 回の問い合わせの打ち切り時間（秒）．宿る型は CPU での生成を含むので長めにする
 RETRIEVE_TIMEOUT_S = 120.0
+
+
+async def gather_or_cancel[T](coros: Sequence[Coroutine[Any, Any, T]]) -> list[T]:
+    """全て成功すれば結果を順に返す．1 つでも失敗すれば残りを取り消し，例外（ExceptionGroup）を投げる．
+
+    asyncio.gather は失敗しても他の要求を走らせ続け，ノードに負荷が残って後の質問の計測をゆがめるため．
+    """
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(c) for c in coros]
+    return [t.result() for t in tasks]
 
 
 class QueryEmbedder(Protocol):
@@ -183,10 +193,11 @@ class Requester:
     async def _retrieve(
         self, source: SourceProfile, shard_id: str, embedding: F32Array, question: Question
     ) -> tuple[list[SourcedDoc], dict[str, Any]]:
+        # 配布済みの検索結果を返すシャードは埋め込みを使わないので送らない（FeB4RAG では最大 4,096 次元になる）
         req = RetrieveRequest(
             shard_id=shard_id,
             k=self.cfg.retrieval.k_ret,
-            embedding=embedding.tolist(),
+            embedding=embedding.tolist() if source.kind == "faiss" else None,
             query_id=question.source_qid,
         )
         start = time.perf_counter()
@@ -231,7 +242,7 @@ class Requester:
             for shard_id in source.shard_ids:
                 tasks.append(self._retrieve(source, shard_id, embeddings[source.encoder], question))
         start = time.perf_counter()
-        results = await asyncio.gather(*tasks)
+        results = await gather_or_cancel(tasks)
         record["timings"]["retrieve_s"] = time.perf_counter() - start
         record["shard_stats"] = [stats for _, stats in results]
         received = [d for docs, _ in results for d in docs]
@@ -279,7 +290,7 @@ class Requester:
             return AnswerResponse.model_validate_json(response.content), len(response.content)
 
         start = time.perf_counter()
-        answers = await asyncio.gather(*(ask(url) for url in shards_of_url))
+        answers = await gather_or_cancel([ask(url) for url in shards_of_url])
         record["timings"]["generate_s"] = time.perf_counter() - start
         record["bytes_received"] = sum(size for _, size in answers)
         record["snippets_exposed"] = 0
@@ -365,9 +376,13 @@ class Requester:
             record["choice"] = choice
             if question.answer is not None and mode != "retrieval_only":
                 record["correct"] = choice == question.answer
-        except (httpx.HTTPError, KeyError, ValueError) as exc:
-            logger.error("question %s failed: %s", question.qid, exc)
-            record["error"] = f"{type(exc).__name__}: {exc}"
+        except Exception as exc:  # noqa: BLE001 (1 問の失敗で実験全体を止めず，記録して次へ進む)
+            # gather_or_cancel の ExceptionGroup は，原因となった最初の例外を記録する
+            cause: BaseException = exc
+            while isinstance(cause, BaseExceptionGroup) and cause.exceptions:
+                cause = cause.exceptions[0]
+            logger.exception("question %s failed", question.qid)
+            record["error"] = f"{type(cause).__name__}: {cause}"
         record["timings"]["e2e_s"] = time.perf_counter() - start
         return record
 

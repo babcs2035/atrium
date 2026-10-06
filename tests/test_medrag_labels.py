@@ -58,3 +58,15 @@ def test_labels_do_not_depend_on_block_size(
         results.append(json.loads(dataset_paths(root, "medrag").labels.read_text()))
     assert results[0] == results[1]
     assert set(results[0]) == {f"medqa/{i}" for i in range(9)}
+
+
+def test_check_labels_meta_rejects_changed_k_rerank(cfg: AtriumConfig, tmp_path: Path) -> None:
+    paths = dataset_paths(tmp_path, "medrag")
+    paths.labels.parent.mkdir(parents=True)
+    labels.write_labels_meta(cfg, "medrag", paths)
+    labels.check_labels_meta(cfg, "medrag", paths)
+    changed = cfg.model_copy(
+        update={"retrieval": cfg.retrieval.model_copy(update={"k_rerank": 10})}
+    )
+    with pytest.raises(ValueError, match="k_rerank"):
+        labels.check_labels_meta(changed, "medrag", paths)

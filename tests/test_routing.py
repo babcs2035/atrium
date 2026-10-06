@@ -28,7 +28,8 @@ from atrium.routing.ragroute import (
 
 def _sources(names: list[str], dim: int = 2) -> list[SourceProfile]:
     return [
-        SourceProfile(n, "", "enc", np.zeros(dim, dtype=np.float32), 1, (f"{n}-00",)) for n in names
+        SourceProfile(n, "faiss", "", "enc", np.zeros(dim, dtype=np.float32), 1, (f"{n}-00",))
+        for n in names
     ]
 
 
@@ -57,6 +58,7 @@ def test_build_source_profiles_combines_shards_in_configured_order() -> None:
         ShardProfile(
             shard_id="t-00",
             source="t",
+            kind="faiss",
             n_docs=1,
             dim=1,
             encoder="e",
@@ -66,6 +68,7 @@ def test_build_source_profiles_combines_shards_in_configured_order() -> None:
         ShardProfile(
             shard_id="p-01",
             source="p",
+            kind="faiss",
             n_docs=3,
             dim=1,
             encoder="e",
@@ -75,6 +78,7 @@ def test_build_source_profiles_combines_shards_in_configured_order() -> None:
         ShardProfile(
             shard_id="p-00",
             source="p",
+            kind="faiss",
             n_docs=1,
             dim=1,
             encoder="e",

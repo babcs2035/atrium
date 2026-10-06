@@ -5,6 +5,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from atrium.config import DatasetName
+from atrium.manifest import ShardKind
 
 
 class _Model(BaseModel):
@@ -77,6 +78,7 @@ class ShardProfile(_Model):
 
     shard_id: str
     source: str
+    kind: ShardKind
     n_docs: int
     dim: int
     encoder: str

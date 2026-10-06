@@ -2,8 +2,9 @@
 
 MedRAG のラベルは RAGRoute の定義に従う：全データ源から k_ret 件ずつ検索し，検索スコアで統合した
 上位 k_rerank 件に 1 件以上の断片を出したデータ源を「関連あり」とする．専門家ノードと同じ
-fp16 の埋め込みに対して fp32 で内積を取るので，ノード上の FAISS（fp16 を fp32 に戻して内積を取る）と
-同じ順位になる．FeB4RAG のラベルは配布の qrels から作る（atrium.data_feb4rag）．
+fp16 の埋め込みに対して fp32 で内積を取る．ノード上の FAISS（fp16 を fp32 に戻して内積を取る）とは
+加算の順序が違うため得点が 1e-5 程度ずれ，統合の境界で同点に近い断片の順位が入れ替わることがある
+（ラベル一致が 1.0 をわずかに下回りうる．2026-10-06 の実機では 100 問で 1.000）．FeB4RAG のラベルは配布の qrels から作る（atrium.data_feb4rag）．
 """
 
 from __future__ import annotations
@@ -30,6 +31,50 @@ FEB4RAG_REST_FRACTION = 0.7  # 30% を学習に使い，残りを val : test = 1
 FEB4RAG_TEST_FRACTION_OF_REST = 6 / 7
 # 関連ラベルの計算で一度に GPU へ載せる断片数（7,663 問 × 5 万断片の得点で約 1.5 GB）
 LABEL_BLOCK_ROWS = 50_000
+
+
+LABELS_META = "labels_meta.json"
+
+
+def labels_params(cfg: AtriumConfig, dataset: DatasetName) -> dict[str, object]:
+    """関連ラベル（と，それから作る分割・ルーター）を決める設定値．"""
+    if dataset == "medrag":
+        m = cfg.data.medrag
+        return {
+            "sources": list(m.sources),
+            "k_ret": cfg.retrieval.k_ret,
+            "k_rerank": cfg.retrieval.k_rerank,
+            "query_encoder": m.query_encoder,
+            "article_encoder": m.article_encoder,
+            "embed_precision": m.embed_precision,
+            "shard_budget_gb": cfg.cluster.shard_budget_gb,
+        }
+    return {"sources": list(cfg.data.feb4rag.sources)}
+
+
+def write_labels_meta(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -> None:
+    """ラベルを作ったときの設定値を labels/labels_meta.json に書く．"""
+    meta_path = paths.labels.parent / LABELS_META
+    meta_path.write_text(json.dumps(labels_params(cfg, dataset), indent=1), encoding="utf-8")
+
+
+def check_labels_meta(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -> None:
+    """今の設定がラベルを作ったときの設定と同じかを確かめ，違えば理由を添えて例外を投げる．
+
+    k_ret・k_rerank・埋め込みの精度などを変えたまま古いラベルで評価すると，ラベル一致や
+    データ源選択の指標が意味を失うため，実験の前（deploy）に止める．
+    """
+    meta_path = paths.labels.parent / LABELS_META
+    if not meta_path.exists():
+        raise FileNotFoundError(f"{meta_path} not found; labels were made by an older version")
+    recorded = json.loads(meta_path.read_text(encoding="utf-8"))
+    current = labels_params(cfg, dataset)
+    diff = {k: (recorded.get(k), v) for k, v in current.items() if recorded.get(k) != v}
+    if diff:
+        raise ValueError(
+            f"config differs from the one used for {dataset} labels (recorded, current): {diff}; "
+            "regenerate shards/labels/split/router before running"
+        )
 
 
 def contributing_sources_from_topk(scores: dict[str, F32Array], k_rerank: int) -> list[list[str]]:
@@ -76,7 +121,11 @@ def compute_medrag_labels(cfg: AtriumConfig, paths: DatasetPaths) -> None:
         top[source] = best.cpu().numpy()
     contributing = contributing_sources_from_topk(top, cfg.retrieval.k_rerank)
     paths.labels.parent.mkdir(parents=True, exist_ok=True)
-    paths.labels.write_text(json.dumps(dict(zip(ids, contributing, strict=True))), encoding="utf-8")
+    write_labels_meta(cfg, "medrag", paths)
+    # 途中で止まっても壊れたラベルを「完成」とみなさないよう，一時ファイルから置き換える
+    tmp = paths.labels.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(dict(zip(ids, contributing, strict=True))), encoding="utf-8")
+    tmp.replace(paths.labels)
 
 
 def make_split(dataset: DatasetName, qids: Sequence[str]) -> dict[str, list[str]]:
