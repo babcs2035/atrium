@@ -222,8 +222,13 @@ def _analyze(run_dir: Path, artifacts_dir: Path) -> dict[str, Any]:
     labels = json.loads(paths.labels.read_text(encoding="utf-8"))
     split = json.loads(paths.split.read_text(encoding="utf-8")) if paths.split.exists() else {}
     n_sources = len(meta["sources"])
+    # ラベル（統合後の上位 k_rerank 件に断片を出したデータ源）と実機の結果が一致するはずなのは，
+    # ラベルを作ったときと同じ条件（MedRAG・全データ源・検索スコアで統合）の実行だけ
+    consistent_setting = (
+        meta["dataset"] == "medrag" and meta["routing"] == "all" and meta["merge"] == "score"
+    )
     return compute_metrics(
-        read_results(run_dir / "results.jsonl"), labels, split, n_sources, meta["routing"]
+        read_results(run_dir / "results.jsonl"), labels, split, n_sources, consistent_setting
     )
 
 

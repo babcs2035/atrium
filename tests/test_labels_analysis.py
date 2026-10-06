@@ -100,13 +100,13 @@ def test_selection_ignores_questions_without_labels() -> None:
     assert metrics["all"]["selection"]["precision"] == 1.0
 
 
-def test_label_consistency_is_only_reported_for_routing_all() -> None:
+def test_label_consistency_is_only_reported_when_requested() -> None:
     rows = [{**_row("q1", True), "contributing_sources": ["a"]}]
+    labels = {"q1": ["a"]}
     assert (
-        compute_metrics(rows, {"q1": ["a"]}, {}, 2, routing="all")["all"]["label_consistency"]
+        compute_metrics(rows, labels, {}, 2, check_label_consistency=True)["all"][
+            "label_consistency"
+        ]
         == 1.0
     )
-    assert (
-        compute_metrics(rows, {"q1": ["a"]}, {}, 2, routing="ragroute")["all"]["label_consistency"]
-        is None
-    )
+    assert compute_metrics(rows, labels, {}, 2)["all"]["label_consistency"] is None

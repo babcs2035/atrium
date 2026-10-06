@@ -138,12 +138,13 @@ def compute_metrics(
     labels: dict[str, list[str]],
     split: dict[str, list[str]],
     n_sources: int,
-    routing: str = "all",
+    check_label_consistency: bool = False,
 ) -> dict[str, Any]:
     """全問と test の両方について指標を計算する．
 
     データ源選択の指標は，関連ラベルのある質問だけで計算する（FeB4RAG には qrels に判定の無い要求がある）．
-    ラベル一致は全データ源に問い合わせた実行（routing=all）でだけ意味を持つので，それ以外では None にする．
+    ラベル一致は，ラベルを作ったときと同じ条件の実行（MedRAG・routing=all・merge=score）でだけ意味を持つので，
+    check_label_consistency が False なら None にする（FeB4RAG のラベルは検索結果から作らないため一致しない）．
     """
     test_ids = set(split.get("test", []))
     subsets = {"all": list(rows), "test": [r for r in rows if r["qid"] in test_ids]}
@@ -156,7 +157,9 @@ def compute_metrics(
             "n_unlabeled": len(ok) - len(labeled),
             "failure_rate": 1 - len(ok) / len(subset) if subset else 0.0,
             "selection": selection_metrics(labeled, labels, n_sources),
-            "label_consistency": label_consistency(labeled, labels) if routing == "all" else None,
+            "label_consistency": label_consistency(labeled, labels)
+            if check_label_consistency
+            else None,
             "accuracy": accuracy_metrics(ok),
             "latency": latency_metrics(ok),
             "mean_bytes_received": float(np.mean([r["bytes_received"] for r in ok])) if ok else 0.0,
