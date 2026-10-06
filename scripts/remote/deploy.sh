@@ -7,10 +7,12 @@
 # experiment.kind=e1_routing のとき:
 #   1. データ準備が終わっているか確かめる（manifest・labels・split，ragroute なら router）
 #   2. manifest からシャードの配置（artifacts/<dataset>/placement.json）を決める
-#   3. 各専門家へシャード（rsync -L で symlink の実体を送る）・config・compose を配り，起動する
-#   4. 質問者へ質問・クエリ埋め込み・ルーター・配置を配り，Ollama を起動して LLM を取得する
+#   3. 各専門家の hugepages を解放し（cluster.release_hugepages），シャード（rsync -L で symlink の実体を送る）・
+#      config・compose を配って起動する．local_answer なら Ollama のモデルも制御点から配る
+#   4. 質問者へ質問・クエリ埋め込み・ルーター・配置・Ollama と HF のモデルを配り，Ollama を起動する
 #   5. 全ノードの /healthz が応答するまで待つ
-# experiment.kind=e0_measure のとき: 実測に使うイメージ・GGUF を対象ホストへ用意する．
+# experiment.kind=e0_measure のとき: 実測に使うイメージ・GGUF・MedCPT を対象ホストへ用意する．
+# ノードはインターネットに出ず，イメージは registry，モデルとデータは制御点からの rsync で受け取る．
 source "$(dirname "$0")/lib.sh"
 
 DS_DIR=$(dataset_dir)
