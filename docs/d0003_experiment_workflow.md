@@ -1,7 +1,7 @@
 # d0003 実験の手順：mise タスク・所要時間・失敗時の確認先
 
 全てのタスクは操作端末（gpu2）のリポジトリの直下で実行する．各タスクは最初に `config.yaml` から
-`artifacts/cluster.env` を作り，リポジトリを制御点（`ssh wafl-ctrl5`）の `/home/denjo/atrium` へ同期する．
+`artifacts/cluster.env` を作り，リポジトリを制御点（`ssh wafl-ctrl5`）の `cluster.remote_dir`（以下 `<remote_dir>`．既定は `/home/denjo/atrium`）へ同期する．
 
 ## 1. 一連の流れ
 
@@ -34,8 +34,8 @@ mise run stop
 `mise run setup -- medrag` のように，データ準備の対象を絞れる（既定は `feb4rag medrag` の順）．
 データ準備の各段は冪等であり，成果物があれば飛ばす．止まった場合は再び `mise run setup` を実行すれば
 続きから再開する（中断した GPU PC に残った埋め込みも回収してから分担し直す）．
-ログは制御点の `/home/denjo/atrium-data/logs/prepare.log`（全体）と `data-feb4rag.log`（FeB4RAG），
-GPU PC ごとの埋め込みのログは制御点の `/home/denjo/atrium/artifacts/logs/embed/<host>.log` にある．
+ログは制御点の `<data_dir>/logs/prepare.log`（全体）と `data-feb4rag.log`（FeB4RAG），
+GPU PC ごとの埋め込みのログは制御点の `<remote_dir>/artifacts/logs/embed/<host>.log` にある．
 状態は `prepare.status`（`running` / `done` / `failed (exit N)`）に書かれる．
 
 ### data-status（データ準備の進み具合）
@@ -65,7 +65,7 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
 `experiment.kind=e0_measure` のとき: 対象ホストの専門家のコンテナを止め，`atrium-full`・llama.cpp・iperf3 の
 イメージと GGUF を用意する．
 
-各ホストの出力は制御点の `/home/denjo/atrium/artifacts/logs/deploy/<host>.log` に残る．
+各ホストの出力は制御点の `<remote_dir>/artifacts/logs/deploy/<host>.log` に残る．
 
 ### start（実験実行）
 
@@ -103,7 +103,7 @@ research-cycle の `metrics_cmd` は `uv run atrium metrics --json`（最新の 
 - `mise run stop`：全ノードのコンテナを止める（削除しない）．実験の後に実行し，専門家のメモリと
   質問者の VRAM を解放する．次の実験は `mise run deploy` から始める．
 - `mise run clean`：全ノード（GPU PC を含む）のコンテナを削除し，registry への逆トンネルを閉じる．
-  `mise run clean -- --full` はさらに各ノードの `/home/denjo/atrium` と Ollama のモデルを削除する（破壊的）．
+  `mise run clean -- --full` はさらに各ノードの `<remote_dir>` と Ollama のモデルを削除する（破壊的）．
   制御点のデータディレクトリは消さない．データ準備の実行中は何もせずに止まる．
 
 ### 同時に実行しないこと

@@ -92,7 +92,8 @@ cluster:
   control: wafl-ctrl5
   # 制御点から各ノードへ SSH するユーザー
   ssh_user: denjo
-  # 制御点と各ノードで本リポジトリの成果物を置くディレクトリ
+  # 制御点と全ノード（質問者・専門家・GPU PC）で本リポジトリの成果物を置く絶対パス．全ホスト共通で，
+  # deploy・start・clean など全てのスクリプトがこの値だけを参照する
   remote_dir: /home/denjo/atrium
   # 制御点のデータディレクトリ（atrium.paths の構成）
   data_dir: /home/denjo/atrium-data

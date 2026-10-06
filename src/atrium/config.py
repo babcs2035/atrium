@@ -124,6 +124,16 @@ class ClusterConfig(_Strict):
     shard_budget_gb: float = Field(gt=0)
 
     @model_validator(mode="after")
+    def _check_directories_are_absolute(self) -> ClusterConfig:
+        """remote_dir・data_dir は絶対パスに限る（rsync・compose・docker の bind mount が `~` や相対パスを解決しないため）．"""
+        for name in ("remote_dir", "data_dir"):
+            if not getattr(self, name).startswith("/"):
+                raise ValueError(
+                    f"cluster.{name} must be an absolute path: {getattr(self, name)!r}"
+                )
+        return self
+
+    @model_validator(mode="after")
     def _check_one_role_per_device(self) -> ClusterConfig:
         """同じホストが複数の役割（または同じ役割に重複）に現れたら拒否する．"""
         hosts = [d.host for d in self.devices()]

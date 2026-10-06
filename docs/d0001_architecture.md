@@ -12,7 +12,7 @@
 | 埋め込みの分担 | 192.168.15.100〜109 = wafl500〜509（RTX 3060） | データ準備の間だけ，MedCPT の埋め込みを制御点と分担する | `scripts/remote/prepare_data.sh` |
 | 専門家 | 192.168.13.100〜109，192.168.14.100〜109（GPU なし） | シャードの検索・宿る型の回答 | `atrium.node`，`atrium.store` |
 
-操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `/home/denjo/atrium` へ rsync し，
+操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `cluster.remote_dir`（既定は `/home/denjo/atrium`）へ rsync し，
 `ssh wafl-ctrl5 "bash scripts/remote/<task>.sh"` を実行する．制御点は `denjo@<IP>` で各ノードへ SSH する．
 
 自前のイメージ（`atrium-node`，`atrium-full`）は操作端末で build し，SSH の転送（操作端末の 15000 番 → 制御点の
@@ -21,7 +21,7 @@
 それ以外のノードには制御点から SSH の逆トンネル（`ssh -R 5000:localhost:5000`）を張る
 （docker は localhost の registry だけを TLS なしで使えるため）．質問者は制御点自身なので，トンネルは要らない．
 
-制御点は質問者を兼ねるので，制御点の `REMOTE_DIR`（`/home/denjo/atrium`）はリポジトリの作業ディレクトリと質問者の作業
+制御点は質問者を兼ねるので，制御点の `REMOTE_DIR`（`cluster.remote_dir`）はリポジトリの作業ディレクトリと質問者の作業
 ディレクトリを兼ねる．同期（`sync_to_control`）は質問者の資材（`data/`・`hf-cache/`・`ollama/`・`compose.yml`・`.env`・
 `placement.json`）を消さないよう除外してあり，`mise run clean -- --full` もこれらだけを消す（リポジトリは残る）．
 
@@ -133,8 +133,8 @@ class Router(Protocol):
 
 ## 6. データの配置
 
-制御点の `/home/denjo/atrium-data/<dataset>/` の構成は `src/atrium/paths.py` の冒頭に記した．
-各ノードの `/home/denjo/atrium/` には次を置く．
+制御点の `cluster.data_dir`（既定は `/home/denjo/atrium-data`）の `<dataset>/` の構成は `src/atrium/paths.py` の冒頭に記した．
+各ノードの `cluster.remote_dir` には次を置く．
 
 | ホスト | パス | 内容 |
 |---|---|---|

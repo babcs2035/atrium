@@ -94,3 +94,12 @@ def test_device_ssh_user_overrides_cluster_default() -> None:
     cluster = AtriumConfig.model_validate(raw).cluster
     assert cluster.ssh_user_of(cluster.experts[0]) == "alice"
     assert cluster.ssh_user_of(cluster.experts[1]) == cluster.ssh_user
+
+
+@pytest.mark.parametrize("key", ["remote_dir", "data_dir"])
+@pytest.mark.parametrize("value", ["~/atrium", "atrium"])
+def test_config_rejects_non_absolute_directories(key: str, value: str) -> None:
+    raw = _repository_config_dict()
+    raw["cluster"][key] = value
+    with pytest.raises(ValidationError, match="absolute path"):
+        AtriumConfig.model_validate(raw)

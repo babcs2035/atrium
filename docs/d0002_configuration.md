@@ -81,8 +81,8 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 |---|---|---|
 | `control` | `wafl-ctrl5` | 操作端末から `ssh` で入る制御点の名前 |
 | `ssh_user` | `denjo` | 制御点から各デバイスへ SSH するユーザー（デバイスごとに `ssh_user` で上書きできる） |
-| `remote_dir` | `/home/denjo/atrium` | 制御点と各ノードで成果物を置くディレクトリ |
-| `data_dir` | `/home/denjo/atrium-data` | 制御点のデータディレクトリ |
+| `remote_dir` | `/home/denjo/atrium` | 制御点と全ノードで成果物（リポジトリの写し・シャード・compose・結果）を置く絶対パス．全ホスト共通で，デプロイ先を変えるときはこの 1 か所だけを変える |
+| `data_dir` | `/home/denjo/atrium-data` | 制御点のデータディレクトリ（絶対パス） |
 | `registry_port` | 5000 | 制御点のローカル registry．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送が既に張られており，それをそのまま使う |
 | `node_port` | 8100 | 専門家ノードの HTTP ポート |
 | `shard_budget_gb` | 6.0 | 1 シャードの fp16 の埋め込みの目安．変えるとシャードの切り方が変わるので，制御点で `shards` 以降の段を作り直す必要がある |
