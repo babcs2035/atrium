@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import httpx
 import numpy as np
@@ -17,7 +18,7 @@ from atrium.config import AtriumConfig
 from atrium.labels import contributing_sources_from_topk
 from atrium.manifest import NodeAssignment, Placement
 from atrium.node import create_app
-from atrium.requester import Requester, discover_shards, run_questions
+from atrium.requester import RETRIEVE_RETRIES, Requester, discover_shards, run_questions
 from atrium.routing import AllRouter, NoneRouter, Router, build_source_profiles
 from atrium.store import load_shard
 from tests.conftest import HostDispatchTransport, ollama_mock, with_experiment, write_faiss_shard
@@ -218,3 +219,54 @@ async def test_failing_shard_is_recorded_as_error_for_that_question(
     requester._url_of_shard["pubmed-01"] = "http://node-a"
     record = await requester.process(question)
     assert record["error"] is not None and record["error"].startswith("HTTPStatusError")
+
+
+async def test_retrieve_is_retried_when_the_node_closed_an_idle_connection(
+    cfg: AtriumConfig,
+    tmp_path: Path,
+    corpus: dict[str, F32Array],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"),
+        tmp_path,
+        AllRouter(),
+        {question.qid: np.ones(DIM, np.float32)},
+    )
+    real_post = requester.client.post
+    failures_left = {"n": RETRIEVE_RETRIES}
+
+    async def flaky_post(url: str, **kwargs: Any) -> httpx.Response:
+        if url.endswith("/v1/retrieve") and failures_left["n"] > 0:
+            failures_left["n"] -= 1
+            raise httpx.ReadError("connection closed by the node")
+        return await real_post(url, **kwargs)
+
+    monkeypatch.setattr(requester.client, "post", flaky_post)
+    record = await requester.process(question)
+    assert record["error"] is None
+    assert failures_left["n"] == 0
+    assert record["n_shards_queried"] == 3
+
+
+async def test_retrieve_gives_up_after_the_retry_limit(
+    cfg: AtriumConfig,
+    tmp_path: Path,
+    corpus: dict[str, F32Array],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"),
+        tmp_path,
+        AllRouter(),
+        {question.qid: np.ones(DIM, np.float32)},
+    )
+
+    async def always_fails(url: str, **kwargs: Any) -> httpx.Response:
+        raise httpx.ReadError("connection closed by the node")
+
+    monkeypatch.setattr(requester.client, "post", always_fails)
+    record = await requester.process(question)
+    assert "ReadError" in record["error"]

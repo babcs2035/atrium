@@ -56,6 +56,9 @@ logger = logging.getLogger(__name__)
 
 # ノードへの 1 回の問い合わせの打ち切り時間（秒）．宿る型は CPU での生成を含むので長めにする
 RETRIEVE_TIMEOUT_S = 120.0
+# 検索要求の接続エラー（ノードが待機中の接続を閉じた直後に，クライアントがその接続を再利用すると起きる）の再試行回数．
+# 検索は読み取りだけなので，同じ要求を送り直しても結果は変わらない
+RETRIEVE_RETRIES = 2
 
 
 async def gather_or_cancel[T](coros: Sequence[Coroutine[Any, Any, T]]) -> list[T]:
@@ -201,11 +204,19 @@ class Requester:
             query_id=question.source_qid,
         )
         start = time.perf_counter()
-        response = await self.client.post(
-            f"{self._url_of_shard[shard_id]}/v1/retrieve",
-            json=req.model_dump(),
-            timeout=RETRIEVE_TIMEOUT_S,
-        )
+        url = f"{self._url_of_shard[shard_id]}/v1/retrieve"
+        for attempt in range(RETRIEVE_RETRIES + 1):
+            try:
+                response = await self.client.post(
+                    url, json=req.model_dump(), timeout=RETRIEVE_TIMEOUT_S
+                )
+                break
+            except (httpx.ReadError, httpx.RemoteProtocolError, httpx.ConnectError):
+                if attempt == RETRIEVE_RETRIES:
+                    raise
+                logger.warning(
+                    "retrying retrieve on %s (%d/%d)", url, attempt + 1, RETRIEVE_RETRIES
+                )
         response.raise_for_status()
         body = RetrieveResponse.model_validate_json(response.content)
         stats = {
