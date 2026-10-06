@@ -20,7 +20,7 @@ mkdir -p "$CACHE/ollama" "$CACHE/gguf"
 # 操作端末の docker の設定には ghcr.io の古い認証情報があり，それを送ると取得を拒否されるため，
 # 認証情報を持たない一時的な設定で匿名で取得する
 ANON_DOCKER_CONFIG=$(mktemp -d)
-trap 'rm -rf "$ANON_DOCKER_CONFIG"' EXIT
+trap 'rm -rf "$ANON_DOCKER_CONFIG"; docker rm -f atrium-ollama-fetch > /dev/null 2>&1 || true' EXIT
 mirror() {
   local src=$1 name=$2
   local dst="localhost:$LOCAL_REGISTRY_PORT/mirror/$name"
@@ -36,7 +36,11 @@ mirror "networkstatic/iperf3:latest" "iperf3:latest"
 docker rm -f atrium-ollama-fetch > /dev/null 2>&1 || true
 docker run -d --name atrium-ollama-fetch --user "$(id -u):$(id -g)" -e HOME=/ollama \
   -e OLLAMA_MODELS=/ollama/models -v "$CACHE/ollama:/ollama" "ollama/ollama:$OLLAMA_TAG" > /dev/null
-sleep 3
+# サーバーが応答するまで待つ（固定の待ち時間では起動が遅いときに pull が失敗する）
+for _ in $(seq 1 30); do
+  docker exec atrium-ollama-fetch ollama list > /dev/null 2>&1 && break
+  sleep 1
+done
 for model in "$EXPERT_MODEL" "$REQUESTER_MODEL"; do
   log "ollama pull $model"
   docker exec atrium-ollama-fetch ollama pull "$model" > /dev/null
@@ -48,10 +52,16 @@ rsync -a "$CACHE/ollama/models" "$CONTROL:$DATA_DIR/ollama/"
 for spec in $E0_GGUF; do
   IFS='|' read -r _ repo file <<< "$spec"
   if [ ! -s "$CACHE/gguf/$file" ]; then
-    log "downloading $file"
-    # 途中で切れても続きから取り直す（HTTP/2 のストリームの切断は既定の再試行の対象外のため --retry-all-errors）
-    curl -fsSL --retry 10 --retry-all-errors -C - -o "$CACHE/gguf/$file.part" "https://huggingface.co/$repo/resolve/main/$file"
-    mv -f "$CACHE/gguf/$file.part" "$CACHE/gguf/$file"
+    url="https://huggingface.co/$repo/resolve/main/$file"
+    part="$CACHE/gguf/$file.part"
+    expected=$(curl -fsSLI "$url" | tr -d '\r' | awk 'tolower($1) == "content-length:" {n = $2} END {print n}')
+    # 前回が取得を終えた直後（mv の前）に止まっていたら，続きからの取得（416 になる）は要らない
+    if [ ! -f "$part" ] || [ "$(stat -c %s "$part")" != "$expected" ]; then
+      log "downloading $file"
+      # 途中で切れても続きから取り直す（HTTP/2 のストリームの切断は既定の再試行の対象外のため --retry-all-errors）
+      curl -fsSL --retry 10 --retry-all-errors -C - -o "$part" "$url"
+    fi
+    mv -f "$part" "$CACHE/gguf/$file"
   fi
 done
 rsync -a "$CACHE/gguf/" "$CONTROL:$DATA_DIR/gguf/"

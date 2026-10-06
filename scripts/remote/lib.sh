@@ -21,10 +21,11 @@ SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-
 
 log() { echo "[$(date +%H:%M:%S)] $*"; }
 
+# -n: 標準入力を読ませない（while read のループの中で呼ぶと，残りの行を ssh が読んでしまうため）
 nssh() {
   local host=$1
   shift
-  ssh "${SSH_OPTS[@]}" "$SSH_USER@$host" "$@"
+  ssh -n "${SSH_OPTS[@]}" "$SSH_USER@$host" "$@"
 }
 
 # retry <回数> <コマンド...>: 失敗したら 30 秒待って繰り返す（registry が混み合ってイメージの取得が
@@ -46,13 +47,20 @@ nrsync() {
 
 # ノードの localhost:$REGISTRY_PORT を制御点の registry へつなぐ．
 # docker は localhost の registry だけを TLS なしで許すため，各ノードから見て localhost になるようにする
+# 届いた先がこの registry であることは，自前のリポジトリ（atrium-node）が見えるかで確かめる
+# （ノードの 5000 番を別の registry への転送が使っていると，/v2/ だけでは取り違えるため）
 ensure_tunnel() {
   local host=$1
-  if nssh "$host" "curl -fsS -o /dev/null http://localhost:$REGISTRY_PORT/v2/" 2>/dev/null; then
+  local probe="curl -fsS -o /dev/null http://localhost:$REGISTRY_PORT/v2/atrium-node/tags/list"
+  if nssh "$host" "$probe" 2> /dev/null; then
     return 0
   fi
-  ssh "${SSH_OPTS[@]}" -fNT -o ExitOnForwardFailure=yes \
-    -R "$REGISTRY_PORT:localhost:$REGISTRY_PORT" "$SSH_USER@$host"
+  if ! ssh "${SSH_OPTS[@]}" -fNT -o ExitOnForwardFailure=yes \
+    -R "$REGISTRY_PORT:localhost:$REGISTRY_PORT" "$SSH_USER@$host"; then
+    log "$host: could not open the registry tunnel; port $REGISTRY_PORT is held by:" >&2
+    nssh "$host" "ss -ltnp 2> /dev/null | grep ':$REGISTRY_PORT '" >&2 || true
+    return 1
+  fi
 }
 
 # run_parallel <task> <func> <host>...: func host をホストごとに並列に実行する．
@@ -95,7 +103,10 @@ release_hugepages() {
 # 以前 root で動いていた Ollama が作ったファイルの所有者を SSH のユーザーへ戻す（自分の成果物だけが対象）
 own_remote_dir() {
   local host=$1
-  nssh "$host" "mkdir -p $REMOTE_DIR/ollama && sudo -n chown -R \$(id -u):\$(id -g) $REMOTE_DIR/ollama"
+  # 他人の所有のファイルがあるときだけ sudo を使う（sudo の無いホストでも普段は動くように）
+  nssh "$host" "mkdir -p $REMOTE_DIR/ollama && \
+    if [ -n \"\$(find $REMOTE_DIR/ollama ! -user \$(id -u) -print -quit)\" ]; then \
+      sudo -n chown -R \$(id -u):\$(id -g) $REMOTE_DIR/ollama; fi"
 }
 
 # 置き換わって参照されなくなった自前のイメージ（ラベル org.atrium.project=atrium）だけを消す．
@@ -123,6 +134,16 @@ send_ollama_model() {
   nssh "$host" "mkdir -p $REMOTE_DIR/ollama/models"
   nrsync -a --files-from="$list" "$DATA_DIR/ollama/models/" "$SSH_USER@$host:$REMOTE_DIR/ollama/models/"
   rm -f "$list"
+}
+
+# データ準備（prepare_data.sh）が動いているか．PID ファイルの PID が再起動後に別のプロセスへ
+# 再利用されていても誤らないよう，そのプロセスのコマンド行も確かめる
+prepare_running() {
+  local pid_file="$DATA_DIR/logs/prepare.pid"
+  [ -f "$pid_file" ] || return 1
+  local pid
+  pid=$(cat "$pid_file")
+  grep -q "prepare_data.sh" "/proc/$pid/cmdline" 2> /dev/null
 }
 
 dataset_dir() {

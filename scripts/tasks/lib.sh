@@ -10,11 +10,15 @@ REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 cd "$REPO_ROOT"
 mkdir -p artifacts results
 
-uv run --quiet atrium config env > artifacts/cluster.env
-# 未コミットの変更がある状態で実験したことを結果から判別できるように -dirty を付ける
+# 同時に動く別のタスクが書きかけを読まないよう，一時ファイルに書いてから置き換える
+ENV_TMP=$(mktemp artifacts/cluster.env.XXXXXX)
+uv run --quiet atrium config env > "$ENV_TMP"
+# 未コミットの変更（追跡していない新しいファイルを含む．実験の結果は除く）がある状態で実験したことを
+# 結果から判別できるように -dirty を付ける
 GIT_HEAD="$(git rev-parse --short=12 HEAD 2>/dev/null || echo unknown)"
-if ! git diff --quiet HEAD 2>/dev/null; then GIT_HEAD="$GIT_HEAD-dirty"; fi
-echo "GIT_HEAD=$GIT_HEAD" >> artifacts/cluster.env
+if [ -n "$(git status --porcelain -- . ':!results' 2>/dev/null)" ]; then GIT_HEAD="$GIT_HEAD-dirty"; fi
+echo "GIT_HEAD=$GIT_HEAD" >> "$ENV_TMP"
+mv -f "$ENV_TMP" artifacts/cluster.env
 # shellcheck source=/dev/null
 source artifacts/cluster.env
 
@@ -44,6 +48,10 @@ TUNNEL_SOCKET="$REPO_ROOT/artifacts/registry-tunnel.sock"
 
 # 制御点の registry への SSH の転送を開き，スクリプトの終了時に閉じる
 open_registry_tunnel() {
+  # 前回のタスクが強制終了して残った制御ソケットは，生きていれば閉じ，死んでいれば消してから開く
+  if [ -S "$TUNNEL_SOCKET" ]; then
+    ssh -S "$TUNNEL_SOCKET" -O exit "$CONTROL" 2> /dev/null || rm -f "$TUNNEL_SOCKET"
+  fi
   ssh -fNT -M -S "$TUNNEL_SOCKET" -o ExitOnForwardFailure=yes \
     -L "$LOCAL_REGISTRY_PORT:localhost:$REGISTRY_PORT" "$CONTROL"
   trap 'ssh -S "$TUNNEL_SOCKET" -O exit "$CONTROL" 2> /dev/null || true' EXIT
@@ -68,6 +76,8 @@ publish_images() {
   done
 }
 
+# run_meta.json のある実行のうち最新のもの（atrium.cli の _latest_run と同じ規則．失敗した start が作った
+# 空のディレクトリを選ばないため）
 latest_run() {
-  find results -mindepth 1 -maxdepth 1 -type d -name '20*' | sort | tail -1
+  find results -mindepth 2 -maxdepth 2 -name run_meta.json -printf '%h\n' | sort | tail -1
 }

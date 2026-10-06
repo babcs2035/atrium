@@ -39,7 +39,7 @@ done
 DATASETS=${*:-"feb4rag medrag"}
 mkdir -p "$DATA_DIR/logs"
 PID_FILE="$DATA_DIR/logs/prepare.pid"
-if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2> /dev/null; then
+if prepare_running; then
   log "data preparation is already running (see: mise run data-status)"
   exit 0
 fi

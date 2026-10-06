@@ -11,7 +11,8 @@
 | `requester.log` | start | 質問者のログ（Git では追跡しない） |
 | `metrics.json` | analyze | 指標（§3） |
 | `analysis_report.md` | analyze | 指標の表 |
-| `logs/<host>.log` | analyze | 専門家のログ（Git では追跡しない） |
+| `logs/<host>.log` | start | 専門家のログ（実行の直後に集める．Git では追跡しない） |
+| `placement.json` | start | この実行の配置（どのホストがどのシャードを持っていたか） |
 | `e0/<host>/`，`e0_summary.md` | start / analyze | E0 の実測値とその表（§4） |
 
 git のコミットは，未コミットの変更があると末尾に `-dirty` が付く．

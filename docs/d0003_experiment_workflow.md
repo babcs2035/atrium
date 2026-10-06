@@ -36,7 +36,7 @@ mise run stop
 続きから再開する（中断した GPU PC に残った埋め込みも回収してから分担し直す）．
 ログは制御点の `/home/denjo/atrium-data/logs/prepare.log`（全体）と `data-feb4rag.log`（FeB4RAG），
 GPU PC ごとの埋め込みのログは制御点の `/home/denjo/atrium/artifacts/logs/embed/<host>.log` にある．
-状態は `prepare.status`（`running` / `done` / `failed (line N)`）に書かれる．
+状態は `prepare.status`（`running` / `done` / `failed (exit N)`）に書かれる．
 
 ### data-status（データ準備の進み具合）
 
@@ -70,7 +70,11 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
 
 制御点の `scripts/remote/start.sh` を `setsid nohup` で切り離して起動し，終了の印（`results/<run_id>/.exit`）を
 1 分ごとに確かめて待つ．操作端末との接続が切れても実験は続き，同じ run_id で `mise run start <run_id>` を
-実行すると待ち直す．制御点での出力は `results/<run_id>/start.log` にある．
+実行すると待ち直す．前回が失敗で終わった run_id を渡すと続きから再開する（E1 は成功済みの質問を，
+E0 は完了済みの計測を飛ばす）．制御点での出力は `results/<run_id>/start.log` にある．
+
+開始の前に，質問者と専門家の `config.yaml` が今のものと同じか，質問者のイメージが今の git のコミットから
+作られたものかを確かめ，違えば止まる（`mise run deploy` からやり直す）．
 
 - `e1_routing`：質問者でコンテナ `atrium-run-<run_id>` を起動し，1 分ごとに処理済みの問数を記録して待つ．
   終了コードが 2 の場合は一部の質問が失敗したことを表し，結果は残る（各行の `error` を見る）．
@@ -84,7 +88,8 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
 `mise run analyze [run_id]`．run_id を省略すると最新の実行を分析する．
 
 - `e1_routing`：制御点から `labels/`（ラベルと分割）を `artifacts/<dataset>/` へ取得し，
-  `metrics.json` と `analysis_report.md` を作る．専門家のログを `results/<run_id>/logs/` に集める．
+  `metrics.json` と `analysis_report.md` を作る．専門家のログと配置は，start が実行の直後に
+  `results/<run_id>/logs/` と `placement.json` に集めてある．
 - `e0_measure`：`e0_summary.md` を作る．
 
 2 つの実行の正答率は `uv run atrium compare results/<A> results/<B>` で比べる（McNemar の正確検定）．
@@ -94,8 +99,16 @@ research-cycle の `metrics_cmd` は `uv run atrium metrics --json`（最新の 
 
 - `mise run stop`：全ノードのコンテナを止める（削除しない）．実験の後に実行し，専門家のメモリと
   質問者の VRAM を解放する．次の実験は `mise run deploy` から始める．
-- `mise run clean`：全ノードのコンテナを削除する．`mise run clean -- --full` はさらに各ノードの
-  `/home/denjo/atrium` と Ollama のモデルを削除する（破壊的）．制御点のデータディレクトリは消さない．
+- `mise run clean`：全ノード（GPU PC を含む）のコンテナを削除し，registry への逆トンネルを閉じる．
+  `mise run clean -- --full` はさらに各ノードの `/home/denjo/atrium` と Ollama のモデルを削除する（破壊的）．
+  制御点のデータディレクトリは消さない．データ準備の実行中は何もせずに止まる．
+
+### 同時に実行しないこと
+
+mise のタスクはどれも始めに `config.yaml` を制御点へ同期する．deploy や start の最中に別のタスクを
+動かすと，ノードごとに違う設定が配られうる（start はそれを検出して止まる）．タスクは 1 つずつ実行する．
+deploy は，別のデータセットのシャードを専門家から消さない（切り替えを速くするため．FeB4RAG のシャードは
+数十 MB）．
 
 ## 3. 所要時間の目安
 

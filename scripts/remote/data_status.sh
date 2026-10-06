@@ -7,7 +7,7 @@ source "$(dirname "$0")/lib.sh"
 
 LOG_DIR="$DATA_DIR/logs"
 state=$(cat "$LOG_DIR/prepare.status" 2> /dev/null || echo "not started")
-if [ -f "$LOG_DIR/prepare.pid" ] && kill -0 "$(cat "$LOG_DIR/prepare.pid")" 2> /dev/null; then
+if prepare_running; then
   state="$state (pid $(cat "$LOG_DIR/prepare.pid") alive)"
 fi
 log "prepare_data: $state"

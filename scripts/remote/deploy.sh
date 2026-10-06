@@ -74,6 +74,10 @@ for f in "${required[@]}"; do
   fi
 done
 
+# 今の設定が，ラベルを作ったときの設定（k_ret・k_rerank・埋め込みの精度など）と同じかを確かめる
+docker run --rm --user "$HOST_UID:$HOST_GID" -v "$PWD:/work" -v "$DATA_DIR:/data:ro" -w /work \
+  "$IMAGE_FULL" atrium --config config.yaml check-data --data-dir /data
+
 # ── 配置の決定 ──────────────────────────────────────────────────────────────
 mkdir -p "artifacts/$DATASET"
 docker run --rm --user "$HOST_UID:$HOST_GID" -v "$PWD:/work" -v "$DATA_DIR:/data:ro" -w /work \
@@ -128,8 +132,15 @@ deploy_requester() {
   # 質問者のモデル（Ollama と，クエリ埋め込み・再ランクの HF のモデル）も制御点から配る
   send_ollama_model "$host" "$REQUESTER_MODEL"
   nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"
-  nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$DATA_DIR"/.cache/huggingface/hub/models--BAAI--bge-reranker-v2-m3 \
-    "$SSH_USER@$host:$REMOTE_DIR/hf-cache/hub/"
+  # 制御点に実在するものだけを送る（FeB4RAG だけを準備した環境には MedCPT が無い）
+  local hf_models=()
+  for m in "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* \
+    "$DATA_DIR"/.cache/huggingface/hub/models--BAAI--bge-reranker-v2-m3; do
+    [ -d "$m" ] && hf_models+=("$m")
+  done
+  if [ "${#hf_models[@]}" -gt 0 ]; then
+    nrsync -a "${hf_models[@]}" "$SSH_USER@$host:$REMOTE_DIR/hf-cache/hub/"
+  fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
   prune_old_images "$host"

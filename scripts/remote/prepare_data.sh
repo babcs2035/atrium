@@ -23,6 +23,11 @@ echo running > "$STATUS"
 # 止まったため．2026-10-06）
 CONFIG_SNAPSHOT="$LOG_DIR/prepare-config.yaml"
 cp config.yaml "$CONFIG_SNAPSHOT"
+# イメージも開始時の版（digest）に固定する．実行中に setup・deploy が新しいイメージを push しても，
+# 制御点と GPU PC は最後まで同じ版を使う
+docker pull -q "$IMAGE_FULL" > /dev/null
+IMAGE_REF=$(docker image inspect -f '{{index .RepoDigests 0}}' "$IMAGE_FULL")
+log "using image $IMAGE_REF"
 # 失敗の記録は EXIT trap で行う（ERR trap は関数の中の失敗では働かず，状態が running のまま残った）
 on_exit() {
   local rc=$?
@@ -40,7 +45,7 @@ hub_run() {
   docker run --rm --name "$name" --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all \
     --user "$HOST_UID:$HOST_GID" -e HOME=/tmp -e HF_HOME=/data/.cache/huggingface \
     -v "$DATA_DIR:/data" -v "$CONFIG_SNAPSHOT:/app/config.yaml:ro" -w /data \
-    "$IMAGE_FULL" atrium --config /app/config.yaml "$@"
+    "$IMAGE_REF" atrium --config /app/config.yaml "$@"
 }
 
 # GPU PC に残っている埋め込み（前回の中断分）を制御点へ回収する
@@ -48,7 +53,7 @@ collect_worker() {
   local host=$1
   if nssh "$host" "[ -d $WORK_DIR/medrag/corpus ]"; then
     nrsync -a --include='*/' --include='*.f16.npy' --exclude='*' \
-      "$SSH_USER@$host:$WORK_DIR/medrag/corpus/" "$DATA_DIR/medrag/corpus/"
+      "$SSH_USER@$host:$WORK_DIR/medrag/corpus/" "$DATA_DIR/medrag/corpus/" || return 1
   fi
 }
 
@@ -60,27 +65,28 @@ embed_worker() {
     return 0
   fi
   if [ "$host" = local ]; then
-    hub_run atrium-embed data medrag embed --data-dir /data --only-list "/data/medrag/embed_plan/local.txt"
+    hub_run atrium-embed data medrag embed --data-dir /data --only-list "/data/medrag/embed_plan/local.txt" || return 1
     return 0
   fi
-  ensure_tunnel "$host"
-  nssh "$host" "docker pull -q $IMAGE_FULL && mkdir -p $WORK_DIR/medrag $WORK_DIR/hf"
+  # run_parallel を || 付きで呼ぶので，この関数の中では set -e が効かない．各手順の失敗を明示的に返し，
+  # 埋め込みや回収に失敗したまま作業用の写しを消さないようにする
+  ensure_tunnel "$host" || return 1
+  nssh "$host" "docker pull -q $IMAGE_REF && mkdir -p $WORK_DIR/medrag $WORK_DIR/hf/hub" || return 1
   # 分担表の source/name を，データセットの root からの断片ファイルのパスへ直す
   sed 's|^\([^/]*\)/\(.*\)$|corpus/\1/chunk/\2.jsonl|' "$plan" > "$PLAN_DIR/$host.files"
   log "$host: sending $(wc -l < "$plan") chunk files"
-  nrsync -a --files-from="$PLAN_DIR/$host.files" "$DATA_DIR/medrag/" "$SSH_USER@$host:$WORK_DIR/medrag/"
-  nrsync -a "$plan" "$SSH_USER@$host:$WORK_DIR/plan.txt"
-  nrsync -a "$CONFIG_SNAPSHOT" "$SSH_USER@$host:$WORK_DIR/config.yaml"
+  nrsync -a --files-from="$PLAN_DIR/$host.files" "$DATA_DIR/medrag/" "$SSH_USER@$host:$WORK_DIR/medrag/" || return 1
+  nrsync -a "$plan" "$SSH_USER@$host:$WORK_DIR/plan.txt" || return 1
+  nrsync -a "$CONFIG_SNAPSHOT" "$SSH_USER@$host:$WORK_DIR/config.yaml" || return 1
   # MedCPT のモデルは制御点のキャッシュから配り，GPU PC ではオフラインで読み込む
   # （GPU PC のインターネット接続に頼らない．2026-10-06 に研究室のゲートウェイが止まった）
-  nssh "$host" "mkdir -p $WORK_DIR/hf/hub"
-  nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$SSH_USER@$host:$WORK_DIR/hf/hub/"
+  nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--ncbi--MedCPT-* "$SSH_USER@$host:$WORK_DIR/hf/hub/" || return 1
   log "$host: embedding"
   nssh "$host" "docker rm -f atrium-embed > /dev/null 2>&1; docker run --rm --name atrium-embed \
     --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all --user \$(id -u):\$(id -g) -e HOME=/tmp -e HF_HOME=/work/hf -e HF_HUB_OFFLINE=1 \
-    -v $WORK_DIR:/work $IMAGE_FULL atrium --config /work/config.yaml data medrag embed \
-    --data-dir /work --only-list /work/plan.txt"
-  collect_worker "$host"
+    -v $WORK_DIR:/work $IMAGE_REF atrium --config /work/config.yaml data medrag embed \
+    --data-dir /work --only-list /work/plan.txt" || return 1
+  collect_worker "$host" || return 1
   # 回収を終えた作業用の写し（断片と埋め込み）を消して，GPU PC のディスクを空ける
   nssh "$host" "rm -rf $WORK_DIR"
   log "$host: done"
