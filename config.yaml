@@ -236,3 +236,8 @@ data:
     term_sketch_size: 50
     n_centroids: 8
     ragroute_negatives: 10
+    # 自由記述の回答の判定モデル（質問者の llama3.1:8b と別系統）と，一致を測る参照モデル（p0004 §8.6）
+    judge_model: "qwen3:8b"
+    judge_reference_model: "qwen3:14b"
+    judge_validate_n: 500
+    judge_kappa_n: 300

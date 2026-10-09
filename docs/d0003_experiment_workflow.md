@@ -146,3 +146,22 @@ deploy は，別のデータセットのシャードを専門家から消さな�
 | データ準備の状態が `failed (exit N)` | `prepare.log` の末尾．取得が途中で切れた場合は `mise run setup` で再開する（取得は Content-Length と照合し，切れたファイルは捨てて取り直す）．NCBI から StatPearls が取れないときは，別の場所で取得した `statpearls_NBK430685.tar.gz` を `atrium-data/medrag/corpus/statpearls/` に置けば取得は飛ばされる |
 | FeB4RAG の取得（codeload.github.com）が極端に遅い | 制御点からの転送が 100 KB/s 程度まで落ちることがある（2026-10-05）．操作端末で同じコミットを clone し，`dataset/` を制御点の `atrium-data/feb4rag/repo/dataset` へ rsync すれば，取得の段は飛ばされる |
 | 選択肢を抽出できなかった割合が高い | `results.jsonl` の `answer`．`llm.num_predict` が足りずに JSON が途中で切れていないか |
+
+## 5. EnronQA の採点とモデルの取得（p0004）
+
+EnronQA の回答は自由記述なので，実験の後に判定モデル（`data.enronqa.judge_model`．既定は qwen3:8b）で採点する．
+判定のプロンプトは EnronQA の原論文の付録 B.6 と同じで，判定モデルは正解のメールを見て回答が正解と一致するかを判定する．
+
+```bash
+bash scripts/tasks/remote.sh fetch_ollama_models qwen3:8b qwen3:14b qwen3:1.7b  # 制御点でモデルを取得する
+bash scripts/tasks/judge.sh up qwen3:8b             # 制御点と wafl500〜509 の GPU で判定モデルを起動する
+bash scripts/tasks/judge.sh validate <out_name>     # 付属の別解・誤答で判定モデルを検証する
+bash scripts/tasks/judge.sh run <run_id>...         # 採点し，results/<run_id>/judgements.jsonl を取得する
+mise run analyze <run_id>                           # 正答率に採点の結果を使う
+bash scripts/tasks/judge.sh down
+```
+
+- データセットとモデルは全て制御点で取得する（gpu2 のディスクは空きが少ない．2026-10-09 のユーザーの指示）．
+- `judgements.jsonl` には質問 ID・正誤・回答と正解のメールの最長共通部分列の比率だけを書く．メールの本文と判定モデルの出力は
+  制御点の `<data_dir>/enronqa/judge_raw/` にだけ残す．
+- `judge.sh up` は GPU の PC の専門家のコンテナを止める（GPU を判定モデルに使うため）．実験の後に使う．

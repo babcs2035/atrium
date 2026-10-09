@@ -11,6 +11,7 @@
     fetch-models DATASET      データセットで使うモデルを Hugging Face のキャッシュへ取得する（コンテナ内）
     analyze / metrics / compare  結果の分析（操作端末）
     advert-eval               RQ-A のオフラインの評価（EnronQA．制御点のコンテナ）
+    judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
 """
 
@@ -225,6 +226,37 @@ def cmd_advert_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_judge(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """EnronQA の回答を判定モデルで採点する（judge / judge-validate / judge-kappa．p0004 §8.6）．"""
+    from atrium import judge
+
+    e = cfg.data.require_enronqa()
+    paths = dataset_paths(Path(args.data_dir), "enronqa")
+    if args.cmd == "judge":
+        for run_dir in args.run_dir:
+            summary = judge.judge_run(cfg, paths, Path(run_dir), args.ollama_url, e.judge_model)
+            print(run_dir, json.dumps(summary))
+        return 0
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if args.cmd == "judge-validate":
+        result = judge.validate_judge(
+            cfg, paths, args.ollama_url, e.judge_model, e.judge_validate_n
+        )
+    else:
+        result = judge.kappa_against_reference(
+            cfg,
+            paths,
+            [Path(r) for r in args.run_dir],
+            args.ollama_url,
+            e.judge_reference_model,
+            e.judge_kappa_n,
+        )
+    (out_dir / "metrics.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
+    print(json.dumps(result, indent=1))
+    return 0
+
+
 def cmd_check_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """今の設定が，データ準備でラベルを作ったときの設定と同じかを確かめる（deploy が呼ぶ）．"""
     from atrium.labels import check_labels_meta
@@ -270,9 +302,14 @@ def _analyze(run_dir: Path, artifacts_dir: Path) -> dict[str, Any]:
     consistent_setting = (
         meta["dataset"] == "medrag" and meta["routing"] == "all" and meta["merge"] == "score"
     )
-    return compute_metrics(
-        read_results(run_dir / "results.jsonl"), labels, split, n_sources, consistent_setting
-    )
+    rows = read_results(run_dir / "results.jsonl")
+    judgements = run_dir / "judgements.jsonl"
+    if judgements.exists():
+        # EnronQA の自由記述の回答は，判定モデル（atrium judge）の採点で正誤を付ける
+        from atrium.analysis import merge_judgements
+
+        rows = merge_judgements(rows, judgements)
+    return compute_metrics(rows, labels, split, n_sources, consistent_setting)
 
 
 def cmd_analyze(args: argparse.Namespace, cfg: AtriumConfig) -> int:
@@ -414,6 +451,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--data-dir", required=True)
     p.add_argument("--out-dir", required=True)
     p.set_defaults(func=cmd_advert_eval)
+
+    for name, help_text in (
+        ("judge", "実行の回答を判定モデルで採点し，judgements.jsonl を書く"),
+        ("judge-validate", "付属の別解・誤答で判定モデルを検証する"),
+        ("judge-kappa", "参照モデルで採点し直して Cohen の κ を出す"),
+    ):
+        p = sub.add_parser(name, help=help_text + "（EnronQA．p0004 §8.6）")
+        p.add_argument("--data-dir", required=True)
+        p.add_argument("--ollama-url", action="append", required=True, help="複数指定で並列に送る")
+        if name != "judge-validate":
+            p.add_argument("--run-dir", action="append", required=True)
+        if name != "judge":
+            p.add_argument("--out-dir", required=True)
+        p.set_defaults(func=cmd_judge)
 
     p = sub.add_parser("check-data", help="設定がラベルを作ったときと同じかを確かめる")
     p.add_argument("--data-dir", required=True)

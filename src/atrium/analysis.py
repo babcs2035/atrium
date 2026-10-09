@@ -116,7 +116,12 @@ def accuracy_metrics(rows: Sequence[dict[str, Any]]) -> dict[str, Any] | None:
     return {
         "overall": summary([bool(r["correct"]) for r in graded]),
         "by_bank": {bank: summary(v) for bank, v in sorted(by_bank.items())},
-        "unparsed_choice_rate": sum(r.get("choice") is None for r in graded) / len(graded),
+        # 判定モデルで採点した実行（EnronQA）は，判定できなかった割合を数える
+        "unparsed_choice_rate": sum(
+            r["judge_unparsed"] if "judge_unparsed" in r else r.get("choice") is None
+            for r in graded
+        )
+        / len(graded),
     }
 
 
@@ -151,6 +156,27 @@ def exposure_metrics(rows: Sequence[dict[str, Any]]) -> dict[str, float] | None:
     overlap = [r["answer_overlap_lcs"] for r in rows if "answer_overlap_lcs" in r]
     if overlap:
         out["mean_answer_overlap_lcs"] = float(np.mean(overlap))
+    return out
+
+
+def merge_judgements(rows: Sequence[dict[str, Any]], path: Path) -> list[dict[str, Any]]:
+    """judgements.jsonl の正誤と LCS 比を結果の行に付ける（判定できなかった回答は不正解として数え，judge_unparsed を付ける）．"""
+    with path.open(encoding="utf-8") as f:
+        judged = {j["qid"]: j for j in map(json.loads, f) if j}
+    out = []
+    for r in rows:
+        j = judged.get(r["qid"])
+        if j is None:
+            out.append(dict(r))
+            continue
+        out.append(
+            {
+                **r,
+                "correct": bool(j["correct"]),
+                "judge_unparsed": j["correct"] is None,
+                "answer_overlap_lcs": j["answer_overlap_lcs"],
+            }
+        )
     return out
 
 

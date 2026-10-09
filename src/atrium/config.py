@@ -251,6 +251,12 @@ class EnronqaDataConfig(_Strict):
     n_centroids: int = Field(default=8, ge=1)
     # 中央の分類器（ragroute）の学習で，1 問あたりに使う関連の無い受信箱の数（150 個の全組は大きすぎるため）
     ragroute_negatives: int = Field(default=10, ge=1)
+    # 自由記述の回答の採点（p0004 §8.6）．判定モデルは質問者の llama3.1:8b と別系統にして自己贔屓を避ける．
+    # 参照モデルは判定モデルとの一致（Cohen の κ）を測る大きいモデル（12 GB の GPU に載る範囲）
+    judge_model: str = "qwen3:8b"
+    judge_reference_model: str = "qwen3:14b"
+    judge_validate_n: int = Field(default=500, ge=1)
+    judge_kappa_n: int = Field(default=300, ge=1)
 
 
 class DataConfig(_Strict):

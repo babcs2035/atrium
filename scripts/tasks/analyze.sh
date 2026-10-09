@@ -18,6 +18,10 @@ if [ "$RUN_KIND" = "e0_measure" ]; then
 fi
 
 RUN_DATASET=$(jq -r '.dataset' "$RUN_DIR/run_meta.json")
+# EnronQA は採点（scripts/tasks/judge.sh run）の結果を使う．制御点にあれば取得する
+if [ "$RUN_DATASET" = enronqa ]; then
+  rsync -az "$CONTROL:$REMOTE_DIR/$RUN_DIR/judgements.jsonl" "$RUN_DIR/" 2> /dev/null || true
+fi
 mkdir -p "artifacts/$RUN_DATASET"
 for item in benchmark labels; do
   rsync -az "$CONTROL:$DATA_DIR/$RUN_DATASET/$item" "artifacts/$RUN_DATASET/"
