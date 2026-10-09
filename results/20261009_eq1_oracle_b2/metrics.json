@@ -13,7 +13,917 @@
    "query_reduction_vs_all": 0.9933333333333333
   },
   "label_consistency": null,
-  "accuracy": null,
+  "accuracy": {
+   "overall": {
+    "n": 150,
+    "accuracy": 0.42,
+    "ci95_low": 0.3439800445299174,
+    "ci95_high": 0.5000151945689748
+   },
+   "by_bank": {
+    "allen-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "arnold-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "arora-h": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "badeer-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "bailey-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "bass-e": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "baughman-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "beck-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "benson-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "blair-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "brawner-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "buy-r": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "campbell-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "carson-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "cash-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "causholli-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "corman-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "crandell-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "cuilla-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "dasovich-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "davis-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "dean-c": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "delainey-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "derrick-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "dickson-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "donoho-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "donohoe-t": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "dorland-c": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "ermis-f": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "farmer-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "fischer-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "forney-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "fossum-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "gang-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "gay-r": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "geaccone-t": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "germany-c": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "gilbertsmith-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "giron-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "griffith-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "grigsby-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "guzman-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "haedicke-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "hain-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "harris-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "hayslett-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "heard-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "hendrickson-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "hernandez-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "hodge-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "holst-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "horton-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "hyatt-k": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "hyvl-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "jones-t": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "kaminski-v": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "kean-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "keavey-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "keiser-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "king-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "kitchen-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "kuykendall-t": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "lavorato-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "lay-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "lenhart-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "lewis-a": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "linder-e": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "lokay-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "lokey-t": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "love-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "lucci-p": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "maggi-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "mann-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "martin-t": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "may-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "mccarty-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "mcconnell-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "mckay-b": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "mckay-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "mclaughlin-e": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "merriss-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "meyers-a": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "mims-thurston-p": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "motley-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "neal-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "nemec-g": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "panus-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "parks-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "pereira-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "perlingiere-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "phanis-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "pimenov-v": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "platter-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "presto-k": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "quenet-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "quigley-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "rapp-b": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "reitmeyer-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "richey-c": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "ring-a": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "ring-r": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "rodrique-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "rogers-b": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "ruscitti-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "sager-e": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "saibi-e": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "salisbury-h": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "sanchez-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "sanders-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "scholtes-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "schoolcraft-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "schwieger-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "scott-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "semperger-c": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "shackleton-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "shankman-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "shapiro-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "shively-h": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "skilling-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "slinger-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "smith-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "solberg-g": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "south-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "staab-t": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "stclair-c": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "steffes-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "stepenovitch-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "stokley-c": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "storey-g": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "sturm-f": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "swerzbin-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "symes-k": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "taylor-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "tholt-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "thomas-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "townsend-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "tycholiz-b": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "ward-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "watson-k": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "weldon-c": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "whalley-g": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "whalley-l": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "white-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "whitt-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "williams-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "williams-w3": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "wolfe-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "ybarbo-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "zipper-a": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "zufferli-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    }
+   },
+   "unparsed_choice_rate": 0.0
+  },
   "latency": {
    "embed_s": {
     "p50": 3.560492768883705e-05,
@@ -40,7 +950,8 @@
   "mean_snippets_exposed": 0.0,
   "exposure": {
    "mean_docs_exposed": 0.0,
-   "mean_query_recipients": 1.0
+   "mean_query_recipients": 1.0,
+   "mean_answer_overlap_lcs": 0.5862982376419071
   },
   "gold_doc_retrieval": null
  },
@@ -58,7 +969,917 @@
    "query_reduction_vs_all": 0.9933333333333333
   },
   "label_consistency": null,
-  "accuracy": null,
+  "accuracy": {
+   "overall": {
+    "n": 150,
+    "accuracy": 0.42,
+    "ci95_low": 0.3439800445299174,
+    "ci95_high": 0.5000151945689748
+   },
+   "by_bank": {
+    "allen-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "arnold-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "arora-h": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "badeer-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "bailey-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "bass-e": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "baughman-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "beck-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "benson-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "blair-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "brawner-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "buy-r": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "campbell-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "carson-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "cash-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "causholli-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "corman-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "crandell-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "cuilla-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "dasovich-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "davis-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "dean-c": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "delainey-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "derrick-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "dickson-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "donoho-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "donohoe-t": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "dorland-c": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "ermis-f": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "farmer-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "fischer-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "forney-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "fossum-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "gang-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "gay-r": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "geaccone-t": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "germany-c": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "gilbertsmith-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "giron-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "griffith-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "grigsby-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "guzman-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "haedicke-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "hain-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "harris-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "hayslett-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "heard-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "hendrickson-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "hernandez-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "hodge-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "holst-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "horton-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "hyatt-k": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "hyvl-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "jones-t": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "kaminski-v": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "kean-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "keavey-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "keiser-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "king-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "kitchen-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "kuykendall-t": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "lavorato-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "lay-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "lenhart-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "lewis-a": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "linder-e": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "lokay-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "lokey-t": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "love-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "lucci-p": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "maggi-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "mann-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "martin-t": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "may-l": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "mccarty-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "mcconnell-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "mckay-b": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "mckay-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "mclaughlin-e": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "merriss-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "meyers-a": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "mims-thurston-p": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "motley-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "neal-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "nemec-g": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "panus-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "parks-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "pereira-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "perlingiere-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "phanis-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "pimenov-v": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "platter-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "presto-k": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "quenet-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "quigley-d": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "rapp-b": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "reitmeyer-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "richey-c": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "ring-a": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "ring-r": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "rodrique-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "rogers-b": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "ruscitti-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "sager-e": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "saibi-e": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "salisbury-h": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "sanchez-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "sanders-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "scholtes-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "schoolcraft-d": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "schwieger-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "scott-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "semperger-c": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "shackleton-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "shankman-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "shapiro-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "shively-h": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "skilling-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "slinger-r": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "smith-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "solberg-g": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "south-s": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "staab-t": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "stclair-c": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "steffes-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "stepenovitch-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "stokley-c": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "storey-g": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "sturm-f": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "swerzbin-m": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "symes-k": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "taylor-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "tholt-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "thomas-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "townsend-j": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "tycholiz-b": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "ward-k": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "watson-k": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "weldon-c": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "whalley-g": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "whalley-l": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "white-s": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "whitt-m": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "williams-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "williams-w3": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "wolfe-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "ybarbo-p": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "zipper-a": {
+     "n": 1,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.7934506856227626
+    },
+    "zufferli-j": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    }
+   },
+   "unparsed_choice_rate": 0.0
+  },
   "latency": {
    "embed_s": {
     "p50": 3.560492768883705e-05,
@@ -85,7 +1906,8 @@
   "mean_snippets_exposed": 0.0,
   "exposure": {
    "mean_docs_exposed": 0.0,
-   "mean_query_recipients": 1.0
+   "mean_query_recipients": 1.0,
+   "mean_answer_overlap_lcs": 0.5862982376419071
   },
   "gold_doc_retrieval": null
  }

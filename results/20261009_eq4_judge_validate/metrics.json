@@ -1,0 +1,8 @@
+{
+ "model": "qwen3:8b",
+ "n_alternate": 500,
+ "n_incorrect": 500,
+ "alternate_judged_correct": 0.956,
+ "incorrect_judged_incorrect": 0.984,
+ "unparsed": 0
+}
