@@ -5,7 +5,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from atrium.config import DatasetName
-from atrium.manifest import ShardKind
+from atrium.manifest import Advert, ShardKind
 
 
 class _Model(BaseModel):
@@ -84,6 +84,8 @@ class ShardProfile(_Model):
     encoder: str
     centroid: list[float]
     description: str
+    # 事前に公開する情報（EnronQA のシャードだけ．p0004 の RQ-A）
+    advert: Advert | None = None
 
 
 class ProfileResponse(_Model):

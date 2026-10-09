@@ -150,6 +150,7 @@ def create_app(
                     encoder=s.spec.encoder,
                     centroid=s.spec.centroid,
                     description=s.spec.description,
+                    advert=s.spec.advert,
                 )
                 for s in stores.values()
             ],

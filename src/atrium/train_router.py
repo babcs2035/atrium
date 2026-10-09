@@ -33,7 +33,8 @@ LR = 1e-3
 MAX_LR = 5e-3
 WEIGHT_DECAY = 3e-5
 GRAD_CLIP = 1.0
-TRAIN_SEED = {"medrag": 12, "feb4rag": 42}
+# enronqa は p0004 で追加（medrag と同じ種）
+TRAIN_SEED = {"medrag": 12, "feb4rag": 42, "enronqa": 12}
 
 
 @dataclass(frozen=True)
@@ -52,13 +53,29 @@ def build_matrix(
     sources: Sequence[SourceInfo],
     labels: dict[str, list[str]],
     pad_dim: int,
+    negatives: int | None = None,
+    rng: np.random.Generator | None = None,
 ) -> tuple[F32Array, F32Array]:
-    """（質問，データ源）の組ごとの特徴量とラベルを作る．"""
+    """（質問，データ源）の組ごとの特徴量とラベルを作る．
+
+    negatives を与えると，関連ありの組の全てと，関連の無いデータ源を 1 問あたり negatives 個だけ無作為に使う
+    （EnronQA の 150 個の受信箱では全ての組が数 GB になるため）．
+    """
     xs: list[F32Array] = []
     ys: list[float] = []
     for qid in qids:
         relevant = set(labels.get(qid, []))
-        for i, s in enumerate(sources):
+        chosen: list[int] = list(range(len(sources)))
+        if negatives is not None:
+            if rng is None:
+                raise ValueError("negative sampling requires rng")
+            others = [i for i, s in enumerate(sources) if s.name not in relevant]
+            picked = rng.choice(others, size=min(negatives, len(others)), replace=False)
+            chosen = sorted(
+                [i for i, s in enumerate(sources) if s.name in relevant] + [int(i) for i in picked]
+            )
+        for i in chosen:
+            s = sources[i]
             xs.append(
                 ragroute_features(
                     query_emb[s.encoder][row_of[qid]], s.centroid, i, len(sources), pad_dim
@@ -120,12 +137,15 @@ def train_router(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -
     labels: dict[str, list[str]] = json.loads(paths.labels.read_text(encoding="utf-8"))
     split: dict[str, list[str]] = json.loads(paths.split.read_text(encoding="utf-8"))
     pad_dim = PAD_DIM[dataset]
+    negatives = cfg.data.require_enronqa().ragroute_negatives if dataset == "enronqa" else None
+    rng = np.random.default_rng(seed)
     data = {
-        name: build_matrix(split[name], row_of, query_emb, sources, labels, pad_dim)
+        name: build_matrix(split[name], row_of, query_emb, sources, labels, pad_dim, negatives, rng)
         for name in ("train", "val", "test")
     }
 
-    use_scaler = dataset == "medrag"
+    # medrag と enronqa は 1 種類の検索器の埋め込みなので標準化する（RAGRoute の medrag と同じ）
+    use_scaler = dataset in ("medrag", "enronqa")
     mean = data["train"][0].mean(axis=0)
     scale = data["train"][0].std(axis=0)
     scale[scale == 0] = 1.0  # sklearn の StandardScaler と同じく分散 0 の列はそのまま通す

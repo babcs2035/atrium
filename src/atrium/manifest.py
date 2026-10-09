@@ -34,6 +34,20 @@ class ChunkFile(_Model):
     n_docs: int
 
 
+class Advert(_Model):
+    """データ源が見つけてもらうために事前に公開する情報（p0004 §6.1 の RQ-A）．EnronQA のシャードだけが持つ．
+
+    terms は受信箱の中のメールで多く使われる語と，その語を含むメールの割合（語のスケッチ）．
+    centroids は k-means の中心．card_embedding は Agent Card の説明文の埋め込み．
+    いずれも受信箱の持ち主が自分のデータだけから計算でき，他の受信箱の統計は使わない．
+    """
+
+    terms: list[str]
+    term_weights: list[float]
+    centroids: list[list[float]]
+    card_embedding: list[float]
+
+
 class ShardSpec(_Model):
     """1 個のシャード．専門家ノードはこの単位で索引を持つ．
 
@@ -50,6 +64,7 @@ class ShardSpec(_Model):
     encoder: str
     centroid: list[float]
     description: str
+    advert: Advert | None = None
 
 
 class Manifest(_Model):

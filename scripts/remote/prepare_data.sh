@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 制御点でのデータ準備の全体（scripts/remote/setup.sh が setsid nohup でバックグラウンドに起動する）．
 #
-# 使い方: bash scripts/remote/prepare_data.sh [dataset...]   # 省略時は feb4rag medrag
+# 使い方: bash scripts/remote/prepare_data.sh [dataset...]   # 省略時は feb4rag medrag（enronqa は明示して指定する）
 # 出力: $DATA_DIR/logs/prepare.log（このスクリプトの出力），prepare.status（running / done / failed ...）
 #
 #   段階 A（制御点）: MIRAGE とコーパスの取得．FeB4RAG の準備は別のコンテナで並行して進める
@@ -128,6 +128,16 @@ if wants medrag; then
   for step in shards queries labels split train; do
     log "medrag: $step"
     hub_run atrium-data-medrag data medrag "$step" --data-dir /data
+  done
+fi
+
+# ── EnronQA（p0004）．約 7.4 万通のメールを 1 億パラメータ級の符号化器で埋め込むだけなので，制御点の GPU 1 枚で行う
+if wants enronqa; then
+  log "enronqa: fetching models"
+  hub_run atrium-fetch-models-enronqa fetch-models enronqa
+  for step in fetch corpus embed questions queries labels shards train; do
+    log "enronqa: $step"
+    hub_run atrium-data-enronqa data enronqa "$step" --data-dir /data
   done
 fi
 

@@ -12,7 +12,8 @@ import numpy as np
 from atrium.arrays import F32Array
 
 # RAGRoute の EMBEDDING_MAX_LENGTH と同じ値（MedCPT は 768 次元，FeB4RAG は SGPT の 4096 次元が最大）
-PAD_DIM = {"medrag": 768, "feb4rag": 4096}
+# enronqa（arctic-embed-m-v1.5）は p0004 で追加
+PAD_DIM = {"medrag": 768, "feb4rag": 4096, "enronqa": 768}
 
 
 def pad_to(vec: F32Array, dim: int) -> F32Array:

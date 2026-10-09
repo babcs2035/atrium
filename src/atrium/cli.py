@@ -29,6 +29,8 @@ from atrium.paths import dataset_paths
 
 MEDRAG_STEPS = ("benchmark", "corpus", "embed", "shards", "queries", "labels", "split", "train")
 FEB4RAG_STEPS = ("fetch", "beir", "shards", "queries", "split", "train")
+ENRONQA_STEPS = ("fetch", "corpus", "embed", "questions", "queries", "labels", "shards", "train")
+STEPS_OF = {"medrag": MEDRAG_STEPS, "feb4rag": FEB4RAG_STEPS, "enronqa": ENRONQA_STEPS}
 
 
 def _config_get(cfg: AtriumConfig, key: str) -> Any:
@@ -108,12 +110,8 @@ def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium import labels, train_router
 
     paths = dataset_paths(Path(args.data_dir), args.dataset)
-    steps = (
-        (MEDRAG_STEPS if args.dataset == "medrag" else FEB4RAG_STEPS)
-        if args.step == "all"
-        else (args.step,)
-    )
-    valid = MEDRAG_STEPS if args.dataset == "medrag" else FEB4RAG_STEPS
+    valid = STEPS_OF[args.dataset]
+    steps = valid if args.step == "all" else (args.step,)
     if args.step != "all" and args.step not in valid:
         raise SystemExit(
             f"step {args.step!r} is not defined for {args.dataset}; choose from {valid}"
@@ -141,6 +139,23 @@ def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
                 d.embed_queries(cfg, paths)
             elif step == "labels":
                 labels.compute_medrag_labels(cfg, paths)
+        elif args.dataset == "enronqa":
+            from atrium import data_enronqa as eq
+
+            if step == "fetch":
+                eq.fetch(cfg, paths)
+            elif step == "corpus":
+                eq.write_corpus(cfg, paths)
+            elif step == "embed":
+                eq.embed_corpus(cfg, paths)
+            elif step == "questions":
+                eq.write_questions_files(cfg, paths)
+            elif step == "queries":
+                eq.embed_queries(cfg, paths)
+            elif step == "labels":
+                eq.write_labels(cfg, paths)
+            elif step == "shards":
+                eq.build_shards(cfg, paths)
         else:
             from atrium import data_feb4rag as f
 
@@ -169,6 +184,8 @@ def models_for(cfg: AtriumConfig, dataset: str) -> list[str]:
     if dataset == "medrag":
         m = cfg.data.medrag
         return [m.query_encoder, m.article_encoder, CrossEncoderReranker.MODEL]
+    if dataset == "enronqa":
+        return [cfg.data.require_enronqa().encoder]
     return sorted({spec.hf_name for spec in FEB4RAG_ENCODERS.values()})
 
 
@@ -346,8 +363,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_run)
 
     p = sub.add_parser("data", help="データ中継点での準備")
-    p.add_argument("dataset", choices=["medrag", "feb4rag"])
-    p.add_argument("step", choices=sorted({*MEDRAG_STEPS, *FEB4RAG_STEPS, "all"}))
+    p.add_argument("dataset", choices=sorted(STEPS_OF))
+    p.add_argument("step", choices=sorted({*MEDRAG_STEPS, *FEB4RAG_STEPS, *ENRONQA_STEPS, "all"}))
     p.add_argument("--data-dir", required=True)
     p.add_argument("--source", default=None, help="corpus / embed / beir を 1 データ源に限る")
     p.add_argument(
@@ -358,7 +375,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_data)
 
     p = sub.add_parser("fetch-models", help="データセットで使うモデルを HF のキャッシュへ取得する")
-    p.add_argument("dataset", choices=["medrag", "feb4rag"])
+    p.add_argument("dataset", choices=sorted(STEPS_OF))
     p.set_defaults(func=cmd_fetch_models)
 
     p = sub.add_parser("check-data", help="設定がラベルを作ったときと同じかを確かめる")

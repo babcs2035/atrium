@@ -208,3 +208,41 @@ class HfEncoder:
             emb = (hidden * weights[:, None]).sum(0) / weights.sum()
             out.append(emb.float().cpu().numpy())
         return np.stack(out).astype(np.float32)
+
+
+class ArcticEncoder:
+    """Snowflake arctic-embed-m-v1.5（EnronQA のメールとクエリ．p0004 §8.2）．
+
+    sentence-transformers のモデルに同梱された設定（CLS pooling，L2 正規化，最大 512 トークン）で埋め込み，
+    クエリには同梱のプロンプト "query"（"Represent this sentence for searching relevant passages: "）を付ける．
+    メール同士・メールとクエリのどちらも正規化した内積で比べるので，スコアは受信箱をまたいで比べられる．
+    """
+
+    QUERY_PROMPT = "query"
+
+    def __init__(self, name: str, batch_size: int = 64, device: str | None = None) -> None:
+        """モデルを読み込む．"""
+        self.name = name
+        self._batch_size = batch_size
+        self._model = SentenceTransformer(name, device=device or _device())
+
+    def encode_queries(self, queries: Sequence[str]) -> F32Array:
+        """クエリを埋め込む（行がクエリ．正規化済み）．"""
+        out = self._model.encode(
+            list(queries),
+            prompt_name=self.QUERY_PROMPT,
+            batch_size=self._batch_size,
+            normalize_embeddings=True,
+            show_progress_bar=False,
+        )
+        return np.asarray(out, dtype=np.float32)
+
+    def encode_texts(self, texts: Sequence[str]) -> F32Array:
+        """メールや Agent Card の文章を埋め込む（接頭辞なし．正規化済み）．"""
+        out = self._model.encode(
+            list(texts),
+            batch_size=self._batch_size,
+            normalize_embeddings=True,
+            show_progress_bar=False,
+        )
+        return np.asarray(out, dtype=np.float32)

@@ -49,7 +49,19 @@ def labels_params(cfg: AtriumConfig, dataset: DatasetName) -> dict[str, object]:
             "embed_precision": m.embed_precision,
             "shard_budget_gb": cfg.cluster.shard_budget_gb,
         }
-    return {"sources": list(cfg.data.feb4rag.sources)}
+    if dataset == "feb4rag":
+        return {"sources": list(cfg.data.feb4rag.sources)}
+    e = cfg.data.require_enronqa()
+    return {
+        "sources": list(e.sources),
+        "hf_revision": e.hf_revision,
+        "encoder": e.encoder,
+        "test_per_inbox": e.test_per_inbox,
+        "dev_per_inbox": e.dev_per_inbox,
+        "train_per_inbox": e.train_per_inbox,
+        "duplicate_jaccard": e.duplicate_jaccard,
+        "seed": cfg.experiment.seed,
+    }
 
 
 def write_labels_meta(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -> None:
