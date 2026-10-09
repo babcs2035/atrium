@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from atrium.advert_eval import Inbox, hit_at, owner_auc, ranks_of_gold, score_flood_bm25
+from atrium.advert_eval import (
+    Inbox,
+    hit_at,
+    owner_auc,
+    ranks_of_gold,
+    score_flood_bm25,
+    spearman,
+)
 
 
 def test_rank_of_gold_counts_ties_against_the_gold_source() -> None:
@@ -34,3 +41,8 @@ def test_bm25_flood_finds_the_inbox_that_contains_the_query_terms() -> None:
     for shared in (False, True):
         scores = score_flood_bm25([["power", "desk"]], inboxes, shared)
         assert scores[0, 1] > scores[0, 0]
+
+
+def test_spearman_is_one_for_monotone_and_zero_without_variation() -> None:
+    assert spearman([1, 2, 3], [0.1, 0.5, 0.9]) == 1.0
+    assert spearman([1, 2, 3], [0.5, 0.5, 0.5]) == 0.0

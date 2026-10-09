@@ -93,6 +93,15 @@ def bootstrap_ci(values: F64Array, seed: int) -> tuple[float, float]:
     return float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5))
 
 
+def spearman(x: Sequence[float], y: Sequence[float]) -> float:
+    """スピアマンの順位相関（同順位は平均順位）．どちらかが一定なら 0．"""
+    from scipy.stats import spearmanr
+
+    if len(set(x)) < 2 or len(set(y)) < 2:
+        return 0.0
+    return float(spearmanr(x, y).statistic)
+
+
 def owner_auc(scores: F32Array, owner: Sequence[int]) -> float:
     """各抜き出しメールで，他の受信箱のうち持ち主より低く採点されたものの割合（同点は 0.5）の平均．"""
     true = scores[np.arange(len(owner)), list(owner)][:, None]
@@ -427,6 +436,27 @@ def evaluate(cfg: AtriumConfig, paths: DatasetPaths) -> dict[str, Any]:
         else:
             entry["owner_top1"] = 1.0 / n
             entry["owner_auc"] = 0.5
+        # H-A2 の曲線：全ての大きさの候補の test の hit@1 と所有者 top-1（報告用．値の選択には使わない）
+        if len(method.candidates) > 1:
+            curve = []
+            for c in method.candidates:
+                c_scores, c_size, c_probe = method.run(
+                    c, test.emb, test.texts, probe_emb, probe_texts
+                )
+                point = {
+                    "param": c,
+                    "advert_bytes": c_size,
+                    "hit@1": hit_at(ranks_of_gold(c_scores, test.gold), 1),
+                }
+                if c_probe is not None:
+                    point["owner_top1"] = hit_at(ranks_of_gold(c_probe, probe_owner), 1)
+                curve.append(point)
+            entry["curve"] = curve
+            sizes = [float(pt["advert_bytes"]) for pt in curve]
+            entry["spearman_size_hit"] = spearman(sizes, [float(pt["hit@1"]) for pt in curve])
+            entry["spearman_size_owner"] = spearman(
+                sizes, [float(pt.get("owner_top1", 0.0)) for pt in curve]
+            )
         results[method.name] = entry
         logger.info(
             "test %s: hit@1 %.4f owner_top1 %.4f", method.name, entry["hit@1"], entry["owner_top1"]
@@ -472,6 +502,24 @@ def render_report(metrics: dict[str, Any]) -> str:
             f"| {name} | {r.get('param', '-')} | {r['advert_bytes'] / 1024:.1f} | {r['hit@1']:.3f}{ci_text} | "
             f"{r['hit@3']:.3f} | {r[f'hit@{m}']:.3f} | {r['inboxes_receiving_query']} | "
             f"{r['owner_top1']:.3f} | {r['owner_auc']:.3f} |"
+        )
+    lines += [
+        "",
+        "## 公開情報の大きさと，hit@1・所有者の特定（test．H-A2）",
+        "",
+        "| 方式 | 大きさの候補ごとの（KB，hit@1，所有者 top-1） | 大きさと hit@1 の順位相関 | 大きさと所有者 top-1 の順位相関 |",
+        "|---|---|---|---|",
+    ]
+    for name, r in metrics["test"].items():
+        if "curve" not in r:
+            continue
+        points = "; ".join(
+            f"{pt['param']}: ({pt['advert_bytes'] / 1024:.1f}, {pt['hit@1']:.3f}, "
+            f"{pt.get('owner_top1', 0):.3f})"
+            for pt in r["curve"]
+        )
+        lines.append(
+            f"| {name} | {points} | {r['spearman_size_hit']:.2f} | {r['spearman_size_owner']:.2f} |"
         )
     lines += [
         "",
