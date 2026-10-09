@@ -1,0 +1,327 @@
+{
+ "run_id": "20261007_s4_med_all_snip",
+ "git_head": "d238f5fdf1ac-dirty",
+ "dataset": "medrag",
+ "routing": "all",
+ "answer_mode": "snippet_return",
+ "merge": "score",
+ "n_questions": 7663,
+ "n_skipped_on_resume": 0,
+ "n_nodes": 16,
+ "discovery_s": 0.04166411398909986,
+ "sources": [
+  {
+   "source": "pubmed",
+   "n_docs": 23898701,
+   "shards": [
+    "pubmed-00",
+    "pubmed-01",
+    "pubmed-02",
+    "pubmed-03",
+    "pubmed-04",
+    "pubmed-05"
+   ]
+  },
+  {
+   "source": "statpearls",
+   "n_docs": 384050,
+   "shards": [
+    "statpearls-00"
+   ]
+  },
+  {
+   "source": "textbooks",
+   "n_docs": 125847,
+   "shards": [
+    "textbooks-00"
+   ]
+  },
+  {
+   "source": "wikipedia",
+   "n_docs": 29913202,
+   "shards": [
+    "wikipedia-00",
+    "wikipedia-01",
+    "wikipedia-02",
+    "wikipedia-03",
+    "wikipedia-04",
+    "wikipedia-05",
+    "wikipedia-06",
+    "wikipedia-07"
+   ]
+  }
+ ],
+ "config": {
+  "experiment": {
+   "kind": "e1_routing",
+   "dataset": "medrag",
+   "routing": "all",
+   "answer_mode": "snippet_return",
+   "question_limit": null,
+   "parallel": 4,
+   "seed": 12
+  },
+  "retrieval": {
+   "k_ret": 50,
+   "k_rerank": 15,
+   "merge": "score",
+   "query_embedding": {
+    "medrag": "live",
+    "feb4rag": "cached"
+   }
+  },
+  "routing": {
+   "random_k": {
+    "medrag": 3,
+    "feb4rag": 9
+   },
+   "ragroute_threshold": 0.5
+  },
+  "llm": {
+   "ollama_version": "0.35.1",
+   "requester_model": "llama3.1:8b",
+   "expert_model": "qwen3:0.6b",
+   "num_predict": 2048,
+   "num_ctx": 16384,
+   "think": false,
+   "temperature": 0.0,
+   "requester_num_parallel": 2,
+   "timeout_s": 600.0
+  },
+  "local_answer": {
+   "k_context": 15,
+   "aggregate": "vote",
+   "timeout_s": 1800.0
+  },
+  "e0": {
+   "hosts": [
+    "192.168.14.108",
+    "192.168.14.109"
+   ],
+   "iperf_pairs": [
+    [
+     "192.168.14.108",
+     "192.168.14.109"
+    ],
+    [
+     "192.168.14.108",
+     "192.168.13.100"
+    ]
+   ],
+   "gguf_models": [
+    {
+     "name": "qwen3-0.6b",
+     "repo": "unsloth/Qwen3-0.6B-GGUF",
+     "file": "Qwen3-0.6B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-1.7b",
+     "repo": "unsloth/Qwen3-1.7B-GGUF",
+     "file": "Qwen3-1.7B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-4b",
+     "repo": "unsloth/Qwen3-4B-GGUF",
+     "file": "Qwen3-4B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-8b",
+     "repo": "unsloth/Qwen3-8B-GGUF",
+     "file": "Qwen3-8B-Q4_K_M.gguf"
+    }
+   ],
+   "faiss_vectors": [
+    1000000,
+    2000000,
+    3000000
+   ],
+   "faiss_queries": 20
+  },
+  "cluster": {
+   "control": "wafl-ctrl5",
+   "ssh_user": "denjo",
+   "remote_dir": "/home/denjo/workspace/ktakahashi/atrium",
+   "data_dir": "/home/denjo/atrium-data",
+   "registry_port": 5000,
+   "node_port": 8100,
+   "requester": {
+    "host": "wafl-ctrl5",
+    "ssh_user": null
+   },
+   "experts": [
+    {
+     "host": "192.168.13.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.109",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.109",
+     "ssh_user": null
+    }
+   ],
+   "gpu_workers": [
+    {
+     "host": "192.168.15.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.109",
+     "ssh_user": null
+    }
+   ],
+   "shard_budget_gb": 6.0
+  },
+  "data": {
+   "medrag": {
+    "sources": [
+     "pubmed",
+     "statpearls",
+     "textbooks",
+     "wikipedia"
+    ],
+    "article_encoder": "ncbi/MedCPT-Article-Encoder",
+    "query_encoder": "ncbi/MedCPT-Query-Encoder",
+    "embed_batch_size": 128,
+    "embed_precision": "fp16_autocast",
+    "medrag_commit": "7599a728a28789fd601728c08d313b1148051f41",
+    "mirage_url": "https://raw.githubusercontent.com/Teddy-XiongGZ/MIRAGE/main/benchmark.json",
+    "statpearls_url": "https://ftp.ncbi.nlm.nih.gov/pub/litarch/3d/12/statpearls_NBK430685.tar.gz",
+    "descriptions": {
+     "pubmed": "PubMed abstracts: titles and abstracts of biomedical research articles.",
+     "statpearls": "StatPearls: clinical decision support articles for medical professionals.",
+     "textbooks": "Medical textbooks widely used by USMLE examinees (18 books).",
+     "wikipedia": "General-domain Wikipedia articles."
+    }
+   },
+   "feb4rag": {
+    "sources": [
+     "arguana",
+     "climate-fever",
+     "dbpedia-entity",
+     "fever",
+     "fiqa",
+     "hotpotqa",
+     "msmarco",
+     "nfcorpus",
+     "nq",
+     "scidocs",
+     "scifact",
+     "trec-covid",
+     "webis-touche2020"
+    ],
+    "feb4rag_commit": "b0fe9e19eddac3586fd54d30aebbb5d3d0d72118",
+    "beir_hf_repo": "BeIR/{name}",
+    "centroid_sample": 2000,
+    "centroid_sample_overrides": {
+     "trec-covid": 500
+    }
+   }
+  }
+ },
+ "started_at": 1791313018.4611838,
+ "finished_at": 1791359332.1050005,
+ "failures": 57
+}
