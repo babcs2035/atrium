@@ -159,6 +159,20 @@ def exposure_metrics(rows: Sequence[dict[str, Any]]) -> dict[str, float] | None:
     return out
 
 
+def gold_doc_recall(
+    rows: Sequence[dict[str, Any]], gold_doc: dict[str, str]
+) -> dict[str, float] | None:
+    """正解の文書（EnronQA の正解のメールの path）が，統合後の上位 k 件（top_doc_ids）に入った割合（下流の検索再現率）．
+
+    宿る型・委託は文書の ID を返さないので数えない．正解の文書の表が無いデータセット（MedRAG・FeB4RAG）では None．
+    """
+    checked = [r for r in rows if "top_doc_ids" in r and r["qid"] in gold_doc]
+    if not checked:
+        return None
+    hits = sum(gold_doc[r["qid"]] in r["top_doc_ids"] for r in checked)
+    return {"recall_at_k": hits / len(checked), "n": float(len(checked))}
+
+
 def merge_judgements(rows: Sequence[dict[str, Any]], path: Path) -> list[dict[str, Any]]:
     """judgements.jsonl の正誤と LCS 比を結果の行に付ける（判定できなかった回答は不正解として数え，judge_unparsed を付ける）．"""
     with path.open(encoding="utf-8") as f:
@@ -186,6 +200,7 @@ def compute_metrics(
     split: dict[str, list[str]],
     n_sources: int,
     check_label_consistency: bool = False,
+    gold_doc: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """全問と test の両方について指標を計算する．
 
@@ -214,6 +229,7 @@ def compute_metrics(
             if ok
             else 0.0,
             "exposure": exposure_metrics(ok),
+            "gold_doc_retrieval": gold_doc_recall(ok, gold_doc or {}),
         }
     return out
 
@@ -291,6 +307,14 @@ def render_report(meta: dict[str, Any], metrics: dict[str, Any]) -> str:
                 f"| {name} | {e['mean_docs_exposed']:.2f} | {e['mean_query_recipients']:.2f} | "
                 f"{_fmt(e.get('mean_answer_overlap_lcs'))} |"
             )
+    if metrics["all"].get("gold_doc_retrieval") is not None:
+        lines += ["", "## 正解の文書の検索（EnronQA）", ""]
+        for name, m in metrics.items():
+            g = m.get("gold_doc_retrieval")
+            if g is not None:
+                lines.append(
+                    f"- {name}：正解のメールが上位 k 件に入った割合 {g['recall_at_k']:.3f}（{int(g['n'])} 問）"
+                )
     lines += ["", "## 段ごとの待ち時間（all，秒）", "", "| 段 | p50 | p95 |", "|---|---|---|"]
     for stage, v in metrics["all"]["latency"].items():
         lines.append(f"| {stage} | {v['p50']:.3f} | {v['p95']:.3f} |")

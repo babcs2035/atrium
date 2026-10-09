@@ -126,3 +126,16 @@ def test_exposure_averages_exposed_docs_and_query_recipients() -> None:
         {**_row("q2", True), "docs_exposed_by_source": {}, "query_recipients": 3},
     ]
     assert exposure_metrics(rows) == {"mean_docs_exposed": 2.5, "mean_query_recipients": 2.0}
+
+
+def test_gold_doc_recall_counts_rows_that_returned_document_ids() -> None:
+    from atrium.analysis import gold_doc_recall
+
+    rows = [
+        {**_row("q1", True), "top_doc_ids": ["a/1", "a/2"]},
+        {**_row("q2", True), "top_doc_ids": ["b/9"]},
+        {**_row("q3", True)},
+    ]
+    gold = {"q1": "a/2", "q2": "b/1", "q3": "c/1"}
+    assert gold_doc_recall(rows, gold) == {"recall_at_k": 0.5, "n": 2.0}
+    assert gold_doc_recall(rows, {}) is None

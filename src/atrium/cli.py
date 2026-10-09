@@ -309,7 +309,14 @@ def _analyze(run_dir: Path, artifacts_dir: Path) -> dict[str, Any]:
         from atrium.analysis import merge_judgements
 
         rows = merge_judgements(rows, judgements)
-    return compute_metrics(rows, labels, split, n_sources, consistent_setting)
+    # EnronQA は正解のメールの path が分かるので，下流の検索再現率も出す（本文は含まない gold.jsonl）
+    gold_file = paths.questions.parent / "gold.jsonl"
+    gold_doc = (
+        {g["qid"]: g["path"] for g in map(json.loads, gold_file.read_text("utf-8").splitlines())}
+        if gold_file.exists()
+        else None
+    )
+    return compute_metrics(rows, labels, split, n_sources, consistent_setting, gold_doc)
 
 
 def cmd_analyze(args: argparse.Namespace, cfg: AtriumConfig) -> int:
