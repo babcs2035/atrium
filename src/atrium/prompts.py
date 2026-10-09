@@ -4,6 +4,9 @@
 Copyright (c) 2025 SaCS-EPFL）の `ragroute/config.py` と `ragroute/benchmark.py` から移植した．
 選択肢の書式だけは MedRAG（`src/medrag.py`）と同じ「A. ...」の行にしている
 （RAGRoute は dict を liquid でそのまま描画しており，書式が MedRAG の原典と異なるため）．
+
+EnronQA（p0004）の回答のプロンプトは，原論文（Ryan et al., arXiv:2505.00263，CC BY 4.0）の付録 B.5 の
+「QA With Email Prompt」を，メールを k 通（既定 5）渡す形に直したものである．回答は "Answer:" の後の 1 文を取り出す．
 """
 
 from __future__ import annotations
@@ -32,6 +35,7 @@ SYSTEM_PROMPTS: dict[DatasetName, str] = {
         "You must attribute your response to the source from the search results by including "
         "citations, for example, [1]."
     ),
+    "enronqa": "You answer questions about emails.",
 }
 
 USER_PROMPT_TEMPLATES: dict[DatasetName, str] = {
@@ -43,6 +47,17 @@ USER_PROMPT_TEMPLATES: dict[DatasetName, str] = {
         'Dict{{"step_by_step_thinking": Str(explanation), "answer_choice": Str{{A/B/C/...}}}}:'
     ),
     "feb4rag": ("Here are the search results:\n{context}\n\nHere is the question:\n{question}"),
+    "enronqa": (
+        "Given emails and a question about one of those emails, write the answer to that question "
+        "in a single sentence.\n\n---\n\nFollow the following format.\n\n"
+        "Emails: The emails we want to answer a question about\n"
+        "Question: The question we want to answer about the email\n"
+        "Reasoning: Let's think step by step in order to ${{produce the answer}}\n"
+        "Answer: The answer to the question\n\n---\n\n"
+        "Emails: {context}\n"
+        "Question: {question}\n"
+        "Reasoning: Let's think step by step in order to"
+    ),
 }
 
 
@@ -93,6 +108,15 @@ _ANSWER_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
         r"^\s*(A|B|C|D):",
     )
 )
+
+
+_FREE_ANSWER = re.compile(r"^\s*\**Answer\**\s*:\s*(.+)$", re.MULTILINE | re.IGNORECASE)
+
+
+def extract_free_answer(llm_output: str) -> str:
+    """自由記述の回答（EnronQA）を取り出す：最後の "Answer:" の行の内容．無ければ出力の全体を返す．"""
+    found = _FREE_ANSWER.findall(llm_output)
+    return str(found[-1]).strip() if found else llm_output.strip()
 
 
 def extract_choice(llm_output: str) -> str | None:

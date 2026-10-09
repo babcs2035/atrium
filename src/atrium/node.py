@@ -24,11 +24,13 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from atrium import llm, prompts
-from atrium.config import AtriumConfig, load_config
+from atrium.config import AtriumConfig, DatasetName, load_config
 from atrium.protocol import (
     AnswerRequest,
     AnswerResponse,
     DocOut,
+    GenerateRequest,
+    GenerateResponse,
     LlmUsage,
     ProbeRequest,
     ProbeResponse,
@@ -196,28 +198,73 @@ def create_app(
             )
         context = _merge_top(docs, req.k)
         retrieve_s = time.perf_counter() - start
-        messages = prompts.build_messages(req.dataset, req.question, context, req.options)
+        if req.delegate_url is not None:
+            generated = await delegate(req, context)
+            content, usage, delegated_to = generated.answer, generated.llm, generated.node_id
+        else:
+            content, usage = await generate(req.dataset, req.question, context, req.options)
+            delegated_to = None
+        return AnswerResponse(
+            node_id=node_id,
+            answer=content,
+            choice=prompts.extract_choice(content),
+            n_context_docs=len(context),
+            top_score=context[0].score if context else None,
+            retrieve_s=retrieve_s,
+            llm=usage,
+            duration_s=time.perf_counter() - start,
+            delegated_to=delegated_to,
+            docs_sent=len(context) if delegated_to is not None else 0,
+        )
+
+    async def generate(
+        dataset: DatasetName,
+        question: str,
+        context: list[RetrievedDoc],
+        options: dict[str, str],
+    ) -> tuple[str, LlmUsage]:
+        messages = prompts.build_messages(dataset, question, context, options)
         try:
             result = await llm.chat(client, ollama_url, model, messages, cfg.llm)
         except httpx.HTTPError as exc:
             logger.error("local LLM call failed: %s", exc)
             raise NodeError(502, "Local LLM unavailable") from exc
-        return AnswerResponse(
-            node_id=node_id,
-            answer=result.content,
-            choice=prompts.extract_choice(result.content),
-            n_context_docs=len(context),
-            top_score=context[0].score if context else None,
-            retrieve_s=retrieve_s,
-            llm=LlmUsage(
-                prompt_tokens=result.prompt_tokens,
-                output_tokens=result.output_tokens,
-                prefill_s=result.prefill_s,
-                decode_s=result.decode_s,
-                total_s=result.total_s,
-            ),
-            duration_s=time.perf_counter() - start,
+        usage = LlmUsage(
+            prompt_tokens=result.prompt_tokens,
+            output_tokens=result.output_tokens,
+            prefill_s=result.prefill_s,
+            decode_s=result.decode_s,
+            total_s=result.total_s,
         )
+        return result.content, usage
+
+    async def delegate(req: AnswerRequest, context: list[RetrievedDoc]) -> GenerateResponse:
+        body = GenerateRequest(
+            dataset=req.dataset,
+            question=req.question,
+            options=req.options,
+            docs=[
+                DocOut(doc_id=d.doc_id, title=d.title, content=d.content, score=d.score)
+                for d in context
+            ],
+        )
+        try:
+            response = await client.post(
+                f"{req.delegate_url}/v1/generate",
+                json=body.model_dump(),
+                timeout=cfg.local_answer.timeout_s,
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            logger.error("delegated generation failed: %s", exc)
+            raise NodeError(502, "Delegate unavailable") from exc
+        return GenerateResponse.model_validate_json(response.content)
+
+    @app.post("/v1/generate")
+    async def generate_for_peer(req: GenerateRequest) -> GenerateResponse:
+        context = [RetrievedDoc(d.doc_id, d.title, d.content, d.score) for d in req.docs]
+        content, usage = await generate(req.dataset, req.question, context, req.options)
+        return GenerateResponse(node_id=node_id, answer=content, llm=usage)
 
     return app
 

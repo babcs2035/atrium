@@ -92,6 +92,8 @@ class Placement(_Model):
 
     dataset: str
     nodes: list[NodeAssignment]
+    # B4（delegate_gpu．p0004）：GPU の無い専門家のホスト → 回答を委託する GPU の専門家のホスト
+    delegate_of: dict[str, str] = {}
 
     def url_of_shard(self) -> dict[str, str]:
         """シャード ID からそのシャードを持つノードの URL を引く表を返す．"""
@@ -152,6 +154,44 @@ def plan_placement(manifest: Manifest, hosts: Sequence[str], port: int) -> Place
         for host, shard_ids in assigned.items()
     ]
     return Placement(dataset=manifest.dataset, nodes=nodes)
+
+
+def plan_placement_balanced(
+    manifest: Manifest, hosts: Sequence[str], port: int, seed: int, gpu_hosts: Sequence[str]
+) -> Placement:
+    """シャードを全ホストに同じ数ずつ，文書数がおおよそ均等になるよう配る（EnronQA の 150 受信箱．p0004 §8.1）．
+
+    種で並べ替えたシャードを，文書数の多い順に，割り当て数が上限（シャード数 ÷ ホスト数の切り上げ）に
+    達していないホストのうち文書数の合計が最小のものへ割り当てる（LPT）．種で並べ替えるので，
+    GPU のホストに置かれる受信箱は無作為になる．
+    GPU の無いホストは，config.yaml の順に GPU のホストへ同じ数ずつ対応づける（B4 の委託先）．
+    """
+    if not hosts:
+        raise ValueError("no expert hosts are configured")
+    rng = np.random.default_rng(seed)
+    shuffled = [manifest.shards[int(i)] for i in rng.permutation(len(manifest.shards))]
+    ordered = sorted(shuffled, key=lambda s: -s.n_docs)
+    cap = -(-len(ordered) // len(hosts))
+    assigned: dict[str, list[str]] = {h: [] for h in hosts}
+    load = dict.fromkeys(hosts, 0)
+    for shard in ordered:
+        host = min(
+            (h for h in hosts if len(assigned[h]) < cap), key=lambda h: (load[h], hosts.index(h))
+        )
+        assigned[host].append(shard.shard_id)
+        load[host] += shard.n_docs
+    gpus = [h for h in hosts if h in set(gpu_hosts)]
+    cpus = [h for h in hosts if h not in set(gpu_hosts)]
+    delegate_of: dict[str, str] = {}
+    if gpus:
+        per_gpu = -(-len(cpus) // len(gpus))
+        delegate_of = {cpu: gpus[i // per_gpu] for i, cpu in enumerate(cpus)}
+    nodes = [
+        NodeAssignment(host=h, url=f"http://{h}:{port}", shard_ids=sorted(assigned[h]))
+        for h in hosts
+        if assigned[h]
+    ]
+    return Placement(dataset=manifest.dataset, nodes=nodes, delegate_of=delegate_of)
 
 
 def read_manifest(path: Path) -> Manifest:

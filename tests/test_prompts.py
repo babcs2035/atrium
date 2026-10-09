@@ -39,3 +39,11 @@ def test_build_messages_places_documents_question_and_options() -> None:
 def test_build_messages_without_documents_keeps_template() -> None:
     messages = build_messages("medrag", "Q?", [], {"A": "x"})
     assert "Here are the relevant documents:\n\n" in messages[1]["content"]
+
+
+def test_free_answer_takes_the_last_answer_line() -> None:
+    from atrium.prompts import extract_free_answer
+
+    out = "Reasoning: Answer: is not here\nAnswer: Ameren sent a termination notice."
+    assert extract_free_answer(out) == "Ameren sent a termination notice."
+    assert extract_free_answer("No marker at all.") == "No marker at all."

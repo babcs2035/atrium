@@ -25,9 +25,9 @@ Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLA
 | キー | 値 | 意味 |
 |---|---|---|
 | `kind` | `e0_measure` / `e1_routing` | E0（実機の実測）か，連合 RAG の実行か |
-| `dataset` | `medrag` / `feb4rag` | MIRAGE ＋ MedRAG コーパス（4 データ源）か，FeB4RAG（13 エンジン）か |
-| `routing` | `ragroute` / `all` / `random` / `none` | 問い合わせ先の選び方（RAGRoute の 4 方式） |
-| `answer_mode` | `retrieval_only` / `snippet_return` / `local_answer` | LLM を呼ばず検索まで／断片返却型／宿る型 |
+| `dataset` | `medrag` / `feb4rag` / `enronqa` | MIRAGE ＋ MedRAG コーパス（4 データ源）か，FeB4RAG（13 エンジン）か，EnronQA（150 人の受信箱．p0004） |
+| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5） |
+| `answer_mode` | `retrieval_only` / `snippet_return` / `local_answer` / `snippet_return_small` / `delegate_gpu` | LLM を呼ばず検索まで／断片返却型／宿る型／断片返却型で質問者が専門家と同じ小型のモデルを使う（B3．p0004）／GPU の無い専門家が対応づけた GPU の専門家に断片を渡して答えさせる（B4．p0004） |
 | `question_limit` | 整数または `null` | 各問題集の先頭からこの数だけを使う（動作確認用） |
 | `parallel` | 整数 | 質問者が同時に処理する質問数 |
 | `seed` | 整数 | `random` のルーティングと，FeB4RAG の重心の無作為抽出の種 |

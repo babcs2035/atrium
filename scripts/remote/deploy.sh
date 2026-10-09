@@ -79,10 +79,19 @@ docker run --rm --user "$HOST_UID:$HOST_GID" -v "$PWD:/work" -v "$DATA_DIR:/data
 
 # ── 配置の決定 ──────────────────────────────────────────────────────────────
 mkdir -p "artifacts/$DATASET"
+# EnronQA は全ての専門家に配り，GPU の無い専門家を GPU の専門家へ対応づける（B4．p0004）．
+# MedRAG・FeB4RAG は今までどおり先頭から配るので，GPU の有無を調べない
+gpu_hosts=()
+if [ "$DATASET" = enronqa ]; then
+  for host in $EXPERTS; do
+    if has_gpu "$host"; then gpu_hosts+=("$host"); fi
+  done
+  log "GPU experts: ${gpu_hosts[*]:-none}"
+fi
 docker run --rm --user "$HOST_UID:$HOST_GID" -v "$PWD:/work" -v "$DATA_DIR:/data:ro" -w /work \
   "$IMAGE_FULL" atrium --config config.yaml plan \
   --manifest "/data/$DATASET/manifest.json" --out "artifacts/$DATASET/placement.json" --tsv \
-  > "artifacts/$DATASET/placement.tsv"
+  --gpu-hosts "${gpu_hosts[@]}" > "artifacts/$DATASET/placement.tsv"
 declare -A SHARDS_OF=()
 while IFS=$'\t' read -r host shard_ids; do SHARDS_OF[$host]=$shard_ids; done < "artifacts/$DATASET/placement.tsv"
 log "placement: ${#SHARDS_OF[@]} expert nodes"
@@ -147,6 +156,8 @@ deploy_requester() {
   # LLM を別の GPU PC（cluster.requester_llm）で動かすときは，Ollama のモデルはそちらへ配る
   if [ -z "$REQUESTER_LLM" ]; then
     send_ollama_model "$host" "$REQUESTER_MODEL"
+    # B3（snippet_return_small．p0004）は質問者が専門家と同じ小型のモデルで答える
+    if [ "$ANSWER_MODE" = snippet_return_small ]; then send_ollama_model "$host" "$EXPERT_MODEL"; fi
   fi
   nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"
   # 制御点に実在するものだけを送る（FeB4RAG だけを準備した環境には MedCPT が無い）

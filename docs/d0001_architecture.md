@@ -90,6 +90,7 @@
 | GET | `/v1/profile` | － | シャードごとの `source`・`n_docs`・`dim`・`encoder`・`centroid`・`description` |
 | POST | `/v1/retrieve` | `{"shard_id", "k", "embedding"?, "query_id"?}` | `{"shard_id", "docs": [{"doc_id","title","content","score"}], "duration_s"}` |
 | POST | `/v1/probe` | `{"shard_ids", "embedding"}` | `{"node_id", "scores": {shard_id: 最高スコア}, "duration_s"}`．本文は返さない（flood_score の 1 段目．p0004） |
+| POST | `/v1/generate` | `{"dataset", "question", "options", "docs"}` | `{"node_id", "answer", "llm"}`．B4（`delegate_gpu`）で GPU の専門家が受け取った断片から答える（p0004） |
 | POST | `/v1/answer` | `{"dataset", "question", "options", "shard_ids", "k", "embedding"?, "query_id"?}` | `{"node_id", "answer", "choice", "n_context_docs", "top_score", "retrieve_s", "llm", "duration_s"}` |
 
 - MedRAG 型のシャードは `embedding`，FeB4RAG 型は `query_id`（元のデータセットの要求 ID）で検索する．

@@ -18,7 +18,7 @@ import json
 import logging
 import threading
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Coroutine, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -196,13 +196,31 @@ class Requester:
     def _profile(self, source: str) -> SourceProfile:
         return next(s for s in self.sources if s.source == source)
 
+    def _k_ret(self) -> int:
+        """データ源から取る件数（EnronQA は原論文と同じ k_context．retrieval.k_ret は MedRAG・FeB4RAG のまま）．"""
+        if self.cfg.experiment.dataset == "enronqa":
+            return self.cfg.data.require_enronqa().k_context
+        return self.cfg.retrieval.k_ret
+
+    def _k_rerank(self) -> int:
+        """統合後に LLM へ渡す件数．"""
+        if self.cfg.experiment.dataset == "enronqa":
+            return self.cfg.data.require_enronqa().k_context
+        return self.cfg.retrieval.k_rerank
+
+    def _k_local(self) -> int:
+        """宿る型・委託で専門家が使う件数．"""
+        if self.cfg.experiment.dataset == "enronqa":
+            return self.cfg.data.require_enronqa().k_context
+        return self.cfg.local_answer.k_context
+
     async def _retrieve(
         self, source: SourceProfile, shard_id: str, embedding: F32Array, question: Question
     ) -> tuple[list[SourcedDoc], dict[str, Any]]:
         # 配布済みの検索結果を返すシャードは埋め込みを使わないので送らない（FeB4RAG では最大 4,096 次元になる）
         req = RetrieveRequest(
             shard_id=shard_id,
-            k=self.cfg.retrieval.k_ret,
+            k=self._k_ret(),
             embedding=embedding.tolist() if source.kind == "faiss" else None,
             query_id=question.source_qid,
         )
@@ -233,7 +251,7 @@ class Requester:
         return [SourcedDoc(source.source, shard_id, d) for d in body.docs], stats
 
     def _merge(self, question: Question, docs: list[SourcedDoc]) -> list[SourcedDoc]:
-        k = self.cfg.retrieval.k_rerank
+        k = self._k_rerank()
         merge = self.cfg.retrieval.merge
         if merge == "score":
             return merge_by_score(docs, k)
@@ -262,9 +280,12 @@ class Requester:
         received = [d for docs, _ in results for d in docs]
         record["bytes_received"] = sum(s["bytes"] for _, s in results)
         record["snippets_exposed"] = len(received)
+        # p0004 §8.4：持ち主のデバイスの外に出た本文の数（データ源ごと）と，クエリを受け取ったデバイスの数
+        record["docs_exposed_by_source"] = dict(Counter(d.source for d in received))
+        record["query_recipients"] = len({self._url_of_shard[s["shard_id"]] for _, s in results})
         start = time.perf_counter()
         merged = await asyncio.to_thread(
-            self._merge, question, top_per_source(received, self.cfg.retrieval.k_ret)
+            self._merge, question, top_per_source(received, self._k_ret())
         )
         record["timings"]["merge_s"] = time.perf_counter() - start
         record["contributing_sources"] = contributing_sources(merged)
@@ -279,13 +300,24 @@ class Requester:
         record: dict[str, Any],
     ) -> str | None:
         shards_of_url: dict[str, list[str]] = defaultdict(list)
+        sources_of_url: dict[str, list[str]] = defaultdict(list)
         encoder_of_url: dict[str, str] = {}
         for source_name in selected:
             source = self._profile(source_name)
             for shard_id in source.shard_ids:
                 url = self._url_of_shard[shard_id]
                 shards_of_url[url].append(shard_id)
+                sources_of_url[url].append(source_name)
                 encoder_of_url.setdefault(url, source.encoder)
+        # B4（delegate_gpu）：GPU の無い専門家は，対応づけた GPU の専門家に回答を委託する
+        delegate_url_of: dict[str, str] = {}
+        if self.cfg.experiment.answer_mode == "delegate_gpu":
+            url_of_host = {n.host: n.url for n in self.placement.nodes}
+            host_of_url = {n.url: n.host for n in self.placement.nodes}
+            for url in shards_of_url:
+                gpu_host = self.placement.delegate_of.get(host_of_url[url])
+                if gpu_host is not None:
+                    delegate_url_of[url] = url_of_host[gpu_host]
 
         async def ask(url: str) -> tuple[AnswerResponse, int]:
             req = AnswerRequest(
@@ -293,9 +325,10 @@ class Requester:
                 question=question.question,
                 options=question.options,
                 shard_ids=shards_of_url[url],
-                k=self.cfg.local_answer.k_context,
+                k=self._k_local(),
                 embedding=embeddings[encoder_of_url[url]].tolist(),
                 query_id=question.source_qid,
+                delegate_url=delegate_url_of.get(url),
             )
             response = await self.client.post(
                 f"{url}/v1/answer", json=req.model_dump(), timeout=self.cfg.local_answer.timeout_s
@@ -308,6 +341,13 @@ class Requester:
         record["timings"]["generate_s"] = time.perf_counter() - start
         record["bytes_received"] = sum(size for _, size in answers)
         record["snippets_exposed"] = 0
+        urls = list(shards_of_url)
+        record["docs_exposed_by_source"] = {
+            "+".join(sorted(set(sources_of_url[url]))): a.docs_sent
+            for url, (a, _) in zip(urls, answers, strict=True)
+            if a.docs_sent
+        }
+        record["query_recipients"] = len(urls) + len(set(delegate_url_of.values()) - set(urls))
         record["node_answers"] = [
             {
                 "node_id": a.node_id,
@@ -316,15 +356,21 @@ class Requester:
                 "n_context_docs": a.n_context_docs,
                 "retrieve_s": a.retrieve_s,
                 "duration_s": a.duration_s,
+                "delegated_to": a.delegated_to,
                 **a.llm.model_dump(),
             }
             for a, _ in answers
         ]
         record["answer"] = "\n\n".join(f"[{a.node_id}] {a.answer}" for a, _ in answers)
+        if self.cfg.experiment.dataset == "enronqa":
+            # 自由記述の回答は多数決できないので，最高の検索スコアのノードの回答を採る
+            best, _ = max(answers, key=lambda x: x[0].top_score or float("-inf"))
+            record["final_answer"] = prompts.extract_free_answer(best.answer)
+            return None
         return vote([NodeVote(a.node_id, a.choice, a.top_score) for a, _ in answers])
 
     async def _generate(
-        self, question: Question, docs: list[SourcedDoc], record: dict[str, Any]
+        self, question: Question, docs: list[SourcedDoc], record: dict[str, Any], model: str
     ) -> str | None:
         context = [
             RetrievedDoc(d.doc.doc_id, d.doc.title, d.doc.content, d.doc.score) for d in docs
@@ -333,14 +379,15 @@ class Requester:
             self.cfg.experiment.dataset, question.question, context, question.options
         )
         start = time.perf_counter()
-        result = await llm.chat(
-            self.client, self.ollama_url, self.cfg.llm.requester_model, messages, self.cfg.llm
-        )
+        result = await llm.chat(self.client, self.ollama_url, model, messages, self.cfg.llm)
         record["timings"]["generate_s"] = time.perf_counter() - start
         record["answer"] = result.content
         record["prompt_tokens"] = result.prompt_tokens
         record["output_tokens"] = result.output_tokens
         record["llm"] = {"prefill_s": result.prefill_s, "decode_s": result.decode_s}
+        if self.cfg.experiment.dataset == "enronqa":
+            record["final_answer"] = prompts.extract_free_answer(result.content)
+            return None
         return prompts.extract_choice(result.content)
 
     def _embed(self, question: Question, record: dict[str, Any]) -> dict[str, F32Array]:
@@ -424,7 +471,7 @@ class Requester:
             record["selected_sources"] = selected
             record["n_shards_queried"] = sum(len(self._profile(s).shard_ids) for s in selected)
             choice: str | None = None
-            if mode == "local_answer":
+            if mode in ("local_answer", "delegate_gpu"):
                 choice = (
                     await self._local_answers(question, selected, embeddings, record)
                     if selected
@@ -433,9 +480,21 @@ class Requester:
             else:
                 docs = await self._snippets(question, selected, embeddings, record)
                 if mode == "snippet_return":
-                    choice = await self._generate(question, docs, record)
+                    choice = await self._generate(
+                        question, docs, record, self.cfg.llm.requester_model
+                    )
+                elif mode == "snippet_return_small":
+                    # B3（p0004）：質問者が，専門家（CPU）と同じ小型のモデルで答える
+                    choice = await self._generate(question, docs, record, self.cfg.llm.expert_model)
+            if "probe_recipients" in record:
+                # flood_score の 1 段目は全ノードにクエリを送るので，受け取ったデバイスはその数になる
+                record["query_recipients"] = max(
+                    record.get("query_recipients", 0), record["probe_recipients"]
+                )
             record["choice"] = choice
-            if question.answer is not None and mode != "retrieval_only":
+            # EnronQA の自由記述の回答は，実験の後に判定モデル（atrium judge）で採点する
+            graded_here = self.cfg.experiment.dataset != "enronqa"
+            if question.answer is not None and mode != "retrieval_only" and graded_here:
                 record["correct"] = choice == question.answer
         except Exception as exc:  # noqa: BLE001 (1 問の失敗で実験全体を止めず，記録して次へ進む)
             # gather_or_cancel の ExceptionGroup は，原因となった最初の例外を記録する

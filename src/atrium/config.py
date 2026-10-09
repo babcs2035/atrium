@@ -26,7 +26,10 @@ RoutingName = Literal[
     "centroid_sim",
     "multi_centroid",
 ]
-AnswerMode = Literal["snippet_return", "local_answer", "retrieval_only"]
+# snippet_return_small（B3）と delegate_gpu（B4）は p0004 で追加（RQ-B）
+AnswerMode = Literal[
+    "snippet_return", "local_answer", "retrieval_only", "snippet_return_small", "delegate_gpu"
+]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
 QueryEmbeddingMode = Literal["live", "cached"]
 Precision = Literal["fp32", "fp16_autocast"]

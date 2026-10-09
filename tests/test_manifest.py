@@ -12,6 +12,7 @@ from atrium.manifest import (
     combine_centroids,
     group_files_into_shards,
     plan_placement,
+    plan_placement_balanced,
 )
 
 
@@ -69,3 +70,28 @@ def test_plan_placement_assigns_one_shard_per_host_in_order() -> None:
 def test_plan_placement_wraps_around_when_hosts_are_fewer_than_shards() -> None:
     placement = plan_placement(_manifest(3), ["h1", "h2"], port=8100)
     assert {n.host: n.shard_ids for n in placement.nodes} == {"h1": ["s-0", "s-2"], "h2": ["s-1"]}
+
+
+def test_balanced_placement_gives_every_host_the_same_number_and_pairs_cpus_with_gpus() -> None:
+    shards = [
+        ShardSpec(
+            shard_id=f"s{i}",
+            source=f"s{i}",
+            kind="faiss",
+            files=[],
+            n_docs=10 + i,
+            dim=2,
+            encoder="e",
+            centroid=[0.0, 0.0],
+            description="",
+        )
+        for i in range(12)
+    ]
+    manifest = Manifest(dataset="enronqa", sources=[s.source for s in shards], shards=shards)
+    hosts = ["c1", "c2", "c3", "c4", "g1", "g2"]
+    placement = plan_placement_balanced(manifest, hosts, 8100, seed=0, gpu_hosts=["g1", "g2"])
+    assert sorted(len(n.shard_ids) for n in placement.nodes) == [2] * 6
+    assert sorted(s for n in placement.nodes for s in n.shard_ids) == sorted(
+        s.shard_id for s in shards
+    )
+    assert placement.delegate_of == {"c1": "g1", "c2": "g1", "c3": "g2", "c4": "g2"}

@@ -24,7 +24,12 @@ from pathlib import Path
 from typing import Any
 
 from atrium.config import DEFAULT_CONFIG_PATH, AtriumConfig, load_config
-from atrium.manifest import plan_placement, read_manifest, write_json_model
+from atrium.manifest import (
+    plan_placement,
+    plan_placement_balanced,
+    read_manifest,
+    write_json_model,
+)
 from atrium.paths import dataset_paths
 
 MEDRAG_STEPS = ("benchmark", "corpus", "embed", "shards", "queries", "labels", "split", "train")
@@ -55,7 +60,16 @@ def cmd_config(args: argparse.Namespace, cfg: AtriumConfig) -> int:
 def cmd_plan(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """シャードを専門家へ割り当てる．"""
     manifest = read_manifest(Path(args.manifest))
-    placement = plan_placement(manifest, cfg.cluster.expert_hosts(), cfg.cluster.node_port)
+    if manifest.dataset == "enronqa":
+        placement = plan_placement_balanced(
+            manifest,
+            cfg.cluster.expert_hosts(),
+            cfg.cluster.node_port,
+            cfg.experiment.seed,
+            args.gpu_hosts,
+        )
+    else:
+        placement = plan_placement(manifest, cfg.cluster.expert_hosts(), cfg.cluster.node_port)
     write_json_model(Path(args.out), placement)
     if args.tsv:
         for node in placement.nodes:
@@ -335,6 +349,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--manifest", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--tsv", action="store_true", help="host<TAB>shard_ids を標準出力へ出す")
+    p.add_argument(
+        "--gpu-hosts", nargs="*", default=[], help="GPU を持つ専門家（enronqa の B4 の委託先）"
+    )
     p.set_defaults(func=cmd_plan)
 
     p = sub.add_parser("node", help="専門家ノードを起動する")

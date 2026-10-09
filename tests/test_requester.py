@@ -71,7 +71,9 @@ async def _requester(
     cfg: AtriumConfig, root: Path, router: Router, vectors: dict[str, F32Array]
 ) -> Requester:
     ollama = ollama_mock(lambda _: '{"answer_choice": "B"}')
-    llm_client = httpx.AsyncClient(transport=ollama)
+    # ノードから外への要求（Ollama と，B4 の委託先のノード）．ノードのアプリは作った後に routes へ足す
+    node_routes: dict[str, httpx.AsyncBaseTransport] = {"ollama": ollama}
+    llm_client = httpx.AsyncClient(transport=HostDispatchTransport(node_routes))
     apps = {
         "node-a": create_app(
             "node-a",
@@ -91,6 +93,8 @@ async def _requester(
             llm_client,
         ),
     }
+    for name, app in apps.items():
+        node_routes[name] = httpx.ASGITransport(app=app)
     transport = HostDispatchTransport(
         {
             "node-a": httpx.ASGITransport(app=apps["node-a"]),
@@ -287,3 +291,40 @@ async def test_flood_score_asks_every_node_for_scores_then_selects_the_best(
     assert record["error"] is None
     assert record["probe_recipients"] == 2
     assert record["selected_sources"] == ["textbooks"]
+
+
+async def test_delegate_gpu_sends_the_retrieved_docs_to_the_paired_gpu_node(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _cfg(cfg, "delegate_gpu"),
+        tmp_path,
+        AllRouter(),
+        {question.qid: np.ones(DIM, np.float32)},
+    )
+    requester.placement = requester.placement.model_copy(
+        update={"delegate_of": {"node-a": "node-b"}}
+    )
+    record = await requester.process(question)
+    assert record["error"] is None
+    by_node = {a["node_id"]: a for a in record["node_answers"]}
+    # node-a は GPU の node-b に委託し，node-b は自分で答える
+    assert by_node["node-a"]["delegated_to"] == "node-b"
+    assert by_node["node-b"]["delegated_to"] is None
+    # 委託で外へ出るのは node-a の上位 k 件（pubmed-00 は 6 件しか持たない）
+    n_docs_a = len(corpus["p0"])
+    k = cfg.local_answer.k_context
+    assert record["docs_exposed_by_source"] == {"pubmed": min(k, n_docs_a)}
+
+
+async def test_snippet_return_records_exposure_per_source_and_query_recipients(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"), tmp_path, AllRouter(), {question.qid: np.ones(DIM, np.float32)}
+    )
+    record = await requester.process(question)
+    assert record["docs_exposed_by_source"] == {"pubmed": 2 * K_RET, "textbooks": K_RET}
+    assert record["query_recipients"] == 2

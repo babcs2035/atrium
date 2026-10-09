@@ -63,6 +63,17 @@ class AnswerRequest(_Model):
     k: int = Field(ge=1)
     embedding: list[float] | None = None
     query_id: str | None = None
+    # B4（delegate_gpu．p0004）：検索した断片を，この URL の GPU の専門家に渡して答えさせる
+    delegate_url: str | None = None
+
+
+class GenerateRequest(_Model):
+    """B4 の委託先への要求：受け取った断片と質問から回答を作る（断片を持ち主の外へ 1 台だけ出す）．"""
+
+    dataset: DatasetName
+    question: str
+    options: dict[str, str]
+    docs: list[DocOut]
 
 
 class LlmUsage(_Model):
@@ -86,6 +97,17 @@ class AnswerResponse(_Model):
     retrieve_s: float
     llm: LlmUsage
     duration_s: float
+    # B4 で回答を作った委託先のノードと，そこへ渡した断片の数（委託しなければ None と 0）
+    delegated_to: str | None = None
+    docs_sent: int = 0
+
+
+class GenerateResponse(_Model):
+    """B4 の委託先の回答．"""
+
+    node_id: str
+    answer: str
+    llm: LlmUsage
 
 
 class ShardProfile(_Model):
