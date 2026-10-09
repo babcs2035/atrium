@@ -12,7 +12,7 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-DatasetName = Literal["medrag", "feb4rag"]
+DatasetName = Literal["medrag", "feb4rag", "enronqa"]
 RoutingName = Literal["ragroute", "all", "random", "none"]
 AnswerMode = Literal["snippet_return", "local_answer", "retrieval_only"]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
@@ -194,17 +194,56 @@ class Feb4ragDataConfig(_Strict):
     centroid_sample_overrides: dict[str, int] = Field(default_factory=dict)
 
 
+class EnronqaDataConfig(_Strict):
+    """EnronQA（150 人の受信箱．p0004）の取得・前処理の設定．データ源は受信箱 1 個である．"""
+
+    sources: list[str] = Field(min_length=1)
+    hf_repo: str
+    # 取得するリビジョンを固定して再現性を保つ
+    hf_revision: str
+    # メールとクエリの埋め込み（EnronQA の作成で使われた符号化器．クエリには検索用の接頭辞を付ける）
+    encoder: str = "Snowflake/snowflake-arctic-embed-m-v1.5"
+    embed_batch_size: int = Field(default=64, ge=1)
+    # 評価に使うテスト質問の受信箱あたりの最大数（p0004 §8.7．20 問に満たない受信箱は全問）
+    test_per_inbox: int = Field(default=20, ge=1)
+    # 公開情報の大きさ（T・C・m）を選ぶための dev の質問と，中央の分類器（ragroute）の学習用の train の質問
+    dev_per_inbox: int = Field(default=20, ge=1)
+    train_per_inbox: int = Field(default=40, ge=1)
+    # 他の受信箱にほぼ同じメールがある質問を主評価から除く Jaccard 類似度の閾値（p0004 §7.2 の V3）
+    duplicate_jaccard: float = Field(default=0.9, gt=0, le=1)
+    # 1 問の回答に使うメールの数（EnronQA の原論文と同じ 5．受信箱からの取得数と統合後の数の両方）
+    k_context: int = Field(default=5, ge=1)
+    # 所有者特定の評価（p0004 §8.5）で受信箱ごとに抜き出すメールの数
+    owner_probe_per_inbox: int = Field(default=10, ge=1)
+    # 公開情報の大きさ（dev で選ぶ．値の選び方は .claude/research/journal.md の事前登録に従う）
+    card_subjects: int = Field(default=20, ge=1)
+    term_sketch_size: int = Field(default=50, ge=1)
+    n_centroids: int = Field(default=8, ge=1)
+    # 中央の分類器（ragroute）の学習で，1 問あたりに使う関連の無い受信箱の数（150 個の全組は大きすぎるため）
+    ragroute_negatives: int = Field(default=10, ge=1)
+
+
 class DataConfig(_Strict):
     """データセットごとの設定．"""
 
     medrag: MedragDataConfig
     feb4rag: Feb4ragDataConfig
+    # p0004 で追加．既存の config.yaml がそのまま読めるよう省略できる
+    enronqa: EnronqaDataConfig | None = None
 
     def sources_of(self, dataset: DatasetName) -> list[str]:
         """データセットのデータ源の一覧を，ルーターの one-hot と同じ順序で返す．"""
         if dataset == "medrag":
             return list(self.medrag.sources)
-        return list(self.feb4rag.sources)
+        if dataset == "feb4rag":
+            return list(self.feb4rag.sources)
+        return list(self.require_enronqa().sources)
+
+    def require_enronqa(self) -> EnronqaDataConfig:
+        """data.enronqa を返す（無ければ設定の誤りとして止める）．"""
+        if self.enronqa is None:
+            raise ValueError("data.enronqa is required for dataset=enronqa")
+        return self.enronqa
 
 
 class AtriumConfig(_Strict):

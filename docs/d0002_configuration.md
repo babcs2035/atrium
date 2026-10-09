@@ -146,3 +146,23 @@ cluster:
 | `feb4rag.feb4rag_commit` | FeB4RAG のリポジトリのコミット |
 | `feb4rag.beir_hf_repo` | BEIR のコーパスを取得する Hugging Face のデータセット（`{name}` はエンジン名） |
 | `feb4rag.centroid_sample` / `centroid_sample_overrides` | 重心の推定に使う文書数（5.8B の SGPT を CPU で動かす trec-covid は少なくする） |
+
+### data.enronqa（p0004．省略できる）
+
+EnronQA（Enron の 150 人の受信箱）を使う実験の設定である．省略すると `dataset: enronqa` は使えないが，
+既存の `medrag`・`feb4rag` の実験には影響しない．受信箱 1 個が 1 個のデータ源で，1 個のシャードになる．
+
+| キー | 意味 |
+|---|---|
+| `enronqa.sources` | 150 個の受信箱の ID（順序はルーターの one-hot の順序にもなる） |
+| `enronqa.hf_repo` / `hf_revision` | 取得元の Hugging Face のデータセットと，固定するリビジョン |
+| `enronqa.encoder` / `embed_batch_size` | メールとクエリの埋め込みの符号化器（Snowflake arctic-embed-m-v1.5）とバッチの大きさ |
+| `enronqa.test_per_inbox` / `dev_per_inbox` / `train_per_inbox` | 受信箱あたりに抜き出す質問の数（評価／公開情報の大きさの選択／中央の分類器の学習） |
+| `enronqa.duplicate_jaccard` | 他の受信箱にほぼ同じメールがある質問を主評価から除く Jaccard 類似度の閾値 |
+| `enronqa.k_context` | 1 問の回答に使うメールの数（受信箱からの取得数と統合後の数の両方．原論文と同じ 5） |
+| `enronqa.owner_probe_per_inbox` | 所有者特定の評価で受信箱ごとに抜き出すメールの数 |
+| `enronqa.card_subjects` / `term_sketch_size` / `n_centroids` | 公開情報の大きさ（Agent Card に載せる件名の数，語のスケッチの語数 T，重心の数 C）．dev で選ぶ |
+| `enronqa.ragroute_negatives` | 中央の分類器の学習で 1 問あたりに使う関連の無い受信箱の数 |
+
+`retrieval.query_embedding.enronqa` は `cached`（制御点で事前計算する）である．`retrieval.k_ret`・`k_rerank` は MedRAG・FeB4RAG の
+値のまま変えず，EnronQA では `enronqa.k_context` を使う．

@@ -32,12 +32,14 @@ retrieval:
   query_embedding:
     medrag: live
     feb4rag: cached
+    enronqa: cached
 
 routing:
   # random で選ぶデータ源の数（RAGRoute: medrag 3 / feb4rag 9）
   random_k:
     medrag: 3
     feb4rag: 9
+    enronqa: 5
   # ragroute の判定閾値（RAGRoute の推論コードと同じ 0.5）
   ragroute_threshold: 0.5
 
@@ -180,3 +182,39 @@ data:
     # 5.8B の SGPT は CPU で動かすため抽出数を減らす
     centroid_sample_overrides:
       trec-covid: 500
+  enronqa:
+    # 150 人の受信箱（EnronQA．p0004）．1 個の受信箱が 1 個のデータ源で，順序はルーターの one-hot の順序にもなる
+    sources: [allen-p, arnold-j, arora-h, badeer-r, bailey-s, bass-e, baughman-d, beck-s, benson-r, blair-l,
+      brawner-s, buy-r, campbell-l, carson-m, cash-m, causholli-m, corman-s, crandell-s, cuilla-m,
+      dasovich-j, davis-d, dean-c, delainey-d, derrick-j, dickson-s, donoho-l, donohoe-t, dorland-c, ermis-f,
+      farmer-d, fischer-m, forney-j, fossum-d, gang-l, gay-r, geaccone-t, germany-c, gilbertsmith-d, giron-d,
+      griffith-j, grigsby-m, guzman-m, haedicke-m, hain-m, harris-s, hayslett-r, heard-m, hendrickson-s,
+      hernandez-j, hodge-j, holst-k, horton-s, hyatt-k, hyvl-d, jones-t, kaminski-v, kean-s, keavey-p,
+      keiser-k, king-j, kitchen-l, kuykendall-t, lavorato-j, lay-k, lenhart-m, lewis-a, linder-e, lokay-m,
+      lokey-t, love-p, lucci-p, maggi-m, mann-k, martin-t, may-l, mccarty-d, mcconnell-m, mckay-b, mckay-j,
+      mclaughlin-e, merriss-s, meyers-a, mims-thurston-p, motley-m, neal-s, nemec-g, panus-s, parks-j,
+      pereira-s, perlingiere-d, phanis-s, pimenov-v, platter-p, presto-k, quenet-j, quigley-d, rapp-b,
+      reitmeyer-j, richey-c, ring-a, ring-r, rodrique-r, rogers-b, ruscitti-k, sager-e, saibi-e, salisbury-h,
+      sanchez-m, sanders-r, scholtes-d, schoolcraft-d, schwieger-j, scott-s, semperger-c, shackleton-s,
+      shankman-j, shapiro-r, shively-h, skilling-j, slinger-r, smith-m, solberg-g, south-s, staab-t,
+      stclair-c, steffes-j, stepenovitch-j, stokley-c, storey-g, sturm-f, swerzbin-m, symes-k, taylor-m,
+      tholt-j, thomas-p, townsend-j, tycholiz-b, ward-k, watson-k, weldon-c, whalley-g, whalley-l, white-s,
+      whitt-m, williams-j, williams-w3, wolfe-j, ybarbo-p, zipper-a, zufferli-j]
+    hf_repo: "MichaelR207/enron_qa_0922"
+    hf_revision: "c0b3a9190fd970e83cfbe7d399a08860e43e221e"
+    encoder: "Snowflake/snowflake-arctic-embed-m-v1.5"
+    embed_batch_size: 64
+    # 評価のテスト質問（受信箱あたり最大 20 問），公開情報の大きさを選ぶ dev，中央の分類器の学習用の train
+    test_per_inbox: 20
+    dev_per_inbox: 20
+    train_per_inbox: 40
+    # 他の受信箱にほぼ同じメール（Jaccard 0.9 以上）がある質問は主評価から除く
+    duplicate_jaccard: 0.9
+    # 回答に使うメールの数（EnronQA の原論文と同じ 5）
+    k_context: 5
+    owner_probe_per_inbox: 10
+    # 公開情報の大きさ（Agent Card の件名の数・語のスケッチの語数 T・重心の数 C）．dev で選んで書き換える
+    card_subjects: 20
+    term_sketch_size: 50
+    n_centroids: 8
+    ragroute_negatives: 10

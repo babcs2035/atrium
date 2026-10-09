@@ -117,3 +117,17 @@ def test_requester_llm_host_may_not_have_another_role() -> None:
     raw["cluster"]["requester_llm"] = {"host": raw["cluster"]["experts"][0]["host"]}
     with pytest.raises(ValidationError, match="only one role"):
         AtriumConfig.model_validate(raw)
+
+
+def test_config_without_enronqa_section_still_loads() -> None:
+    raw = _repository_config_dict()
+    raw["data"].pop("enronqa", None)
+    cfg = AtriumConfig.model_validate(raw)
+    assert cfg.data.enronqa is None
+    with pytest.raises(ValueError, match="data.enronqa is required"):
+        cfg.data.sources_of("enronqa")
+
+
+def test_enronqa_sources_are_the_150_inboxes(cfg: AtriumConfig) -> None:
+    sources = cfg.data.sources_of("enronqa")
+    assert len(sources) == len(set(sources)) == 150
