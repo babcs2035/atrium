@@ -7,3 +7,4 @@ import numpy.typing as npt
 
 F32Array = npt.NDArray[np.float32]
 I64Array = npt.NDArray[np.int64]
+F64Array = npt.NDArray[np.float64]

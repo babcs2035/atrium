@@ -10,6 +10,7 @@
     embed-plan                MedRAG の埋め込みを複数の GPU で分担する表を作る（コンテナ内）
     fetch-models DATASET      データセットで使うモデルを Hugging Face のキャッシュへ取得する（コンテナ内）
     analyze / metrics / compare  結果の分析（操作端末）
+    advert-eval               RQ-A のオフラインの評価（EnronQA．制御点のコンテナ）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
 """
 
@@ -214,6 +215,16 @@ def cmd_fetch_models(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_advert_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """RQ-A のオフラインの評価（p0004 EQ2）を行い，metrics.json と analysis_report.md を書く．"""
+    from atrium import advert_eval
+
+    metrics = advert_eval.evaluate(cfg, dataset_paths(Path(args.data_dir), "enronqa"))
+    advert_eval.write_outputs(Path(args.out_dir), metrics)
+    print(advert_eval.render_report(metrics))
+    return 0
+
+
 def cmd_check_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """今の設定が，データ準備でラベルを作ったときの設定と同じかを確かめる（deploy が呼ぶ）．"""
     from atrium.labels import check_labels_meta
@@ -398,6 +409,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("fetch-models", help="データセットで使うモデルを HF のキャッシュへ取得する")
     p.add_argument("dataset", choices=sorted(STEPS_OF))
     p.set_defaults(func=cmd_fetch_models)
+
+    p = sub.add_parser("advert-eval", help="RQ-A のオフラインの評価（EnronQA．p0004 EQ2）")
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.set_defaults(func=cmd_advert_eval)
 
     p = sub.add_parser("check-data", help="設定がラベルを作ったときと同じかを確かめる")
     p.add_argument("--data-dir", required=True)
