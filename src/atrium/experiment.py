@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import random
 import time
 from pathlib import Path
 from typing import Any
@@ -80,6 +81,11 @@ async def run_experiment(
         else set()
     )
     questions = [q for q in all_questions if q.qid not in done]
+    if dataset == "enronqa":
+        # EnronQA の質問は受信箱（＝専門家のノード）ごとに並んでいる．そのまま並列に処理すると同時の質問が
+        # 1 台のノードに集まり，CPU の Ollama の待ち行列が llm.timeout_s を超えて失敗した（2026-10-09 の EQ5 の B2）．
+        # 種で決まる順に並べ替えて負荷を分散する．質問ごとに独立で温度 0 なので，回答は変わらない
+        random.Random(cfg.experiment.seed).shuffle(questions)
     previous: dict[str, Any] = (
         json.loads((out_dir / RUN_META).read_text(encoding="utf-8"))
         if (out_dir / RUN_META).exists()
