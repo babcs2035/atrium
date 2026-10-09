@@ -110,3 +110,19 @@ def test_label_consistency_is_only_reported_when_requested() -> None:
         == 1.0
     )
     assert compute_metrics(rows, labels, {}, 2)["all"]["label_consistency"] is None
+
+
+def test_exposure_is_absent_for_runs_without_the_new_fields() -> None:
+    from atrium.analysis import exposure_metrics
+
+    assert exposure_metrics([_row("q1", True)]) is None
+
+
+def test_exposure_averages_exposed_docs_and_query_recipients() -> None:
+    from atrium.analysis import exposure_metrics
+
+    rows = [
+        {**_row("q1", True), "docs_exposed_by_source": {"a": 5}, "query_recipients": 1},
+        {**_row("q2", True), "docs_exposed_by_source": {}, "query_recipients": 3},
+    ]
+    assert exposure_metrics(rows) == {"mean_docs_exposed": 2.5, "mean_query_recipients": 2.0}

@@ -16,7 +16,7 @@ from typing import Any
 import numpy as np
 
 Z_95 = 1.959963984540054
-LATENCY_STAGES = ("embed_s", "route_s", "retrieve_s", "merge_s", "generate_s", "e2e_s")
+LATENCY_STAGES = ("embed_s", "probe_s", "route_s", "retrieve_s", "merge_s", "generate_s", "e2e_s")
 
 
 def read_results(path: Path) -> list[dict[str, Any]]:
@@ -133,6 +133,27 @@ def latency_metrics(rows: Iterable[dict[str, Any]]) -> dict[str, dict[str, float
     }
 
 
+def exposure_metrics(rows: Sequence[dict[str, Any]]) -> dict[str, float] | None:
+    """露出の指標（p0004 §8.4）．フィールドの無い実行（p0004 より前）では None．
+
+    mean_docs_exposed は持ち主のデバイスの外に出た本文の数，mean_query_recipients はクエリ（文章または埋め込み）を
+    受け取ったデバイスの数，mean_answer_overlap_lcs は回答文と正解のメールの最長共通部分列の比率（判定の後に付く）．
+    """
+    with_fields = [r for r in rows if "query_recipients" in r]
+    if not with_fields:
+        return None
+    out = {
+        "mean_docs_exposed": float(
+            np.mean([sum(r.get("docs_exposed_by_source", {}).values()) for r in with_fields])
+        ),
+        "mean_query_recipients": float(np.mean([r["query_recipients"] for r in with_fields])),
+    }
+    overlap = [r["answer_overlap_lcs"] for r in rows if "answer_overlap_lcs" in r]
+    if overlap:
+        out["mean_answer_overlap_lcs"] = float(np.mean(overlap))
+    return out
+
+
 def compute_metrics(
     rows: Sequence[dict[str, Any]],
     labels: dict[str, list[str]],
@@ -166,6 +187,7 @@ def compute_metrics(
             "mean_snippets_exposed": float(np.mean([r["snippets_exposed"] for r in ok]))
             if ok
             else 0.0,
+            "exposure": exposure_metrics(ok),
         }
     return out
 
@@ -225,6 +247,24 @@ def render_report(meta: dict[str, Any], metrics: dict[str, Any]) -> str:
             f"{_fmt(e2e.get('p95'), 2)} | {m['mean_bytes_received'] / 1024:.1f} | "
             f"{m['mean_snippets_exposed']:.1f} |"
         )
+    if metrics["all"].get("exposure") is not None:
+        lines += [
+            "",
+            "## 露出（p0004）",
+            "",
+            f"事前に公開された情報: {meta.get('advert_bytes', 0)} バイト",
+            "",
+            "| 集計 | 外に出た本文（件/問） | クエリを受け取ったデバイス（台/問） | 回答と正解メールの LCS 比 |",
+            "|---|---|---|---|",
+        ]
+        for name, m in metrics.items():
+            e = m["exposure"]
+            if e is None:
+                continue
+            lines.append(
+                f"| {name} | {e['mean_docs_exposed']:.2f} | {e['mean_query_recipients']:.2f} | "
+                f"{_fmt(e.get('mean_answer_overlap_lcs'))} |"
+            )
     lines += ["", "## 段ごとの待ち時間（all，秒）", "", "| 段 | p50 | p95 |", "|---|---|---|"]
     for stage, v in metrics["all"]["latency"].items():
         lines.append(f"| {stage} | {v['p50']:.3f} | {v['p95']:.3f} |")

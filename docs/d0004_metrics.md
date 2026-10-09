@@ -35,6 +35,11 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | `node_answers` | 宿る型の各ノードの選択肢・検索時間・生成の計測値 |
 | `timings` | `embed_s`・`route_s`・`retrieve_s`・`merge_s`・`generate_s`・`e2e_s`（秒） |
 | `error` | 失敗したときの例外（成功なら `null`） |
+| `docs_exposed_by_source` | 持ち主のデバイスの外に出た本文の数（データ源ごと．p0004）．断片返却型は受け取った断片，委託（`delegate_gpu`）は委託先へ渡した断片，宿る型は空 |
+| `query_recipients` | クエリ（質問文または埋め込み）を受け取ったデバイスの数（p0004）．`flood_score` の 1 段目は全ノードに届く |
+| `probe_recipients`，`probe_bytes` | `flood_score` の 1 段目で問い合わせたノードの数と，受け取ったスコアの大きさ |
+| `final_answer` | EnronQA の自由記述の回答（出力の最後の "Answer:" の行） |
+| `answer_overlap_lcs` | 回答文と正解のメールの最長共通部分列の比率（判定 `atrium judge` の後に付く．p0004 §6.3） |
 
 ## 3. 指標（metrics.json）
 
@@ -57,6 +62,7 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | `latency.<段>.p50` / `p95` | 段ごとの所要時間の中央値と 95 パーセンタイル（秒） |
 | `mean_bytes_received` | 1 問あたりの受信バイト数の平均 |
 | `mean_snippets_exposed` | 1 問あたりのデバイス外へ出た原文の断片数の平均 |
+| `exposure.mean_docs_exposed` / `mean_query_recipients` / `mean_answer_overlap_lcs` | p0004 の露出の指標（上の 3 つのフィールドの平均）．フィールドの無い実行では `null` |
 
 ### 関連ラベル
 
