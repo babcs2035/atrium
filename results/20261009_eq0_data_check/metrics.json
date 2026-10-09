@@ -1,0 +1,79 @@
+{
+ "V1": {
+  "train": {
+   "rows": 73772,
+   "unique_paths": 73772,
+   "questions": 333473,
+   "rows_with_questions": 73772,
+   "questions_count_matches_len": true,
+   "include_email_values": {
+    "0": 152765,
+    "1": 180708
+   },
+   "list_lengths_consistent": true
+  },
+  "dev": {
+   "rows": 73772,
+   "unique_paths": 73772,
+   "questions": 105515,
+   "rows_with_questions": 73772,
+   "questions_count_matches_len": true,
+   "include_email_values": {
+    "0": 105515
+   },
+   "list_lengths_consistent": true
+  },
+  "test": {
+   "rows": 73772,
+   "unique_paths": 73772,
+   "questions": 89316,
+   "rows_with_questions": 73742,
+   "questions_count_matches_len": true,
+   "include_email_values": {
+    "0": 89316
+   },
+   "list_lengths_consistent": true
+  },
+  "same_paths_in_all_splits": true,
+  "same_path_sets": true,
+  "question_overlap_test_train": 0,
+  "question_overlap_test_dev": 0,
+  "user_matches_path_prefix": true
+ },
+ "V4": {
+  "n_users": 150,
+  "users_with_test_questions": 150,
+  "users_with_lt20_test_questions": 5,
+  "test_questions_per_user": {
+   "min": 5,
+   "median": 278.0,
+   "max": 7488
+  },
+  "emails_per_user": {
+   "min": 5,
+   "median": 240.5,
+   "mean": 491.81333333333333,
+   "max": 5485
+  },
+  "sample_size_max20": 2965
+ },
+ "V5": {
+  "alternate_per_question": {
+   "1": 89316
+  },
+  "incorrect_per_question": {
+   "2": 89316
+  },
+  "questions_with_ge1_alternate": 89316,
+  "questions_with_ge2_incorrect": 89316
+ },
+ "V3": {
+  "jaccard_threshold": 0.9,
+  "test_emails": 73772,
+  "test_emails_with_cross_inbox_duplicate": 2250,
+  "email_rate": 0.03049937645719243,
+  "test_questions_on_duplicated_emails": 2722,
+  "question_rate": 0.030476062519593353,
+  "pairs_checked": 14519284
+ }
+}
