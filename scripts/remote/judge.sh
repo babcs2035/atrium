@@ -74,12 +74,12 @@ case "$ACTION" in
     runs=()
     for run in "$@"; do runs+=(--run-dir "/results/$run"); done
     # shellcheck disable=SC2046
-    judge_container judge --data-dir /data/enronqa $(ollama_urls) "${runs[@]}"
+    judge_container judge --data-dir /data $(ollama_urls) "${runs[@]}"
     ;;
   validate)
     OUT=${1:?usage: judge.sh validate <out_name>}
     # shellcheck disable=SC2046
-    judge_container judge-validate --data-dir /data/enronqa $(ollama_urls) --out-dir "/results/$OUT"
+    judge_container judge-validate --data-dir /data $(ollama_urls) --out-dir "/results/$OUT"
     ;;
   kappa)
     OUT=${1:?usage: judge.sh kappa <out_name> <run_id>...}
@@ -87,7 +87,7 @@ case "$ACTION" in
     runs=()
     for run in "$@"; do runs+=(--run-dir "/results/$run"); done
     # shellcheck disable=SC2046
-    judge_container judge-kappa --data-dir /data/enronqa $(ollama_urls) --out-dir "/results/$OUT" "${runs[@]}"
+    judge_container judge-kappa --data-dir /data $(ollama_urls) --out-dir "/results/$OUT" "${runs[@]}"
     ;;
   down)
     docker rm -f "$NAME" > /dev/null 2>&1 || true

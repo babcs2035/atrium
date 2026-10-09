@@ -11,4 +11,4 @@ docker pull -q "$IMAGE_FULL" > /dev/null
 docker run --rm --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all --user "$HOST_UID:$HOST_GID" \
   -e HOME=/tmp -e HF_HOME=/data/.cache/huggingface -e HF_HUB_OFFLINE=1 \
   -v "$DATA_DIR:/data:ro" -v "$PWD/results:/results" -v "$PWD/config.yaml:/app/config.yaml:ro" \
-  "$IMAGE_FULL" atrium --config /app/config.yaml advert-eval --data-dir /data/enronqa --out-dir "/results/$OUT"
+  "$IMAGE_FULL" atrium --config /app/config.yaml advert-eval --data-dir /data --out-dir "/results/$OUT"
