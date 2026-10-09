@@ -11,5 +11,5 @@ stop_host() {
   nssh "$host" "[ -f $REMOTE_DIR/compose.yml ] && cd $REMOTE_DIR && docker compose --profile run stop || true"
 }
 # shellcheck disable=SC2086
-run_parallel stop stop_host $EXPERTS $REQUESTER
+run_parallel stop stop_host $EXPERTS $REQUESTER $REQUESTER_LLM
 log "stop done"

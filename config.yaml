@@ -110,6 +110,9 @@ cluster:
   # 質問者：ベンチマークの質問を投げ，断片返却型では回答も生成する．制御点（wafl-ctrl5．RTX 3060）が兼ねる．
   # 制御点は本リポジトリの REMOTE_DIR を作業ディレクトリにも使うので，質問者の資材（data/・hf-cache/・ollama/ など）も同じ場所に置かれる
   requester: {host: "wafl-ctrl5"}
+  # 質問者の LLM（Ollama，llm.requester_model）を動かす GPU PC．省略すると質問者と同じホストで動かす．
+  # 制御点の GPU は再ランク（bge-reranker-v2-m3）とクエリ埋め込みに使い，8B の Ollama は wafl500 の GPU に全層を載せる
+  requester_llm: {host: "192.168.15.100"}
   # 専門家：シャードの検索と宿る型の回答を担う．シャード数だけ先頭から使い，足りなければ巡回して重ねる．
   # 13.x は wafl300〜309，14.x は wafl400〜409（i5-8350U，16 GB，GPU なし）
   experts:
@@ -133,9 +136,8 @@ cluster:
     - {host: "192.168.14.107"}
     - {host: "192.168.14.108"}
     - {host: "192.168.14.109"}
-  # データ準備で MedCPT の埋め込みを分担する GPU PC（制御点の GPU に加えて使う）．wafl500〜509
+  # データ準備で MedCPT の埋め込みを分担する GPU PC（制御点の GPU に加えて使う）．wafl501〜509
   gpu_workers:
-    - {host: "192.168.15.100"}
     - {host: "192.168.15.101"}
     - {host: "192.168.15.102"}
     - {host: "192.168.15.103"}

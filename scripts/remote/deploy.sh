@@ -139,8 +139,11 @@ deploy_requester() {
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
   nrsync -az "artifacts/$DATASET/placement.json" "$(ssh_dest "$host"):$REMOTE_DIR/placement.json"
   render_compose "$host" requester
-  # 質問者のモデル（Ollama と，クエリ埋め込み・再ランクの HF のモデル）も制御点から配る
-  send_ollama_model "$host" "$REQUESTER_MODEL"
+  # 質問者のモデル（Ollama と，クエリ埋め込み・再ランクの HF のモデル）も制御点から配る．
+  # LLM を別の GPU PC（cluster.requester_llm）で動かすときは，Ollama のモデルはそちらへ配る
+  if [ -z "$REQUESTER_LLM" ]; then
+    send_ollama_model "$host" "$REQUESTER_MODEL"
+  fi
   nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"
   # 制御点に実在するものだけを送る（FeB4RAG だけを準備した環境には MedCPT が無い）
   local hf_models=()
@@ -152,7 +155,27 @@ deploy_requester() {
     nrsync -a "${hf_models[@]}" "$(ssh_dest "$host"):$REMOTE_DIR/hf-cache/hub/"
   fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q"
+  if [ -z "$REQUESTER_LLM" ]; then
+    nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
+  else
+    # 質問者の GPU を再ランクとクエリ埋め込みだけに使う（同じ GPU の Ollama は止める）
+    nssh "$host" "cd $REMOTE_DIR && docker compose stop ollama"
+  fi
+  prune_old_images "$host"
+}
+
+# 質問者の LLM（Ollama）だけを動かす GPU PC（cluster.requester_llm）
+deploy_requester_llm() {
+  local host=$1
+  ensure_tunnel "$host"
+  nssh "$host" "mkdir -p $REMOTE_DIR/ollama"
+  own_remote_dir "$host"
+  render_compose "$host" requester_llm
+  send_ollama_model "$host" "$REQUESTER_MODEL"
+  retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
+  # 最初の要求でのモデルの読み込みを実験の計測に含めないよう，ここで読み込んでおく
+  retry 3 nssh "$host" "curl -fsS -o /dev/null http://localhost:$REQUESTER_LLM_PORT/api/generate -d '{\"model\": \"$REQUESTER_MODEL\", \"keep_alive\": -1}'"
   prune_old_images "$host"
 }
 
@@ -166,6 +189,10 @@ log "deploying experts"
 run_parallel deploy deploy_expert "${!SHARDS_OF[@]}"
 log "deploying requester $REQUESTER"
 run_parallel deploy deploy_requester "$REQUESTER"
+if [ -n "$REQUESTER_LLM" ]; then
+  log "deploying requester LLM $REQUESTER_LLM"
+  run_parallel deploy deploy_requester_llm "$REQUESTER_LLM"
+fi
 if [ "${#idle[@]}" -gt 0 ]; then
   log "stopping ${#idle[@]} unassigned experts"
   run_parallel deploy-stop stop_node_services "${idle[@]}" || true

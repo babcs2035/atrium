@@ -121,8 +121,9 @@ cluster:
 | リスト | 役割 | 現在の構成 |
 |---|---|---|
 | `requester`（1 台） | 質問者．質問を投げ，断片返却型では回答も生成する | wafl-ctrl5（制御点が兼ねる） |
+| `requester_llm`（省略可．1 台） | 質問者の LLM（Ollama，`llm.requester_model`）を動かす GPU PC．省略すると質問者と同じホストで動かす．質問者の GPU で再ランク（`merge=cross_encoder`）を動かすと 8B の Ollama と VRAM を取り合い，一部の層が CPU で動いて生成が約 4 倍遅くなるため，別の GPU に分ける | 192.168.15.100（wafl500） |
 | `experts` | 専門家．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる | 192.168.13.100〜109，192.168.14.100〜109（20 台） |
-| `gpu_workers` | データ準備で MedCPT の埋め込みを制御点の GPU と分担する GPU PC | 192.168.15.100〜109（wafl500〜509） |
+| `gpu_workers` | データ準備で MedCPT の埋め込みを制御点の GPU と分担する GPU PC | 192.168.15.101〜109（wafl501〜509） |
 
 各要素のキーは `host`（必須）と `ssh_user`（省略時は `cluster.ssh_user`）である．
 質問者には制御点（`cluster.control` と同じホスト）を指定できる．その場合の `REMOTE_DIR` の扱いは [d0001](d0001_architecture.md) §1 にある．

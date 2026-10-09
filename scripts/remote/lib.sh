@@ -18,6 +18,14 @@ HOST_GID=$(id -g)
 # 新しいノードへの初回接続ではホスト鍵を known_hosts に追記する（以降は鍵の変化を検出する）
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30)
 
+# 質問者の LLM（Ollama）のポート（docker/compose.requester_llm.yml と同じ）と，質問者のコンテナから見た URL
+REQUESTER_LLM_PORT=11434
+if [ -n "$REQUESTER_LLM" ]; then
+  REQUESTER_OLLAMA_URL="http://$REQUESTER_LLM:$REQUESTER_LLM_PORT"
+else
+  REQUESTER_OLLAMA_URL="http://ollama:$REQUESTER_LLM_PORT"
+fi
+
 log() { echo "[$(date +%H:%M:%S)] $*"; }
 
 # デバイスごとの SSH のユーザー（config.yaml の cluster の各デバイスの ssh_user．省略時は cluster.ssh_user）

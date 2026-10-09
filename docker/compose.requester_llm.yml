@@ -1,0 +1,22 @@
+# 質問者の LLM（Ollama）だけを動かす GPU PC の compose のひな形（config.yaml の cluster.requester_llm）．
+# ドル記号と波括弧で書いた変数は config.yaml の値で，deploy が `atrium render-compose` で埋めた compose.yml を
+# cluster.remote_dir へ置く．質問者は LAN 越しに http://<このホスト>:11434 へ問い合わせる．
+# 設定（モデル・並列数・文脈長）は，質問者と同じホストで動かす場合（compose.requester.yml の ollama）と同じにする
+services:
+  ollama:
+    image: localhost:${REGISTRY_PORT}/mirror/ollama:${OLLAMA_TAG}
+    restart: unless-stopped
+    # root で動かすと ./ollama 以下が root の所有になり，deploy のモデルの rsync が書き込めなくなる
+    user: "${HOST_UID}:${HOST_GID}"
+    volumes:
+      - ./ollama:/ollama
+    # GPU は runtime: nvidia で渡す（compose.requester.yml と同じ理由）
+    runtime: nvidia
+    ports:
+      - "11434:11434"
+    environment:
+      HOME: /ollama
+      OLLAMA_MODELS: /ollama/models
+      OLLAMA_KEEP_ALIVE: "-1"
+      OLLAMA_NUM_PARALLEL: ${REQUESTER_NUM_PARALLEL}
+      NVIDIA_VISIBLE_DEVICES: all

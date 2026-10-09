@@ -130,10 +130,13 @@ NAME="atrium-run-$RUN_ID"
 RDIR="$REMOTE_DIR/results/$RUN_ID"
 if ! nssh "$REQUESTER" "docker ps -aq -f name=^$NAME\$" | grep -q .; then
   log "starting $NAME on $REQUESTER"
-  nssh "$REQUESTER" "cd $REMOTE_DIR && docker compose --profile run run -d --name $NAME \
+  # LLM を別の GPU PC で動かすときは，質問者の側の Ollama を起動しない（--no-deps）
+  deps_flag=""
+  if [ -n "$REQUESTER_LLM" ]; then deps_flag="--no-deps"; fi
+  nssh "$REQUESTER" "cd $REMOTE_DIR && docker compose --profile run run -d $deps_flag --name $NAME \
     requester atrium --config /app/config.yaml run \
     --data-dir /data --placement /app/placement.json --out-dir /app/results/$RUN_ID \
-    --ollama-url http://ollama:11434" > /dev/null
+    --ollama-url $REQUESTER_OLLAMA_URL" > /dev/null
 fi
 
 # 待機中の SSH の失敗では止めない（数時間の実験を，1 回の接続の失敗で置き去りにしないため）．

@@ -32,7 +32,13 @@ def shell_variables(raw: dict[str, Any]) -> dict[str, str]:
     llm = raw["llm"]
     exp = raw["experiment"]
     e0 = raw["e0"]
-    devices = [cluster["requester"], *cluster["experts"], *cluster.get("gpu_workers", [])]
+    requester_llm = [cluster["requester_llm"]] if cluster.get("requester_llm") else []
+    devices = [
+        cluster["requester"],
+        *requester_llm,
+        *cluster["experts"],
+        *cluster.get("gpu_workers", []),
+    ]
     return {
         "CONTROL": cluster["control"],
         "SSH_USER": cluster["ssh_user"],
@@ -45,6 +51,8 @@ def shell_variables(raw: dict[str, Any]) -> dict[str, str]:
             f"{d['host']}={d.get('ssh_user') or cluster['ssh_user']}" for d in devices
         ),
         "REQUESTER": cluster["requester"]["host"],
+        # 質問者の LLM（Ollama）を別の GPU PC で動かすときのホスト（同じホストで動かすときは空）
+        "REQUESTER_LLM": cluster["requester_llm"]["host"] if cluster.get("requester_llm") else "",
         "EXPERTS": _hosts(cluster["experts"]),
         "GPU_WORKERS": _hosts(cluster.get("gpu_workers", [])),
         "KIND": exp["kind"],

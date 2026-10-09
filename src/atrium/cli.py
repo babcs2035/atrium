@@ -331,7 +331,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser(
         "render-compose", help="compose のひな形の ${...} を config.yaml の値で埋めて出す"
     )
-    p.add_argument("--role", choices=["node", "requester"], required=True)
+    p.add_argument("--role", choices=["node", "requester", "requester_llm"], required=True)
     p.add_argument("--uid", type=int, required=True, help="ノードの SSH のユーザーの UID")
     p.add_argument("--gid", type=int, required=True)
     p.add_argument("--node-id", default=None, help="role=node のとき必須")

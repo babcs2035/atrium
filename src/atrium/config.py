@@ -119,6 +119,11 @@ class ClusterConfig(_Strict):
     registry_port: int
     node_port: int
     requester: DeviceConfig
+    # 質問者の LLM（Ollama）を動かす GPU PC．省略すると質問者と同じホストで動かす．
+    # 質問者の GPU で再ランク（bge-reranker-v2-m3）を動かすと，8B の Ollama と 12 GB の VRAM を取り合い，
+    # Ollama の一部の層が CPU で動いて生成が約 4 倍遅くなった（2026-10-08 の s8）．別の GPU に分けると，
+    # 同じモデル・同じ設定のまま全層を GPU に載せられる
+    requester_llm: DeviceConfig | None = None
     experts: list[DeviceConfig] = Field(min_length=1)
     gpu_workers: list[DeviceConfig] = Field(default_factory=list)
     shard_budget_gb: float = Field(gt=0)
@@ -143,8 +148,13 @@ class ClusterConfig(_Strict):
         return self
 
     def devices(self) -> list[DeviceConfig]:
-        """全デバイスを，質問者・専門家・埋め込みの分担の順に返す．"""
-        return [self.requester, *self.experts, *self.gpu_workers]
+        """全デバイスを，質問者・質問者の LLM・専門家・埋め込みの分担の順に返す．"""
+        llm = [self.requester_llm] if self.requester_llm is not None else []
+        return [self.requester, *llm, *self.experts, *self.gpu_workers]
+
+    def requester_llm_host(self) -> str:
+        """質問者の LLM（Ollama）が動くホスト（requester_llm を省略したら質問者自身）．"""
+        return (self.requester_llm or self.requester).host
 
     def expert_hosts(self) -> list[str]:
         """専門家のホストの一覧（config.yaml の順）．"""

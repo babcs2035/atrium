@@ -58,3 +58,12 @@ def test_python_sources_do_not_read_environment_variables() -> None:
     pattern = re.compile(r"os\.environ|os\.getenv|\bgetenv\(")
     offenders = [p.name for p in SRC_DIR.rglob("*.py") if pattern.search(p.read_text("utf-8"))]
     assert offenders == []
+
+
+def test_requester_llm_compose_publishes_ollama_with_requester_settings(cfg: AtriumConfig) -> None:
+    text = render_compose(cfg, "requester_llm", 1000, 1000, template_dir=TEMPLATE_DIR)
+    assert "${" not in text
+    ollama = yaml.safe_load(text)["services"]["ollama"]
+    assert ollama["ports"] == ["11434:11434"]
+    assert ollama["environment"]["OLLAMA_NUM_PARALLEL"] == cfg.llm.requester_num_parallel
+    assert ollama["image"].endswith(f"mirror/ollama:{cfg.llm.ollama_version}")

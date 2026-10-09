@@ -9,7 +9,8 @@
 |---|---|---|---|
 | 操作端末 | gpu2 | mise のタスク・イメージの build・外部の資材の取得・分析・テスト | `scripts/tasks/`，`atrium.analysis` |
 | 制御点（データ中継点）・質問者 | wafl-ctrl5（RTX 3060） | registry・データ準備・各ノードの操作．質問者として，クエリ埋め込み・ルーティング・統合・断片返却型の回答も行う | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router`，`atrium.requester`，`atrium.experiment` |
-| 埋め込みの分担 | 192.168.15.100〜109 = wafl500〜509（RTX 3060） | データ準備の間だけ，MedCPT の埋め込みを制御点と分担する | `scripts/remote/prepare_data.sh` |
+| 埋め込みの分担 | 192.168.15.101〜109 = wafl501〜509（RTX 3060） | データ準備の間だけ，MedCPT の埋め込みを制御点と分担する | `scripts/remote/prepare_data.sh` |
+| 質問者の LLM | 192.168.15.100 = wafl500（RTX 3060．`cluster.requester_llm`） | 断片返却型の回答を生成する Ollama（llama3.1:8b）．質問者（制御点）の GPU は再ランクとクエリ埋め込みに使う | `docker/compose.requester_llm.yml` |
 | 専門家 | 192.168.13.100〜109，192.168.14.100〜109（GPU なし） | シャードの検索・宿る型の回答 | `atrium.node`，`atrium.store` |
 
 操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `cluster.remote_dir`（既定は `/home/denjo/workspace/ktakahashi/atrium`）へ rsync し，

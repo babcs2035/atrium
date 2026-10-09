@@ -37,7 +37,7 @@ clean_host() {
 }
 # 専門家・質問者に加え，データ準備で使った GPU PC も対象にする（逆トンネルと作業用の写しが残りうるため）
 # shellcheck disable=SC2086
-hosts=$(printf '%s\n' $EXPERTS $REQUESTER $GPU_WORKERS | sort -u)
+hosts=$(printf '%s\n' $EXPERTS $REQUESTER $REQUESTER_LLM $GPU_WORKERS | sort -u)
 # shellcheck disable=SC2086
 run_parallel clean clean_host $hosts
 log "clean done (full=$FULL)"

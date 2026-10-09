@@ -103,3 +103,17 @@ def test_config_rejects_non_absolute_directories(key: str, value: str) -> None:
     raw["cluster"][key] = value
     with pytest.raises(ValidationError, match="absolute path"):
         AtriumConfig.model_validate(raw)
+
+
+def test_requester_llm_defaults_to_the_requester_host() -> None:
+    raw = _repository_config_dict()
+    raw["cluster"].pop("requester_llm", None)
+    cluster = AtriumConfig.model_validate(raw).cluster
+    assert cluster.requester_llm_host() == cluster.requester.host
+
+
+def test_requester_llm_host_may_not_have_another_role() -> None:
+    raw = _repository_config_dict()
+    raw["cluster"]["requester_llm"] = {"host": raw["cluster"]["experts"][0]["host"]}
+    with pytest.raises(ValidationError, match="only one role"):
+        AtriumConfig.model_validate(raw)
