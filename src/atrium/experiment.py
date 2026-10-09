@@ -98,7 +98,7 @@ async def run_experiment(
             cfg=cfg,
             placement=placement,
             sources=sources,
-            router=make_router(cfg, paths.router),
+            router=make_router(cfg, paths.router, paths.labels),
             embedder=_make_embedder(cfg, data_dir, sources),
             client=client,
             ollama_url=ollama_url,
@@ -112,6 +112,8 @@ async def run_experiment(
             "routing": cfg.experiment.routing,
             "answer_mode": cfg.experiment.answer_mode,
             "merge": cfg.retrieval.merge,
+            # ルーティングのために事前に公開された情報の大きさ（p0004 §8.4．使わない方式は 0）
+            "advert_bytes": getattr(requester.router, "advert_bytes", lambda _: 0)(sources),
             "n_questions": len(all_questions),
             "n_skipped_on_resume": len(done),
             "n_nodes": len(placement.nodes),

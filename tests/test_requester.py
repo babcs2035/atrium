@@ -270,3 +270,20 @@ async def test_retrieve_gives_up_after_the_retry_limit(
     monkeypatch.setattr(requester.client, "post", always_fails)
     record = await requester.process(question)
     assert "ReadError" in record["error"]
+
+
+async def test_flood_score_asks_every_node_for_scores_then_selects_the_best(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    from atrium.routing.advert import FloodScoreRouter
+
+    question = _questions(1)[0]
+    # textbooks の 1 件目の文書と同じ向きのクエリなら，textbooks の最高スコアが最大になる
+    vec = corpus["t0"][0].astype(np.float16).astype(np.float32)
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"), tmp_path, FloodScoreRouter(1), {question.qid: vec}
+    )
+    record = await requester.process(question)
+    assert record["error"] is None
+    assert record["probe_recipients"] == 2
+    assert record["selected_sources"] == ["textbooks"]

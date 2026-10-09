@@ -1,16 +1,13 @@
 """専門家ノードの HTTP サーバー．
 
-1 台のノードは 1 個以上のシャードを持ち，次の 2 通りで問い合わせに応じる．
+1 台のノードは 1 個以上のシャードを持ち，次の方法で問い合わせに応じる．
 
 - 断片返却型（/v1/retrieve）: 検索した断片をそのまま返す．
 - 宿る型（/v1/answer）: 断片を自分の LLM（同じホストの Ollama）に渡し，回答文だけを返す．
+- flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．
 
-コンテナ内では `atrium node` で起動し，設定は環境変数で受け取る（scripts/tasks/deploy.sh が設定する）．
-
-    ATRIUM_NODE_ID     ノード名（ホスト名）
-    ATRIUM_SHARDS_DIR  シャードを置いたディレクトリ
-    ATRIUM_SHARD_IDS   読み込むシャード ID（カンマ区切り）
-    ATRIUM_OLLAMA_URL  宿る型で使う Ollama の URL
+コンテナ内では `atrium node` で起動する．ノード名・シャード・Ollama の URL・宿る型のモデルは，
+deploy が config.yaml から作る compose.yml のコマンドの引数で渡す（環境変数は使わない）．
 """
 
 from __future__ import annotations
@@ -33,6 +30,8 @@ from atrium.protocol import (
     AnswerResponse,
     DocOut,
     LlmUsage,
+    ProbeRequest,
+    ProbeResponse,
     Problem,
     ProfileResponse,
     RetrieveRequest,
@@ -174,6 +173,15 @@ def create_app(
             ],
             duration_s=time.perf_counter() - start,
         )
+
+    @app.post("/v1/probe")
+    def probe(req: ProbeRequest) -> ProbeResponse:
+        start = time.perf_counter()
+        scores: dict[str, float] = {}
+        for shard_id in req.shard_ids:
+            docs = search(store_of(shard_id), 1, req.embedding, None)
+            scores[shard_id] = docs[0].score if docs else float("-inf")
+        return ProbeResponse(node_id=node_id, scores=scores, duration_s=time.perf_counter() - start)
 
     @app.post("/v1/answer")
     async def answer(req: AnswerRequest) -> AnswerResponse:

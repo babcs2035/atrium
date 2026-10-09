@@ -13,7 +13,19 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 DatasetName = Literal["medrag", "feb4rag", "enronqa"]
-RoutingName = Literal["ragroute", "all", "random", "none"]
+# oracle〜multi_centroid は p0004 で追加（RQ-A．atrium.routing.advert）
+RoutingName = Literal[
+    "ragroute",
+    "all",
+    "random",
+    "none",
+    "oracle",
+    "flood_score",
+    "card_sim",
+    "term_sketch",
+    "centroid_sim",
+    "multi_centroid",
+]
 AnswerMode = Literal["snippet_return", "local_answer", "retrieval_only"]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
 QueryEmbeddingMode = Literal["live", "cached"]
@@ -54,6 +66,8 @@ class RoutingConfig(_Strict):
 
     random_k: dict[DatasetName, int]
     ragroute_threshold: float = 0.5
+    # 公開情報を使う方式と flood_score が問い合わせるデータ源の数（p0004．dev で選ぶ）
+    top_m: dict[DatasetName, int] = Field(default_factory=dict)
 
 
 class LlmConfig(_Strict):

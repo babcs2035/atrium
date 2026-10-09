@@ -31,7 +31,7 @@ from atrium import llm, prompts
 from atrium.arrays import F32Array
 from atrium.benchmarks import Question
 from atrium.config import AtriumConfig, Precision
-from atrium.manifest import Placement
+from atrium.manifest import NodeAssignment, Placement
 from atrium.merge import (
     NodeVote,
     SourcedDoc,
@@ -44,12 +44,15 @@ from atrium.merge import (
 from atrium.protocol import (
     AnswerRequest,
     AnswerResponse,
+    ProbeRequest,
+    ProbeResponse,
     ProfileResponse,
     RetrieveRequest,
     RetrieveResponse,
     ShardProfile,
 )
 from atrium.routing import Router, RoutingQuery, SourceProfile
+from atrium.routing.advert import tokenize
 from atrium.store import RetrievedDoc
 
 logger = logging.getLogger(__name__)
@@ -116,7 +119,7 @@ class LiveMedcptEmbedder:
 
     def embed(self, question: Question) -> dict[str, F32Array]:
         """質問文を埋め込む．"""
-        # 同時に呼ばれないことは Requester._embed_and_route のロックが保証する
+        # 同時に呼ばれないことは Requester._embed のロックが保証する
         return {self._name: self._encoder.encode_queries([question.question])[0]}
 
 
@@ -340,19 +343,60 @@ class Requester:
         record["llm"] = {"prefill_s": result.prefill_s, "decode_s": result.decode_s}
         return prompts.extract_choice(result.content)
 
-    def _embed_and_route(
-        self, question: Question, record: dict[str, Any]
-    ) -> tuple[list[str], dict[str, F32Array]]:
+    def _embed(self, question: Question, record: dict[str, Any]) -> dict[str, F32Array]:
         start = time.perf_counter()
         with self._embed_lock:
             embeddings = self.embedder.embed(question)
         record["timings"]["embed_s"] = time.perf_counter() - start
+        return embeddings
+
+    async def _probe(
+        self, embeddings: dict[str, F32Array], record: dict[str, Any]
+    ) -> dict[str, float]:
+        """flood_score の 1 段目：全ノードへクエリ埋め込みを送り，データ源ごとの最高の検索スコアを集める．"""
+        source_of_shard = {sid: s for s in self.sources for sid in s.shard_ids}
+
+        async def ask(node: NodeAssignment) -> tuple[ProbeResponse, int]:
+            shard_ids = [sid for sid in node.shard_ids if sid in source_of_shard]
+            encoder = source_of_shard[shard_ids[0]].encoder
+            req = ProbeRequest(shard_ids=shard_ids, embedding=embeddings[encoder].tolist())
+            response = await self.client.post(
+                f"{node.url}/v1/probe", json=req.model_dump(), timeout=RETRIEVE_TIMEOUT_S
+            )
+            response.raise_for_status()
+            return ProbeResponse.model_validate_json(response.content), len(response.content)
+
+        nodes = [n for n in self.placement.nodes if any(s in source_of_shard for s in n.shard_ids)]
         start = time.perf_counter()
-        selected = self.router.select(
-            RoutingQuery(question.qid, question.question, embeddings), self.sources
+        results = await gather_or_cancel([ask(n) for n in nodes])
+        record["timings"]["probe_s"] = time.perf_counter() - start
+        record["probe_recipients"] = len(nodes)
+        record["probe_bytes"] = sum(size for _, size in results)
+        best: dict[str, float] = {}
+        for resp, _ in results:
+            for sid, score in resp.scores.items():
+                name = source_of_shard[sid].source
+                best[name] = max(best.get(name, float("-inf")), score)
+        return best
+
+    def _route(
+        self,
+        question: Question,
+        embeddings: dict[str, F32Array],
+        probe_scores: dict[str, float] | None,
+        record: dict[str, Any],
+    ) -> list[str]:
+        start = time.perf_counter()
+        query = RoutingQuery(
+            question.qid,
+            question.question,
+            embeddings,
+            tokens=tuple(tokenize(question.question)),
+            probe_scores=probe_scores,
         )
+        selected = self.router.select(query, self.sources)
         record["timings"]["route_s"] = time.perf_counter() - start
-        return selected, embeddings
+        return selected
 
     async def process(self, question: Question) -> dict[str, Any]:
         """1 問を処理して結果の 1 行を返す（失敗は error に記録し，例外は投げない）．"""
@@ -370,7 +414,13 @@ class Requester:
         }
         start = time.perf_counter()
         try:
-            selected, embeddings = await asyncio.to_thread(self._embed_and_route, question, record)
+            embeddings = await asyncio.to_thread(self._embed, question, record)
+            probe_scores = (
+                await self._probe(embeddings, record)
+                if getattr(self.router, "needs_probe", False)
+                else None
+            )
+            selected = self._route(question, embeddings, probe_scores, record)
             record["selected_sources"] = selected
             record["n_shards_queried"] = sum(len(self._profile(s).shard_ids) for s in selected)
             choice: str | None = None

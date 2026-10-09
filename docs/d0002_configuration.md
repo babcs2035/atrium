@@ -58,6 +58,7 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 |---|---|---|
 | `random_k.medrag` / `random_k.feb4rag` | 3 / 9 | `random` で選ぶデータ源の数（RAGRoute と同じ） |
 | `ragroute_threshold` | 0.5 | `ragroute` の判定閾値（RAGRoute の推論コードと同じ）．検証データで Youden 指数が最大になる閾値は `router/train_report.json` に記録される |
+| `top_m.enronqa` | 5（dev で選ぶ） | 公開情報を使う方式と `flood_score` が問い合わせるデータ源の数 m（p0004 の RQ-A） |
 
 ## llm
 

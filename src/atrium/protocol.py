@@ -38,6 +38,21 @@ class RetrieveResponse(_Model):
     duration_s: float
 
 
+class ProbeRequest(_Model):
+    """flood_score の 1 段目の要求．ノードは各シャードの最高の検索スコアだけを返す（本文は返さない）．"""
+
+    shard_ids: list[str]
+    embedding: list[float]
+
+
+class ProbeResponse(_Model):
+    """シャード ID → 最高の検索スコア．"""
+
+    node_id: str
+    scores: dict[str, float]
+    duration_s: float
+
+
 class AnswerRequest(_Model):
     """宿る型の回答要求．ノードは shard_ids の断片から上位 k 件を使って自分の LLM で答える．"""
 

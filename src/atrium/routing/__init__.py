@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import json
 import random
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -15,7 +16,7 @@ from typing import Protocol
 
 from atrium.arrays import F32Array
 from atrium.config import AtriumConfig
-from atrium.manifest import ShardKind, combine_centroids
+from atrium.manifest import Advert, ShardKind, combine_centroids
 from atrium.protocol import ShardProfile
 
 
@@ -26,6 +27,10 @@ class RoutingQuery:
     query_id: str
     question: str
     embeddings: dict[str, F32Array]
+    # 質問文の語（term_sketch が使う．atrium.routing.advert.tokenize で分けたもの）
+    tokens: tuple[str, ...] = ()
+    # flood_score の 1 段目で集めた，データ源ごとの最高の検索スコア
+    probe_scores: dict[str, float] | None = None
 
 
 @dataclass(frozen=True)
@@ -39,6 +44,8 @@ class SourceProfile:
     centroid: F32Array
     n_docs: int
     shard_ids: tuple[str, ...]
+    # 事前に公開する情報（EnronQA だけ．1 データ源 1 シャードなので，そのシャードの advert）
+    advert: Advert | None = None
 
 
 class Router(Protocol):
@@ -71,6 +78,7 @@ def build_source_profiles(
                 ),
                 n_docs=sum(m.n_docs for m in members),
                 shard_ids=tuple(sorted(m.shard_id for m in members)),
+                advert=members[0].advert if len(members) == 1 else None,
             )
         )
     return profiles
@@ -117,8 +125,12 @@ class RandomRouter:
         return [n for n in names if n in chosen]
 
 
-def make_router(cfg: AtriumConfig, router_dir: Path) -> Router:
-    """config.yaml の experiment.routing に対応するルーターを作る．"""
+def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = None) -> Router:
+    """config.yaml の experiment.routing に対応するルーターを作る．
+
+    oracle は labels_path（質問 → 関連ありのデータ源）を読む．公開情報を使う方式と flood_score は，
+    routing.top_m のデータ源に問い合わせる．
+    """
     dataset = cfg.experiment.dataset
     name = cfg.experiment.routing
     if name == "all":
@@ -127,6 +139,24 @@ def make_router(cfg: AtriumConfig, router_dir: Path) -> Router:
         return NoneRouter()
     if name == "random":
         return RandomRouter(cfg.routing.random_k[dataset], cfg.experiment.seed)
+    from atrium.routing import advert
+
+    if name == "oracle":
+        if labels_path is None:
+            raise ValueError("routing=oracle requires labels")
+        labels: dict[str, list[str]] = json.loads(labels_path.read_text(encoding="utf-8"))
+        return advert.OracleRouter(labels)
+    by_name: dict[str, type[advert.FloodScoreRouter] | type[advert._AdvertRouter]] = {
+        "flood_score": advert.FloodScoreRouter,
+        "card_sim": advert.CardSimRouter,
+        "term_sketch": advert.TermSketchRouter,
+        "centroid_sim": advert.CentroidSimRouter,
+        "multi_centroid": advert.MultiCentroidRouter,
+    }
+    if name in by_name:
+        if dataset not in cfg.routing.top_m:
+            raise ValueError(f"routing={name} requires routing.top_m.{dataset}")
+        return by_name[name](cfg.routing.top_m[dataset])
     # torch を必要とするので，使うときだけ読み込む
     from atrium.routing.ragroute import RagrouteRouter
 

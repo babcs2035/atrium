@@ -45,6 +45,7 @@ from atrium.manifest import (
     write_json_model,
 )
 from atrium.paths import DatasetPaths
+from atrium.routing.advert import tokenize
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,6 @@ GOLD_FILE = "gold.jsonl"
 SPLIT_KEYS = {"train": "train", "dev": "val", "test": "test"}
 HEADER_SEPARATOR = "====================================="
 FILE_LINE = re.compile(r"^File: .*$", re.MULTILINE)
-TOKEN = re.compile(r"[a-z0-9]+")
 SUBJECT_PREFIX = re.compile(r"^\s*((re|fw|fwd)\s*:\s*)+", re.IGNORECASE)
 # 重複の検出（MinHash の LSH で候補を出し，正確な Jaccard で確かめる）
 MINHASH_PERMS = 128
@@ -104,8 +104,8 @@ def clean_email(raw: str) -> tuple[str, str]:
 
 
 def tokens(text: str) -> list[str]:
-    """小文字の英数字の語に分ける（語のスケッチ・BM25・重複の検出で共通）．"""
-    return TOKEN.findall(text.lower())
+    """小文字の英数字の語に分ける（atrium.routing.advert.tokenize と同じ）．"""
+    return tokenize(text)
 
 
 def fetch(cfg: AtriumConfig, paths: DatasetPaths) -> None:

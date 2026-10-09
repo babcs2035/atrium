@@ -89,6 +89,7 @@
 | GET | `/.well-known/agent-card.json` | － | A2A の Agent Card．シャード 1 個を 1 個の skill として名乗る |
 | GET | `/v1/profile` | － | シャードごとの `source`・`n_docs`・`dim`・`encoder`・`centroid`・`description` |
 | POST | `/v1/retrieve` | `{"shard_id", "k", "embedding"?, "query_id"?}` | `{"shard_id", "docs": [{"doc_id","title","content","score"}], "duration_s"}` |
+| POST | `/v1/probe` | `{"shard_ids", "embedding"}` | `{"node_id", "scores": {shard_id: 最高スコア}, "duration_s"}`．本文は返さない（flood_score の 1 段目．p0004） |
 | POST | `/v1/answer` | `{"dataset", "question", "options", "shard_ids", "k", "embedding"?, "query_id"?}` | `{"node_id", "answer", "choice", "n_context_docs", "top_score", "retrieve_s", "llm", "duration_s"}` |
 
 - MedRAG 型のシャードは `embedding`，FeB4RAG 型は `query_id`（元のデータセットの要求 ID）で検索する．
@@ -131,6 +132,20 @@ class Router(Protocol):
 `SourceProfile` には自己紹介文（`description`）・重心・検索器名・文書数が入っている．研究計画書 RQ1 の
 「自己紹介文の類似度」「代表文書の要約」は，この入力だけで実装できる．新参者を学習から除外する
 （leave-one-source-out）評価では，中央で学習した情報を使う方式かどうかを方式の側で明示すること．
+
+
+EnronQA（p0004 の RQ-A）のために，公開情報を使う方式を `src/atrium/routing/advert.py` に置いた．
+各受信箱は，自分のメールだけから計算した公開情報（`Advert`．語のスケッチ・k-means の中心・Agent Card の説明文の埋め込み）を
+`/v1/profile` で名乗り，質問者はそれだけを使って上位 `routing.top_m` 個に問い合わせる．
+
+| 方式 | 事前に公開するもの | 選び方 |
+|---|---|---|
+| `oracle` | － | 正解の受信箱だけ（評価用の上限） |
+| `flood_score` | なし | 1 段目に全ノードの `/v1/probe` へクエリ埋め込みを送り，最高スコアの上位 m 個に本照会する |
+| `card_sim` | Agent Card の説明文（多い件名の一覧）の埋め込み | 内積の上位 m 個 |
+| `term_sketch` | 多く使う語と，その語を含むメールの割合 | クエリの語と重なる語の割合の和の上位 m 個 |
+| `centroid_sim` | 埋め込みの平均 | 内積の上位 m 個 |
+| `multi_centroid` | k-means の C 個の中心 | 中心との内積の最大の上位 m 個 |
 
 ## 6. データの配置
 
