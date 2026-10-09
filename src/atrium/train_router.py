@@ -11,6 +11,7 @@ FeB4RAG の学習スクリプトは途中までしか公開内容を確認でき
 from __future__ import annotations
 
 import json
+import math
 import logging
 import random
 from collections.abc import Sequence
@@ -83,6 +84,18 @@ def build_matrix(
             )
             ys.append(1.0 if s.name in relevant else 0.0)
     return np.stack(xs).astype(np.float32), np.array(ys, dtype=np.float32)
+
+
+# triangular2 の係数 1 / 2^(cycle-1) の指数の上限．torch の triangular2 は，周期が 1,024 を超えると
+# 2.0 ** (cycle - 1) が浮動小数点の範囲を超えて OverflowError で止まる（EnronQA は学習の組が多く，
+# 周期がこの数を超えた．2026-10-09）．上限までの値は triangular2 と同じで，上限の先も係数は 2^-1000 ≈ 0 で変わらない
+TRIANGULAR2_MAX_EXPONENT = 1000
+
+
+def triangular2_scale(cycle: float) -> float:
+    """CyclicLR の triangular2 と同じ係数（周期ごとに振幅を半分にする）．指数に上限を付けてあふれを防ぐ．"""
+    exponent = float(min(cycle - 1, TRIANGULAR2_MAX_EXPONENT))
+    return 1.0 / math.pow(2.0, exponent)
 
 
 def binary_metrics(labels: F32Array, probs: F32Array, threshold: float) -> dict[str, float]:
@@ -166,7 +179,8 @@ def train_router(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -
         base_lr=LR,
         max_lr=MAX_LR,
         step_size_up=10,
-        mode="triangular2",
+        scale_fn=triangular2_scale,
+        scale_mode="cycle",
         cycle_momentum=False,
     )
     step = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.05)

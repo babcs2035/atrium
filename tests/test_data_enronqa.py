@@ -69,3 +69,10 @@ def test_ragroute_negative_sampling_keeps_every_positive_pair() -> None:
     )
     assert x.shape[0] == 5
     assert y.sum() == 1.0
+
+
+def test_triangular2_scale_matches_torch_and_does_not_overflow_on_long_runs() -> None:
+    from atrium.train_router import triangular2_scale
+
+    assert [triangular2_scale(c) for c in (1, 2, 3)] == [1.0, 0.5, 0.25]
+    assert triangular2_scale(5000) == 2.0**-1000
