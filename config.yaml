@@ -39,13 +39,13 @@ routing:
   random_k:
     medrag: 3
     feb4rag: 9
-    enronqa: 5
+    enronqa: 2
   # ragroute の判定閾値（RAGRoute の推論コードと同じ 0.5）
   ragroute_threshold: 0.5
   # 公開情報を使う方式（card_sim・term_sketch・centroid_sim・multi_centroid）と flood_score が問い合わせる
-  # データ源の数 m（p0004 の RQ-A）．dev の質問で選んで書き換える（選び方は journal の事前登録に従う）
+  # データ源の数 m（p0004 の RQ-A）．EQ2 で事前登録の規則で選んだ値（results/20261009_eq2_advert_eval）
   top_m:
-    enronqa: 5
+    enronqa: 2
 
 llm:
   # 各ノードで使う Ollama のバージョン（イメージは制御点の registry の mirror/ から取得する）
@@ -231,10 +231,11 @@ data:
     # 回答に使うメールの数（EnronQA の原論文と同じ 5）
     k_context: 5
     owner_probe_per_inbox: 10
-    # 公開情報の大きさ（Agent Card の件名の数・語のスケッチの語数 T・重心の数 C）．dev で選んで書き換える
-    card_subjects: 20
-    term_sketch_size: 50
-    n_centroids: 8
+    # 公開情報の大きさ（Agent Card の件名の数・語のスケッチの語数 T・重心の数 C）．EQ2 で dev の MRR が最大の値
+    # （results/20261009_eq2_advert_eval．journal の事前登録の規則）
+    card_subjects: 40
+    term_sketch_size: 200
+    n_centroids: 32
     ragroute_negatives: 10
     # 自由記述の回答の判定モデル（質問者の llama3.1:8b と別系統）と，一致を測る参照モデル（p0004 §8.6）
     judge_model: "qwen3:8b"
