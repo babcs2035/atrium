@@ -11,8 +11,8 @@ FeB4RAG の学習スクリプトは途中までしか公開内容を確認でき
 from __future__ import annotations
 
 import json
-import math
 import logging
+import math
 import random
 from collections.abc import Sequence
 from dataclasses import dataclass
