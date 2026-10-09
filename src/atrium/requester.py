@@ -64,6 +64,21 @@ RETRIEVE_TIMEOUT_S = 120.0
 RETRIEVE_RETRIES = 2
 
 
+async def post_with_retry(
+    client: httpx.AsyncClient, url: str, body: dict[str, Any], timeout: float
+) -> httpx.Response:
+    """読み取りだけの要求（検索・probe）を送る．ノードが待機中の接続を閉じた直後に再利用して起きる
+    接続エラーは，同じ要求を RETRIEVE_RETRIES 回まで送り直す．"""
+    for attempt in range(RETRIEVE_RETRIES + 1):
+        try:
+            return await client.post(url, json=body, timeout=timeout)
+        except (httpx.ReadError, httpx.RemoteProtocolError, httpx.ConnectError):
+            if attempt == RETRIEVE_RETRIES:
+                raise
+            logger.warning("retrying %s (%d/%d)", url, attempt + 1, RETRIEVE_RETRIES)
+    raise AssertionError("unreachable")
+
+
 async def gather_or_cancel[T](coros: Sequence[Coroutine[Any, Any, T]]) -> list[T]:
     """全て成功すれば結果を順に返す．1 つでも失敗すれば残りを取り消し，例外（ExceptionGroup）を投げる．
 
@@ -226,18 +241,7 @@ class Requester:
         )
         start = time.perf_counter()
         url = f"{self._url_of_shard[shard_id]}/v1/retrieve"
-        for attempt in range(RETRIEVE_RETRIES + 1):
-            try:
-                response = await self.client.post(
-                    url, json=req.model_dump(), timeout=RETRIEVE_TIMEOUT_S
-                )
-                break
-            except (httpx.ReadError, httpx.RemoteProtocolError, httpx.ConnectError):
-                if attempt == RETRIEVE_RETRIES:
-                    raise
-                logger.warning(
-                    "retrying retrieve on %s (%d/%d)", url, attempt + 1, RETRIEVE_RETRIES
-                )
+        response = await post_with_retry(self.client, url, req.model_dump(), RETRIEVE_TIMEOUT_S)
         response.raise_for_status()
         body = RetrieveResponse.model_validate_json(response.content)
         stats = {
@@ -407,8 +411,8 @@ class Requester:
             shard_ids = [sid for sid in node.shard_ids if sid in source_of_shard]
             encoder = source_of_shard[shard_ids[0]].encoder
             req = ProbeRequest(shard_ids=shard_ids, embedding=embeddings[encoder].tolist())
-            response = await self.client.post(
-                f"{node.url}/v1/probe", json=req.model_dump(), timeout=RETRIEVE_TIMEOUT_S
+            response = await post_with_retry(
+                self.client, f"{node.url}/v1/probe", req.model_dump(), RETRIEVE_TIMEOUT_S
             )
             response.raise_for_status()
             return ProbeResponse.model_validate_json(response.content), len(response.content)

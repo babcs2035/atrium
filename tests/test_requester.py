@@ -328,3 +328,33 @@ async def test_snippet_return_records_exposure_per_source_and_query_recipients(
     record = await requester.process(question)
     assert record["docs_exposed_by_source"] == {"pubmed": 2 * K_RET, "textbooks": K_RET}
     assert record["query_recipients"] == 2
+
+
+async def test_probe_is_retried_when_the_node_closed_an_idle_connection(
+    cfg: AtriumConfig,
+    tmp_path: Path,
+    corpus: dict[str, F32Array],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from atrium.routing.advert import FloodScoreRouter
+
+    question = _questions(1)[0]
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"),
+        tmp_path,
+        FloodScoreRouter(1),
+        {question.qid: np.ones(DIM, np.float32)},
+    )
+    real_post = requester.client.post
+    failures_left = {"n": 1}
+
+    async def flaky_post(url: str, **kwargs: Any) -> httpx.Response:
+        if url.endswith("/v1/probe") and failures_left["n"] > 0:
+            failures_left["n"] -= 1
+            raise httpx.ReadError("connection closed by the node")
+        return await real_post(url, **kwargs)
+
+    monkeypatch.setattr(requester.client, "post", flaky_post)
+    record = await requester.process(question)
+    assert record["error"] is None
+    assert failures_left["n"] == 0
