@@ -62,6 +62,7 @@ def shell_variables(raw: dict[str, Any]) -> dict[str, str]:
         "OLLAMA_TAG": llm["ollama_version"],
         "REQUESTER_MODEL": llm["requester_model"],
         "REQUESTER_NUM_PARALLEL": str(llm["requester_num_parallel"]),
+        "LLM_NUM_CTX": str(llm["num_ctx"]),
         "EXPERT_MODEL": llm["expert_model"],
         "E0_HOSTS": " ".join(e0["hosts"]),
         "E0_PAIRS": " ".join(f"{a},{b}" for a, b in e0["iperf_pairs"]),

@@ -36,6 +36,7 @@ def test_shell_variables_match_validated_config(cfg: AtriumConfig) -> None:
     assert v["EXPERTS"].split() == cfg.cluster.expert_hosts()
     assert v["GPU_WORKERS"].split() == cfg.cluster.gpu_worker_hosts()
     assert v["REQUESTER_NUM_PARALLEL"] == str(cfg.llm.requester_num_parallel)
+    assert v["LLM_NUM_CTX"] == str(cfg.llm.num_ctx)
     assert v["E0_HOSTS"].split() == cfg.e0.hosts
 
 

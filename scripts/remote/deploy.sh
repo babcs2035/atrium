@@ -174,8 +174,10 @@ deploy_requester_llm() {
   send_ollama_model "$host" "$REQUESTER_MODEL"
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
-  # 最初の要求でのモデルの読み込みを実験の計測に含めないよう，ここで読み込んでおく
-  retry 3 nssh "$host" "curl -fsS -o /dev/null http://localhost:$REQUESTER_LLM_PORT/api/generate -d '{\"model\": \"$REQUESTER_MODEL\", \"keep_alive\": -1}'"
+  # 最初の要求でのモデルの読み込みを実験の計測に含めないよう，実験と同じ文脈長（llm.num_ctx）で読み込んでおく
+  # （文脈長が違うと，最初の要求で読み込み直しになる）
+  retry 3 nssh "$host" "curl -fsS -o /dev/null http://localhost:$REQUESTER_LLM_PORT/api/generate \
+    -d '{\"model\": \"$REQUESTER_MODEL\", \"keep_alive\": -1, \"options\": {\"num_ctx\": $LLM_NUM_CTX}}'"
   prune_old_images "$host"
 }
 
