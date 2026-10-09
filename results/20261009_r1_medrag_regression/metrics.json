@@ -1,0 +1,100 @@
+{
+ "all": {
+  "n": 10,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.325,
+   "recall": 1.0,
+   "f1": 0.4905660377358491,
+   "mean_selected_sources": 4.0,
+   "mean_relevant_sources": 1.3,
+   "mean_shards_queried": 16.0,
+   "query_reduction_vs_all": 0.0
+  },
+  "label_consistency": 1.0,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 0.023703996557742357,
+    "p95": 0.3775258439127355,
+    "n": 10
+   },
+   "route_s": {
+    "p50": 1.3396143913269043e-05,
+    "p95": 2.447147853672504e-05,
+    "n": 10
+   },
+   "retrieve_s": {
+    "p50": 4.585643595550209,
+    "p95": 4.706818246585317,
+    "n": 10
+   },
+   "merge_s": {
+    "p50": 0.0004152855835855007,
+    "p95": 0.000492705125361681,
+    "n": 10
+   },
+   "e2e_s": {
+    "p50": 4.60931470640935,
+    "p95": 4.9292785040102896,
+    "n": 10
+   }
+  },
+  "mean_bytes_received": 837912.2,
+  "mean_snippets_exposed": 800.0,
+  "exposure": {
+   "mean_docs_exposed": 800.0,
+   "mean_query_recipients": 16.0
+  }
+ },
+ "test": {
+  "n": 7,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.35714285714285715,
+   "recall": 1.0,
+   "f1": 0.5263157894736842,
+   "mean_selected_sources": 4.0,
+   "mean_relevant_sources": 1.4285714285714286,
+   "mean_shards_queried": 16.0,
+   "query_reduction_vs_all": 0.0
+  },
+  "label_consistency": 1.0,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 0.019899502396583557,
+    "p95": 0.23193573327735045,
+    "n": 7
+   },
+   "route_s": {
+    "p50": 1.3384968042373657e-05,
+    "p95": 2.5113113224506375e-05,
+    "n": 7
+   },
+   "retrieve_s": {
+    "p50": 4.586617729160935,
+    "p95": 4.656695407861844,
+    "n": 7
+   },
+   "merge_s": {
+    "p50": 0.0004003522917628288,
+    "p95": 0.0004963069688528776,
+    "n": 7
+   },
+   "e2e_s": {
+    "p50": 4.6131033739075065,
+    "p95": 4.669731767522171,
+    "n": 7
+   }
+  },
+  "mean_bytes_received": 842584.4285714285,
+  "mean_snippets_exposed": 800.0,
+  "exposure": {
+   "mean_docs_exposed": 800.0,
+   "mean_query_recipients": 16.0
+  }
+ }
+}
