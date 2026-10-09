@@ -64,6 +64,7 @@ def shell_variables(raw: dict[str, Any]) -> dict[str, str]:
         "REQUESTER_NUM_PARALLEL": str(llm["requester_num_parallel"]),
         "LLM_NUM_CTX": str(llm["num_ctx"]),
         "EXPERT_MODEL": llm["expert_model"],
+        "EXPERT_MODEL_GPU": llm.get("expert_model_gpu") or llm["expert_model"],
         "E0_HOSTS": " ".join(e0["hosts"]),
         "E0_PAIRS": " ".join(f"{a},{b}" for a, b in e0["iperf_pairs"]),
         "E0_GGUF": " ".join(f"{m['name']}|{m['repo']}|{m['file']}" for m in e0["gguf_models"]),

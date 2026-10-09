@@ -66,6 +66,7 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | `ollama_version` | `0.35.1` | 各ノードで使う Ollama のイメージのバージョン（registry の `mirror/ollama` を使う） |
 | `requester_model` | `llama3.1:8b` | 断片返却型で質問者が使う Ollama のモデル（RAGRoute の既定と同じ系列） |
 | `expert_model` | `qwen3:0.6b` | 宿る型で各専門家が使うモデル．E0 の実測で見直す |
+| `expert_model_gpu` | `llama3.1:8b` | GPU を持つ専門家が宿る型で使うモデル（p0004）．省略すると `expert_model` と同じ |
 | `num_predict` | 2048 | 生成の上限トークン数 |
 | `num_ctx` | 16384 | 文脈長．15 断片 × 約 250 トークンに質問と指示を足しても収まる長さ |
 | `think` | `false` | qwen3 系の思考モード |
@@ -105,8 +106,11 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 
 ### デバイス（`requester`・`experts`・`gpu_workers`）
 
-実験で使うデバイスは役割ごとのリストに書く．**1 台のデバイスが持つ役割は 1 つだけ**で，役割はどのリストに置くかで決まる．
+実験で使うデバイスは役割ごとのリストに書く．**1 台のデバイスが同時に持つ役割は 1 つだけ**で，役割はどのリストに置くかで決まる．
 同じホストを 2 か所（または同じリストに 2 回）書くと，読み込み時にエラーになる．
+ただし `experts` と `gpu_workers` の両方に置くことだけは許す．GPU PC は，データ準備（`gpu_workers`）→ 実験（`experts`）→ 採点の順に
+時間を分けて使い，同時には持たないためである（p0004 §8.1．ユーザーの承認 U2）．
+`requester_llm` を省略すると，質問者の LLM は質問者と同じホストで動く（制御点が質問者と質問者の LLM を兼ねる）．
 
 ```yaml
 cluster:
@@ -121,9 +125,9 @@ cluster:
 | リスト | 役割 | 現在の構成 |
 |---|---|---|
 | `requester`（1 台） | 質問者．質問を投げ，断片返却型では回答も生成する | wafl-ctrl5（制御点が兼ねる） |
-| `requester_llm`（省略可．1 台） | 質問者の LLM（Ollama，`llm.requester_model`）を動かす GPU PC．省略すると質問者と同じホストで動かす．質問者の GPU で再ランク（`merge=cross_encoder`）を動かすと 8B の Ollama と VRAM を取り合い，一部の層が CPU で動いて生成が約 4 倍遅くなるため，別の GPU に分ける | 192.168.15.100（wafl500） |
-| `experts` | 専門家．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる | 192.168.13.100〜109，192.168.14.100〜109（20 台） |
-| `gpu_workers` | データ準備で MedCPT の埋め込みを制御点の GPU と分担する GPU PC | 192.168.15.101〜109（wafl501〜509） |
+| `requester_llm`（省略可．1 台） | 質問者の LLM（Ollama，`llm.requester_model`）を動かす GPU PC．省略すると質問者と同じホストで動かす．質問者の GPU で再ランク（`merge=cross_encoder`）を動かすと 8B の Ollama と VRAM を取り合い，一部の層が CPU で動いて生成が約 4 倍遅くなるため，別の GPU に分ける | 省略（制御点が兼ねる．s8 を再開するときだけ wafl500 にする．p0004 §14） |
+| `experts` | 専門家．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる（EnronQA は 150 個の受信箱を全台に均等に配る）．GPU を持つ専門家は Ollama を GPU で動かし，`llm.expert_model_gpu` を使う | CPU の 192.168.13.100〜109，192.168.14.100〜109 の後ろに，GPU の 192.168.15.100〜109（計 30 台） |
+| `gpu_workers` | データ準備の埋め込みを制御点の GPU と分担する GPU PC | 192.168.15.100〜109（wafl500〜509） |
 
 各要素のキーは `host`（必須）と `ssh_user`（省略時は `cluster.ssh_user`）である．
 質問者には制御点（`cluster.control` と同じホスト）を指定できる．その場合の `REMOTE_DIR` の扱いは [d0001](d0001_architecture.md) §1 にある．

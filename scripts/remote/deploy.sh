@@ -116,9 +116,12 @@ deploy_expert() {
     nrsync -aL --delete --exclude '*.offsets.npy' "$DS_DIR/shards/$sid/" "$(ssh_dest "$host"):$REMOTE_DIR/shards/$sid/"
   done
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
-  render_compose "$host" node --node-id "$host" --shard-ids "$shard_ids"
-  if [ "$ANSWER_MODE" = "local_answer" ]; then
-    send_ollama_model "$host" "$EXPERT_MODEL"
+  # GPU を持つ専門家（nvidia-smi で判定）は Ollama を GPU で動かし，llm.expert_model_gpu を使う
+  local role=node model=$EXPERT_MODEL
+  if has_gpu "$host"; then role=node_gpu model=$EXPERT_MODEL_GPU; fi
+  render_compose "$host" "$role" --node-id "$host" --shard-ids "$shard_ids"
+  if [ "$ANSWER_MODE" != "retrieval_only" ] && [ "$ANSWER_MODE" != "snippet_return" ]; then
+    send_ollama_model "$host" "$model"
   fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate"

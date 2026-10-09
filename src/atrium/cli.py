@@ -76,6 +76,7 @@ def cmd_node(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         Path(args.shards_dir),
         shard_ids,
         args.ollama_url,
+        args.expert_model,
     )
     return 0
 
@@ -343,12 +344,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--shards-dir", required=True)
     p.add_argument("--shard-ids", required=True, help="カンマ区切りのシャード ID")
     p.add_argument("--ollama-url", required=True)
+    p.add_argument("--expert-model", default=None, help="宿る型の LLM（省略時は llm.expert_model）")
     p.set_defaults(func=cmd_node)
 
     p = sub.add_parser(
         "render-compose", help="compose のひな形の ${...} を config.yaml の値で埋めて出す"
     )
-    p.add_argument("--role", choices=["node", "requester", "requester_llm"], required=True)
+    p.add_argument(
+        "--role", choices=["node", "node_gpu", "requester", "requester_llm"], required=True
+    )
     p.add_argument("--uid", type=int, required=True, help="ノードの SSH のユーザーの UID")
     p.add_argument("--gid", type=int, required=True)
     p.add_argument("--node-id", default=None, help="role=node のとき必須")

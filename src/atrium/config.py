@@ -62,6 +62,8 @@ class LlmConfig(_Strict):
     ollama_version: str
     requester_model: str
     expert_model: str
+    # GPU を持つ専門家（p0004 の wafl500〜509）が宿る型で使う LLM．省略すると expert_model と同じ
+    expert_model_gpu: str | None = None
     num_predict: int = 2048
     num_ctx: int = 16384
     think: bool = False
@@ -110,7 +112,7 @@ class DeviceConfig(_Strict):
 
 
 class ClusterConfig(_Strict):
-    """実機の構成．各ノードは制御点（control）から SSH で操作する．1 台のデバイスが持つ役割は 1 つだけである．"""
+    """実機の構成．各ノードは制御点（control）から SSH で操作する．1 台のデバイスが同時に持つ役割は 1 つだけである．"""
 
     control: str
     ssh_user: str
@@ -140,9 +142,20 @@ class ClusterConfig(_Strict):
 
     @model_validator(mode="after")
     def _check_one_role_per_device(self) -> ClusterConfig:
-        """同じホストが複数の役割（または同じ役割に重複）に現れたら拒否する．"""
-        hosts = [d.host for d in self.devices()]
-        duplicated = sorted({h for h in hosts if hosts.count(h) > 1})
+        """同じホストが同時に複数の役割（または同じ役割に重複）に現れたら拒否する．
+
+        experts と gpu_workers の両方に置くことだけは許す．GPU PC は，データ準備（gpu_workers）と
+        実験（experts）で時間を分けて使い，同時には持たないため（p0004 §8.1．ユーザーの承認 U2）．
+        """
+        experts = set(self.expert_hosts())
+        # experts にもある GPU PC は，時間を分けて使うので gpu_workers の側では数えない
+        workers_only = [h for h in self.gpu_worker_hosts() if h not in experts]
+        llm = [self.requester_llm.host] if self.requester_llm is not None else []
+        hosts = [self.requester.host, *llm, *self.expert_hosts(), *workers_only]
+        repeated_workers = {
+            h for h in self.gpu_worker_hosts() if self.gpu_worker_hosts().count(h) > 1
+        }
+        duplicated = sorted({h for h in hosts if hosts.count(h) > 1} | repeated_workers)
         if duplicated:
             raise ValueError(f"each device may have only one role; duplicated: {duplicated}")
         return self

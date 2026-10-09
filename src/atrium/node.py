@@ -94,9 +94,14 @@ def create_app(
     cfg: AtriumConfig,
     ollama_url: str,
     llm_client: httpx.AsyncClient | None = None,
+    expert_model: str | None = None,
 ) -> FastAPI:
-    """ノードの FastAPI アプリを作る（テストでは llm_client に MockTransport を渡す）．"""
+    """ノードの FastAPI アプリを作る（テストでは llm_client に MockTransport を渡す）．
+
+    expert_model は宿る型で使う LLM（GPU を持つ専門家は llm.expert_model_gpu）．省略すると llm.expert_model．
+    """
     client = llm_client or httpx.AsyncClient()
+    model = expert_model or cfg.llm.expert_model
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -185,7 +190,7 @@ def create_app(
         retrieve_s = time.perf_counter() - start
         messages = prompts.build_messages(req.dataset, req.question, context, req.options)
         try:
-            result = await llm.chat(client, ollama_url, cfg.llm.expert_model, messages, cfg.llm)
+            result = await llm.chat(client, ollama_url, model, messages, cfg.llm)
         except httpx.HTTPError as exc:
             logger.error("local LLM call failed: %s", exc)
             raise NodeError(502, "Local LLM unavailable") from exc
@@ -217,10 +222,12 @@ def main(
     shards_dir: Path,
     shard_ids: list[str],
     ollama_url: str,
+    expert_model: str | None = None,
 ) -> None:
     """指定されたシャードを読み込み，ノードを起動する（値は compose の command の引数で渡される）．"""
     import uvicorn
 
     cfg = load_config(config_path)
     stores = {sid: load_shard(shards_dir / sid) for sid in shard_ids}
-    uvicorn.run(create_app(node_id, stores, cfg, ollama_url), host=host, port=port)
+    app = create_app(node_id, stores, cfg, ollama_url, expert_model=expert_model)
+    uvicorn.run(app, host=host, port=port)

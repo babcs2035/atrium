@@ -67,3 +67,25 @@ def test_requester_llm_compose_publishes_ollama_with_requester_settings(cfg: Atr
     assert ollama["ports"] == ["11434:11434"]
     assert ollama["environment"]["OLLAMA_NUM_PARALLEL"] == cfg.llm.requester_num_parallel
     assert ollama["image"].endswith(f"mirror/ollama:{cfg.llm.ollama_version}")
+
+
+def test_gpu_node_compose_runs_ollama_on_the_gpu_with_the_gpu_model(cfg: AtriumConfig) -> None:
+    text = render_compose(
+        cfg, "node_gpu", 1000, 1000, node_id="g", shard_ids="s", template_dir=TEMPLATE_DIR
+    )
+    services = yaml.safe_load(text)["services"]
+    assert services["ollama"]["runtime"] == "nvidia"
+    command = services["node"]["command"]
+    assert command[command.index("--expert-model") + 1] == (
+        cfg.llm.expert_model_gpu or cfg.llm.expert_model
+    )
+
+
+def test_cpu_node_compose_uses_the_cpu_expert_model(cfg: AtriumConfig) -> None:
+    text = render_compose(
+        cfg, "node", 1000, 1000, node_id="c", shard_ids="s", template_dir=TEMPLATE_DIR
+    )
+    services = yaml.safe_load(text)["services"]
+    assert "runtime" not in services["ollama"]
+    command = services["node"]["command"]
+    assert command[command.index("--expert-model") + 1] == cfg.llm.expert_model

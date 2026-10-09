@@ -131,3 +131,17 @@ def test_config_without_enronqa_section_still_loads() -> None:
 def test_enronqa_sources_are_the_150_inboxes(cfg: AtriumConfig) -> None:
     sources = cfg.data.sources_of("enronqa")
     assert len(sources) == len(set(sources)) == 150
+
+
+def test_gpu_pc_may_be_both_an_expert_and_a_gpu_worker() -> None:
+    raw = _repository_config_dict()
+    host = raw["cluster"]["experts"][-1]["host"]
+    raw["cluster"]["gpu_workers"] = [{"host": host}]
+    assert host in AtriumConfig.model_validate(raw).cluster.gpu_worker_hosts()
+
+
+def test_gpu_worker_may_not_be_listed_twice() -> None:
+    raw = _repository_config_dict()
+    raw["cluster"]["gpu_workers"] = [{"host": "192.168.15.200"}, {"host": "192.168.15.200"}]
+    with pytest.raises(ValidationError, match="only one role"):
+        AtriumConfig.model_validate(raw)

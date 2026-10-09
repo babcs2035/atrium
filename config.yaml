@@ -50,6 +50,8 @@ llm:
   requester_model: "llama3.1:8b"
   # 宿る型で各専門家が使う LLM
   expert_model: "qwen3:0.6b"
+  # GPU を持つ専門家（wafl500〜509）が宿る型で使う LLM（p0004 の RQ-B．質問者と同じ 8B 級）
+  expert_model_gpu: "llama3.1:8b"
   # 生成の上限トークン数と文脈長（Ollama の num_predict / num_ctx）
   num_predict: 2048
   num_ctx: 16384
@@ -112,9 +114,7 @@ cluster:
   # 質問者：ベンチマークの質問を投げ，断片返却型では回答も生成する．制御点（wafl-ctrl5．RTX 3060）が兼ねる．
   # 制御点は本リポジトリの REMOTE_DIR を作業ディレクトリにも使うので，質問者の資材（data/・hf-cache/・ollama/ など）も同じ場所に置かれる
   requester: {host: "wafl-ctrl5"}
-  # 質問者の LLM（Ollama，llm.requester_model）を動かす GPU PC．省略すると質問者と同じホストで動かす．
-  # 制御点の GPU は再ランク（bge-reranker-v2-m3）とクエリ埋め込みに使い，8B の Ollama は wafl500 の GPU に全層を載せる
-  requester_llm: {host: "192.168.15.100"}
+  # 質問者の LLM（Ollama）は，cluster.requester_llm を省略して質問者と同じ wafl-ctrl5 の GPU で動かす（p0004 §8.1）
   # 専門家：シャードの検索と宿る型の回答を担う．シャード数だけ先頭から使い，足りなければ巡回して重ねる．
   # 13.x は wafl300〜309，14.x は wafl400〜409（i5-8350U，16 GB，GPU なし）
   experts:
@@ -138,8 +138,22 @@ cluster:
     - {host: "192.168.14.107"}
     - {host: "192.168.14.108"}
     - {host: "192.168.14.109"}
-  # データ準備で MedCPT の埋め込みを分担する GPU PC（制御点の GPU に加えて使う）．wafl501〜509
+  # GPU の専門家（wafl500〜509．RTX 3060）．CPU 20 台の後ろに置くので，先頭からシャード数だけ使う
+  # MedRAG（16 台）・FeB4RAG（13 台）の配置は変わらない．EnronQA は 30 台全てを使う（p0004 §8.1）
+    - {host: "192.168.15.100"}
+    - {host: "192.168.15.101"}
+    - {host: "192.168.15.102"}
+    - {host: "192.168.15.103"}
+    - {host: "192.168.15.104"}
+    - {host: "192.168.15.105"}
+    - {host: "192.168.15.106"}
+    - {host: "192.168.15.107"}
+    - {host: "192.168.15.108"}
+    - {host: "192.168.15.109"}
+  # データ準備で埋め込みを分担する GPU PC（制御点の GPU に加えて使う）．wafl500〜509．
+  # experts の GPU の専門家と同じ PC だが，データ準備・実験・採点で時間を分けて使う（docs/d0002 の役割の規則）
   gpu_workers:
+    - {host: "192.168.15.100"}
     - {host: "192.168.15.101"}
     - {host: "192.168.15.102"}
     - {host: "192.168.15.103"}

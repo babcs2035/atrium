@@ -111,6 +111,11 @@ run_parallel() {
   return "$failed"
 }
 
+# has_gpu <host>: NVIDIA の GPU を持つか（nvidia-smi が GPU を 1 枚以上列挙できるか）
+has_gpu() {
+  nssh "$1" "nvidia-smi -L 2> /dev/null | grep -q '^GPU '"
+}
+
 # 以前 root で動いていた Ollama が作ったファイルの所有者を SSH のユーザーへ戻す（自分の成果物だけが対象）
 own_remote_dir() {
   local host=$1

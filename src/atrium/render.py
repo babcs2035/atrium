@@ -12,7 +12,7 @@ from typing import Literal
 
 from atrium.config import AtriumConfig
 
-Role = Literal["node", "requester", "requester_llm"]
+Role = Literal["node", "node_gpu", "requester", "requester_llm"]
 
 TEMPLATE_DIR = Path("docker")
 
@@ -37,7 +37,16 @@ def compose_values(
         return values
     if not node_id or not shard_ids:
         raise ValueError("role=node requires node_id and shard_ids")
-    values.update(NODE_PORT=str(cfg.cluster.node_port), NODE_ID=node_id, SHARD_IDS=shard_ids)
+    # GPU を持つ専門家（node_gpu）は Ollama を GPU で動かし，llm.expert_model_gpu を使う
+    model = cfg.llm.expert_model
+    if role == "node_gpu" and cfg.llm.expert_model_gpu:
+        model = cfg.llm.expert_model_gpu
+    values.update(
+        NODE_PORT=str(cfg.cluster.node_port),
+        NODE_ID=node_id,
+        SHARD_IDS=shard_ids,
+        EXPERT_MODEL=model,
+    )
     return values
 
 

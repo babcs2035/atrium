@@ -1,4 +1,5 @@
-# 専門家ノード（GPU なしの PC）の compose のひな形．ドル記号と波括弧で書いた変数は config.yaml の値で，
+# GPU を持つ専門家ノード（p0004 の wafl500〜509）の compose のひな形．compose.node.yml との違いは，
+# Ollama を GPU（runtime: nvidia）で動かすことだけである．ドル記号と波括弧で書いた変数は config.yaml の値で，
 # deploy が `atrium render-compose` で埋めた compose.yml を各ノードの cluster.remote_dir へ置き，
 # `docker compose up -d` する（環境変数や .env は使わない）．
 #   ollama : 宿る型（local_answer）で使う CPU 推論の LLM
@@ -13,11 +14,14 @@ services:
     user: "${HOST_UID}:${HOST_GID}"
     volumes:
       - ./ollama:/ollama
+    # GPU は runtime: nvidia で渡す（compose.requester.yml と同じ理由）
+    runtime: nvidia
     environment:
       HOME: /ollama
       OLLAMA_MODELS: /ollama/models
       # 宿る型の連続した問い合わせのたびにモデルを読み直さないよう，起動中は保持する
       OLLAMA_KEEP_ALIVE: "-1"
+      NVIDIA_VISIBLE_DEVICES: all
 
   node:
     image: localhost:${REGISTRY_PORT}/atrium-node:latest
