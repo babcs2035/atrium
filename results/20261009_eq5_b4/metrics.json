@@ -1,0 +1,92 @@
+{
+ "all": {
+  "n": 2940,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "mean_selected_sources": 1.0,
+   "mean_relevant_sources": 1.0,
+   "mean_shards_queried": 1.0,
+   "query_reduction_vs_all": 0.9933333333333333
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 3.191106952726841e-05,
+    "p95": 4.803026095032692e-05,
+    "n": 2940
+   },
+   "route_s": {
+    "p50": 3.419024869799614e-05,
+    "p95": 5.587947089225053e-05,
+    "n": 2940
+   },
+   "generate_s": {
+    "p50": 17.758985157124698,
+    "p95": 52.12477101786057,
+    "n": 2940
+   },
+   "e2e_s": {
+    "p50": 17.75934853591025,
+    "p95": 52.12510052511929,
+    "n": 2940
+   }
+  },
+  "mean_bytes_received": 514.6146258503402,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 3.2993197278911564,
+   "mean_query_recipients": 1.6598639455782314
+  },
+  "gold_doc_retrieval": null
+ },
+ "test": {
+  "n": 2940,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "mean_selected_sources": 1.0,
+   "mean_relevant_sources": 1.0,
+   "mean_shards_queried": 1.0,
+   "query_reduction_vs_all": 0.9933333333333333
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 3.191106952726841e-05,
+    "p95": 4.803026095032692e-05,
+    "n": 2940
+   },
+   "route_s": {
+    "p50": 3.419024869799614e-05,
+    "p95": 5.587947089225053e-05,
+    "n": 2940
+   },
+   "generate_s": {
+    "p50": 17.758985157124698,
+    "p95": 52.12477101786057,
+    "n": 2940
+   },
+   "e2e_s": {
+    "p50": 17.75934853591025,
+    "p95": 52.12510052511929,
+    "n": 2940
+   }
+  },
+  "mean_bytes_received": 514.6146258503402,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 3.2993197278911564,
+   "mean_query_recipients": 1.6598639455782314
+  },
+  "gold_doc_retrieval": null
+ }
+}
