@@ -37,9 +37,12 @@ logger = logging.getLogger(__name__)
 JUDGEMENTS = "judgements.jsonl"
 # 1 台の Ollama に同時に送る要求の数（OLLAMA_NUM_PARALLEL と同じ）
 PER_URL_PARALLEL = 2
-# 失敗した要求を次の Ollama へ振り替えて送り直す回数．1 台の 500（2026-10-10 の κ で wafl506 が返した）で
-# 全件の採点が止まらないようにする．採点は温度 0 の読み取りなので，送り直しても結果は変わらない
+# 失敗した要求を次の Ollama へ振り替えて送り直す回数．1 台の一時的な失敗で全件の採点が止まらないようにする
 JUDGE_RETRIES = 2
+# Ollama は同じトークンの繰り返しが続くと生成を打ち切り，500 とこの文言を返す（0.35 で確認．2026-10-10 の κ で
+# qwen3:14b が 300 件中 2 件で陥った）．温度 0 ではどの Ollama でも同じく打ち切られるので，送り直さずに
+# 判定できなかった出力として扱う
+_REPEAT_ABORT = "token repeat limit reached"
 JUDGE_PROMPT = (
     "Given an email, a question about that email, a gold answer to that question, and a student's "
     "potentially correct or incorrect response, judge whether the answer matches the gold answer.\n\n"
@@ -119,7 +122,8 @@ async def judge_items(
     out: dict[str, tuple[bool | None, str]] = {}
     async with httpx.AsyncClient(transport=transport) as client:
 
-        async def ask(i: int, prompt: str) -> llm.LlmResult:
+        async def ask(i: int, prompt: str) -> llm.LlmResult | None:
+            """判定モデルの出力を返す．繰り返しで打ち切られたときは None．"""
             for attempt in range(JUDGE_RETRIES + 1):
                 url = urls[(i + attempt) % len(urls)]
                 try:
@@ -127,6 +131,15 @@ async def judge_items(
                         return await llm.chat(
                             client, url, model, [{"role": "user", "content": prompt}], llm_cfg
                         )
+                except httpx.HTTPStatusError as exc:
+                    if _REPEAT_ABORT in exc.response.text:
+                        logger.warning("judge output aborted by repeat limit at %s", url)
+                        return None
+                    if attempt == JUDGE_RETRIES:
+                        raise
+                    logger.warning(
+                        "judge request to %s failed (%s); retrying on another URL", url, exc
+                    )
                 except httpx.HTTPError as exc:
                     if attempt == JUDGE_RETRIES:
                         raise
@@ -140,7 +153,9 @@ async def judge_items(
                 email=item.email, question=item.question, gold=item.gold, answer=item.answer
             )
             result = await ask(i, prompt)
-            out[item.key] = (parse_verdict(result.content), result.content)
+            out[item.key] = (
+                (None, "") if result is None else (parse_verdict(result.content), result.content)
+            )
             if len(out) % 100 == 0:
                 logger.info("judged %d / %d", len(out), len(items))
 

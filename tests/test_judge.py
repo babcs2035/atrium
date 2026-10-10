@@ -83,3 +83,27 @@ async def test_judge_items_raises_when_every_ollama_fails(cfg: AtriumConfig) -> 
             cfg,
             transport=broken,
         )
+
+
+async def test_judge_items_marks_repeat_limit_aborts_as_unparsed_without_retrying(
+    cfg: AtriumConfig,
+) -> None:
+    # 温度 0 の繰り返しの打ち切りはどの Ollama でも同じなので，送り直さずに判定できなかったとする
+    calls: list[str] = []
+
+    def aborted(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.host)
+        return httpx.Response(500, json={"error": "prediction aborted, token repeat limit reached"})
+
+    transport = HostDispatchTransport(
+        {"a": httpx.MockTransport(aborted), "b": httpx.MockTransport(aborted)}
+    )
+    out = await judge_items(
+        [JudgeItem("k", "E", "Q", "G", "A")],
+        ["http://a:11434", "http://b:11434"],
+        "m",
+        cfg,
+        transport=transport,
+    )
+    assert out == {"k": (None, "")}
+    assert calls == ["a"]
