@@ -1,0 +1,31 @@
+# EQ8（k の振り幅．正答率）と EQ9（流し直し）：test の 2,940 問，parallel 30，routing oracle
+20261011_eq8_b2_k1 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer enronqa.k_context=1
+20261011_eq8_b2_k3 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer enronqa.k_context=3
+20261011_eq8_b2_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer enronqa.k_context=5
+20261011_eq8_b2_1p7b_k1 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+20261011_eq8_b2_1p7b_k3 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+20261011_eq8_b2_1p7b_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=5
+20261011_eq8_b1_k1 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=1
+20261011_eq8_b1_k3 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=3
+20261011_eq8_b1_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=5
+20261011_eq9_b3_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return_small enronqa.k_context=5
+@judge
+# EQ10（待ち時間）：各受信箱の先頭 2 問の 300 問，parallel 4（b1・b4 は 1），各 3 回
+20261011_eq10_b2_k1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+20261011_eq10_b2_k1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+20261011_eq10_b2_k1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+20261011_eq10_b2_k3_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+20261011_eq10_b2_k3_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+20261011_eq10_b2_k3_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+20261011_eq10_b2_1p7b_k1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+20261011_eq10_b2_1p7b_k1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+20261011_eq10_b2_1p7b_k1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+20261011_eq10_b2_1p7b_k3_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+20261011_eq10_b2_1p7b_k3_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+20261011_eq10_b2_1p7b_k3_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+20261011_eq10_b1_p1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+20261011_eq10_b1_p1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+20261011_eq10_b1_p1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+20261011_eq10_b4_p1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
+20261011_eq10_b4_p1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
+20261011_eq10_b4_p1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
