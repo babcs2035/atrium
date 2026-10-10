@@ -55,9 +55,12 @@ GPU PC ごとのログの末尾，ディスクの空きを表示する．
    （[d0002](d0002_configuration.md) の retrieval）
 2. `artifacts/<dataset>/placement.json` を作る（シャードを `cluster.experts` の先頭から割り当てる）
 3. 各専門家へシャード・`config.yaml`・compose（ひな形を `atrium render-compose` で埋めたもの．[d0002](d0002_configuration.md)）を配り，`docker compose up -d --force-recreate` する．
-   `answer_mode=local_answer` なら `llm.expert_model` を取得する
+   `answer_mode=local_answer` なら `llm.expert_model` を取得する．
+   専門家が自分の LLM で答える方式（`local_answer` は全ての専門家，`delegate_gpu` は GPU の専門家）では，
+   最初の要求でのモデルの読み込みを計測に含めないよう，`llm.num_ctx` でモデルを読み込んでおく
 4. 質問者へ質問・manifest・クエリ埋め込み・ルーター・qrels・配置を配り，Ollama を起動する．
-   `answer_mode=snippet_return` なら `llm.requester_model` を取得する
+   `answer_mode=snippet_return` なら `llm.requester_model` を取得する．質問者の Ollama で答える方式
+   （`snippet_return` は `llm.requester_model`，`snippet_return_small` は `llm.expert_model`）では，そのモデルを同じく読み込んでおく
 5. 配置から外れた専門家のコンテナを止める
 6. 全専門家の `/healthz` が応答するまで待つ（最長 10 分．PubMed のシャードは索引の組み立てに数分かかる）
 

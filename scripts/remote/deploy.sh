@@ -113,6 +113,16 @@ render_compose() {
   nssh "$host" "rm -f $REMOTE_DIR/.env"
 }
 
+# preload_ollama_model <host> "<docker compose のサブコマンドとサービス>" <model>:
+# 最初の要求でのモデルの読み込みを実験の計測に含めないよう，実験と同じ文脈長（llm.num_ctx）で読み込んでおく
+# （文脈長が違うと，最初の要求で読み込み直しになる．EQ5 の宿る型では各専門家の最初の回答に 3〜10 秒ほど上乗せされた）．
+# Ollama のイメージには curl が無く，ポートもホストへ開いていないので，同じ compose のコンテナから httpx で呼ぶ
+PRELOAD_PY='import sys, httpx; httpx.post("http://ollama:11434/api/generate", json={"model": sys.argv[1], "keep_alive": -1, "options": {"num_ctx": int(sys.argv[2])}}, timeout=600).raise_for_status()'
+preload_ollama_model() {
+  local host=$1 compose_cmd=$2 model=$3
+  retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose $compose_cmd python -c '$PRELOAD_PY' $model $LLM_NUM_CTX"
+}
+
 deploy_expert() {
   local host=$1
   local shard_ids=${SHARDS_OF[$host]}
@@ -134,6 +144,10 @@ deploy_expert() {
   fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate"
+  # 宿る型は全ての専門家が，委託（B4）は GPU の専門家だけが自分の LLM で答える
+  if [ "$ANSWER_MODE" = local_answer ] || { [ "$ANSWER_MODE" = delegate_gpu ] && [ "$role" = node_gpu ]; }; then
+    preload_ollama_model "$host" "exec -T node" "$model"
+  fi
   prune_old_images "$host"
 }
 
@@ -172,6 +186,11 @@ deploy_requester() {
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q"
   if [ -z "$REQUESTER_LLM" ]; then
     nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
+    # requester は実験ごとに start.sh が起動するので，ここでは使い捨てのコンテナから呼ぶ
+    case $ANSWER_MODE in
+      snippet_return) preload_ollama_model "$host" "run --rm --no-deps -T requester" "$REQUESTER_MODEL" ;;
+      snippet_return_small) preload_ollama_model "$host" "run --rm --no-deps -T requester" "$EXPERT_MODEL" ;;
+    esac
   else
     # 質問者の GPU を再ランクとクエリ埋め込みだけに使う（同じ GPU の Ollama は止める）
     nssh "$host" "cd $REMOTE_DIR && docker compose stop ollama"
