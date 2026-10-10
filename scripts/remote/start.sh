@@ -180,6 +180,7 @@ done < "$PLACEMENT_TSV"
 # 終了コード 2 は「一部の質問が失敗した」（結果は残っている）．それ以外の非 0 は実験自体の失敗
 case "$EXIT_CODE" in
   0) log "finished: $OUT" ;;
-  2) log "finished with failed questions (see error fields in $OUT/results.jsonl)" ;;
+  # 終了コード 2 を .exit に残すので，同じ run_id で `mise run start` し直すと，失敗した質問だけをやり直す
+  2) log "finished with failed questions (see error fields in $OUT/results.jsonl)"; exit 2 ;;
   *) log "requester exited with $EXIT_CODE (see $OUT/requester.log)" >&2; exit 1 ;;
 esac
