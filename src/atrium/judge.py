@@ -37,6 +37,9 @@ logger = logging.getLogger(__name__)
 JUDGEMENTS = "judgements.jsonl"
 # 1 台の Ollama に同時に送る要求の数（OLLAMA_NUM_PARALLEL と同じ）
 PER_URL_PARALLEL = 2
+# 失敗した要求を次の Ollama へ振り替えて送り直す回数．1 台の 500（2026-10-10 の κ で wafl506 が返した）で
+# 全件の採点が止まらないようにする．採点は温度 0 の読み取りなので，送り直しても結果は変わらない
+JUDGE_RETRIES = 2
 JUDGE_PROMPT = (
     "Given an email, a question about that email, a gold answer to that question, and a student's "
     "potentially correct or incorrect response, judge whether the answer matches the gold answer.\n\n"
@@ -104,23 +107,39 @@ def _judge_llm_config(cfg: AtriumConfig) -> LlmConfig:
 
 
 async def judge_items(
-    items: Sequence[JudgeItem], urls: Sequence[str], model: str, cfg: AtriumConfig
+    items: Sequence[JudgeItem],
+    urls: Sequence[str],
+    model: str,
+    cfg: AtriumConfig,
+    transport: httpx.AsyncBaseTransport | None = None,
 ) -> dict[str, tuple[bool | None, str]]:
-    """全件を採点する．key → （正誤，判定モデルの出力）．"""
+    """全件を採点する．key → （正誤，判定モデルの出力）．transport はテストで Ollama を模すときだけ渡す．"""
     llm_cfg = _judge_llm_config(cfg)
     semaphores = {url: asyncio.Semaphore(PER_URL_PARALLEL) for url in urls}
     out: dict[str, tuple[bool | None, str]] = {}
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(transport=transport) as client:
+
+        async def ask(i: int, prompt: str) -> llm.LlmResult:
+            for attempt in range(JUDGE_RETRIES + 1):
+                url = urls[(i + attempt) % len(urls)]
+                try:
+                    async with semaphores[url]:
+                        return await llm.chat(
+                            client, url, model, [{"role": "user", "content": prompt}], llm_cfg
+                        )
+                except httpx.HTTPError as exc:
+                    if attempt == JUDGE_RETRIES:
+                        raise
+                    logger.warning(
+                        "judge request to %s failed (%s); retrying on another URL", url, exc
+                    )
+            raise AssertionError("unreachable")
 
         async def one(i: int, item: JudgeItem) -> None:
-            url = urls[i % len(urls)]
             prompt = JUDGE_PROMPT.format(
                 email=item.email, question=item.question, gold=item.gold, answer=item.answer
             )
-            async with semaphores[url]:
-                result = await llm.chat(
-                    client, url, model, [{"role": "user", "content": prompt}], llm_cfg
-                )
+            result = await ask(i, prompt)
             out[item.key] = (parse_verdict(result.content), result.content)
             if len(out) % 100 == 0:
                 logger.info("judged %d / %d", len(out), len(items))

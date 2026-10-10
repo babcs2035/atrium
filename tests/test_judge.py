@@ -5,10 +5,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import httpx
 import pytest
 
 from atrium.analysis import accuracy_metrics, merge_judgements
-from atrium.judge import JUDGE_PROMPT, cohen_kappa, lcs_ratio, parse_verdict
+from atrium.config import AtriumConfig
+from atrium.judge import JUDGE_PROMPT, JudgeItem, cohen_kappa, judge_items, lcs_ratio, parse_verdict
+from tests.conftest import HostDispatchTransport, ollama_mock
 
 
 @pytest.mark.parametrize(
@@ -56,3 +59,27 @@ def test_merged_judgements_set_correctness_and_count_unparsed(tmp_path: Path) ->
     assert acc is not None
     assert acc["overall"]["accuracy"] == 0.5
     assert acc["unparsed_choice_rate"] == 0.5
+
+
+async def test_judge_items_retries_a_failed_request_on_another_ollama(cfg: AtriumConfig) -> None:
+    # 1 台が 500 を返しても，その要求は別の Ollama へ振り替えられ，全件が採点される（2026-10-10 の κ の中断）
+    broken = httpx.MockTransport(lambda _: httpx.Response(500, text="llama runner crashed"))
+    healthy = ollama_mock(lambda _: "Reasoning: same.\nAnswer: Correct")
+    transport = HostDispatchTransport({"broken": broken, "healthy": healthy})
+    items = [JudgeItem(f"k{i}", "E", "Q", "G", "A") for i in range(4)]
+    out = await judge_items(
+        items, ["http://broken:11434", "http://healthy:11434"], "m", cfg, transport=transport
+    )
+    assert {k: v[0] for k, v in out.items()} == {f"k{i}": True for i in range(4)}
+
+
+async def test_judge_items_raises_when_every_ollama_fails(cfg: AtriumConfig) -> None:
+    broken = httpx.MockTransport(lambda _: httpx.Response(500, text="down"))
+    with pytest.raises(httpx.HTTPStatusError):
+        await judge_items(
+            [JudgeItem("k", "E", "Q", "G", "A")],
+            ["http://broken:11434"],
+            "m",
+            cfg,
+            transport=broken,
+        )
