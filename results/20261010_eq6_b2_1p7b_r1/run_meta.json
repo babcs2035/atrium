@@ -1,0 +1,1557 @@
+{
+ "run_id": "20261010_eq6_b2_1p7b_r1",
+ "git_head": "0b2386b0fa39-dirty",
+ "dataset": "enronqa",
+ "routing": "oracle",
+ "answer_mode": "local_answer",
+ "merge": "score",
+ "advert_bytes": 0,
+ "n_questions": 300,
+ "n_skipped_on_resume": 0,
+ "n_nodes": 30,
+ "discovery_s": 0.986130379140377,
+ "sources": [
+  {
+   "source": "allen-p",
+   "n_docs": 371,
+   "shards": [
+    "allen-p"
+   ]
+  },
+  {
+   "source": "arnold-j",
+   "n_docs": 603,
+   "shards": [
+    "arnold-j"
+   ]
+  },
+  {
+   "source": "arora-h",
+   "n_docs": 126,
+   "shards": [
+    "arora-h"
+   ]
+  },
+  {
+   "source": "badeer-r",
+   "n_docs": 101,
+   "shards": [
+    "badeer-r"
+   ]
+  },
+  {
+   "source": "bailey-s",
+   "n_docs": 98,
+   "shards": [
+    "bailey-s"
+   ]
+  },
+  {
+   "source": "bass-e",
+   "n_docs": 639,
+   "shards": [
+    "bass-e"
+   ]
+  },
+  {
+   "source": "baughman-d",
+   "n_docs": 434,
+   "shards": [
+    "baughman-d"
+   ]
+  },
+  {
+   "source": "beck-s",
+   "n_docs": 1918,
+   "shards": [
+    "beck-s"
+   ]
+  },
+  {
+   "source": "benson-r",
+   "n_docs": 64,
+   "shards": [
+    "benson-r"
+   ]
+  },
+  {
+   "source": "blair-l",
+   "n_docs": 696,
+   "shards": [
+    "blair-l"
+   ]
+  },
+  {
+   "source": "brawner-s",
+   "n_docs": 41,
+   "shards": [
+    "brawner-s"
+   ]
+  },
+  {
+   "source": "buy-r",
+   "n_docs": 499,
+   "shards": [
+    "buy-r"
+   ]
+  },
+  {
+   "source": "campbell-l",
+   "n_docs": 1041,
+   "shards": [
+    "campbell-l"
+   ]
+  },
+  {
+   "source": "carson-m",
+   "n_docs": 112,
+   "shards": [
+    "carson-m"
+   ]
+  },
+  {
+   "source": "cash-m",
+   "n_docs": 830,
+   "shards": [
+    "cash-m"
+   ]
+  },
+  {
+   "source": "causholli-m",
+   "n_docs": 200,
+   "shards": [
+    "causholli-m"
+   ]
+  },
+  {
+   "source": "corman-s",
+   "n_docs": 519,
+   "shards": [
+    "corman-s"
+   ]
+  },
+  {
+   "source": "crandell-s",
+   "n_docs": 149,
+   "shards": [
+    "crandell-s"
+   ]
+  },
+  {
+   "source": "cuilla-m",
+   "n_docs": 143,
+   "shards": [
+    "cuilla-m"
+   ]
+  },
+  {
+   "source": "dasovich-j",
+   "n_docs": 5485,
+   "shards": [
+    "dasovich-j"
+   ]
+  },
+  {
+   "source": "davis-d",
+   "n_docs": 212,
+   "shards": [
+    "davis-d"
+   ]
+  },
+  {
+   "source": "dean-c",
+   "n_docs": 189,
+   "shards": [
+    "dean-c"
+   ]
+  },
+  {
+   "source": "delainey-d",
+   "n_docs": 352,
+   "shards": [
+    "delainey-d"
+   ]
+  },
+  {
+   "source": "derrick-j",
+   "n_docs": 464,
+   "shards": [
+    "derrick-j"
+   ]
+  },
+  {
+   "source": "dickson-s",
+   "n_docs": 44,
+   "shards": [
+    "dickson-s"
+   ]
+  },
+  {
+   "source": "donoho-l",
+   "n_docs": 150,
+   "shards": [
+    "donoho-l"
+   ]
+  },
+  {
+   "source": "donohoe-t",
+   "n_docs": 93,
+   "shards": [
+    "donohoe-t"
+   ]
+  },
+  {
+   "source": "dorland-c",
+   "n_docs": 168,
+   "shards": [
+    "dorland-c"
+   ]
+  },
+  {
+   "source": "ermis-f",
+   "n_docs": 108,
+   "shards": [
+    "ermis-f"
+   ]
+  },
+  {
+   "source": "farmer-d",
+   "n_docs": 1242,
+   "shards": [
+    "farmer-d"
+   ]
+  },
+  {
+   "source": "fischer-m",
+   "n_docs": 247,
+   "shards": [
+    "fischer-m"
+   ]
+  },
+  {
+   "source": "forney-j",
+   "n_docs": 168,
+   "shards": [
+    "forney-j"
+   ]
+  },
+  {
+   "source": "fossum-d",
+   "n_docs": 702,
+   "shards": [
+    "fossum-d"
+   ]
+  },
+  {
+   "source": "gang-l",
+   "n_docs": 90,
+   "shards": [
+    "gang-l"
+   ]
+  },
+  {
+   "source": "gay-r",
+   "n_docs": 136,
+   "shards": [
+    "gay-r"
+   ]
+  },
+  {
+   "source": "geaccone-t",
+   "n_docs": 377,
+   "shards": [
+    "geaccone-t"
+   ]
+  },
+  {
+   "source": "germany-c",
+   "n_docs": 1257,
+   "shards": [
+    "germany-c"
+   ]
+  },
+  {
+   "source": "gilbertsmith-d",
+   "n_docs": 166,
+   "shards": [
+    "gilbertsmith-d"
+   ]
+  },
+  {
+   "source": "giron-d",
+   "n_docs": 379,
+   "shards": [
+    "giron-d"
+   ]
+  },
+  {
+   "source": "griffith-j",
+   "n_docs": 298,
+   "shards": [
+    "griffith-j"
+   ]
+  },
+  {
+   "source": "grigsby-m",
+   "n_docs": 187,
+   "shards": [
+    "grigsby-m"
+   ]
+  },
+  {
+   "source": "guzman-m",
+   "n_docs": 316,
+   "shards": [
+    "guzman-m"
+   ]
+  },
+  {
+   "source": "haedicke-m",
+   "n_docs": 951,
+   "shards": [
+    "haedicke-m"
+   ]
+  },
+  {
+   "source": "hain-m",
+   "n_docs": 432,
+   "shards": [
+    "hain-m"
+   ]
+  },
+  {
+   "source": "harris-s",
+   "n_docs": 96,
+   "shards": [
+    "harris-s"
+   ]
+  },
+  {
+   "source": "hayslett-r",
+   "n_docs": 424,
+   "shards": [
+    "hayslett-r"
+   ]
+  },
+  {
+   "source": "heard-m",
+   "n_docs": 359,
+   "shards": [
+    "heard-m"
+   ]
+  },
+  {
+   "source": "hendrickson-s",
+   "n_docs": 146,
+   "shards": [
+    "hendrickson-s"
+   ]
+  },
+  {
+   "source": "hernandez-j",
+   "n_docs": 294,
+   "shards": [
+    "hernandez-j"
+   ]
+  },
+  {
+   "source": "hodge-j",
+   "n_docs": 237,
+   "shards": [
+    "hodge-j"
+   ]
+  },
+  {
+   "source": "holst-k",
+   "n_docs": 72,
+   "shards": [
+    "holst-k"
+   ]
+  },
+  {
+   "source": "horton-s",
+   "n_docs": 497,
+   "shards": [
+    "horton-s"
+   ]
+  },
+  {
+   "source": "hyatt-k",
+   "n_docs": 506,
+   "shards": [
+    "hyatt-k"
+   ]
+  },
+  {
+   "source": "hyvl-d",
+   "n_docs": 530,
+   "shards": [
+    "hyvl-d"
+   ]
+  },
+  {
+   "source": "jones-t",
+   "n_docs": 2255,
+   "shards": [
+    "jones-t"
+   ]
+  },
+  {
+   "source": "kaminski-v",
+   "n_docs": 3912,
+   "shards": [
+    "kaminski-v"
+   ]
+  },
+  {
+   "source": "kean-s",
+   "n_docs": 2111,
+   "shards": [
+    "kean-s"
+   ]
+  },
+  {
+   "source": "keavey-p",
+   "n_docs": 193,
+   "shards": [
+    "keavey-p"
+   ]
+  },
+  {
+   "source": "keiser-k",
+   "n_docs": 220,
+   "shards": [
+    "keiser-k"
+   ]
+  },
+  {
+   "source": "king-j",
+   "n_docs": 105,
+   "shards": [
+    "king-j"
+   ]
+  },
+  {
+   "source": "kitchen-l",
+   "n_docs": 1518,
+   "shards": [
+    "kitchen-l"
+   ]
+  },
+  {
+   "source": "kuykendall-t",
+   "n_docs": 90,
+   "shards": [
+    "kuykendall-t"
+   ]
+  },
+  {
+   "source": "lavorato-j",
+   "n_docs": 647,
+   "shards": [
+    "lavorato-j"
+   ]
+  },
+  {
+   "source": "lay-k",
+   "n_docs": 1317,
+   "shards": [
+    "lay-k"
+   ]
+  },
+  {
+   "source": "lenhart-m",
+   "n_docs": 156,
+   "shards": [
+    "lenhart-m"
+   ]
+  },
+  {
+   "source": "lewis-a",
+   "n_docs": 440,
+   "shards": [
+    "lewis-a"
+   ]
+  },
+  {
+   "source": "linder-e",
+   "n_docs": 17,
+   "shards": [
+    "linder-e"
+   ]
+  },
+  {
+   "source": "lokay-m",
+   "n_docs": 808,
+   "shards": [
+    "lokay-m"
+   ]
+  },
+  {
+   "source": "lokey-t",
+   "n_docs": 329,
+   "shards": [
+    "lokey-t"
+   ]
+  },
+  {
+   "source": "love-p",
+   "n_docs": 409,
+   "shards": [
+    "love-p"
+   ]
+  },
+  {
+   "source": "lucci-p",
+   "n_docs": 217,
+   "shards": [
+    "lucci-p"
+   ]
+  },
+  {
+   "source": "maggi-m",
+   "n_docs": 47,
+   "shards": [
+    "maggi-m"
+   ]
+  },
+  {
+   "source": "mann-k",
+   "n_docs": 2484,
+   "shards": [
+    "mann-k"
+   ]
+  },
+  {
+   "source": "martin-t",
+   "n_docs": 182,
+   "shards": [
+    "martin-t"
+   ]
+  },
+  {
+   "source": "may-l",
+   "n_docs": 159,
+   "shards": [
+    "may-l"
+   ]
+  },
+  {
+   "source": "mccarty-d",
+   "n_docs": 171,
+   "shards": [
+    "mccarty-d"
+   ]
+  },
+  {
+   "source": "mcconnell-m",
+   "n_docs": 622,
+   "shards": [
+    "mcconnell-m"
+   ]
+  },
+  {
+   "source": "mckay-b",
+   "n_docs": 69,
+   "shards": [
+    "mckay-b"
+   ]
+  },
+  {
+   "source": "mckay-j",
+   "n_docs": 179,
+   "shards": [
+    "mckay-j"
+   ]
+  },
+  {
+   "source": "mclaughlin-e",
+   "n_docs": 346,
+   "shards": [
+    "mclaughlin-e"
+   ]
+  },
+  {
+   "source": "merriss-s",
+   "n_docs": 22,
+   "shards": [
+    "merriss-s"
+   ]
+  },
+  {
+   "source": "meyers-a",
+   "n_docs": 28,
+   "shards": [
+    "meyers-a"
+   ]
+  },
+  {
+   "source": "mims-thurston-p",
+   "n_docs": 395,
+   "shards": [
+    "mims-thurston-p"
+   ]
+  },
+  {
+   "source": "motley-m",
+   "n_docs": 116,
+   "shards": [
+    "motley-m"
+   ]
+  },
+  {
+   "source": "neal-s",
+   "n_docs": 356,
+   "shards": [
+    "neal-s"
+   ]
+  },
+  {
+   "source": "nemec-g",
+   "n_docs": 1610,
+   "shards": [
+    "nemec-g"
+   ]
+  },
+  {
+   "source": "panus-s",
+   "n_docs": 61,
+   "shards": [
+    "panus-s"
+   ]
+  },
+  {
+   "source": "parks-j",
+   "n_docs": 342,
+   "shards": [
+    "parks-j"
+   ]
+  },
+  {
+   "source": "pereira-s",
+   "n_docs": 110,
+   "shards": [
+    "pereira-s"
+   ]
+  },
+  {
+   "source": "perlingiere-d",
+   "n_docs": 380,
+   "shards": [
+    "perlingiere-d"
+   ]
+  },
+  {
+   "source": "phanis-s",
+   "n_docs": 5,
+   "shards": [
+    "phanis-s"
+   ]
+  },
+  {
+   "source": "pimenov-v",
+   "n_docs": 83,
+   "shards": [
+    "pimenov-v"
+   ]
+  },
+  {
+   "source": "platter-p",
+   "n_docs": 123,
+   "shards": [
+    "platter-p"
+   ]
+  },
+  {
+   "source": "presto-k",
+   "n_docs": 494,
+   "shards": [
+    "presto-k"
+   ]
+  },
+  {
+   "source": "quenet-j",
+   "n_docs": 9,
+   "shards": [
+    "quenet-j"
+   ]
+  },
+  {
+   "source": "quigley-d",
+   "n_docs": 258,
+   "shards": [
+    "quigley-d"
+   ]
+  },
+  {
+   "source": "rapp-b",
+   "n_docs": 132,
+   "shards": [
+    "rapp-b"
+   ]
+  },
+  {
+   "source": "reitmeyer-j",
+   "n_docs": 64,
+   "shards": [
+    "reitmeyer-j"
+   ]
+  },
+  {
+   "source": "richey-c",
+   "n_docs": 143,
+   "shards": [
+    "richey-c"
+   ]
+  },
+  {
+   "source": "ring-a",
+   "n_docs": 58,
+   "shards": [
+    "ring-a"
+   ]
+  },
+  {
+   "source": "ring-r",
+   "n_docs": 275,
+   "shards": [
+    "ring-r"
+   ]
+  },
+  {
+   "source": "rodrique-r",
+   "n_docs": 141,
+   "shards": [
+    "rodrique-r"
+   ]
+  },
+  {
+   "source": "rogers-b",
+   "n_docs": 699,
+   "shards": [
+    "rogers-b"
+   ]
+  },
+  {
+   "source": "ruscitti-k",
+   "n_docs": 198,
+   "shards": [
+    "ruscitti-k"
+   ]
+  },
+  {
+   "source": "sager-e",
+   "n_docs": 871,
+   "shards": [
+    "sager-e"
+   ]
+  },
+  {
+   "source": "saibi-e",
+   "n_docs": 180,
+   "shards": [
+    "saibi-e"
+   ]
+  },
+  {
+   "source": "salisbury-h",
+   "n_docs": 315,
+   "shards": [
+    "salisbury-h"
+   ]
+  },
+  {
+   "source": "sanchez-m",
+   "n_docs": 59,
+   "shards": [
+    "sanchez-m"
+   ]
+  },
+  {
+   "source": "sanders-r",
+   "n_docs": 1649,
+   "shards": [
+    "sanders-r"
+   ]
+  },
+  {
+   "source": "scholtes-d",
+   "n_docs": 184,
+   "shards": [
+    "scholtes-d"
+   ]
+  },
+  {
+   "source": "schoolcraft-d",
+   "n_docs": 309,
+   "shards": [
+    "schoolcraft-d"
+   ]
+  },
+  {
+   "source": "schwieger-j",
+   "n_docs": 130,
+   "shards": [
+    "schwieger-j"
+   ]
+  },
+  {
+   "source": "scott-s",
+   "n_docs": 1305,
+   "shards": [
+    "scott-s"
+   ]
+  },
+  {
+   "source": "semperger-c",
+   "n_docs": 171,
+   "shards": [
+    "semperger-c"
+   ]
+  },
+  {
+   "source": "shackleton-s",
+   "n_docs": 3120,
+   "shards": [
+    "shackleton-s"
+   ]
+  },
+  {
+   "source": "shankman-j",
+   "n_docs": 812,
+   "shards": [
+    "shankman-j"
+   ]
+  },
+  {
+   "source": "shapiro-r",
+   "n_docs": 1163,
+   "shards": [
+    "shapiro-r"
+   ]
+  },
+  {
+   "source": "shively-h",
+   "n_docs": 191,
+   "shards": [
+    "shively-h"
+   ]
+  },
+  {
+   "source": "skilling-j",
+   "n_docs": 1023,
+   "shards": [
+    "skilling-j"
+   ]
+  },
+  {
+   "source": "slinger-r",
+   "n_docs": 26,
+   "shards": [
+    "slinger-r"
+   ]
+  },
+  {
+   "source": "smith-m",
+   "n_docs": 207,
+   "shards": [
+    "smith-m"
+   ]
+  },
+  {
+   "source": "solberg-g",
+   "n_docs": 13,
+   "shards": [
+    "solberg-g"
+   ]
+  },
+  {
+   "source": "south-s",
+   "n_docs": 13,
+   "shards": [
+    "south-s"
+   ]
+  },
+  {
+   "source": "staab-t",
+   "n_docs": 111,
+   "shards": [
+    "staab-t"
+   ]
+  },
+  {
+   "source": "stclair-c",
+   "n_docs": 471,
+   "shards": [
+    "stclair-c"
+   ]
+  },
+  {
+   "source": "steffes-j",
+   "n_docs": 1055,
+   "shards": [
+    "steffes-j"
+   ]
+  },
+  {
+   "source": "stepenovitch-j",
+   "n_docs": 210,
+   "shards": [
+    "stepenovitch-j"
+   ]
+  },
+  {
+   "source": "stokley-c",
+   "n_docs": 453,
+   "shards": [
+    "stokley-c"
+   ]
+  },
+  {
+   "source": "storey-g",
+   "n_docs": 140,
+   "shards": [
+    "storey-g"
+   ]
+  },
+  {
+   "source": "sturm-f",
+   "n_docs": 95,
+   "shards": [
+    "sturm-f"
+   ]
+  },
+  {
+   "source": "swerzbin-m",
+   "n_docs": 75,
+   "shards": [
+    "swerzbin-m"
+   ]
+  },
+  {
+   "source": "symes-k",
+   "n_docs": 688,
+   "shards": [
+    "symes-k"
+   ]
+  },
+  {
+   "source": "taylor-m",
+   "n_docs": 2671,
+   "shards": [
+    "taylor-m"
+   ]
+  },
+  {
+   "source": "tholt-j",
+   "n_docs": 185,
+   "shards": [
+    "tholt-j"
+   ]
+  },
+  {
+   "source": "thomas-p",
+   "n_docs": 308,
+   "shards": [
+    "thomas-p"
+   ]
+  },
+  {
+   "source": "townsend-j",
+   "n_docs": 52,
+   "shards": [
+    "townsend-j"
+   ]
+  },
+  {
+   "source": "tycholiz-b",
+   "n_docs": 259,
+   "shards": [
+    "tycholiz-b"
+   ]
+  },
+  {
+   "source": "ward-k",
+   "n_docs": 487,
+   "shards": [
+    "ward-k"
+   ]
+  },
+  {
+   "source": "watson-k",
+   "n_docs": 675,
+   "shards": [
+    "watson-k"
+   ]
+  },
+  {
+   "source": "weldon-c",
+   "n_docs": 215,
+   "shards": [
+    "weldon-c"
+   ]
+  },
+  {
+   "source": "whalley-g",
+   "n_docs": 205,
+   "shards": [
+    "whalley-g"
+   ]
+  },
+  {
+   "source": "whalley-l",
+   "n_docs": 273,
+   "shards": [
+    "whalley-l"
+   ]
+  },
+  {
+   "source": "white-s",
+   "n_docs": 405,
+   "shards": [
+    "white-s"
+   ]
+  },
+  {
+   "source": "whitt-m",
+   "n_docs": 122,
+   "shards": [
+    "whitt-m"
+   ]
+  },
+  {
+   "source": "williams-j",
+   "n_docs": 244,
+   "shards": [
+    "williams-j"
+   ]
+  },
+  {
+   "source": "williams-w3",
+   "n_docs": 623,
+   "shards": [
+    "williams-w3"
+   ]
+  },
+  {
+   "source": "wolfe-j",
+   "n_docs": 250,
+   "shards": [
+    "wolfe-j"
+   ]
+  },
+  {
+   "source": "ybarbo-p",
+   "n_docs": 228,
+   "shards": [
+    "ybarbo-p"
+   ]
+  },
+  {
+   "source": "zipper-a",
+   "n_docs": 330,
+   "shards": [
+    "zipper-a"
+   ]
+  },
+  {
+   "source": "zufferli-j",
+   "n_docs": 138,
+   "shards": [
+    "zufferli-j"
+   ]
+  }
+ ],
+ "config": {
+  "experiment": {
+   "kind": "e1_routing",
+   "dataset": "enronqa",
+   "routing": "oracle",
+   "answer_mode": "local_answer",
+   "question_limit": 2,
+   "parallel": 4,
+   "seed": 12
+  },
+  "retrieval": {
+   "k_ret": 50,
+   "k_rerank": 15,
+   "merge": "score",
+   "query_embedding": {
+    "medrag": "live",
+    "feb4rag": "cached",
+    "enronqa": "cached"
+   }
+  },
+  "routing": {
+   "random_k": {
+    "medrag": 3,
+    "feb4rag": 9,
+    "enronqa": 2
+   },
+   "ragroute_threshold": 0.5,
+   "top_m": {
+    "enronqa": 2
+   }
+  },
+  "llm": {
+   "ollama_version": "0.35.1",
+   "requester_model": "llama3.1:8b",
+   "expert_model": "qwen3:1.7b",
+   "expert_model_gpu": "llama3.1:8b",
+   "num_predict": 2048,
+   "num_ctx": 16384,
+   "think": false,
+   "temperature": 0.0,
+   "requester_num_parallel": 2,
+   "timeout_s": 600.0
+  },
+  "local_answer": {
+   "k_context": 15,
+   "aggregate": "vote",
+   "timeout_s": 1800.0
+  },
+  "e0": {
+   "hosts": [
+    "192.168.14.108",
+    "192.168.14.109"
+   ],
+   "iperf_pairs": [
+    [
+     "192.168.14.108",
+     "192.168.14.109"
+    ],
+    [
+     "192.168.14.108",
+     "192.168.13.100"
+    ]
+   ],
+   "gguf_models": [
+    {
+     "name": "qwen3-0.6b",
+     "repo": "unsloth/Qwen3-0.6B-GGUF",
+     "file": "Qwen3-0.6B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-1.7b",
+     "repo": "unsloth/Qwen3-1.7B-GGUF",
+     "file": "Qwen3-1.7B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-4b",
+     "repo": "unsloth/Qwen3-4B-GGUF",
+     "file": "Qwen3-4B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-8b",
+     "repo": "unsloth/Qwen3-8B-GGUF",
+     "file": "Qwen3-8B-Q4_K_M.gguf"
+    }
+   ],
+   "faiss_vectors": [
+    1000000,
+    2000000,
+    3000000
+   ],
+   "faiss_queries": 20
+  },
+  "cluster": {
+   "control": "wafl-ctrl5",
+   "ssh_user": "denjo",
+   "remote_dir": "/home/denjo/workspace/ktakahashi/atrium",
+   "data_dir": "/home/denjo/atrium-data",
+   "registry_port": 5000,
+   "node_port": 8100,
+   "requester": {
+    "host": "wafl-ctrl5",
+    "ssh_user": null
+   },
+   "requester_llm": null,
+   "experts": [
+    {
+     "host": "192.168.13.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.109",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.109",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.109",
+     "ssh_user": null
+    }
+   ],
+   "gpu_workers": [
+    {
+     "host": "192.168.15.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.109",
+     "ssh_user": null
+    }
+   ],
+   "shard_budget_gb": 6.0
+  },
+  "data": {
+   "medrag": {
+    "sources": [
+     "pubmed",
+     "statpearls",
+     "textbooks",
+     "wikipedia"
+    ],
+    "article_encoder": "ncbi/MedCPT-Article-Encoder",
+    "query_encoder": "ncbi/MedCPT-Query-Encoder",
+    "embed_batch_size": 128,
+    "embed_precision": "fp16_autocast",
+    "medrag_commit": "7599a728a28789fd601728c08d313b1148051f41",
+    "mirage_url": "https://raw.githubusercontent.com/Teddy-XiongGZ/MIRAGE/main/benchmark.json",
+    "statpearls_url": "https://ftp.ncbi.nlm.nih.gov/pub/litarch/3d/12/statpearls_NBK430685.tar.gz",
+    "descriptions": {
+     "pubmed": "PubMed abstracts: titles and abstracts of biomedical research articles.",
+     "statpearls": "StatPearls: clinical decision support articles for medical professionals.",
+     "textbooks": "Medical textbooks widely used by USMLE examinees (18 books).",
+     "wikipedia": "General-domain Wikipedia articles."
+    }
+   },
+   "feb4rag": {
+    "sources": [
+     "arguana",
+     "climate-fever",
+     "dbpedia-entity",
+     "fever",
+     "fiqa",
+     "hotpotqa",
+     "msmarco",
+     "nfcorpus",
+     "nq",
+     "scidocs",
+     "scifact",
+     "trec-covid",
+     "webis-touche2020"
+    ],
+    "feb4rag_commit": "b0fe9e19eddac3586fd54d30aebbb5d3d0d72118",
+    "beir_hf_repo": "BeIR/{name}",
+    "centroid_sample": 2000,
+    "centroid_sample_overrides": {
+     "trec-covid": 500
+    }
+   },
+   "enronqa": {
+    "sources": [
+     "allen-p",
+     "arnold-j",
+     "arora-h",
+     "badeer-r",
+     "bailey-s",
+     "bass-e",
+     "baughman-d",
+     "beck-s",
+     "benson-r",
+     "blair-l",
+     "brawner-s",
+     "buy-r",
+     "campbell-l",
+     "carson-m",
+     "cash-m",
+     "causholli-m",
+     "corman-s",
+     "crandell-s",
+     "cuilla-m",
+     "dasovich-j",
+     "davis-d",
+     "dean-c",
+     "delainey-d",
+     "derrick-j",
+     "dickson-s",
+     "donoho-l",
+     "donohoe-t",
+     "dorland-c",
+     "ermis-f",
+     "farmer-d",
+     "fischer-m",
+     "forney-j",
+     "fossum-d",
+     "gang-l",
+     "gay-r",
+     "geaccone-t",
+     "germany-c",
+     "gilbertsmith-d",
+     "giron-d",
+     "griffith-j",
+     "grigsby-m",
+     "guzman-m",
+     "haedicke-m",
+     "hain-m",
+     "harris-s",
+     "hayslett-r",
+     "heard-m",
+     "hendrickson-s",
+     "hernandez-j",
+     "hodge-j",
+     "holst-k",
+     "horton-s",
+     "hyatt-k",
+     "hyvl-d",
+     "jones-t",
+     "kaminski-v",
+     "kean-s",
+     "keavey-p",
+     "keiser-k",
+     "king-j",
+     "kitchen-l",
+     "kuykendall-t",
+     "lavorato-j",
+     "lay-k",
+     "lenhart-m",
+     "lewis-a",
+     "linder-e",
+     "lokay-m",
+     "lokey-t",
+     "love-p",
+     "lucci-p",
+     "maggi-m",
+     "mann-k",
+     "martin-t",
+     "may-l",
+     "mccarty-d",
+     "mcconnell-m",
+     "mckay-b",
+     "mckay-j",
+     "mclaughlin-e",
+     "merriss-s",
+     "meyers-a",
+     "mims-thurston-p",
+     "motley-m",
+     "neal-s",
+     "nemec-g",
+     "panus-s",
+     "parks-j",
+     "pereira-s",
+     "perlingiere-d",
+     "phanis-s",
+     "pimenov-v",
+     "platter-p",
+     "presto-k",
+     "quenet-j",
+     "quigley-d",
+     "rapp-b",
+     "reitmeyer-j",
+     "richey-c",
+     "ring-a",
+     "ring-r",
+     "rodrique-r",
+     "rogers-b",
+     "ruscitti-k",
+     "sager-e",
+     "saibi-e",
+     "salisbury-h",
+     "sanchez-m",
+     "sanders-r",
+     "scholtes-d",
+     "schoolcraft-d",
+     "schwieger-j",
+     "scott-s",
+     "semperger-c",
+     "shackleton-s",
+     "shankman-j",
+     "shapiro-r",
+     "shively-h",
+     "skilling-j",
+     "slinger-r",
+     "smith-m",
+     "solberg-g",
+     "south-s",
+     "staab-t",
+     "stclair-c",
+     "steffes-j",
+     "stepenovitch-j",
+     "stokley-c",
+     "storey-g",
+     "sturm-f",
+     "swerzbin-m",
+     "symes-k",
+     "taylor-m",
+     "tholt-j",
+     "thomas-p",
+     "townsend-j",
+     "tycholiz-b",
+     "ward-k",
+     "watson-k",
+     "weldon-c",
+     "whalley-g",
+     "whalley-l",
+     "white-s",
+     "whitt-m",
+     "williams-j",
+     "williams-w3",
+     "wolfe-j",
+     "ybarbo-p",
+     "zipper-a",
+     "zufferli-j"
+    ],
+    "hf_repo": "MichaelR207/enron_qa_0922",
+    "hf_revision": "c0b3a9190fd970e83cfbe7d399a08860e43e221e",
+    "encoder": "Snowflake/snowflake-arctic-embed-m-v1.5",
+    "embed_batch_size": 64,
+    "test_per_inbox": 20,
+    "dev_per_inbox": 20,
+    "train_per_inbox": 40,
+    "duplicate_jaccard": 0.9,
+    "k_context": 5,
+    "owner_probe_per_inbox": 10,
+    "card_subjects": 40,
+    "term_sketch_size": 200,
+    "n_centroids": 32,
+    "ragroute_negatives": 10,
+    "judge_model": "qwen3:8b",
+    "judge_reference_model": "qwen3:14b",
+    "judge_validate_n": 500,
+    "judge_kappa_n": 300
+   }
+  }
+ },
+ "started_at": 1791634316.4457545,
+ "finished_at": 1791636660.476011,
+ "failures": 0
+}

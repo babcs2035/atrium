@@ -1,0 +1,44 @@
+## B2
+run 1: n=300 cpu=200 errors=0 hit2048=[] template_echo_cpu=133/200
+  slow enronqa/test/61-0 bank=merriss-s node=192.168.13.101 e2e=145.3 prefill=15.6 decode=8.7 other=121.0 in=2248 out=97
+  slow enronqa/test/80-0 bank=slinger-r node=192.168.13.101 e2e=139.6 prefill=71.3 decode=24.1 other=44.2 in=6080 out=136
+  slow enronqa/test/41-0 bank=linder-e node=192.168.13.101 e2e=75.1 prefill=21.5 decode=11.3 other=42.3 in=2808 out=109
+  cpu prefill ms/token p5=5.24 p50=6.29 p95=7.89
+run 2: n=300 cpu=200 errors=0 hit2048=[] template_echo_cpu=133/200
+  slow enronqa/test/61-0 bank=merriss-s node=192.168.13.101 e2e=144.6 prefill=15.5 decode=8.6 other=120.4 in=2248 out=97
+  slow enronqa/test/80-0 bank=slinger-r node=192.168.13.101 e2e=139.4 prefill=70.9 decode=24.2 other=44.3 in=6080 out=136
+  slow enronqa/test/41-0 bank=linder-e node=192.168.13.101 e2e=74.3 prefill=21.5 decode=11.3 other=41.5 in=2808 out=109
+  cpu prefill ms/token p5=5.25 p50=6.33 p95=7.88
+run 3: n=300 cpu=200 errors=0 hit2048=[] template_echo_cpu=133/200
+  slow enronqa/test/61-0 bank=merriss-s node=192.168.13.101 e2e=145.3 prefill=15.6 decode=9.0 other=120.7 in=2248 out=97
+  slow enronqa/test/80-0 bank=slinger-r node=192.168.13.101 e2e=139.4 prefill=70.9 decode=24.1 other=44.4 in=6080 out=136
+  slow enronqa/test/41-0 bank=linder-e node=192.168.13.101 e2e=75.1 prefill=21.7 decode=11.4 other=42.0 in=2808 out=109
+  cpu prefill ms/token p5=5.26 p50=6.31 p95=7.89
+answers identical across 3 runs: 300/300; output tokens identical: 300/300
+vs EQ5: shared=300 same_node=300 same_answer=278 (cpu 182/200, gpu 96/100)
+## B2'
+run 1: n=300 cpu=200 errors=0 hit2048=[] template_echo_cpu=0/200
+  slow enronqa/test/61-0 bank=merriss-s node=192.168.13.101 e2e=277.8 prefill=38.3 decode=4.6 other=234.9 in=2248 out=28
+  slow enronqa/test/80-0 bank=slinger-r node=192.168.13.101 e2e=247.3 prefill=124.6 decode=36.8 other=85.9 in=6080 out=151
+  slow enronqa/test/41-0 bank=linder-e node=192.168.13.101 e2e=146.7 prefill=54.8 decode=7.9 other=84.0 in=2808 out=44
+  cpu prefill ms/token p5=12.26 p50=14.12 p95=16.68
+run 2: n=300 cpu=200 errors=0 hit2048=[] template_echo_cpu=0/200
+  slow enronqa/test/61-0 bank=merriss-s node=192.168.13.101 e2e=279.5 prefill=41.8 decode=4.6 other=233.2 in=2248 out=28
+  slow enronqa/test/80-0 bank=slinger-r node=192.168.13.101 e2e=250.2 prefill=125.3 decode=40.0 other=84.9 in=6080 out=151
+  slow enronqa/test/41-0 bank=linder-e node=192.168.13.101 e2e=153.2 prefill=54.7 decode=8.0 other=90.5 in=2808 out=44
+  cpu prefill ms/token p5=12.31 p50=14.16 p95=16.75
+run 3: n=300 cpu=200 errors=0 hit2048=[] template_echo_cpu=0/200
+  slow enronqa/test/61-0 bank=merriss-s node=192.168.13.101 e2e=281.2 prefill=41.6 decode=4.5 other=235.0 in=2248 out=28
+  slow enronqa/test/80-0 bank=slinger-r node=192.168.13.101 e2e=251.7 prefill=128.1 decode=39.5 other=84.1 in=6080 out=151
+  slow enronqa/test/41-0 bank=linder-e node=192.168.13.101 e2e=155.3 prefill=54.6 decode=8.0 other=92.7 in=2808 out=44
+  cpu prefill ms/token p5=12.25 p50=14.14 p95=16.73
+answers identical across 3 runs: 300/300; output tokens identical: 300/300
+vs EQ5: shared=300 same_node=300 same_answer=278 (cpu 181/200, gpu 97/100)
+## B2' / B2（1 回目，CPU の受信箱，同じ問・同じ専門家・同じ入力トークン数）
+prefill ratio median=2.24 range=[1.75,2.57]
+decode per-token ratio median=1.72
+output tokens ratio median=0.37
+e2e ratio median=1.62; B2' slower on 200/200
+## B2 の無効な回（KV キャッシュに当たった）と有効な 1 回目の答えの一致
+warm r2: same_answer=221/300 (cpu 132/200, gpu 89/100); cpu prefill median=0.085s
+warm r3: same_answer=221/300 (cpu 132/200, gpu 89/100); cpu prefill median=0.085s
