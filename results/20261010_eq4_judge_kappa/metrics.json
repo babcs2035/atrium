@@ -1,0 +1,7 @@
+{
+ "reference_model": "qwen3:14b",
+ "n": 293,
+ "n_unparsed_reference": 7,
+ "agreement": 0.9146757679180887,
+ "kappa": 0.8276430033647849
+}
