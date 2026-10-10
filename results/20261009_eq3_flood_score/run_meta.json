@@ -1,15 +1,15 @@
 {
  "run_id": "20261009_eq3_flood_score",
- "git_head": "ae5b09978c0a-dirty",
+ "git_head": "719a0bc69b30-dirty",
  "dataset": "enronqa",
  "routing": "flood_score",
  "answer_mode": "retrieval_only",
  "merge": "score",
  "advert_bytes": 0,
  "n_questions": 2940,
- "n_skipped_on_resume": 0,
+ "n_skipped_on_resume": 2765,
  "n_nodes": 30,
- "discovery_s": 1.016100195236504,
+ "discovery_s": 0.9914211379364133,
  "sources": [
   {
    "source": "allen-p",
@@ -1552,6 +1552,6 @@
   }
  },
  "started_at": 1791529664.3560505,
- "finished_at": 1791537414.3728092,
- "failures": 175
+ "finished_at": 1791603402.2696517,
+ "failures": 0
 }
