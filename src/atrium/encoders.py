@@ -20,6 +20,7 @@ from transformers import AutoModel, AutoTokenizer, PreTrainedTokenizerBase
 
 from atrium.arrays import F32Array
 from atrium.config import Precision
+from atrium.hf_revisions import pinned_revision
 
 Doc = tuple[str, str]  # (title, text)
 MAX_LENGTH = 512
@@ -60,8 +61,9 @@ class MedcptEncoder:
         self._article = self._load(article_model) if load_article else None
 
     def _load(self, model_name: str) -> tuple[PreTrainedTokenizerBase, torch.nn.Module]:
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModel.from_pretrained(model_name).to(self._device).eval()
+        revision = pinned_revision(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
+        model = AutoModel.from_pretrained(model_name, revision=revision).to(self._device).eval()
         return tokenizer, model
 
     @torch.no_grad()
@@ -149,11 +151,18 @@ class HfEncoder:
         self.spec = FEB4RAG_ENCODERS[name]
         self._batch_size = batch_size
         self._device = device or ("cpu" if self.spec.family == "sgpt" else _device())
+        revision = pinned_revision(self.spec.hf_name)
         if self.spec.family == "sentence_transformers":
-            self._st = SentenceTransformer(self.spec.hf_name, device=self._device)
+            self._st = SentenceTransformer(
+                self.spec.hf_name, device=self._device, revision=revision
+            )
         else:
-            self._tokenizer = AutoTokenizer.from_pretrained(self.spec.hf_name)
-            self._model = AutoModel.from_pretrained(self.spec.hf_name).to(self._device).eval()
+            self._tokenizer = AutoTokenizer.from_pretrained(self.spec.hf_name, revision=revision)
+            self._model = (
+                AutoModel.from_pretrained(self.spec.hf_name, revision=revision)
+                .to(self._device)
+                .eval()
+            )
 
     def encode_queries(self, queries: Sequence[str]) -> F32Array:
         """検索器ごとの接頭辞を付けて埋め込む．"""
@@ -224,7 +233,9 @@ class ArcticEncoder:
         """モデルを読み込む．"""
         self.name = name
         self._batch_size = batch_size
-        self._model = SentenceTransformer(name, device=device or _device())
+        self._model = SentenceTransformer(
+            name, device=device or _device(), revision=pinned_revision(name)
+        )
 
     def encode_queries(self, queries: Sequence[str]) -> F32Array:
         """クエリを埋め込む（行がクエリ．正規化済み）．"""

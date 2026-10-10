@@ -210,9 +210,12 @@ def cmd_fetch_models(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """モデルを Hugging Face のキャッシュ（HF_HOME）へ取得する．取得済みなら何もしない．"""
     from huggingface_hub import snapshot_download
 
+    from atrium.hf_revisions import pinned_revision
+
+    # 実行時に読む版と同じ commit を取得する（refs/main ではなく固定した版の snapshot が要る）
     for name in models_for(cfg, args.dataset):
         logging.info("fetching %s", name)
-        snapshot_download(repo_id=name)
+        snapshot_download(repo_id=name, revision=pinned_revision(name))
     return 0
 
 

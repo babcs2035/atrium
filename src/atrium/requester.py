@@ -31,6 +31,7 @@ from atrium import llm, prompts
 from atrium.arrays import F32Array
 from atrium.benchmarks import Question
 from atrium.config import AtriumConfig, Precision
+from atrium.hf_revisions import pinned_revision
 from atrium.manifest import NodeAssignment, Placement
 from atrium.merge import (
     NodeVote,
@@ -151,7 +152,9 @@ class CrossEncoderReranker:
         from sentence_transformers import CrossEncoder
 
         self._model = CrossEncoder(
-            self.MODEL, device="cuda" if torch.cuda.is_available() else "cpu"
+            self.MODEL,
+            device="cuda" if torch.cuda.is_available() else "cpu",
+            revision=pinned_revision(self.MODEL),
         )
         self._lock = threading.Lock()
 
