@@ -1,0 +1,14 @@
+== 元の採点
+  b2 vs b3 cpu: 0.297 vs 0.260 diff=+0.037 only_a=236 only_b=164 p=3.73e-04
+  b2 vs b1 cpu: 0.297 vs 0.789 diff=-0.491 only_a=48 only_b=1001 p=9.35e-233
+  b4 vs b1 cpu: 0.789 vs 0.789 diff=+0.001 only_a=46 only_b=45 p=1.00e+00
+  b1 vs b3 cpu: 0.789 vs 0.260 diff=+0.528 only_a=1067 only_b=42 p=7.48e-258
+  b3 gpu acc=0.253
+== echo を不正解に直す
+  b2 vs b3 cpu: 0.261 vs 0.215 diff=+0.046 only_a=211 only_b=122 p=1.24e-06
+  b2 vs b1 cpu: 0.261 vs 0.789 diff=-0.528 only_a=33 only_b=1057 p=1.89e-265
+  b4 vs b1 cpu: 0.789 vs 0.789 diff=+0.001 only_a=46 only_b=45 p=1.00e+00
+  b1 vs b3 cpu: 0.789 vs 0.215 diff=+0.574 only_a=1138 only_b=25 p=3.54e-299
+  b3 gpu acc=0.217
+== 両方とも echo でない問 n=918: B2 0.411 vs B3 0.403 only_a=82 only_b=75 p=6.32e-01
+CPU 側で final_answer が完全一致 736 / 1940

@@ -1,0 +1,9 @@
+bash
+/home/ktakahashi/.claude/jobs/0b6384d1/tmp/eq6_run.sh
+/home/ktakahashi/.claude/jobs/0b6384d1/tmp/eq6.log
+b2 dataset=enronqa question_limit=2 parallel=4 routing=oracle answer_mode=local_answer
+b3 dataset=enronqa question_limit=2 parallel=4 routing=oracle answer_mode=snippet_return_small
+b4 dataset=enronqa question_limit=2 parallel=4 routing=oracle answer_mode=delegate_gpu
+b1 dataset=enronqa question_limit=2 parallel=4 routing=oracle answer_mode=snippet_return
+b1_flood dataset=enronqa question_limit=2 parallel=4 routing=flood_score answer_mode=snippet_return
+b2_1p7b dataset=enronqa question_limit=2 parallel=4 routing=oracle answer_mode=local_answer expert_model="qwen3:1.7b"

@@ -1,0 +1,60 @@
+n_shared 1940
+node_answers の数 Counter({1: 1940})
+B2 n_context_docs Counter({5: 1940})
+B3 snippets_exposed Counter({5: 1940})
+prompt_tokens B2 p50=2596 p95=4903 max=12458
+prompt_tokens B3 p50=2596 p95=4903 max=12458
+prompt_tokens 差 B2−B3 p50=0 p95=0 max=0 min 0
+output_tokens B2 p50=108 p95=173 max=2048
+output_tokens B3 p50=106 p95=190 max=2048
+B2: num_predict に達した 4（うち正解 0），final_answer が空 0
+B3: num_predict に達した 6（うち正解 0），final_answer が空 0
+B2 output_tokens [0,100) n=746 acc=0.193
+B2 output_tokens [100,300) n=1173 acc=0.365
+B2 output_tokens [300,1000) n=13 acc=0.385
+B2 output_tokens [1000,99999) n=8 acc=0.000
+B3 output_tokens [0,100) n=815 acc=0.180
+B3 output_tokens [100,300) n=1085 acc=0.320
+B3 output_tokens [300,1000) n=23 acc=0.348
+B3 output_tokens [1000,99999) n=17 acc=0.176
+only_b2 236 only_b3 164
+--- B2 だけ正解 enronqa/test/10-0
+gold: Joe Quenet was scheduled to close on his new house on Wednesday.
+B2 : 'The answer to the question.' out_tok 78
+B3 : 'The answer to the question.' out_tok 82
+B3 raw: "Emails: Document [0] (Title: weekend activities) Subject: weekend activities  \nQuestion: On what day of the week was Joe Quenet scheduled to close on his new house, according to the email?  \nReasoning: Let's think step by step in order to produce the answer. The email mentions that the new house was"
+--- B2 だけ正解 enronqa/test/1004-0
+gold: The two attachments mentioned in the email are "OATI-webCARES-SO-Cert-User-Manual.pdf" and "EPMIWE.xls".
+B2 : 'The answer to the question.' out_tok 131
+B3 : 'The answer to the question' out_tok 130
+B3 raw: 'Emails: Document [0] (Title: Enron North America West (EPMIWE) Security Officer Access to the OATI webCARES System) Subject: Enron North America West (EPMIWE) Security Officer Access to the OATI webCARES System  \nQuestion: What are the names of the two attachments mentioned in the email from Ben Por'
+--- B2 だけ正解 enronqa/test/101-0
+gold: The event or situation being described is the registration of 37 new classmates from South High School on Classmates.com.
+B2 : 'Ryan Slinger has new classmates from South High School.' out_tok 108
+B3 : 'The answer to the question' out_tok 102
+B3 raw: "Emails: Document [0] (Title: Ryan, did you go to school with...?) Subject: Ryan, did you go to school with...?\nSender: memories@corp.classmates.com\nRecipients: ['ryan.slinger@enron.com']\n\nQuestion: What event or situation is being described in the email to Ryan Slinger regarding South High School on"
+--- B2 だけ正解 enronqa/test/10177-0
+gold: The scheduled time for Dutch Quigley's meeting with Mery, Ann, and Laura on Thursday, October 18th is from 2:00-4:00pm.
+B2 : 'The answer to the question is 2:00-4:00 pm.' out_tok 121
+B3 : 'The answer to the question.' out_tok 110
+B3 raw: "Emails: Document [0] (Title: RE: Simulation Meeting) Subject: RE: Simulation Meeting  \nQuestion: What is the scheduled time for Dutch Quigley's meeting with Mery, Ann, and Laura on Thursday, October 18th?  \nReasoning: Let's think step by step in order to find the answer. The email mentions that the "
+--- B3 だけ正解 enronqa/test/1016-0
+gold: The manager of the East region scheduling group agreed to have HR call Fritz Hiser for a screening interview.
+B2 : 'The answer to the question.' out_tok 118
+B3 : 'The manager agreed to schedule Fritz Hiser for a screening interview.' out_tok 92
+B3 raw: "Emails: Document [1] (Title: RE: internal referral) Subject: RE: internal referral  \nQuestion: What action did the manager of the East region scheduling group agree to take regarding Fritz Hiser's internal referral, according to Tori Kuykendall's email?  \nReasoning: Let's think step by step in order"
+--- B3 だけ正解 enronqa/test/10597-0
+gold: Uncertainties about Enron's financial situation have aggravated the volatility of gas futures on the New York Mercantile Exchange.
+B2 : 'The answer to the question.' out_tok 115
+B3 : "The uncertainty in Enron's financial situation has caused volatility in gas futures on the New York Mercantile Exchange." out_tok 106
+B3 raw: "Emails: Document [0] (Title: WSJ Article) Subject: WSJ Article  \nQuestion: According to the WSJ article, what specific effect have uncertainties about Enron's financial situation had on the volatility of gas futures on the New York Mercantile Exchange, as described by a trader?  \nReasoning: Let's th"
+--- B3 だけ正解 enronqa/test/10812-0
+gold: GBUCs is currently testing some modules of its electronic payment platform (EPP) internally.
+B2 : 'The answer to the question' out_tok 108
+B3 : 'The answer to the question.' out_tok 219
+B3 raw: "Emails: Document [0] (Title: Updage on GBUCs/2Xchange and an interesting 100 million dollar) Subject: Updage on GBUCs/2Xchange and an interesting 100 million dollar  \nQuestion: What is the current stage of internal testing of GBUCs' electronic payment platform (EPP), according to Stephen Meade's ema"
+--- B3 だけ正解 enronqa/test/10870-0
+gold: Enform has been profitable since its inception and has not needed any venture capital to operate.
+B2 : 'Enform, which is run by John McNevin, a former partner at Ernst & Young, has grown quickly in its three-year existence. It has about 200 employees, with branch offices in Dallas and Austin, and expect' out_tok 151
+B3 : 'Enform has been profitable since its inception and has not needed any venture capital to operate.' out_tok 100
+B3 raw: "Emails: Document [0] (Title: Venture News, Friday, December 15, 2000) Subject: Venture News, Friday, December 15, 2000  \nQuestion: What specific detail is mentioned about Enform's financial situation since its inception?  \nReasoning: Let's think step by step in order to produce the answer.  \nAnswer:"

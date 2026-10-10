@@ -1,0 +1,39 @@
+{
+ "metrics": {
+  "reference_model": "qwen3:14b",
+  "n": 294,
+  "n_unparsed_reference": 6,
+  "agreement": 0.9183673469387755,
+  "kappa": 0.8350862431636518
+ },
+ "failures": [
+  {
+   "key": "20261009_eq5_b2:enronqa/test/610-1",
+   "url": "http://192.168.15.106:11434",
+   "status": 500,
+   "body": "{\"error\":\"prediction aborted, token repeat limit reached\"}",
+   "prompt_chars": 3357
+  },
+  {
+   "key": "20261009_eq5_b2_1p7b:enronqa/test/54698-0",
+   "url": "http://192.168.15.107:11434",
+   "status": 500,
+   "body": "{\"error\":\"prediction aborted, token repeat limit reached\"}",
+   "prompt_chars": 2232
+  },
+  {
+   "key": "20261009_eq5_b2:enronqa/test/610-1",
+   "url": "http://192.168.15.107:11434",
+   "status": 500,
+   "body": "{\"error\":\"prediction aborted, token repeat limit reached\"}",
+   "prompt_chars": 3357
+  },
+  {
+   "key": "20261009_eq5_b2:enronqa/test/610-1",
+   "url": "http://192.168.15.108:11434",
+   "status": 500,
+   "body": "{\"error\":\"prediction aborted, token repeat limit reached\"}",
+   "prompt_chars": 3357
+  }
+ ]
+}
