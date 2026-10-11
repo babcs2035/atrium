@@ -6,51 +6,24 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from atrium.config import AtriumConfig
-from atrium.manifest import SHARD_SPEC_FILENAME, Manifest, ShardSpec, write_json_model
+from atrium.manifest import SHARD_SPEC_FILENAME, ShardSpec, write_json_model
 from atrium.paths import dataset_paths
 from atrium.routing import RoutingQuery, SourceProfile
-from atrium.routing.ragroute import RagrouteRouter
+from atrium.routing.ragroute import ROUTER_META, ROUTER_WEIGHTS, RagrouteRouter, RouterMeta
 from atrium.store import load_shard
 from atrium.train_router import train_router
+from tests.conftest import write_separable_medrag_data
 
 
 def test_trained_router_learns_which_source_matches_the_query(
     cfg: AtriumConfig, tmp_path: Path
 ) -> None:
-    # 先頭 32 次元の符号で関連するデータ源が決まる，容易に分離できる問題
     sources = cfg.data.medrag.sources
+    shards = write_separable_medrag_data(cfg, tmp_path)
     paths = dataset_paths(tmp_path, "medrag")
-    rng = np.random.default_rng(0)
-    qids = [f"medqa/{i:04d}" for i in range(300)]
-    sign = rng.choice([-1.0, 1.0], size=len(qids))
-    emb = rng.normal(size=(len(qids), 768)).astype(np.float32)
-    emb[:, :32] += 3 * sign[:, None]
-    labels = {q: (["pubmed"] if sign[i] > 0 else ["textbooks"]) for i, q in enumerate(qids)}
-    shards = [
-        ShardSpec(
-            shard_id=f"{s}-00",
-            source=s,
-            kind="faiss",
-            files=[],
-            n_docs=10,
-            dim=768,
-            encoder=cfg.data.medrag.query_encoder,
-            centroid=[float(i)] * 768,
-            description=s,
-        )
-        for i, s in enumerate(sources)
-    ]
-    write_json_model(paths.manifest, Manifest(dataset="medrag", sources=sources, shards=shards))
-    paths.queries.mkdir(parents=True)
-    np.save(paths.query_embeddings(cfg.data.medrag.query_encoder), emb)
-    paths.query_ids.write_text(json.dumps(qids))
-    paths.labels.parent.mkdir(parents=True)
-    paths.labels.write_text(json.dumps(labels))
-    paths.split.write_text(
-        json.dumps({"train": qids[:200], "val": qids[200:240], "test": qids[240:]})
-    )
 
     report = train_router(cfg, "medrag", paths)
 
@@ -75,6 +48,34 @@ def test_trained_router_learns_which_source_matches_the_query(
         {cfg.data.medrag.query_encoder: np.r_[np.full(32, 3.0), np.zeros(736)].astype(np.float32)},
     )
     assert "pubmed" in router.select(query, profiles)
+
+
+def test_router_trained_without_a_source_drops_it_and_writes_to_out_dir(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    write_separable_medrag_data(cfg, tmp_path)
+    paths = dataset_paths(tmp_path, "medrag")
+    out = tmp_path / "loso" / "textbooks"
+
+    report = train_router(cfg, "medrag", paths, exclude=["textbooks"], out_dir=out)
+
+    kept = [s for s in cfg.data.medrag.sources if s != "textbooks"]
+    meta = RouterMeta.model_validate_json((out / ROUTER_META).read_text(encoding="utf-8"))
+    assert meta.sources == kept
+    assert meta.input_dim == 2 * 768 + len(kept)
+    assert (out / ROUTER_WEIGHTS).exists()
+    assert not paths.router.exists()
+    # 除いたデータ源の組は学習にも評価にも入らない（300 問 × 残りの 3 源）
+    assert report["n_pairs"] == {"train": 600, "val": 120, "test": 180}
+
+
+def test_router_training_rejects_an_unknown_source_to_exclude(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    write_separable_medrag_data(cfg, tmp_path)
+
+    with pytest.raises(ValueError, match="unknown sources"):
+        train_router(cfg, "medrag", dataset_paths(tmp_path, "medrag"), exclude=["nope"])
 
 
 def test_search_results_shard_returns_distributed_hits_with_text(tmp_path: Path) -> None:

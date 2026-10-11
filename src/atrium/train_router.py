@@ -16,6 +16,7 @@ import math
 import random
 from collections.abc import Sequence
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
@@ -113,8 +114,18 @@ def binary_metrics(labels: F32Array, probs: F32Array, threshold: float) -> dict[
     return {"precision": precision, "recall": recall, "f1": f1, "auc": auc}
 
 
-def train_router(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -> dict[str, object]:
-    """ルーターを学習し，成果物を paths.router に書く．評価値を返す．"""
+def train_router(
+    cfg: AtriumConfig,
+    dataset: DatasetName,
+    paths: DatasetPaths,
+    exclude: Sequence[str] = (),
+    out_dir: Path | None = None,
+) -> dict[str, object]:
+    """ルーターを学習し，成果物を out_dir（既定は paths.router）に書く．評価値を返す．
+
+    exclude のデータ源は学習に使わず，one-hot の長さも 1 個ずつ短くなる（p0003 E2 の LOSO で，
+    新参源を知らない N−1 源のルーターを作るため）．その源の関連ラベルは，残りの源の正例・負例に影響しない．
+    """
     import torch
     from sklearn.metrics import roc_curve
     from torch import nn
@@ -133,9 +144,15 @@ def train_router(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    all_sources = cfg.data.sources_of(dataset)
+    unknown = set(exclude) - set(all_sources)
+    if unknown:
+        raise ValueError(f"unknown sources to exclude: {sorted(unknown)}")
     manifest = read_manifest(paths.manifest)
     sources = []
-    for name in cfg.data.sources_of(dataset):
+    for name in all_sources:
+        if name in exclude:
+            continue
         members = manifest.shards_of(name)
         sources.append(
             SourceInfo(
@@ -221,9 +238,10 @@ def train_router(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -
         "test_at_0.5": binary_metrics(tensors["test"][1].numpy(), predict(tensors["test"][0]), 0.5),
         "n_pairs": {k: int(len(v[1])) for k, v in tensors.items()},
     }
-    paths.router.mkdir(parents=True, exist_ok=True)
+    out = out_dir if out_dir is not None else paths.router
+    out.mkdir(parents=True, exist_ok=True)
     if use_scaler:
-        np.savez(paths.router / ROUTER_SCALER, mean=mean, scale=scale)
+        np.savez(out / ROUTER_SCALER, mean=mean, scale=scale)
     meta = RouterMeta(
         dataset=dataset,
         sources=[s.name for s in sources],
@@ -232,10 +250,10 @@ def train_router(cfg: AtriumConfig, dataset: DatasetName, paths: DatasetPaths) -
         use_scaler=use_scaler,
         val_optimal_threshold=youden,
     )
-    (paths.router / ROUTER_META).write_text(meta.model_dump_json(indent=1), encoding="utf-8")
-    (paths.router / "train_report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
+    (out / ROUTER_META).write_text(meta.model_dump_json(indent=1), encoding="utf-8")
+    (out / "train_report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
     # データ準備は router.pt の有無で完了を判断するので，最後に（一時ファイルからの置き換えで）書く
-    tmp = paths.router / f"{ROUTER_WEIGHTS}.tmp"
+    tmp = out / f"{ROUTER_WEIGHTS}.tmp"
     torch.save(best_state, tmp)
-    tmp.replace(paths.router / ROUTER_WEIGHTS)
+    tmp.replace(out / ROUTER_WEIGHTS)
     return report

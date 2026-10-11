@@ -12,7 +12,8 @@ import pytest
 
 from atrium.arrays import F32Array
 from atrium.config import AtriumConfig, load_config
-from atrium.manifest import SHARD_SPEC_FILENAME, ChunkFile, ShardSpec, write_json_model
+from atrium.manifest import SHARD_SPEC_FILENAME, ChunkFile, Manifest, ShardSpec, write_json_model
+from atrium.paths import dataset_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -62,6 +63,46 @@ def write_faiss_shard(
     )
     write_json_model(shard_dir / SHARD_SPEC_FILENAME, spec)
     return spec
+
+
+def write_separable_medrag_data(cfg: AtriumConfig, root: Path) -> list[ShardSpec]:
+    """ルーターの学習用の小さな MedRAG 型データ（manifest・クエリ埋め込み・ラベル・分割）を root に書く．
+
+    先頭 32 次元の符号で関連するデータ源（正なら pubmed，負なら textbooks）が決まり，容易に分離できる．
+    重心はデータ源 i が全成分 i のベクトルで，one-hot が無くてもデータ源を区別できる．
+    """
+    sources = cfg.data.medrag.sources
+    paths = dataset_paths(root, "medrag")
+    rng = np.random.default_rng(0)
+    qids = [f"medqa/{i:04d}" for i in range(300)]
+    sign = rng.choice([-1.0, 1.0], size=len(qids))
+    emb = rng.normal(size=(len(qids), 768)).astype(np.float32)
+    emb[:, :32] += 3 * sign[:, None]
+    labels = {q: (["pubmed"] if sign[i] > 0 else ["textbooks"]) for i, q in enumerate(qids)}
+    shards = [
+        ShardSpec(
+            shard_id=f"{s}-00",
+            source=s,
+            kind="faiss",
+            files=[],
+            n_docs=10,
+            dim=768,
+            encoder=cfg.data.medrag.query_encoder,
+            centroid=[float(i)] * 768,
+            description=s,
+        )
+        for i, s in enumerate(sources)
+    ]
+    write_json_model(paths.manifest, Manifest(dataset="medrag", sources=sources, shards=shards))
+    paths.queries.mkdir(parents=True)
+    np.save(paths.query_embeddings(cfg.data.medrag.query_encoder), emb)
+    paths.query_ids.write_text(json.dumps(qids))
+    paths.labels.parent.mkdir(parents=True)
+    paths.labels.write_text(json.dumps(labels))
+    paths.split.write_text(
+        json.dumps({"train": qids[:200], "val": qids[200:240], "test": qids[240:]})
+    )
+    return shards
 
 
 class HostDispatchTransport(httpx.AsyncBaseTransport):
