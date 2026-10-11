@@ -1,0 +1,464 @@
+{
+ "dataset": "medrag",
+ "split": "test",
+ "n_questions": 4599,
+ "n_k_selection_questions": 3064,
+ "sources": [
+  "pubmed",
+  "statpearls",
+  "textbooks",
+  "wikipedia"
+ ],
+ "methods": {
+  "desc_sim": {
+   "pooled": {
+    "precision": 0.5153689537251182,
+    "recall": 0.7954600927507932,
+    "f1": 0.6254903136808013,
+    "mean_selected_sources": 2.75,
+    "mean_relevant_sources": 1.781691672102631,
+    "query_reduction_vs_all": 0.3125,
+    "newcomer_recall": 0.8302416402245546,
+    "n_newcomer_pairs": 8194
+   },
+   "by_holdout": {
+    "pubmed": {
+     "precision": 0.5049648474306009,
+     "recall": 0.8502562850866487,
+     "f1": 0.6336228457096085,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.8932017051828585,
+     "n_newcomer_pairs": 4457,
+     "k": 3,
+     "k_selection_f1": {
+      "1": 0.3452359590884622,
+      "2": 0.4209795067731851,
+      "3": 0.4288522348517221
+     }
+    },
+    "statpearls": {
+     "precision": 0.5621874320504457,
+     "recall": 0.6310715157432267,
+     "f1": 0.5946412143514258,
+     "mean_selected_sources": 2.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.5,
+     "newcomer_recall": 0.7760617760617761,
+     "n_newcomer_pairs": 1036,
+     "k": 2,
+     "k_selection_f1": {
+      "1": 0.5992366412213741,
+      "2": 0.7120102526547053,
+      "3": 0.6857306262510724
+     }
+    },
+    "textbooks": {
+     "precision": 0.5049648474306009,
+     "recall": 0.8502562850866487,
+     "f1": 0.6336228457096085,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.8584779706275033,
+     "n_newcomer_pairs": 749,
+     "k": 3,
+     "k_selection_f1": {
+      "1": 0.4871826935100662,
+      "2": 0.6941506192930115,
+      "3": 0.6984778761061947
+     }
+    },
+    "wikipedia": {
+     "precision": 0.5049648474306009,
+     "recall": 0.8502562850866487,
+     "f1": 0.6336228457096085,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.704405737704918,
+     "n_newcomer_pairs": 1952,
+     "k": 3,
+     "k_selection_f1": {
+      "1": 0.5215832298993243,
+      "2": 0.6243334949103247,
+      "3": 0.6259062710217504
+     }
+    }
+   }
+  },
+  "centroid_sim": {
+   "pooled": {
+    "precision": 0.3211567732115677,
+    "recall": 0.5407615328288992,
+    "f1": 0.40298303851575645,
+    "mean_selected_sources": 3.0,
+    "mean_relevant_sources": 1.781691672102631,
+    "query_reduction_vs_all": 0.25,
+    "newcomer_recall": 0.5407615328288992,
+    "n_newcomer_pairs": 8194
+   },
+   "by_holdout": {
+    "pubmed": {
+     "precision": 0.3211567732115677,
+     "recall": 0.5407615328288992,
+     "f1": 0.40298303851575645,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.1687233565178371,
+     "n_newcomer_pairs": 4457,
+     "k": 3,
+     "k_selection_f1": {
+      "1": 0.36497398169747,
+      "2": 0.42561074447146,
+      "3": 0.4288522348517221
+     }
+    },
+    "statpearls": {
+     "precision": 0.3211567732115677,
+     "recall": 0.5407615328288992,
+     "f1": 0.40298303851575645,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.9806949806949807,
+     "n_newcomer_pairs": 1036,
+     "k": 3,
+     "k_selection_f1": {
+      "1": 0.25674300254452925,
+      "2": 0.3711094837056023,
+      "3": 0.6857306262510724
+     }
+    },
+    "textbooks": {
+     "precision": 0.3211567732115677,
+     "recall": 0.5407615328288992,
+     "f1": 0.40298303851575645,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 1.0,
+     "n_newcomer_pairs": 749,
+     "k": 3,
+     "k_selection_f1": {
+      "1": 0.3433787670376391,
+      "2": 0.43413796220956513,
+      "3": 0.6984778761061947
+     }
+    },
+    "wikipedia": {
+     "precision": 0.3211567732115677,
+     "recall": 0.5407615328288992,
+     "f1": 0.40298303851575645,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.9805327868852459,
+     "n_newcomer_pairs": 1952,
+     "k": 3,
+     "k_selection_f1": {
+      "1": 0.16025375810233072,
+      "2": 0.2997576345128454,
+      "3": 0.6259062710217504
+     }
+    }
+   }
+  },
+  "ragroute-frozen": {
+   "pooled": {
+    "precision": 0.7674972333076227,
+    "recall": 0.6982548206004393,
+    "f1": 0.7312405144180845,
+    "mean_selected_sources": 1.620950206566645,
+    "mean_relevant_sources": 1.781691672102631,
+    "query_reduction_vs_all": 0.5947624483583387,
+    "newcomer_recall": 0.3541615816451062,
+    "n_newcomer_pairs": 8194
+   },
+   "by_holdout": {
+    "pubmed": {
+     "precision": 0.7548227904890086,
+     "recall": 0.4106663412252868,
+     "f1": 0.5319317104015175,
+     "mean_selected_sources": 0.969341161121983,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.7576647097195043,
+     "newcomer_recall": 0.25824545658514697,
+     "n_newcomer_pairs": 4457
+    },
+    "statpearls": {
+     "precision": 0.7087279763723393,
+     "recall": 0.8492799609470344,
+     "f1": 0.7726641869760729,
+     "mean_selected_sources": 2.1350293542074366,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.46624266144814086,
+     "newcomer_recall": 0.7982625482625483,
+     "n_newcomer_pairs": 1036
+    },
+    "textbooks": {
+     "precision": 0.7958203218832572,
+     "recall": 0.808640468635587,
+     "f1": 0.802179176755448,
+     "mean_selected_sources": 1.8103935638182214,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.5474016090454447,
+     "newcomer_recall": 0.43124165554072097,
+     "n_newcomer_pairs": 749
+    },
+    "wikipedia": {
+     "precision": 0.8226164079822617,
+     "recall": 0.7244325115938491,
+     "f1": 0.7704088254380272,
+     "mean_selected_sources": 1.5690367471189388,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.6077408132202653,
+     "newcomer_recall": 0.3078893442622951,
+     "n_newcomer_pairs": 1952
+    }
+   }
+  },
+  "ragroute-upper": {
+   "pooled": {
+    "precision": 0.8649041639127562,
+    "recall": 0.7985111056870882,
+    "f1": 0.8303826384922902,
+    "mean_selected_sources": 1.644922809306371,
+    "mean_relevant_sources": 1.781691672102631,
+    "query_reduction_vs_all": 0.5887692976734072,
+    "newcomer_recall": 0.7985111056870882,
+    "n_newcomer_pairs": 8194
+   },
+   "by_holdout": {
+    "pubmed": {
+     "precision": 0.8649041639127562,
+     "recall": 0.7985111056870882,
+     "f1": 0.8303826384922902,
+     "mean_selected_sources": 1.644922809306371,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.5887692976734072,
+     "newcomer_recall": 1.0,
+     "n_newcomer_pairs": 4457
+    },
+    "statpearls": {
+     "precision": 0.8649041639127562,
+     "recall": 0.7985111056870882,
+     "f1": 0.8303826384922902,
+     "mean_selected_sources": 1.644922809306371,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.5887692976734072,
+     "newcomer_recall": 0.36486486486486486,
+     "n_newcomer_pairs": 1036
+    },
+    "textbooks": {
+     "precision": 0.8649041639127562,
+     "recall": 0.7985111056870882,
+     "f1": 0.8303826384922902,
+     "mean_selected_sources": 1.644922809306371,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.5887692976734072,
+     "newcomer_recall": 0.6008010680907877,
+     "n_newcomer_pairs": 749
+    },
+    "wikipedia": {
+     "precision": 0.8649041639127562,
+     "recall": 0.7985111056870882,
+     "f1": 0.8303826384922902,
+     "mean_selected_sources": 1.644922809306371,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.5887692976734072,
+     "newcomer_recall": 0.6444672131147541,
+     "n_newcomer_pairs": 1952
+    }
+   }
+  },
+  "all": {
+   "pooled": {
+    "precision": 0.44542291802565775,
+    "recall": 1.0,
+    "f1": 0.6163219255359158,
+    "mean_selected_sources": 4.0,
+    "mean_relevant_sources": 1.781691672102631,
+    "query_reduction_vs_all": 0.0,
+    "newcomer_recall": 1.0,
+    "n_newcomer_pairs": 8194
+   },
+   "by_holdout": {
+    "pubmed": {
+     "precision": 0.44542291802565775,
+     "recall": 1.0,
+     "f1": 0.6163219255359158,
+     "mean_selected_sources": 4.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.0,
+     "newcomer_recall": 1.0,
+     "n_newcomer_pairs": 4457
+    },
+    "statpearls": {
+     "precision": 0.44542291802565775,
+     "recall": 1.0,
+     "f1": 0.6163219255359158,
+     "mean_selected_sources": 4.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.0,
+     "newcomer_recall": 1.0,
+     "n_newcomer_pairs": 1036
+    },
+    "textbooks": {
+     "precision": 0.44542291802565775,
+     "recall": 1.0,
+     "f1": 0.6163219255359158,
+     "mean_selected_sources": 4.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.0,
+     "newcomer_recall": 1.0,
+     "n_newcomer_pairs": 749
+    },
+    "wikipedia": {
+     "precision": 0.44542291802565775,
+     "recall": 1.0,
+     "f1": 0.6163219255359158,
+     "mean_selected_sources": 4.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.0,
+     "newcomer_recall": 1.0,
+     "n_newcomer_pairs": 1952
+    }
+   }
+  },
+  "none": {
+   "pooled": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "mean_selected_sources": 0.0,
+    "mean_relevant_sources": 1.781691672102631,
+    "query_reduction_vs_all": 1.0,
+    "newcomer_recall": 0.0,
+    "n_newcomer_pairs": 8194
+   },
+   "by_holdout": {
+    "pubmed": {
+     "precision": 0.0,
+     "recall": 0.0,
+     "f1": 0.0,
+     "mean_selected_sources": 0.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 1.0,
+     "newcomer_recall": 0.0,
+     "n_newcomer_pairs": 4457
+    },
+    "statpearls": {
+     "precision": 0.0,
+     "recall": 0.0,
+     "f1": 0.0,
+     "mean_selected_sources": 0.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 1.0,
+     "newcomer_recall": 0.0,
+     "n_newcomer_pairs": 1036
+    },
+    "textbooks": {
+     "precision": 0.0,
+     "recall": 0.0,
+     "f1": 0.0,
+     "mean_selected_sources": 0.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 1.0,
+     "newcomer_recall": 0.0,
+     "n_newcomer_pairs": 749
+    },
+    "wikipedia": {
+     "precision": 0.0,
+     "recall": 0.0,
+     "f1": 0.0,
+     "mean_selected_sources": 0.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 1.0,
+     "newcomer_recall": 0.0,
+     "n_newcomer_pairs": 1952
+    }
+   }
+  },
+  "random": {
+   "pooled": {
+    "precision": 0.4447343625425817,
+    "recall": 0.748840615084208,
+    "f1": 0.5580464735573644,
+    "mean_selected_sources": 3.0,
+    "mean_relevant_sources": 1.781691672102631,
+    "query_reduction_vs_all": 0.25,
+    "newcomer_recall": 0.748840615084208,
+    "n_newcomer_pairs": 8194
+   },
+   "by_holdout": {
+    "pubmed": {
+     "precision": 0.4447343625425817,
+     "recall": 0.748840615084208,
+     "f1": 0.5580464735573644,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.7469149652232443,
+     "n_newcomer_pairs": 4457
+    },
+    "statpearls": {
+     "precision": 0.4447343625425817,
+     "recall": 0.748840615084208,
+     "f1": 0.5580464735573644,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.7596525096525096,
+     "n_newcomer_pairs": 1036
+    },
+    "textbooks": {
+     "precision": 0.4447343625425817,
+     "recall": 0.748840615084208,
+     "f1": 0.5580464735573644,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.7556742323097463,
+     "n_newcomer_pairs": 749
+    },
+    "wikipedia": {
+     "precision": 0.4447343625425817,
+     "recall": 0.748840615084208,
+     "f1": 0.5580464735573644,
+     "mean_selected_sources": 3.0,
+     "mean_relevant_sources": 1.781691672102631,
+     "query_reduction_vs_all": 0.25,
+     "newcomer_recall": 0.7448770491803278,
+     "n_newcomer_pairs": 1952
+    }
+   }
+  }
+ },
+ "criteria": {
+  "max_mean_selected": 3.0,
+  "min_recall_ratio_to_upper": 0.8,
+  "upper_newcomer_recall": 0.7985111056870882,
+  "methods": {
+   "desc_sim": {
+    "mean_selected_sources": 2.75,
+    "newcomer_recall": 0.8302416402245546,
+    "recall_ratio_to_upper": 1.0397371236435886,
+    "a_mean_selected_ok": true,
+    "b_newcomer_recall_ok": true,
+    "success": true
+   },
+   "centroid_sim": {
+    "mean_selected_sources": 3.0,
+    "newcomer_recall": 0.5407615328288992,
+    "recall_ratio_to_upper": 0.6772122879413113,
+    "a_mean_selected_ok": true,
+    "b_newcomer_recall_ok": false,
+    "success": false
+   }
+  },
+  "chosen": "desc_sim"
+ }
+}
