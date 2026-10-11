@@ -73,11 +73,24 @@ class RagrouteRouter:
 
     name = "ragroute"
 
-    def __init__(self, router_dir: Path, sources: Sequence[str], threshold: float) -> None:
-        """成果物を読み込む．データ源の順序が学習時と違えば one-hot がずれるので拒否する．"""
+    def __init__(
+        self,
+        router_dir: Path,
+        sources: Sequence[str],
+        threshold: float,
+        allow_unseen: bool = False,
+    ) -> None:
+        """成果物を読み込む．データ源の順序が学習時と違えば one-hot がずれるので拒否する．
+
+        allow_unseen=True のときは，sources が学習時のデータ源を同じ順序で含んでいればよく，
+        学習に無かったデータ源は one-hot を 0 にして判定する（p0003 E2 の ragroute-frozen．
+        中央の分類器を新参源のために再学習しない場合を表す）．
+        """
         self.meta = RouterMeta.model_validate_json((router_dir / ROUTER_META).read_text("utf-8"))
-        if list(sources) != self.meta.sources:
+        known = [s for s in sources if s in self.meta.sources] if allow_unseen else list(sources)
+        if known != self.meta.sources:
             raise ValueError(f"source order {list(sources)} != trained order {self.meta.sources}")
+        self._allow_unseen = allow_unseen
         self._threshold = threshold
         self._model = CorpusRoutingNN(self.meta.input_dim)
         self._model.load_state_dict(torch.load(router_dir / ROUTER_WEIGHTS, map_location="cpu"))
@@ -88,13 +101,20 @@ class RagrouteRouter:
             scaler = np.load(router_dir / ROUTER_SCALER)
             self._mean, self._scale = scaler["mean"], scaler["scale"]
 
+    def _index_of(self, source: str) -> int | None:
+        if source in self.meta.sources:
+            return self.meta.sources.index(source)
+        if self._allow_unseen:
+            return None
+        raise ValueError(f"source {source!r} was not in the trained sources {self.meta.sources}")
+
     def probabilities(self, query: RoutingQuery, sources: Sequence[SourceProfile]) -> F32Array:
         """各データ源が関連ありである確率を返す．"""
         rows = [
             ragroute_features(
                 query.embeddings[s.encoder],
                 s.centroid,
-                self.meta.sources.index(s.source),
+                self._index_of(s.source),
                 len(self.meta.sources),
                 self.meta.pad_dim,
             )

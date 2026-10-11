@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pytest
 import torch
 
 from atrium.protocol import ShardProfile
@@ -100,27 +101,61 @@ def test_ragroute_features_pad_embedding_and_centroid_then_append_one_hot() -> N
     assert x.tolist() == [1.0, 0.0, 2.0, 3.0, 0.0, 1.0, 0.0]
 
 
-def test_ragroute_router_selects_sources_whose_probability_exceeds_threshold(
-    tmp_path: Path,
-) -> None:
-    sources = ["a", "b"]
-    model = CorpusRoutingNN(input_dim=2 + 2 + 2)
+def test_ragroute_features_leave_one_hot_empty_for_an_unseen_source() -> None:
+    x = ragroute_features(
+        np.array([1.0], np.float32), np.array([2.0, 3.0], np.float32), None, 3, pad_dim=2
+    )
+    assert x.tolist() == [1.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0]
+
+
+def _write_constant_router(router_dir: Path, sources: list[str]) -> None:
+    """出力のバイアスだけで判定が決まるルーター：sigmoid(+5) > 0.5 なので全データ源が選ばれる．"""
+    model = CorpusRoutingNN(input_dim=2 + 2 + len(sources))
     with torch.no_grad():
         for p in model.parameters():
             p.zero_()
-        # 出力のバイアスだけで判定を決める：sigmoid(+5) > 0.5 なので全データ源が選ばれる
         model.fc_out.bias.fill_(5.0)
-    torch.save(model.state_dict(), tmp_path / ROUTER_WEIGHTS)
+    torch.save(model.state_dict(), router_dir / ROUTER_WEIGHTS)
     meta = RouterMeta(
         dataset="medrag",
         sources=sources,
-        input_dim=6,
+        input_dim=2 + 2 + len(sources),
         pad_dim=2,
         use_scaler=False,
         val_optimal_threshold=0.5,
     )
-    (tmp_path / ROUTER_META).write_text(meta.model_dump_json(), encoding="utf-8")
+    (router_dir / ROUTER_META).write_text(meta.model_dump_json(), encoding="utf-8")
+
+
+def test_ragroute_router_selects_sources_whose_probability_exceeds_threshold(
+    tmp_path: Path,
+) -> None:
+    sources = ["a", "b"]
+    _write_constant_router(tmp_path, sources)
     router = RagrouteRouter(tmp_path, sources, threshold=0.5)
     assert router.select(_query(), _sources(sources)) == ["a", "b"]
     strict = RagrouteRouter(tmp_path, sources, threshold=0.999)
     assert strict.select(_query(), _sources(sources)) == []
+
+
+def test_ragroute_router_rejects_an_untrained_source_by_default(tmp_path: Path) -> None:
+    _write_constant_router(tmp_path, ["a", "c"])
+
+    with pytest.raises(ValueError, match="trained order"):
+        RagrouteRouter(tmp_path, ["a", "b", "c"], threshold=0.5)
+    router = RagrouteRouter(tmp_path, ["a", "c"], threshold=0.5)
+    with pytest.raises(ValueError, match="not in the trained sources"):
+        router.select(_query(), _sources(["a", "b"]))
+
+
+def test_frozen_ragroute_router_scores_an_untrained_source_with_empty_one_hot(
+    tmp_path: Path,
+) -> None:
+    _write_constant_router(tmp_path, ["a", "c"])
+
+    router = RagrouteRouter(tmp_path, ["a", "b", "c"], threshold=0.5, allow_unseen=True)
+
+    assert router.select(_query(), _sources(["a", "b", "c"])) == ["a", "b", "c"]
+    # 学習時のデータ源の順序が崩れていれば，allow_unseen でも拒否する
+    with pytest.raises(ValueError, match="trained order"):
+        RagrouteRouter(tmp_path, ["c", "b", "a"], threshold=0.5, allow_unseen=True)

@@ -26,11 +26,15 @@ def pad_to(vec: F32Array, dim: int) -> F32Array:
 def ragroute_features(
     query_embedding: F32Array,
     centroid: F32Array,
-    source_index: int,
+    source_index: int | None,
     n_sources: int,
     pad_dim: int,
 ) -> F32Array:
-    """1 組の（クエリ，データ源）の特徴量を作る．"""
+    """1 組の（クエリ，データ源）の特徴量を作る．
+
+    source_index が None のときは one-hot を全て 0 にする（学習に無かったデータ源．p0003 E2 の ragroute-frozen）．
+    """
     one_hot = np.zeros(n_sources, dtype=np.float32)
-    one_hot[source_index] = 1.0
+    if source_index is not None:
+        one_hot[source_index] = 1.0
     return np.concatenate([pad_to(query_embedding, pad_dim), pad_to(centroid, pad_dim), one_hot])
