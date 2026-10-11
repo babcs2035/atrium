@@ -134,6 +134,20 @@ class Router(Protocol):
 「自己紹介文の類似度」「代表文書の要約」は，この入力だけで実装できる．新参者を学習から除外する
 （leave-one-source-out）評価では，中央で学習した情報を使う方式かどうかを方式の側で明示すること．
 
+E2 の LOSO の評価（p0003）は，実機を使わずに `atrium loso <dataset> --split <split>` が操作端末で行う
+（`src/atrium/loso.py`．入力は制御点から写した `artifacts/<dataset>/` の manifest・クエリ埋め込み・ラベル・分割・ルーター）．
+方式は次のとおりで，p0003 の案と違い，新しい `Router` は足さずに既存のものを使う．
+
+| 方式 | 実装 | 新参源の扱い |
+|---|---|---|
+| `desc_sim` | `CardSimRouter`．自己紹介文を MedCPT の文書側で埋め込み，`Advert.card_embedding` に入れる | 学習しない（MedRAG だけ） |
+| `centroid_sim` | `CentroidSimRouter` | 学習しない |
+| `ragroute-frozen` | `train_router(exclude=[新参源], out_dir=artifacts/<dataset>/loso/<新参源>)` で N−1 源を学習し，`RagrouteRouter(allow_unseen=True)` で新参源の one-hot を 0 にして判定する | 再学習しない（MedRAG だけ） |
+| `ragroute-upper` | 全データ源で学習済みの `router/` | 再学習した場合の上限 |
+
+上位 k 個を選ぶ方式の k は，設定に置かず，除外ごとに新参源を候補とラベルから外した N−1 源で，
+`train`・`val` の質問の F1 が最大のものを選ぶ（候補は `loso.K_CANDIDATES`）．
+
 
 EnronQA（p0004 の RQ-A）のために，公開情報を使う方式を `src/atrium/routing/advert.py` に置いた．
 各受信箱は，自分のメールだけから計算した公開情報（`Advert`．語のスケッチ・k-means の中心・Agent Card の説明文の埋め込み）を

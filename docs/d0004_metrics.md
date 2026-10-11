@@ -76,6 +76,22 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
   （`atrium compare`）．p 値は二項分布 Bin(b + c, 0.5) の両側確率で，b と c は片方だけが正解した問数である．
 - 正答率の信頼区間は Wilson のスコア区間（z = 1.96）である．
 
+### E2 の LOSO（`atrium loso`）
+
+`results/e2_loso_<YYYYMMDD_HHMMSS>/metrics.json` の `methods.<方式>` に，除外ごと（`by_holdout.<新参源>`）と，
+全ての除外を合わせた値（`pooled`）を書く．選択の指標は上の `selection` と同じ定義（micro 平均）で，
+シャード数は実機の実行にしか無いので含めない．
+
+| 指標 | 定義 |
+|---|---|
+| `newcomer_recall` | 新参源が関連ありの質問のうち，新参源を選んだ割合．`pooled` は全ての除外の（質問，新参源）の組を合わせて計算する（除外ごとの値の平均ではない） |
+| `n_newcomer_pairs` | 上の分母 |
+| `k`，`k_selection_f1` | 上位 k 個を選ぶ方式で選んだ k と，候補ごとの N−1 源・`train`＋`val` の F1 |
+| `criteria` | p0003 S4 の成功条件の判定（MedRAG だけ）．(a) `pooled.mean_selected_sources` ≤ 3.0，(b) `pooled.newcomer_recall` ≥ `ragroute-upper` の 0.8 倍．`chosen` は成功した方式のうち新参源の再現率が最大のもの |
+
+`loso.top_doc_overlap` は，実行の `top_doc_ids` を参照の実行（s3，`routing=all`）と比べ，参照の上位文書のうち
+実行にも現れた割合の平均（`mean_overlap`）と，列が完全に一致した割合（`exact_match_rate`）を返す（S5 で使う）．
+
 ## 4. E0 の実測値
 
 | ファイル | 内容 |
