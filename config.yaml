@@ -44,8 +44,10 @@ routing:
   ragroute_threshold: 0.5
   # 公開情報を使う方式（card_sim・term_sketch・centroid_sim・multi_centroid）と flood_score が問い合わせる
   # データ源の数 m（p0004 の RQ-A）．EQ2 で事前登録の規則で選んだ値（results/20261009_eq2_advert_eval）
+  # medrag は p0003 S5 の card_sim（E2 の desc_sim）用．4 源の train・val で F1 が最大の k（S4 と同じ規則）
   top_m:
     enronqa: 2
+    medrag: 3
 
 llm:
   # 各ノードで使う Ollama のバージョン（イメージは制御点の registry の mirror/ から取得する）

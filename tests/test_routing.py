@@ -16,7 +16,9 @@ from atrium.routing import (
     RoutingQuery,
     SourceProfile,
     build_source_profiles,
+    with_card_embeddings,
 )
+from atrium.routing.advert import CardSimRouter
 from atrium.routing.features import ragroute_features
 from atrium.routing.ragroute import (
     ROUTER_META,
@@ -92,6 +94,18 @@ def test_build_source_profiles_combines_shards_in_configured_order() -> None:
     assert profiles[0].shard_ids == ("p-00", "p-01")
     assert profiles[0].centroid.tolist() == [3.0]
     assert profiles[0].n_docs == 4
+
+
+def test_card_sim_ranks_multi_shard_sources_by_attached_description_embeddings() -> None:
+    sources = _sources(["a", "b"])
+    embeddings = {"a": np.array([1.0, 0.0], np.float32), "b": np.array([0.0, 2.0], np.float32)}
+    described = with_card_embeddings(sources, embeddings)
+    assert [p.advert.card_embedding if p.advert else None for p in described] == [
+        [1.0, 0.0],
+        [0.0, 2.0],
+    ]
+    assert [p.shard_ids for p in described] == [p.shard_ids for p in sources]
+    assert CardSimRouter(1).select(_query(), described) == ["b"]
 
 
 def test_ragroute_features_pad_embedding_and_centroid_then_append_one_hot() -> None:

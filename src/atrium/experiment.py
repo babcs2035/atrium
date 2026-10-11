@@ -26,7 +26,12 @@ from atrium.requester import (
     load_rm_qrels,
     run_questions,
 )
-from atrium.routing import SourceProfile, build_source_profiles, make_router
+from atrium.routing import (
+    SourceProfile,
+    build_source_profiles,
+    make_router,
+    with_card_embeddings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +105,11 @@ async def run_experiment(
         missing = sorted(set(expected) - {s.source for s in sources})
         if missing:
             raise RuntimeError(f"no node announced sources {missing}; check deploy")
+        if cfg.experiment.routing == "card_sim" and dataset == "medrag":
+            # MedRAG のデータ源は広告を持たないので，自己紹介文を S4 の評価と同じ埋め込みで付ける（p0003 S5）
+            from atrium.loso import embed_descriptions
+
+            sources = with_card_embeddings(sources, embed_descriptions(cfg, sources))
         requester = Requester(
             cfg=cfg,
             placement=placement,

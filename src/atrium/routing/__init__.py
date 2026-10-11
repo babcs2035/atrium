@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import json
 import random
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Protocol
 
@@ -44,7 +44,8 @@ class SourceProfile:
     centroid: F32Array
     n_docs: int
     shard_ids: tuple[str, ...]
-    # 事前に公開する情報（EnronQA だけ．1 データ源 1 シャードなので，そのシャードの advert）
+    # 事前に公開する情報（EnronQA は 1 データ源 1 シャードなので，そのシャードの advert．
+    # MedRAG の card_sim は，受け取った側が with_card_embeddings で付ける）
     advert: Advert | None = None
 
 
@@ -82,6 +83,29 @@ def build_source_profiles(
             )
         )
     return profiles
+
+
+def with_card_embeddings(
+    profiles: Sequence[SourceProfile], embeddings: Mapping[str, F32Array]
+) -> list[SourceProfile]:
+    """自己紹介文の埋め込みを，card_embedding だけを持つ広告として各データ源に付ける．
+
+    MedRAG のデータ源は複数のシャードからなるので，シャードの広告を持たない（build_source_profiles）．
+    card_sim を MedRAG で使うときは，自己紹介文を受け取った側（質問者・LOSO の評価）が埋め込んで付ける
+    （p0003 S4・S5．CardSimRouter.advert_bytes が自己紹介文の文章だけを数えるのと同じ考え方）．
+    """
+    return [
+        replace(
+            p,
+            advert=Advert(
+                terms=[],
+                term_weights=[],
+                centroids=[],
+                card_embedding=embeddings[p.source].tolist(),
+            ),
+        )
+        for p in profiles
+    ]
 
 
 class AllRouter:

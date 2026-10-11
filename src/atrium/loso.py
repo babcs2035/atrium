@@ -23,7 +23,6 @@ p0003 は desc_sim・centroid_sim を新しい Router として足し，k を設
 
 from __future__ import annotations
 
-import dataclasses
 import json
 import logging
 from collections import defaultdict
@@ -37,7 +36,7 @@ import numpy as np
 from atrium.analysis import selection_metrics
 from atrium.arrays import F32Array
 from atrium.config import AtriumConfig, DatasetName
-from atrium.manifest import Advert, combine_centroids, read_manifest
+from atrium.manifest import combine_centroids, read_manifest
 from atrium.paths import DatasetPaths
 from atrium.routing import (
     AllRouter,
@@ -46,6 +45,7 @@ from atrium.routing import (
     Router,
     RoutingQuery,
     SourceProfile,
+    with_card_embeddings,
 )
 from atrium.routing.advert import CardSimRouter, CentroidSimRouter
 from atrium.routing.ragroute import ROUTER_WEIGHTS, RagrouteRouter
@@ -109,19 +109,7 @@ def load_loso_data(
             )
         )
     if describe is not None:
-        embeddings = describe(cfg, profiles)
-        profiles = [
-            dataclasses.replace(
-                p,
-                advert=Advert(
-                    terms=[],
-                    term_weights=[],
-                    centroids=[],
-                    card_embedding=embeddings[p.source].tolist(),
-                ),
-            )
-            for p in profiles
-        ]
+        profiles = with_card_embeddings(profiles, describe(cfg, profiles))
     ids: list[str] = json.loads(paths.query_ids.read_text(encoding="utf-8"))
     matrices = {p.encoder: np.load(paths.query_embeddings(p.encoder)) for p in profiles}
     queries = {
