@@ -35,6 +35,21 @@ for kv in sys.argv[1:]:
 p.write_text(t)
 PY
 }
+# retry <out> <cmd...>: 一時的なネットワーク障害で残りの回をすべて失わないよう，5 分おいて 3 回まで試す
+# （2026-10-11 04:42〜04:47 に gpu2 の DNS が引けず，続く 25 回が 1 秒ずつで DEPLOY FAILED になった）．
+# deploy と judge up はどちらも最初から入れ直すので，途中で失敗した後に繰り返してよい．<out> には最後の試行の出力が残る
+retry() {
+  local out=$1 i
+  shift
+  for i in 1 2 3; do
+    "$@" > "$out" 2>&1 < /dev/null && return 0
+    if [ "$i" -lt 3 ]; then
+      echo "[$(date +%T)] attempt $i failed: $(basename "$out"); retrying in 300s" >> "$LOG"
+      sleep 300
+    fi
+  done
+  return 1
+}
 # run_start <run_id> <tag>: start を待ち，内側の終了コードを $inner に入れる
 run_start() {
   mise run start "$1" > "$LOG.$1.$2" 2>&1 < /dev/null; local rc=$?
@@ -53,7 +68,7 @@ while read -r run kvs <&3; do
     done
     echo "[$(date +%F_%T)] BEGIN judge ${todo[*]}" >> "$LOG"
     [ "${#todo[@]}" -gt 0 ] || continue
-    bash scripts/tasks/judge.sh up "$JUDGE_MODEL" > "$LOG.judge.up" 2>&1 < /dev/null; rc=$?
+    retry "$LOG.judge.up" bash scripts/tasks/judge.sh up "$JUDGE_MODEL"; rc=$?
     echo "[$(date +%T)] judge up=$rc" >> "$LOG"
     if [ "$rc" = 0 ]; then
       bash scripts/tasks/judge.sh run "${todo[@]}" > "$LOG.judge.run" 2>&1 < /dev/null
@@ -81,7 +96,7 @@ while read -r run kvs <&3; do
   # [s] で囲むのは，ssh が起こす bash -c のコマンドライン自身に pgrep が一致しないようにするため
   if ssh -n "$CONTROL" "pgrep -f '[s]cripts/remote/start.sh $run ' > /dev/null"; then
     echo "[$(date +%T)] $run already running; waiting without deploy" >> "$LOG"
-  elif ! mise run deploy > "$LOG.$run.deploy" 2>&1 < /dev/null; then
+  elif ! retry "$LOG.$run.deploy" mise run deploy; then
     echo "[$(date +%T)] $run DEPLOY FAILED" >> "$LOG"; git checkout -- config.yaml; continue
   else
     echo "[$(date +%T)] $run deployed" >> "$LOG"
