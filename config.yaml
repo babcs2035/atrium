@@ -68,8 +68,9 @@ llm:
   # 質問者の Ollama が同時に処理する要求の数（OLLAMA_NUM_PARALLEL）．8B と文脈長 16384 では 2 件分の
   # KV キャッシュまでが RTX 3060（12 GB）に収まる
   requester_num_parallel: 2
-  # 1 回の生成の打ち切り時間（秒）
-  timeout_s: 600
+  # 1 回の生成の打ち切り時間（秒）．宿る型では専門家の CPU の生成が 600 秒を超える問があり
+  # （2026-10-12 の S6 の smoke で 10 問中 2 問が 502），local_answer.timeout_s と同じ 1800 にする
+  timeout_s: 1800
 
 local_answer:
   # 宿る型で各専門家が自分のシャードから使う断片数

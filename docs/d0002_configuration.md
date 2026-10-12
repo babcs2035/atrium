@@ -74,7 +74,7 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | `think` | `false` | qwen3 系の思考モード |
 | `temperature` | 0.0 | 生成の温度．0 で貪欲な復号（同じ入力に同じ回答．backlog B3） |
 | `requester_num_parallel` | 2 | 質問者の Ollama が同時に処理する要求の数．8B・文脈長 16384 では 2 件分の KV キャッシュまでが 12 GB に収まる |
-| `timeout_s` | 600 | 1 回の生成の打ち切り時間（秒） |
+| `timeout_s` | 1800 | 1 回の生成の打ち切り時間（秒） |
 
 ## local_answer
 
