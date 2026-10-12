@@ -1,0 +1,148 @@
+{
+ "all": {
+  "n": 100,
+  "n_unlabeled": 0,
+  "failure_rate": 0.64,
+  "selection": {
+   "precision": 0.4930555555555556,
+   "recall": 1.0,
+   "f1": 0.6604651162790698,
+   "mean_selected_sources": 4.0,
+   "mean_relevant_sources": 1.9722222222222223,
+   "mean_shards_queried": 16.0,
+   "query_reduction_vs_all": 0.0
+  },
+  "label_consistency": null,
+  "accuracy": {
+   "overall": {
+    "n": 36,
+    "accuracy": 0.5833333333333334,
+    "ci95_low": 0.4220025157487166,
+    "ci95_high": 0.7285943794855394
+   },
+   "by_bank": {
+    "bioasq": {
+     "n": 15,
+     "accuracy": 0.7333333333333333,
+     "ci95_low": 0.4804956594401943,
+     "ci95_high": 0.8910254667430761
+    },
+    "medqa": {
+     "n": 10,
+     "accuracy": 0.4,
+     "ci95_low": 0.16818032970623614,
+     "ci95_high": 0.6873262302663417
+    },
+    "mmlu": {
+     "n": 11,
+     "accuracy": 0.5454545454545454,
+     "ci95_low": 0.280091537409322,
+     "ci95_high": 0.7872872837754024
+    }
+   },
+   "unparsed_choice_rate": 0.0
+  },
+  "latency": {
+   "embed_s": {
+    "p50": 0.023683444131165743,
+    "p95": 0.28574734029825777,
+    "n": 36
+   },
+   "route_s": {
+    "p50": 1.1300435289740562e-05,
+    "p95": 4.3500098399817944e-05,
+    "n": 36
+   },
+   "generate_s": {
+    "p50": 533.0139686600305,
+    "p95": 1508.069751719595,
+    "n": 36
+   },
+   "e2e_s": {
+    "p50": 533.0375065917615,
+    "p95": 1508.094091661158,
+    "n": 36
+   }
+  },
+  "mean_bytes_received": 19585.222222222223,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 0.0,
+   "mean_query_recipients": 16.0
+  },
+  "gold_doc_retrieval": null
+ },
+ "test": {
+  "n": 67,
+  "n_unlabeled": 0,
+  "failure_rate": 0.6268656716417911,
+  "selection": {
+   "precision": 0.43,
+   "recall": 1.0,
+   "f1": 0.6013986013986015,
+   "mean_selected_sources": 4.0,
+   "mean_relevant_sources": 1.72,
+   "mean_shards_queried": 16.0,
+   "query_reduction_vs_all": 0.0
+  },
+  "label_consistency": null,
+  "accuracy": {
+   "overall": {
+    "n": 25,
+    "accuracy": 0.52,
+    "ci95_low": 0.3349851695035678,
+    "ci95_high": 0.6996871404588704
+   },
+   "by_bank": {
+    "bioasq": {
+     "n": 9,
+     "accuracy": 0.6666666666666666,
+     "ci95_low": 0.3542021355803963,
+     "ci95_high": 0.879416181613089
+    },
+    "medqa": {
+     "n": 8,
+     "accuracy": 0.375,
+     "ci95_low": 0.13684428582359742,
+     "ci95_high": 0.6942576053973727
+    },
+    "mmlu": {
+     "n": 8,
+     "accuracy": 0.5,
+     "ci95_low": 0.21521606221387757,
+     "ci95_high": 0.7847839377861224
+    }
+   },
+   "unparsed_choice_rate": 0.0
+  },
+  "latency": {
+   "embed_s": {
+    "p50": 0.024060990195721388,
+    "p95": 0.2284790842793875,
+    "n": 25
+   },
+   "route_s": {
+    "p50": 1.144828274846077e-05,
+    "p95": 4.351334646344183e-05,
+    "n": 25
+   },
+   "generate_s": {
+    "p50": 603.5133781246841,
+    "p95": 1610.3013589411037,
+    "n": 25
+   },
+   "e2e_s": {
+    "p50": 603.5363308857195,
+    "p95": 1610.325450913887,
+    "n": 25
+   }
+  },
+  "mean_bytes_received": 20019.52,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 0.0,
+   "mean_query_recipients": 16.0
+  },
+  "gold_doc_retrieval": null
+ }
+}

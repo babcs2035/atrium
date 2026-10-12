@@ -1,0 +1,166 @@
+{
+ "all": {
+  "n": 10,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.325,
+   "recall": 1.0,
+   "f1": 0.4905660377358491,
+   "mean_selected_sources": 4.0,
+   "mean_relevant_sources": 1.3,
+   "mean_shards_queried": 16.0,
+   "query_reduction_vs_all": 0.0
+  },
+  "label_consistency": null,
+  "accuracy": {
+   "overall": {
+    "n": 10,
+    "accuracy": 0.5,
+    "ci95_low": 0.236593090512564,
+    "ci95_high": 0.7634069094874361
+   },
+   "by_bank": {
+    "bioasq": {
+     "n": 2,
+     "accuracy": 0.5,
+     "ci95_low": 0.09453120573423074,
+     "ci95_high": 0.9054687942657693
+    },
+    "medmcqa": {
+     "n": 2,
+     "accuracy": 0.5,
+     "ci95_low": 0.09453120573423074,
+     "ci95_high": 0.9054687942657693
+    },
+    "medqa": {
+     "n": 2,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.6576197724933469
+    },
+    "mmlu": {
+     "n": 2,
+     "accuracy": 0.5,
+     "ci95_low": 0.09453120573423074,
+     "ci95_high": 0.9054687942657693
+    },
+    "pubmedqa": {
+     "n": 2,
+     "accuracy": 1.0,
+     "ci95_low": 0.34238022750665303,
+     "ci95_high": 1.0
+    }
+   },
+   "unparsed_choice_rate": 0.0
+  },
+  "latency": {
+   "embed_s": {
+    "p50": 0.030113004380837083,
+    "p95": 0.3401783963665366,
+    "n": 10
+   },
+   "route_s": {
+    "p50": 1.2947246432304382e-05,
+    "p95": 2.5344127789139737e-05,
+    "n": 10
+   },
+   "generate_s": {
+    "p50": 512.2423972531687,
+    "p95": 940.9301564354682,
+    "n": 10
+   },
+   "e2e_s": {
+    "p50": 512.4393012637738,
+    "p95": 940.9598576874705,
+    "n": 10
+   }
+  },
+  "mean_bytes_received": 20876.2,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 0.0,
+   "mean_query_recipients": 16.0
+  },
+  "gold_doc_retrieval": null
+ },
+ "test": {
+  "n": 7,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.35714285714285715,
+   "recall": 1.0,
+   "f1": 0.5263157894736842,
+   "mean_selected_sources": 4.0,
+   "mean_relevant_sources": 1.4285714285714286,
+   "mean_shards_queried": 16.0,
+   "query_reduction_vs_all": 0.0
+  },
+  "label_consistency": null,
+  "accuracy": {
+   "overall": {
+    "n": 7,
+    "accuracy": 0.5714285714285714,
+    "ci95_low": 0.2504583645276572,
+    "ci95_high": 0.8417801447485302
+   },
+   "by_bank": {
+    "bioasq": {
+     "n": 1,
+     "accuracy": 1.0,
+     "ci95_low": 0.20654931437723745,
+     "ci95_high": 1.0
+    },
+    "medqa": {
+     "n": 2,
+     "accuracy": 0.0,
+     "ci95_low": 0.0,
+     "ci95_high": 0.6576197724933469
+    },
+    "mmlu": {
+     "n": 2,
+     "accuracy": 0.5,
+     "ci95_low": 0.09453120573423074,
+     "ci95_high": 0.9054687942657693
+    },
+    "pubmedqa": {
+     "n": 2,
+     "accuracy": 1.0,
+     "ci95_low": 0.34238022750665303,
+     "ci95_high": 1.0
+    }
+   },
+   "unparsed_choice_rate": 0.0
+  },
+  "latency": {
+   "embed_s": {
+    "p50": 0.02425734419375658,
+    "p95": 0.20574933635070902,
+    "n": 7
+   },
+   "route_s": {
+    "p50": 1.2064818292856216e-05,
+    "p95": 2.6664417237043375e-05,
+    "n": 7
+   },
+   "generate_s": {
+    "p50": 878.1151935341768,
+    "p95": 943.2195917123463,
+    "n": 7
+   },
+   "e2e_s": {
+    "p50": 878.1388025791384,
+    "p95": 943.2506738703232,
+    "n": 7
+   }
+  },
+  "mean_bytes_received": 17671.428571428572,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 0.0,
+   "mean_query_recipients": 16.0
+  },
+  "gold_doc_retrieval": null
+ }
+}
