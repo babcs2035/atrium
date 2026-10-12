@@ -11,6 +11,7 @@
     fetch-models DATASET      データセットで使うモデルを Hugging Face のキャッシュへ取得する（コンテナ内）
     analyze / metrics / compare  結果の分析（操作端末）
     advert-eval               RQ-A のオフラインの評価（EnronQA．制御点のコンテナ）
+    churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
@@ -227,6 +228,23 @@ def cmd_advert_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     metrics = advert_eval.evaluate(cfg, dataset_paths(Path(args.data_dir), "enronqa"))
     advert_eval.write_outputs(Path(args.out_dir), metrics)
     print(advert_eval.render_report(metrics))
+    return 0
+
+
+def cmd_churn_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """RQ-C のオフラインの評価（p0004 EQ7a）を行い，metrics.json と analysis_report.md を書く．"""
+    from atrium import churn_eval
+    from atrium.manifest import read_placement
+
+    reference = json.loads(Path(args.reference_metrics).read_text(encoding="utf-8"))
+    metrics = churn_eval.evaluate(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        read_placement(Path(args.placement)),
+        reference,
+    )
+    churn_eval.write_outputs(Path(args.out_dir), metrics)
+    print(churn_eval.render_report(metrics))
     return 0
 
 
@@ -474,6 +492,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--data-dir", required=True)
     p.add_argument("--out-dir", required=True)
     p.set_defaults(func=cmd_advert_eval)
+
+    p = sub.add_parser("churn-eval", help="RQ-C のオフラインの評価（EnronQA．p0004 EQ7a）")
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--placement", required=True, help="受信箱の配置（results/<run>/placement.json）"
+    )
+    p.add_argument(
+        "--reference-metrics", required=True, help="退行の確認の基準（EQ2 の metrics.json）"
+    )
+    p.set_defaults(func=cmd_churn_eval)
 
     p = sub.add_parser("loso", help="E2 の leave-one-source-out の評価（p0003．操作端末）")
     p.add_argument("dataset", choices=["medrag", "feb4rag"])
