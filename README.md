@@ -5,16 +5,23 @@
 研究の目的・仕組み・理論の要約は [docs/d0006_research_overview.md](docs/d0006_research_overview.md)，
 研究計画の全文は [plans/p0001_initialization.md](plans/p0001_initialization.md) にある．
 
-## 現状（2026-10-06）
+## 現状（2026-10-12）
 
 - データ準備は完了している．MedRAG の 4 コーパス（約 5,400 万断片）を MedCPT で埋め込み，16 シャードに分けた．
   FeB4RAG の 13 エンジンのシャードも作った．どちらもルーター（RAGRoute の MLP）を学習済みである．
+  EnronQA（150 人の受信箱）は，専門家 30 台（CPU 20 台と GPU 10 台）に 5 受信箱ずつ配置してある．
 - **E0**（実機の性能実測）は完了した（`results/20261006_052434/e0_summary.md`）．
-- **E1**（RAGRoute の 4 方式 ragroute / all / random / none の再現）は，実機での基盤の検証まで終えた
-  （MedRAG の 100 問で，実機の分散検索の結果と関連ラベルの一致が 1.000）．全問での比較は research-cycle で行う．
-- 回答方式は，断片返却型（`snippet_return`）と宿る型（`local_answer`）の両方が動く．
+- **E1**（RAGRoute の再現）は完了した．MedRAG の 7,663 問と FeB4RAG の 790 問を，全方式で実機に流した（失敗は 1% 以下）．
+  MedRAG の正答率は，RAG の有無では差があるが（+1.9 pt），問い合わせ先の選び方（all・ragroute・random）では差が無い．
+- **E2**（後から加わったデータ源を，再学習なしで見つけられるか）は，MedRAG の leave-one-source-out で，
+  自己紹介文の埋め込みの類似度（`desc_sim`）が成功条件を満たした．実機の下流確認（7,663 問）も失敗 0 で終えた．
+- **EnronQA の拡張**（p0004）は，RQ-A（見つけてもらう方法）・RQ-B（誰が答えるか）・待ち時間・文脈の通数の実験（EQ0〜EQ6，EQ8〜EQ10）を完了した．
+  RQ-C（参加・離脱）は，実機を使わない EQ7a まで完了し，実機の EQ7b は未実施である．
+- **保留**：MedRAG の宿る型のパイロット（p0003 S6）と，cross_encoder の全問（s8）は，ユーザーの判断で保留にしている
+  （[.claude/research/backlog.md](.claude/research/backlog.md) の B4）．
 
-検証の記録は [.claude/research/journal.md](.claude/research/journal.md) の「準備段階の記録」にある．
+各段階の判定と数値は [.claude/research/journal.md](.claude/research/journal.md) に，新しいものを先頭にして書いてある．
+準備段階の記録は同じ文書の末尾にある．
 
 ## 構成
 

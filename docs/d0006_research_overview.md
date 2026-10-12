@@ -26,14 +26,18 @@
 
 E0（実機の性能実測）と E1（RAGRoute の再現）は，これらの比較の土台である．
 
-## 2. 現状（2026-10-06）
+## 2. 現状（2026-10-12）
 
 | 段階 | 状態 | 記録 |
 |---|---|---|
-| 環境構築・データ準備 | 完了．MedRAG の 4 データ源（約 5,400 万断片）を MedCPT で埋め込み，16 シャードに分けた．FeB4RAG の 13 エンジンのシャードも作った | `.claude/research/journal.md` の「準備段階の記録」 |
+| 環境構築・データ準備 | 完了．MedRAG の 4 データ源（約 5,400 万断片）を MedCPT で埋め込み，16 シャードに分けた．FeB4RAG の 13 エンジンのシャードと，EnronQA の 150 受信箱（専門家 30 台）も作った | `.claude/research/journal.md` の「準備段階の記録」 |
 | E0 | 完了 | `results/20261006_052434/e0_summary.md` |
-| E1 | 基盤の検証まで完了（MedRAG の 100 問でラベル一致 1.000）．全問での 4 方式の比較は research-cycle で行う | `results/20261006_094749/` ほか |
-| E2〜E5 | 未着手．ルーティング方式の差し替え口（[d0001](d0001_architecture.md) §5）だけを用意してある | － |
+| E1 | 完了．MedRAG・FeB4RAG の全問を全方式で流した．MedRAG の ragroute は all と正答率が同等（0.657 と 0.659）で，問い合わせを 58.7% 減らした | journal の「E1 の判定」 |
+| E2（RQ1） | MedRAG の leave-one-source-out で，`desc_sim` が成功条件を満たした（新参源の再現率 0.830．上限の 1.04 倍）．実機の下流確認は失敗 0，test の F1 0.634 | journal の「E2：LOSO の判定」「E2 の下流確認」 |
+| E3（RQ2） | 主評価は EnronQA の RQ-B（EQ5・EQ8・EQ10）に移した．MedRAG の宿る型のパイロット（S6）は保留 | journal の「EQ5」「EQ8〜EQ10」，backlog の B4 |
+| EnronQA の拡張（p0004） | EQ0〜EQ6，EQ8〜EQ10 を完了．RQ-A・RQ-B・待ち時間・文脈の通数の判定がある | journal の EQ の各節 |
+| E4（RQ3） | RQ-C のうち，実機を使わない EQ7a を完了した（H-C1 は multi_centroid で支持．差は小さい）．実機の EQ7b は未実施 | journal の「EQ7a」 |
+| E5 | 未着手 | － |
 
 ## 3. 実験系の構成
 

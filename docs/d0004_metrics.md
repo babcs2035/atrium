@@ -92,6 +92,22 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 `loso.top_doc_overlap` は，実行の `top_doc_ids` を参照の実行（s3，`routing=all`）と比べ，参照の上位文書のうち
 実行にも現れた割合の平均（`mean_overlap`）と，列が完全に一致した割合（`exact_match_rate`）を返す（S5 で使う）．
 
+### EnronQA の参加・離脱（`atrium churn-eval`．p0004 EQ7a）
+
+`results/<run_id>/metrics.json` の `summary` に，（方式，稼働率 `availability`，メンバー表の更新間隔 `refresh`）ごとの値を，
+時刻表の種をまたいだ平均・最小・最大で書く．実機のノードは使わず，EQ2 の test のスコアを，各問で質問者に見えているノードの受信箱の中で順位づけし直す．
+
+| 指標 | 定義 |
+|---|---|
+| `hit` | 正解の受信箱が稼働中で，選ばれた m 個に入る割合．離脱なし（`availability` = 1）の値は EQ2 の `hit@m` と一致する（`regression`） |
+| `hit_given_gold_online` | 正解の受信箱が稼働中の問に限った `hit` |
+| `gold_online_rate` | 正解の受信箱が稼働中の問の割合 |
+| `contacted` | 1 問で問い合わせたノードの数（flood_score は見えているノード全部） |
+| `wasted` | 問い合わせたノードのうち，離脱していたノードの数 |
+| `hc1` | 事前登録の判定．`availability` = 0.7 で更新間隔 1 → 1000 の `hit` の相対的な低下が，multi_centroid で flood_score より，全ての種で大きければ `supported` |
+
+flood_score は，質問者の実装（1 台でも失敗すると問全体が失敗する）と違い，返事のあった受信箱の中から選ぶと仮定した上限である．
+
 ## 4. E0 の実測値
 
 | ファイル | 内容 |
