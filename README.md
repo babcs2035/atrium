@@ -5,7 +5,7 @@
 研究の目的・仕組み・理論の要約は [docs/d0006_research_overview.md](docs/d0006_research_overview.md)，
 研究計画の全文は [plans/p0001_initialization.md](plans/p0001_initialization.md) にある．
 
-## 現状（2026-10-12）
+## 現状（2026-10-13）
 
 - データ準備は完了している．MedRAG の 4 コーパス（約 5,400 万断片）を MedCPT で埋め込み，16 シャードに分けた．
   FeB4RAG の 13 エンジンのシャードも作った．どちらもルーター（RAGRoute の MLP）を学習済みである．
@@ -16,12 +16,13 @@
 - **E2**（後から加わったデータ源を，再学習なしで見つけられるか）は，MedRAG の leave-one-source-out で，
   自己紹介文の埋め込みの類似度（`desc_sim`）が成功条件を満たした．実機の下流確認（7,663 問）も失敗 0 で終えた．
 - **EnronQA の拡張**（p0004）は，RQ-A（見つけてもらう方法）・RQ-B（誰が答えるか）・待ち時間・文脈の通数の実験（EQ0〜EQ6，EQ8〜EQ10）を完了した．
-  RQ-C（参加・離脱）は，実機を使わない EQ7a まで完了し，実機の EQ7b は未実施である．
+  RQ-C（参加・離脱）は，実機を使わない EQ7a を完了し，実機で再生する EQ7b を事前登録して実行中である（退行ゲートの 1 回目は EQ7a と一致した）．
 - **S6・s8**（保留はユーザーが 2026-10-12 に解除した）：cross_encoder の全問（s8）は失敗 0 で完了し，正答率は 0.689 だった
   （score の統合の s4 は 0.659．McNemar で p < 0.05）．MedRAG の宿る型のパイロット（S6）は，100 問のうち 64 問が失敗した
-  （16 GB の専門家のメモリ不足）．次の手は人の判断を待つ（journal の「S6」）．
+  （16 GB の専門家のメモリ不足）．ユーザーの判断で，MedRAG の宿る型は不成功として閉じた（backlog の B6）．
 
 各段階の判定と数値は [.claude/research/journal.md](.claude/research/journal.md) に，新しいものを先頭にして書いてある．
+実行のディレクトリから journal の節を引く索引は [results/README.md](results/README.md) にある．
 準備段階の記録は同じ文書の末尾にある．
 
 ## 構成
