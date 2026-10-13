@@ -358,3 +358,102 @@ async def test_probe_is_retried_when_the_node_closed_an_idle_connection(
     record = await requester.process(question)
     assert record["error"] is None
     assert failures_left["n"] == 0
+
+
+def _churn_requester_cfg(cfg: AtriumConfig) -> AtriumConfig:
+    from atrium.config import ChurnConfig
+
+    return with_experiment(_cfg(cfg, "retrieval_only"), churn=ChurnConfig(availability=0.7))
+
+
+async def _set_up(requester: Requester, node: str, up: bool) -> None:
+    response = await requester.client.post(f"http://{node}/v1/admin/availability", json={"up": up})
+    assert response.status_code == 200
+
+
+async def test_churn_continues_with_the_replies_of_the_nodes_that_are_up(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _churn_requester_cfg(cfg), tmp_path, AllRouter(), {question.qid: np.ones(DIM, np.float32)}
+    )
+    await _set_up(requester, "node-b", False)
+    record = await requester.process(question)
+    assert record["error"] is None
+    assert record["contacted_nodes"] == 2
+    assert record["failed_nodes"] == 1
+    # node-b の断片は届かず，node-a の pubmed-00 の分だけが残る
+    assert record["docs_exposed_by_source"] == {"pubmed": K_RET}
+
+
+async def test_node_failure_still_fails_the_question_without_churn(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"), tmp_path, AllRouter(), {question.qid: np.ones(DIM, np.float32)}
+    )
+    # 配置の誤り（404）は churn の有無にかかわらず問の失敗として記録される．churn の許容は 503 などの離脱だけ
+    requester._url_of_shard["pubmed-01"] = "http://node-a"
+    record = await requester.process(question)
+    assert record["error"] is not None
+    assert "failed_nodes" not in record
+
+
+async def test_churn_does_not_hide_a_misconfigured_shard(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _churn_requester_cfg(cfg), tmp_path, AllRouter(), {question.qid: np.ones(DIM, np.float32)}
+    )
+
+    # 404 は httpx.HTTPStatusError（HTTPError）なので離脱と同じに扱われる．別種の例外は投げ直す
+    async def boom(*args: Any, **kwargs: Any) -> Any:
+        raise RuntimeError("bug")
+
+    requester._retrieve = boom  # type: ignore[method-assign]
+    record = await requester.process(question)
+    assert record["error"] == "RuntimeError: bug"
+
+
+async def test_flood_score_under_churn_selects_from_the_nodes_that_replied(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    from atrium.routing.advert import FloodScoreRouter
+
+    question = _questions(1)[0]
+    # textbooks（node-b）の文書と同じ向きのクエリでも，node-b が離脱していれば選べない
+    vec = corpus["t0"][0].astype(np.float16).astype(np.float32)
+    requester = await _requester(
+        _churn_requester_cfg(cfg), tmp_path, FloodScoreRouter(1), {question.qid: vec}
+    )
+    await _set_up(requester, "node-b", False)
+    record = await requester.process(question)
+    assert record["error"] is None
+    assert record["probe_recipients"] == 2
+    assert record["probe_failed"] == 1
+    assert record["selected_sources"] == ["pubmed"]
+
+
+async def test_stale_member_table_hides_new_nodes_and_keeps_offline_ones(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    question = _questions(1)[0]
+    requester = await _requester(
+        _churn_requester_cfg(cfg), tmp_path, AllRouter(), {question.qid: np.ones(DIM, np.float32)}
+    )
+    # 表には node-b だけがある（node-a は表の更新の後に参加した）．見えないノードには問い合わせない．
+    # pubmed は node-a のシャードも持つので，全てのシャードのノードが見えている textbooks だけが選ばれる
+    requester.visible_urls = frozenset({"http://node-b"})
+    record = await requester.process(question)
+    assert record["selected_sources"] == ["textbooks"]
+    assert record["contacted_nodes"] == 1
+    assert record["failed_nodes"] == 0
+    # 表に残った node-b が離脱すると，問い合わせは無駄になる
+    await _set_up(requester, "node-b", False)
+    record = await requester.process(question)
+    assert record["contacted_nodes"] == 1
+    assert record["failed_nodes"] == 1
+    assert record["docs_exposed_by_source"] == {}

@@ -86,7 +86,19 @@ async def run_experiment(
         else set()
     )
     questions = [q for q in all_questions if q.qid not in done]
-    if dataset == "enronqa":
+    churn = cfg.experiment.churn
+    if churn is not None:
+        # EQ7b：EQ7a と同じ順番に並べ，途中からの再開はしない（刻みと各ノードの状態の対応が崩れるため）
+        from atrium.churn_live import question_order
+
+        if cfg.experiment.question_limit is not None:
+            raise ValueError(
+                "experiment.churn replays the whole test set; question_limit must be null"
+            )
+        questions = [
+            all_questions[i] for i in question_order(len(all_questions), cfg.experiment.seed)
+        ]
+    elif dataset == "enronqa":
         # EnronQA の質問は受信箱（＝専門家のノード）ごとに並んでいる．そのまま並列に処理すると同時の質問が
         # 1 台のノードに集まり，CPU の Ollama の待ち行列が llm.timeout_s を超えて失敗した（2026-10-09 の EQ5 の B2）．
         # 種で決まる順に並べ替えて負荷を分散する．質問ごとに独立で温度 0 なので，回答は変わらない
@@ -142,7 +154,13 @@ async def run_experiment(
             "started_at": previous.get("started_at", time.time()),
         }
         _write_meta(out_dir, meta)
-        await run_questions(requester, questions, out_dir / RESULTS, cfg.experiment.parallel)
+        if churn is not None:
+            from atrium.churn_live import build_schedule, run_churn_questions
+
+            schedule = build_schedule(cfg, churn, len(placement.nodes), len(questions))
+            await run_churn_questions(requester, questions, out_dir / RESULTS, churn, schedule)
+        else:
+            await run_questions(requester, questions, out_dir / RESULTS, cfg.experiment.parallel)
         # 再開した場合も含め，各質問の最後の結果で失敗を数える
         failures = sum(r.get("error") is not None for r in read_results(out_dir / RESULTS))
         meta.update({"finished_at": time.time(), "failures": failures})

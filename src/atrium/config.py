@@ -43,6 +43,28 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
+# 実機の churn（EQ7b）で使える方式．見えているデータ源の中から選ぶ公開情報の方式と flood_score
+CHURN_ROUTINGS = frozenset(
+    {"card_sim", "term_sketch", "centroid_sim", "multi_centroid", "flood_score", "oracle"}
+)
+
+
+class ChurnConfig(_Strict):
+    """実機の専門家の参加・離脱の再生（p0004 EQ7b）．省略すると離脱は起こさず，質問者も 1 台の失敗で問を失敗にする（従来どおり）．
+
+    質問を 1 問ずつ順に処理し，1 問 = 1 刻みとして，専門家ごとの稼働状態を 2 状態のマルコフ連鎖（atrium.churn_eval と同じ）で
+    動かす．離脱中のノードは `/v1/admin/availability` で応答を拒否する（プロセスは生きている）．
+    質問者のメンバー表は refresh_steps 刻みごとにだけ更新する．
+    """
+
+    availability: float = Field(gt=0, le=1)
+    refresh_steps: int = Field(default=1, ge=1)
+    # 時刻表の種の番号（atrium.churn_eval の rng と同じ [experiment.seed, schedule_seed, availability×100] で引く）
+    schedule_seed: int = Field(default=0, ge=0)
+    # 稼働中の平均の長さ（刻み）．atrium.churn_eval.MEAN_UP_STEPS と同じ
+    mean_up_steps: int = Field(default=200, ge=2)
+
+
 class ExperimentConfig(_Strict):
     """実験の種類と条件．"""
 
@@ -53,6 +75,22 @@ class ExperimentConfig(_Strict):
     question_limit: int | None = None
     parallel: int = Field(default=4, ge=1)
     seed: int = 12
+    # EQ7b．指定すると質問を 1 問ずつ順に流し，離脱したノードがあっても返事のあった分で続ける
+    churn: ChurnConfig | None = None
+
+    @model_validator(mode="after")
+    def _check_churn_conditions(self) -> ExperimentConfig:
+        """churn は EnronQA の検索だけの実験で，質問を 1 問ずつ流すときにだけ使える（1 問 = 1 刻みを保つため）．"""
+        if self.churn is None:
+            return self
+        if self.dataset != "enronqa" or self.answer_mode != "retrieval_only" or self.parallel != 1:
+            raise ValueError(
+                "experiment.churn requires dataset=enronqa, answer_mode=retrieval_only and parallel=1"
+            )
+        # 見えているデータ源の中から選べる方式だけ（ragroute・random は全データ源の並びを前提にする）
+        if self.routing not in CHURN_ROUTINGS:
+            raise ValueError(f"experiment.churn supports routing in {sorted(CHURN_ROUTINGS)}")
+        return self
 
 
 class RetrievalConfig(_Strict):

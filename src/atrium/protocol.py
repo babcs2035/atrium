@@ -132,6 +132,12 @@ class ProfileResponse(_Model):
     shards: list[ShardProfile]
 
 
+class AvailabilityRequest(_Model):
+    """EQ7b：ノードの参加・離脱の切り替え．false の間，ノードは検索・probe・回答・プロファイルの要求を 503 で拒否する．"""
+
+    up: bool
+
+
 class Problem(_Model):
     """RFC 9457 の problem details．"""
 

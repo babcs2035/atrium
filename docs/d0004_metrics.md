@@ -108,6 +108,15 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 
 flood_score は，質問者の実装（1 台でも失敗すると問全体が失敗する）と違い，返事のあった受信箱の中から選ぶと仮定した上限である．
 
+### EnronQA の参加・離脱の実機の再生（`atrium churn-live-report`．p0004 EQ7b）
+
+`experiment.churn` を指定した実行（[d0002](d0002_configuration.md)）の `results.jsonl` は，問ごとに `churn: {step, up, n_visible}`
+（刻み，その刻みの各ノードの稼働状態を並べた 0/1 の文字列，メンバー表に載っているノードの数）と，`contacted_nodes`・`failed_nodes`
+（本照会で問い合わせたノードと返事の無かったノード．`flood_score` は `probe_recipients`・`probe_failed`）を持つ．
+`atrium churn-live-report --runs <run_dir>... --offline-metrics <EQ7a の metrics.json> --out-dir <dir>` が，上の表と同じ定義で
+`hit` などを数え（失敗した問は hit = 0，分母は全問），EQ7a の同じ条件の値と比べて `metrics.json` の `equivalence`・`regression`・`hc1` と
+`analysis_report.md` に書く．`equivalence.equivalent` は，全ての実行で |実機の hit − EQ7a の hit| が 2 問分（2 / n_test）以内かを示す（H-C2）．
+
 ## 4. E0 の実測値
 
 | ファイル | 内容 |

@@ -13,6 +13,7 @@
     advert-eval               RQ-A のオフラインの評価（EnronQA．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
+    churn-live-report  EQ7b の実機の実行を集めて EQ7a と比べる（操作端末）
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
 """
@@ -245,6 +246,17 @@ def cmd_churn_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     churn_eval.write_outputs(Path(args.out_dir), metrics)
     print(churn_eval.render_report(metrics))
+    return 0
+
+
+def cmd_churn_live_report(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """EQ7b の実機の実行を集め，EQ7a の値と比べて metrics.json と analysis_report.md を書く（操作端末）．"""
+    from atrium import churn_live
+
+    offline = json.loads(Path(args.offline_metrics).read_text(encoding="utf-8"))
+    metrics = churn_live.evaluate_live([Path(d) for d in args.runs], offline)
+    churn_live.write_live_outputs(Path(args.out_dir), metrics)
+    print(churn_live.render_live_report(metrics))
     return 0
 
 
@@ -492,6 +504,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--data-dir", required=True)
     p.add_argument("--out-dir", required=True)
     p.set_defaults(func=cmd_advert_eval)
+
+    p = sub.add_parser("churn-live-report", help="EQ7b の実機の実行を集めて EQ7a と比べる")
+    p.add_argument(
+        "--runs", nargs="+", required=True, help="実行のディレクトリ（results/<run_id>）"
+    )
+    p.add_argument("--offline-metrics", required=True, help="EQ7a の metrics.json")
+    p.add_argument("--out-dir", required=True)
+    p.set_defaults(func=cmd_churn_live_report)
 
     p = sub.add_parser("churn-eval", help="RQ-C のオフラインの評価（EnronQA．p0004 EQ7a）")
     p.add_argument("--data-dir", required=True)

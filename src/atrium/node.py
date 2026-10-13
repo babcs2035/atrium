@@ -5,6 +5,8 @@
 - 断片返却型（/v1/retrieve）: 検索した断片をそのまま返す．
 - 宿る型（/v1/answer）: 断片を自分の LLM（同じホストの Ollama）に渡し，回答文だけを返す．
 - flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．
+- 参加・離脱の再生（/v1/admin/availability．EQ7b）: experiment.churn を指定した実験でだけ有効になり，離脱中は
+  /healthz 以外の要求を 503 で拒否する．
 
 コンテナ内では `atrium node` で起動する．ノード名・シャード・Ollama の URL・宿る型のモデルは，
 deploy が config.yaml から作る compose.yml のコマンドの引数で渡す（環境変数は使わない）．
@@ -20,7 +22,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from atrium import llm, prompts
@@ -28,6 +30,7 @@ from atrium.config import AtriumConfig, DatasetName, load_config
 from atrium.protocol import (
     AnswerRequest,
     AnswerResponse,
+    AvailabilityRequest,
     DocOut,
     GenerateRequest,
     GenerateResponse,
@@ -120,6 +123,22 @@ def create_app(
             media_type="application/problem+json",
         )
 
+    # EQ7b：離脱中は処理の入口で拒否する（プロセスは生きている．拒否の速さは接続の失敗に近い）
+    availability = {"up": True}
+
+    def require_up() -> None:
+        if not availability["up"]:
+            raise NodeError(503, "Node unavailable")
+
+    up_only = [Depends(require_up)]
+
+    if cfg.experiment.churn is not None:
+
+        @app.post("/v1/admin/availability")
+        def set_availability(req: AvailabilityRequest) -> dict[str, bool]:
+            availability["up"] = req.up
+            return availability
+
     def store_of(shard_id: str) -> ShardStore:
         if shard_id not in stores:
             raise NodeError(404, "Unknown shard", f"this node does not hold shard {shard_id!r}")
@@ -142,7 +161,7 @@ def create_app(
     def agent_card(request: Request) -> dict[str, object]:
         return build_agent_card(node_id, str(request.base_url).rstrip("/"), stores)
 
-    @app.get("/v1/profile")
+    @app.get("/v1/profile", dependencies=up_only)
     def profile() -> ProfileResponse:
         return ProfileResponse(
             node_id=node_id,
@@ -163,7 +182,7 @@ def create_app(
         )
 
     # FAISS の検索は CPU を使う同期処理なので，def のまま FastAPI のスレッドプールで動かす
-    @app.post("/v1/retrieve")
+    @app.post("/v1/retrieve", dependencies=up_only)
     def retrieve(req: RetrieveRequest) -> RetrieveResponse:
         start = time.perf_counter()
         docs = search(store_of(req.shard_id), req.k, req.embedding, req.query_id)
@@ -176,7 +195,7 @@ def create_app(
             duration_s=time.perf_counter() - start,
         )
 
-    @app.post("/v1/probe")
+    @app.post("/v1/probe", dependencies=up_only)
     def probe(req: ProbeRequest) -> ProbeResponse:
         start = time.perf_counter()
         scores: dict[str, float] = {}
@@ -185,7 +204,7 @@ def create_app(
             scores[shard_id] = docs[0].score if docs else float("-inf")
         return ProbeResponse(node_id=node_id, scores=scores, duration_s=time.perf_counter() - start)
 
-    @app.post("/v1/answer")
+    @app.post("/v1/answer", dependencies=up_only)
     async def answer(req: AnswerRequest) -> AnswerResponse:
         start = time.perf_counter()
         docs: list[RetrievedDoc] = []
@@ -260,7 +279,7 @@ def create_app(
             raise NodeError(502, "Delegate unavailable") from exc
         return GenerateResponse.model_validate_json(response.content)
 
-    @app.post("/v1/generate")
+    @app.post("/v1/generate", dependencies=up_only)
     async def generate_for_peer(req: GenerateRequest) -> GenerateResponse:
         context = [RetrievedDoc(d.doc_id, d.title, d.content, d.score) for d in req.docs]
         content, usage = await generate(req.dataset, req.question, context, req.options)

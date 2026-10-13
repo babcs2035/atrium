@@ -117,3 +117,36 @@ async def test_answer_returns_only_the_answer_and_parsed_choice(
     assert body["choice"] == "B"
     assert body["n_context_docs"] == 2
     assert "pubmed-00/" not in json.dumps(body)  # 原文の断片は返さない
+
+
+def _churn_cfg(cfg: AtriumConfig) -> AtriumConfig:
+    from atrium.config import ChurnConfig
+    from tests.conftest import with_experiment
+
+    return with_experiment(cfg, churn=ChurnConfig(availability=0.7))
+
+
+async def test_admin_availability_is_absent_unless_churn_is_configured(
+    cfg: AtriumConfig, shard_root: Path
+) -> None:
+    async with _client(cfg, shard_root) as client:
+        response = await client.post("/v1/admin/availability", json={"up": False})
+    assert response.status_code == 404
+
+
+async def test_offline_node_rejects_requests_with_503_until_it_is_back(
+    cfg: AtriumConfig, shard_root: Path
+) -> None:
+    retrieve = {"shard_id": "pubmed-00", "k": 1, "embedding": [1.0] * DIM}
+    async with _client(_churn_cfg(cfg), shard_root) as client:
+        await client.post("/v1/admin/availability", json={"up": False})
+        down = [
+            (await client.post("/v1/retrieve", json=retrieve)).status_code,
+            (await client.get("/v1/profile")).status_code,
+            (await client.get("/healthz")).status_code,
+        ]
+        await client.post("/v1/admin/availability", json={"up": True})
+        back = (await client.post("/v1/retrieve", json=retrieve)).status_code
+    # healthz は離脱中でも応える（コンテナの生存確認は離脱と別物）
+    assert down == [503, 503, 200]
+    assert back == 200

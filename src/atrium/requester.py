@@ -205,11 +205,48 @@ class Requester:
     ollama_url: str
     reranker: Reranker | None = None
     rm_qrels: dict[str, dict[str, int]] = field(default_factory=dict)
+    # EQ7b：質問者のメンバー表（見えているノードの URL）．None なら全ノードが見えている（従来どおり）
+    visible_urls: frozenset[str] | None = None
     _embed_lock: threading.Lock = field(default_factory=threading.Lock)
 
     def __post_init__(self) -> None:
         """シャード → ノード URL の表を作る．"""
         self._url_of_shard = self.placement.url_of_shard()
+        # churn を指定した実験では，離脱したノードの失敗を問の失敗にせず，返事のあった分で続ける
+        self._tolerant = self.cfg.experiment.churn is not None
+
+    def _routable_sources(self) -> list[SourceProfile]:
+        """メンバー表で見えているデータ源（全てのシャードのノードが見えているもの）．"""
+        if self.visible_urls is None:
+            return self.sources
+        return [
+            s
+            for s in self.sources
+            if all(self._url_of_shard[sid] in self.visible_urls for sid in s.shard_ids)
+        ]
+
+    async def _gather_requests[T](
+        self, coros: Sequence[Coroutine[Any, Any, T]]
+    ) -> tuple[list[T | None], list[int]]:
+        """要求を並べて実行し，（結果．失敗した位置は None，失敗した位置の番号）を返す．
+
+        従来は 1 つでも失敗すれば全体を失敗にする（gather_or_cancel）．churn を指定した実験では，ノードの離脱（HTTP のエラーと
+        接続の失敗）だけを許し，ほかの例外（配置の誤りなど）は投げ直す．
+        """
+        if not self._tolerant:
+            return list(await gather_or_cancel(coros)), []
+        outcomes = await asyncio.gather(*coros, return_exceptions=True)
+        failed: list[int] = []
+        results: list[T | None] = []
+        for i, outcome in enumerate(outcomes):
+            if isinstance(outcome, BaseException):
+                if not isinstance(outcome, httpx.HTTPError):
+                    raise outcome
+                failed.append(i)
+                results.append(None)
+            else:
+                results.append(outcome)
+        return results, failed
 
     def _profile(self, source: str) -> SourceProfile:
         return next(s for s in self.sources if s.source == source)
@@ -276,12 +313,19 @@ class Requester:
         record: dict[str, Any],
     ) -> list[SourcedDoc]:
         tasks = []
+        asked_shards: list[str] = []
         for source_name in selected:
             source = self._profile(source_name)
             for shard_id in source.shard_ids:
                 tasks.append(self._retrieve(source, shard_id, embeddings[source.encoder], question))
+                asked_shards.append(shard_id)
         start = time.perf_counter()
-        results = await gather_or_cancel(tasks)
+        outcomes, failed = await self._gather_requests(tasks)
+        results = [o for o in outcomes if o is not None]
+        if self._tolerant:
+            # 問い合わせたノードと，返事の無かったノード（EQ7b の無駄な問い合わせ）
+            record["contacted_nodes"] = len({self._url_of_shard[s] for s in asked_shards})
+            record["failed_nodes"] = len({self._url_of_shard[asked_shards[i]] for i in failed})
         record["timings"]["retrieve_s"] = time.perf_counter() - start
         record["shard_stats"] = [stats for _, stats in results]
         received = [d for docs, _ in results for d in docs]
@@ -420,11 +464,19 @@ class Requester:
             response.raise_for_status()
             return ProbeResponse.model_validate_json(response.content), len(response.content)
 
-        nodes = [n for n in self.placement.nodes if any(s in source_of_shard for s in n.shard_ids)]
+        nodes = [
+            n
+            for n in self.placement.nodes
+            if any(s in source_of_shard for s in n.shard_ids)
+            and (self.visible_urls is None or n.url in self.visible_urls)
+        ]
         start = time.perf_counter()
-        results = await gather_or_cancel([ask(n) for n in nodes])
+        outcomes, failed = await self._gather_requests([ask(n) for n in nodes])
+        results = [o for o in outcomes if o is not None]
         record["timings"]["probe_s"] = time.perf_counter() - start
         record["probe_recipients"] = len(nodes)
+        if self._tolerant:
+            record["probe_failed"] = len(failed)
         record["probe_bytes"] = sum(size for _, size in results)
         best: dict[str, float] = {}
         for resp, _ in results:
@@ -448,7 +500,7 @@ class Requester:
             tokens=tuple(tokenize(question.question)),
             probe_scores=probe_scores,
         )
-        selected = self.router.select(query, self.sources)
+        selected = self.router.select(query, self._routable_sources())
         record["timings"]["route_s"] = time.perf_counter() - start
         return selected
 

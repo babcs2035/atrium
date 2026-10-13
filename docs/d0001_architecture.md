@@ -92,12 +92,13 @@
 | POST | `/v1/probe` | `{"shard_ids", "embedding"}` | `{"node_id", "scores": {shard_id: 最高スコア}, "duration_s"}`．本文は返さない（flood_score の 1 段目．p0004） |
 | POST | `/v1/generate` | `{"dataset", "question", "options", "docs"}` | `{"node_id", "answer", "llm"}`．B4（`delegate_gpu`）で GPU の専門家が受け取った断片から答える（p0004） |
 | POST | `/v1/answer` | `{"dataset", "question", "options", "shard_ids", "k", "embedding"?, "query_id"?}` | `{"node_id", "answer", "choice", "n_context_docs", "top_score", "retrieve_s", "llm", "duration_s"}` |
+| POST | `/v1/admin/availability` | `{"up": bool}` | `{"up": bool}`．`experiment.churn` を指定した実験でだけ存在する（EQ7b）．`false` の間，ノードは `/healthz` 以外の要求を 503 で拒否する（プロセスは生きている） |
 
 - MedRAG 型のシャードは `embedding`，FeB4RAG 型は `query_id`（元のデータセットの要求 ID）で検索する．
 - `/v1/answer`（宿る型）は，指定したシャードからそれぞれ上位 `k` 件を取り，スコアで統合した上位 `k` 件を
   同じホストの Ollama（`llm.expert_model`）に渡す．応答には原文の断片を含めない．
 - エラーは RFC 9457 の `application/problem+json`（`type`・`title`・`status`・`detail`）で返す．
-  未知のシャードは 404，次元の不一致・未知の要求 ID は 400，Ollama の失敗は 502 である．
+  未知のシャードは 404，次元の不一致・未知の要求 ID は 400，Ollama の失敗は 502，離脱中（EQ7b）は 503 である．
 
 要求の例:
 
