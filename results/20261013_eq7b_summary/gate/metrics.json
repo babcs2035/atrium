@@ -1,0 +1,120 @@
+{
+ "n_test": 2940,
+ "m": 2,
+ "regression": {
+  "tolerance": 0.0003401360544217687,
+  "diff": {
+   "multi_centroid": 0.0,
+   "flood_score": 0.0
+  },
+  "passed": true
+ },
+ "summary": [
+  {
+   "method": "multi_centroid",
+   "availability": 1.0,
+   "refresh": 1,
+   "hit": {
+    "mean": 0.44013605442176873,
+    "min": 0.44013605442176873,
+    "max": 0.44013605442176873
+   },
+   "hit_given_gold_online": {
+    "mean": 0.44013605442176873,
+    "min": 0.44013605442176873,
+    "max": 0.44013605442176873
+   },
+   "gold_online_rate": {
+    "mean": 1.0,
+    "min": 1.0,
+    "max": 1.0
+   },
+   "contacted": {
+    "mean": 1.9585034013605442,
+    "min": 1.9585034013605442,
+    "max": 1.9585034013605442
+   },
+   "wasted": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+   }
+  },
+  {
+   "method": "flood_score",
+   "availability": 1.0,
+   "refresh": 1,
+   "hit": {
+    "mean": 0.8040816326530612,
+    "min": 0.8040816326530612,
+    "max": 0.8040816326530612
+   },
+   "hit_given_gold_online": {
+    "mean": 0.8040816326530612,
+    "min": 0.8040816326530612,
+    "max": 0.8040816326530612
+   },
+   "gold_online_rate": {
+    "mean": 1.0,
+    "min": 1.0,
+    "max": 1.0
+   },
+   "contacted": {
+    "mean": 30.0,
+    "min": 30.0,
+    "max": 30.0
+   },
+   "wasted": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+   }
+  }
+ ],
+ "stat_fields": [
+  "hit",
+  "hit_given_gold_online",
+  "gold_online_rate",
+  "contacted",
+  "wasted"
+ ],
+ "hc1": null,
+ "equivalence": {
+  "tolerance": 0.0006802721088435374,
+  "rows": [],
+  "max_abs_diff": 0.0,
+  "equivalent": null
+ },
+ "runs": [
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a100_r1_s0",
+   "method": "multi_centroid",
+   "availability": 1.0,
+   "refresh": 1,
+   "seed": 0,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.12384769367054105,
+   "hit": 0.44013605442176873,
+   "hit_given_gold_online": 0.44013605442176873,
+   "gold_online_rate": 1.0,
+   "contacted": 1.9585034013605442,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a100_r1_s0",
+   "method": "flood_score",
+   "availability": 1.0,
+   "refresh": 1,
+   "seed": 0,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.08878636313602328,
+   "hit": 0.8040816326530612,
+   "hit_given_gold_online": 0.8040816326530612,
+   "gold_online_rate": 1.0,
+   "contacted": 30.0,
+   "wasted": 0.0
+  }
+ ]
+}

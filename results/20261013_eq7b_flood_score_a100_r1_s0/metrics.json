@@ -1,0 +1,118 @@
+{
+ "all": {
+  "n": 2940,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.4020408163265306,
+   "recall": 0.8040816326530612,
+   "f1": 0.5360544217687074,
+   "mean_selected_sources": 2.0,
+   "mean_relevant_sources": 1.0,
+   "mean_shards_queried": 2.0,
+   "query_reduction_vs_all": 0.9866666666666667
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 2.2612977772951126e-05,
+    "p95": 3.553153946995735e-05,
+    "n": 2940
+   },
+   "probe_s": {
+    "p50": 0.08022022945806384,
+    "p95": 0.0889987131813541,
+    "n": 2940
+   },
+   "route_s": {
+    "p50": 0.00014478713274002075,
+    "p95": 0.00016670178156346082,
+    "n": 2940
+   },
+   "retrieve_s": {
+    "p50": 0.008091762429103255,
+    "p95": 0.013441673689521847,
+    "n": 2940
+   },
+   "merge_s": {
+    "p50": 0.00016105803661048412,
+    "p95": 0.00020032015163451428,
+    "n": 2940
+   },
+   "e2e_s": {
+    "p50": 0.08878636313602328,
+    "p95": 0.09988013880793005,
+    "n": 2940
+   }
+  },
+  "mean_bytes_received": 21363.622108843538,
+  "mean_snippets_exposed": 10.0,
+  "exposure": {
+   "mean_docs_exposed": 10.0,
+   "mean_query_recipients": 30.0
+  },
+  "gold_doc_retrieval": {
+   "recall_at_k": 0.7119047619047619,
+   "n": 2940.0
+  }
+ },
+ "test": {
+  "n": 2940,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.4020408163265306,
+   "recall": 0.8040816326530612,
+   "f1": 0.5360544217687074,
+   "mean_selected_sources": 2.0,
+   "mean_relevant_sources": 1.0,
+   "mean_shards_queried": 2.0,
+   "query_reduction_vs_all": 0.9866666666666667
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 2.2612977772951126e-05,
+    "p95": 3.553153946995735e-05,
+    "n": 2940
+   },
+   "probe_s": {
+    "p50": 0.08022022945806384,
+    "p95": 0.0889987131813541,
+    "n": 2940
+   },
+   "route_s": {
+    "p50": 0.00014478713274002075,
+    "p95": 0.00016670178156346082,
+    "n": 2940
+   },
+   "retrieve_s": {
+    "p50": 0.008091762429103255,
+    "p95": 0.013441673689521847,
+    "n": 2940
+   },
+   "merge_s": {
+    "p50": 0.00016105803661048412,
+    "p95": 0.00020032015163451428,
+    "n": 2940
+   },
+   "e2e_s": {
+    "p50": 0.08878636313602328,
+    "p95": 0.09988013880793005,
+    "n": 2940
+   }
+  },
+  "mean_bytes_received": 21363.622108843538,
+  "mean_snippets_exposed": 10.0,
+  "exposure": {
+   "mean_docs_exposed": 10.0,
+   "mean_query_recipients": 30.0
+  },
+  "gold_doc_retrieval": {
+   "recall_at_k": 0.7119047619047619,
+   "n": 2940.0
+  }
+ }
+}
