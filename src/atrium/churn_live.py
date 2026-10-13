@@ -187,8 +187,27 @@ def compare_with_offline(
         "tolerance": tolerance,
         "rows": rows,
         "max_abs_diff": max((abs(x["diff"]) for x in rows), default=0.0),
-        "equivalent": all(abs(x["diff"]) <= tolerance + 1e-12 for x in rows),
+        # 比べる実行が無いとき（ゲートだけ）は判定しない（空の all() が真になって「成立」と読めるのを防ぐ）
+        "equivalent": all(abs(x["diff"]) <= tolerance + 1e-12 for x in rows) if rows else None,
     }
+
+
+def _hc1_complete(runs: Sequence[dict[str, Any]]) -> bool:
+    """H-C1 の判定に要る実行（判定の稼働率で，R = 1 と最大の R，全ての種，判定の方式と flood_score）が揃っているか．"""
+    from atrium.churn_eval import (
+        JUDGED_AVAILABILITY,
+        JUDGED_METHOD,
+        N_SCHEDULE_SEEDS,
+        REFRESH_STEPS,
+    )
+
+    have = {(r["method"], r["availability"], r["refresh"], r["seed"]) for r in runs}
+    return all(
+        (method, JUDGED_AVAILABILITY, refresh, seed) in have
+        for method in (JUDGED_METHOD, FLOOD_ROUTING)
+        for refresh in (1, max(REFRESH_STEPS))
+        for seed in range(N_SCHEDULE_SEEDS)
+    )
 
 
 def evaluate_live(run_dirs: Sequence[Path], offline: dict[str, Any]) -> dict[str, Any]:
@@ -240,7 +259,8 @@ def evaluate_live(run_dirs: Sequence[Path], offline: dict[str, Any]) -> dict[str
         },
         "summary": summarize_runs(runs) if runs else [],
         "stat_fields": list(STAT_FIELDS),
-        "hc1": judge_hc1(churned, methods),
+        # 22 回が揃う前（ゲートだけなど）に集計しても止まらないよう，判定に要る組が揃ったときだけ判定する
+        "hc1": judge_hc1(churned, methods) if _hc1_complete(churned) else None,
         "equivalence": compare_with_offline(churned, offline["runs"], n_test),
         "runs": runs,
     }
@@ -253,14 +273,14 @@ def render_live_report(metrics: dict[str, Any]) -> str:
     eq = metrics["equivalence"]
     h = metrics["hc1"]
     diffs = ", ".join(f"{k} {v:+.4f}" for k, v in reg["diff"].items())
-    flood = ", ".join(f"{x:.3f}" for x in h["flood_rel_drop"])
     lines = [
         "# EQ7b：RQ-C の実機での再生（専門家の参加・離脱とメンバー表の古さ）",
         "",
         f"- test {metrics['n_test']} 問，m = {m}．実行 {len(metrics['runs'])} 回（実機のノード 30 台．1 問 = 1 刻み）",
         f"- 退行の確認（離脱なしの hit@{m} と EQ7a の離脱なしの値の差が 1 問以内）：{'通過' if reg['passed'] else '不一致'}（{diffs}）",
         f"- H-C2（EQ7a の再現）：全ての実行で |実機 − EQ7a| ≤ {eq['tolerance']:.5f}（{EQUIVALENCE_TOLERANCE_QUESTIONS} 問）："
-        f"{'成立' if eq['equivalent'] else '不成立'}（最大の差 {eq['max_abs_diff']:.5f}）",
+        f"{ {True: '成立', False: '不成立', None: '比べる実行が無いので未判定'}[eq['equivalent']] }"
+        f"（最大の差 {eq['max_abs_diff']:.5f}）",
         "",
         f"| 方式 | 稼働率 a | 更新間隔 R | 種 | 失敗 | hit@{m} | EQ7a の hit@{m} | 問い合わせたノード | うち離脱していたノード | e2e p50 (s) |",
         "|---|---|---|---|---|---|---|---|---|---|",
@@ -275,6 +295,10 @@ def render_live_report(metrics: dict[str, Any]) -> str:
             f"| {r['method']} | {r['availability']} | {r['refresh']} | {r['seed']} | {r['failed']} | "
             f"{r['hit']:.4f} | {ref_hit} | {r['contacted']:.2f} | {r['wasted']:.2f} | {r['e2e_p50_s']:.2f} |"
         )
+    if h is None:
+        lines += ["", "H-C1：判定に要る実行が揃っていないので判定していない"]
+        return "\n".join(lines) + "\n"
+    flood = ", ".join(f"{x:.3f}" for x in h["flood_rel_drop"])
     lines += [
         "",
         f"## H-C1（実機．a = {h['availability']}，R = 1 → {h['max_refresh']} の hit@{m} の相対的な低下）",

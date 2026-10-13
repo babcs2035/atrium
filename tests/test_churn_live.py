@@ -123,3 +123,27 @@ async def test_replay_updates_nodes_and_the_member_table_on_schedule(
     # 終わるとき，全ノードが稼働に戻っている
     response = await requester.client.get("http://node-b/v1/profile")
     assert response.status_code == 200
+
+
+def test_report_skips_the_hc1_judgement_until_all_its_runs_exist(tmp_path: Path) -> None:
+    from atrium.churn_live import evaluate_live, render_live_report
+
+    run = tmp_path / "gate"
+    run.mkdir()
+    churn = {"availability": 1.0, "refresh_steps": 1, "schedule_seed": 0}
+    (run / "run_meta.json").write_text(
+        json.dumps({"routing": "multi_centroid", "config": {"experiment": {"churn": churn}}}),
+        encoding="utf-8",
+    )
+    (run / "placement.json").write_text(
+        json.dumps({"nodes": [{"shard_ids": ["a"]}, {"shard_ids": ["b"]}]}), encoding="utf-8"
+    )
+    record = _record("a", "11", ["a"], contacted_nodes=1, failed_nodes=0)
+    record.update(qid="q0", timings={"e2e_s": 0.1})
+    (run / "results.jsonl").write_text(json.dumps(record) + "\n", encoding="utf-8")
+    offline = {"n_test": 1, "m": 2, "no_churn_hit": {"multi_centroid": 1.0}, "runs": []}
+    metrics = evaluate_live([run], offline)
+    assert metrics["hc1"] is None
+    assert metrics["equivalence"]["equivalent"] is None
+    assert metrics["regression"]["passed"] is True
+    assert "判定していない" in render_live_report(metrics)
