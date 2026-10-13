@@ -17,8 +17,9 @@
   自己紹介文の埋め込みの類似度（`desc_sim`）が成功条件を満たした．実機の下流確認（7,663 問）も失敗 0 で終えた．
 - **EnronQA の拡張**（p0004）は，RQ-A（見つけてもらう方法）・RQ-B（誰が答えるか）・待ち時間・文脈の通数の実験（EQ0〜EQ6，EQ8〜EQ10）を完了した．
   RQ-C（参加・離脱）は，実機を使わない EQ7a まで完了し，実機の EQ7b は未実施である．
-- **保留**：MedRAG の宿る型のパイロット（p0003 S6）と，cross_encoder の全問（s8）は，ユーザーの判断で保留にしている
-  （[.claude/research/backlog.md](.claude/research/backlog.md) の B4）．
+- **S6・s8**（保留はユーザーが 2026-10-12 に解除した）：cross_encoder の全問（s8）は失敗 0 で完了し，正答率は 0.689 だった
+  （score の統合の s4 は 0.659．McNemar で p < 0.05）．MedRAG の宿る型のパイロット（S6）は，100 問のうち 64 問が失敗した
+  （16 GB の専門家のメモリ不足）．次の手は人の判断を待つ（journal の「S6」）．
 
 各段階の判定と数値は [.claude/research/journal.md](.claude/research/journal.md) に，新しいものを先頭にして書いてある．
 準備段階の記録は同じ文書の末尾にある．
