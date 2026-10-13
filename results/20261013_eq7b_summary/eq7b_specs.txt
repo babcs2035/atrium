@@ -1,0 +1,25 @@
+# EQ7b（実機の参加・離脱の再生）：test の 2,940 問，parallel 1（1 問 = 1 刻み），m = 2，稼働中の平均 200 刻み．最初の 2 回が退行ゲート（a = 1）
+
+20261013_eq7b_multi_centroid_a100_r1_s0 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":1.0,"refresh_steps":1,"schedule_seed":0}
+20261013_eq7b_flood_score_a100_r1_s0 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":1.0,"refresh_steps":1,"schedule_seed":0}
+
+20261013_eq7b_multi_centroid_a70_r1_s0 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":0}
+20261013_eq7b_multi_centroid_a70_r1000_s0 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":0}
+20261013_eq7b_flood_score_a70_r1_s0 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":0}
+20261013_eq7b_flood_score_a70_r1000_s0 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":0}
+20261013_eq7b_multi_centroid_a70_r1_s1 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":1}
+20261013_eq7b_multi_centroid_a70_r1000_s1 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":1}
+20261013_eq7b_flood_score_a70_r1_s1 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":1}
+20261013_eq7b_flood_score_a70_r1000_s1 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":1}
+20261013_eq7b_multi_centroid_a70_r1_s2 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":2}
+20261013_eq7b_multi_centroid_a70_r1000_s2 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":2}
+20261013_eq7b_flood_score_a70_r1_s2 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":2}
+20261013_eq7b_flood_score_a70_r1000_s2 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":2}
+20261013_eq7b_multi_centroid_a70_r1_s3 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":3}
+20261013_eq7b_multi_centroid_a70_r1000_s3 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":3}
+20261013_eq7b_flood_score_a70_r1_s3 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":3}
+20261013_eq7b_flood_score_a70_r1000_s3 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":3}
+20261013_eq7b_multi_centroid_a70_r1_s4 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":4}
+20261013_eq7b_multi_centroid_a70_r1000_s4 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":4}
+20261013_eq7b_flood_score_a70_r1_s4 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1,"schedule_seed":4}
+20261013_eq7b_flood_score_a70_r1000_s4 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":0.7,"refresh_steps":1000,"schedule_seed":4}
