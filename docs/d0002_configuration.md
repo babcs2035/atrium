@@ -57,9 +57,9 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 
 | キー | 既定値 | 意味 |
 |---|---|---|
-| `random_k.medrag` / `random_k.feb4rag` | 3 / 9 | `random` で選ぶデータ源の数（RAGRoute と同じ） |
+| `random_k.medrag` / `random_k.feb4rag` / `random_k.enronqa` | 3 / 9 / 2 | `random` で選ぶデータ源の数（medrag・feb4rag は RAGRoute と同じ．enronqa は `top_m.enronqa` と同じにして比べる） |
 | `ragroute_threshold` | 0.5 | `ragroute` の判定閾値（RAGRoute の推論コードと同じ）．検証データで Youden 指数が最大になる閾値は `router/train_report.json` に記録される |
-| `top_m.enronqa` | 5（dev で選ぶ） | 公開情報を使う方式と `flood_score` が問い合わせるデータ源の数 m（p0004 の RQ-A） |
+| `top_m.enronqa` | 2（dev で選んだ値） | 公開情報を使う方式と `flood_score` が問い合わせるデータ源の数 m（p0004 の RQ-A） |
 | `top_m.medrag` | 3 | MedRAG で `card_sim`（E2 の `desc_sim`）が問い合わせるデータ源の数（p0003 S5）．4 源の `train`・`val` で F1 が最大の k（候補 {1, 2, 3}）．MedRAG のデータ源は広告を持たないので，質問者が起動時に自己紹介文を MedCPT の文書側で埋め込んで付ける |
 
 ## llm
@@ -128,7 +128,7 @@ cluster:
 | リスト | 役割 | 現在の構成 |
 |---|---|---|
 | `requester`（1 台） | 質問者．質問を投げ，断片返却型では回答も生成する | wafl-ctrl5（制御点が兼ねる） |
-| `requester_llm`（省略可．1 台） | 質問者の LLM（Ollama，`llm.requester_model`）を動かす GPU PC．省略すると質問者と同じホストで動かす．質問者の GPU で再ランク（`merge=cross_encoder`）を動かすと 8B の Ollama と VRAM を取り合い，一部の層が CPU で動いて生成が約 4 倍遅くなるため，別の GPU に分ける | 省略（制御点が兼ねる．s8 を再開するときだけ wafl500 にする．p0004 §14） |
+| `requester_llm`（省略可．1 台） | 質問者の LLM（Ollama，`llm.requester_model`）を動かす GPU PC．省略すると質問者と同じホストで動かす．質問者の GPU で再ランク（`merge=cross_encoder`）を動かすと 8B の Ollama と VRAM を取り合い，一部の層が CPU で動いて生成が約 4 倍遅くなるため，別の GPU に分ける | 省略（制御点が兼ねる）．MedRAG の `merge=cross_encoder` を流すときだけ，`{host: "192.168.15.100"}`（wafl500）にし，`experts` と `gpu_workers` から wafl500 を外す（役割は 1 つだけ） |
 | `experts` | 専門家．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる（EnronQA は 150 個の受信箱を全台に均等に配る）．GPU を持つ専門家は Ollama を GPU で動かし，`llm.expert_model_gpu` を使う | CPU の 192.168.13.100〜109，192.168.14.100〜109 の後ろに，GPU の 192.168.15.100〜109（計 30 台） |
 | `gpu_workers` | データ準備の埋め込みを制御点の GPU と分担する GPU PC | 192.168.15.100〜109（wafl500〜509） |
 
@@ -148,6 +148,7 @@ cluster:
 | `medrag.embed_precision` | MedCPT の埋め込みの計算精度（`fp32` / `fp16_autocast`．既定は後者．文書とクエリの両方に使う） |
 | `medrag.embed_batch_size` | 埋め込みのバッチの大きさ（既定 128．RTX 3060 の 12 GB に収まる大きさ） |
 | `medrag.medrag_commit` | StatPearls の断片化に使う MedRAG のスクリプトのコミット |
+| `medrag.mirage_url` / `statpearls_url` | MIRAGE のベンチマークと StatPearls の tarball の取得元 |
 | `medrag.descriptions` | 各データ源の自己紹介文（Agent Card の description） |
 | `feb4rag.sources` | 13 エンジン（signal1m・robust04・trec-news を除く．RAGRoute と同じ） |
 | `feb4rag.feb4rag_commit` | FeB4RAG のリポジトリのコミット |
@@ -170,6 +171,8 @@ EnronQA（Enron の 150 人の受信箱）を使う実験の設定である．�
 | `enronqa.owner_probe_per_inbox` | 所有者特定の評価で受信箱ごとに抜き出すメールの数 |
 | `enronqa.card_subjects` / `term_sketch_size` / `n_centroids` | 公開情報の大きさ（Agent Card に載せる件名の数，語のスケッチの語数 T，重心の数 C）．dev で選ぶ |
 | `enronqa.ragroute_negatives` | 中央の分類器の学習で 1 問あたりに使う関連の無い受信箱の数 |
+| `enronqa.judge_model` / `judge_reference_model` | 自由記述の回答を採点する判定モデル（既定は qwen3:8b．質問者の llama3.1:8b と別系統にして自己贔屓を避ける）と，判定モデルとの一致（Cohen の κ）を測る参照モデル（qwen3:14b） |
+| `enronqa.judge_validate_n` / `judge_kappa_n` | 判定モデルの検証に使う件数（付属の別解・誤答それぞれ／κ の測定） |
 
 `retrieval.query_embedding.enronqa` は `cached`（制御点で事前計算する）である．`retrieval.k_ret`・`k_rerank` は MedRAG・FeB4RAG の
 値のまま変えず，EnronQA では `enronqa.k_context` を使う．

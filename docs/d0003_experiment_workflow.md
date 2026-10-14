@@ -117,14 +117,14 @@ deploy は，別のデータセットのシャードを専門家から消さな�
 
 ## 3. 所要時間の目安
 
-2026-10-05〜06 に実際にデータ準備を行ったときの実測値である（gpu2 での縮小構成の値を含む）．
+データ準備と実験を実際に行ったときの実測値である（gpu2 での縮小構成の値を含む）．
 
 | 処理 | 値 | 根拠 |
 |---|---|---|
 | MedCPT による文書の埋め込み | 約 200 断片/秒（実測） | RTX 3090（他のプロセスと共有），バッチ 64，Textbooks |
 | StatPearls（約 30 万断片，9,651 ファイル）の埋め込み | 約 39 分（実測） | 1 ファイルが数十断片と小さく，ファイルごとの処理の費用が大きい |
 | 約 5,400 万断片の埋め込み（GPU 1 枚） | 3〜4 日（見積もり） | 上の速さのまま全断片を処理した場合 |
-| 同（GPU 11 枚で分担，fp16 の混合精度） | 約 5 時間 40 分（実測．01:45〜07:28） | RTX 3060 1 枚あたり約 280 断片/秒．断片の配布（約 100 GB）に約 15 分，イメージの取得に約 10 分を含む．最も遅かったのは他の処理と GPU を共有した制御点 |
+| 同（GPU 11 枚で分担，fp16 の混合精度） | 約 5 時間 40 分（実測） | RTX 3060 1 枚あたり約 280 断片/秒．断片の配布（約 100 GB）に約 15 分，イメージの取得に約 10 分を含む．最も遅かったのは他の処理と GPU を共有した制御点 |
 | シャードの作成（16 シャードの重心の計算） | 約 16 分（実測） | 毎回作り直す |
 | MedRAG の関連ラベル（7,663 問 × 全断片の内積） | 約 25 分（実測） | 断片ファイルを 5 万断片ずつ区切って GPU で計算する |
 | FeB4RAG の準備（13 エンジン．SGPT-5.8B は CPU） | 約 4 時間（実測） | 大半は SGPT-5.8B での trec-covid の重心（500 文書）と 790 問の埋め込み |
@@ -132,6 +132,13 @@ deploy は，別のデータセットのシャードを専門家から消さな�
 | MIRAGE 全 7,663 問（retrieval_only，routing=all） | 約 4 時間（100 問の実測から見積もり） | 1 問あたり約 1.9 秒．専門家は 1 シャード（約 419 万ベクトル）の検索に約 1.2 秒かかり，要求を順に処理する |
 | MIRAGE 全 7,663 問（snippet_return，llama3.1:8b） | 約 14 時間（25 問の実測から見積もり） | 1 問あたり約 6.4 秒．質問者の生成（プロンプト中央値約 4,900 トークン，出力中央値約 280 トークン）が律速 |
 | 宿る型（local_answer，qwen3:0.6b） | 1 回の回答に 30〜190 秒（実測） | 専門家の CPU での生成．並列に送ると専門家で待ち行列ができる |
+| MIRAGE 全 7,663 問（snippet_return，merge=cross_encoder．質問者の LLM は別の GPU） | 約 17 時間（中断を挟んだ実行の，後半の速さ（約 7.6 問/分）から） | 再ランクが 1 問約 22 秒（p50），生成が約 7 秒．質問者の LLM を別の GPU に置いたので生成は速い |
+| MedRAG の宿る型（local_answer，qwen3:0.6b．15 断片） | 1 問約 9 分（実測．成功した問の中央値） | 専門家（16 GB）のメモリ不足で，100 問のうち 64 問が失敗した．全問には現実的でない |
+| EnronQA 2,940 問（retrieval_only，parallel 30） | term_sketch 約 1 分，multi_centroid 約 6 分（実測）．flood_score は 30 台への probe が重なり，数時間かかる | parallel 1 で流すと，どの方式も 1 問 0.1 秒前後（2,940 問で数分〜45 分．参加・離脱の再生） |
+| EnronQA 2,940 問（断片返却型 B1，B3，B4．parallel 30） | 0.6〜1.7 時間（実測） | 質問者の LLM と GPU の専門家が律速 |
+| EnronQA 2,940 問（宿る型 B2，B2'．parallel 30） | 十数時間（実測．再試行を含む） | CPU の専門家での生成が律速．文脈の通数 k を 5 から 1〜3 に減らすと 0.4〜2.7 時間 |
+| 条件ごとの deploy | 約 3〜10 分 | 条件ごとに deploy し直す（KV キャッシュを空にするため） |
+| EnronQA の採点（判定モデル qwen3:8b．制御点と wafl500〜509） | 約 2 時間（2,940 問 × 数条件） | |
 
 `.claude/research/config.yml` の `timeout_min`（1,200 分）は，この表の MIRAGE 全問の snippet_return が収まる長さにしてある．
 宿る型で全問を回すときは，これに収まらないので `question_limit` で絞る．
@@ -147,7 +154,10 @@ deploy は，別のデータセットのシャードを専門家から消さな�
 | start がすぐ終わる | `results/<run_id>/requester.log`．多くはノードの自己紹介に欠けたデータ源がある（deploy のやり直し） |
 | ラベル一致が 1.0 から大きく外れる | シャードの配布漏れ（`rsync -L` の失敗）か，`k_ret`・`k_rerank` をラベルの計算後に変えた |
 | データ準備の状態が `failed (exit N)` | `prepare.log` の末尾．取得が途中で切れた場合は `mise run setup` で再開する（取得は Content-Length と照合し，切れたファイルは捨てて取り直す）．NCBI から StatPearls が取れないときは，別の場所で取得した `statpearls_NBK430685.tar.gz` を `atrium-data/medrag/corpus/statpearls/` に置けば取得は飛ばされる |
-| FeB4RAG の取得（codeload.github.com）が極端に遅い | 制御点からの転送が 100 KB/s 程度まで落ちることがある（2026-10-05）．操作端末で同じコミットを clone し，`dataset/` を制御点の `atrium-data/feb4rag/repo/dataset` へ rsync すれば，取得の段は飛ばされる |
+| FeB4RAG の取得（codeload.github.com）が極端に遅い | 制御点からの転送が 100 KB/s 程度まで落ちることがある．操作端末で同じコミットを clone し，`dataset/` を制御点の `atrium-data/feb4rag/repo/dataset` へ rsync すれば，取得の段は飛ばされる |
+| 宿る型で専門家が 502 を返す | 専門家のカーネルログ（`dmesg`・`journalctl -k`）に `Out of memory` があれば，Ollama の `llama-server` が OOM で落ちている．`llm.num_ctx`・`local_answer.k_context`・`experiment.parallel` を下げる．`llm.timeout_s` を超えた生成も 502 になる |
+| 連続実行（deploy → start）が `.exit` を見て 2 秒で終わる | 前の手動停止などで残った `results/<run_id>/.exit`（値 0）を，start が「完了済み」と見なす．制御点の該当ファイルを消す |
+| 連続実行を別のプロセスから起動したら docker に触れない | プロセスが `docker` グループを持っていない．`sg docker -c '...'` の下で起動する |
 | 選択肢を抽出できなかった割合が高い | `results.jsonl` の `answer`．`llm.num_predict` が足りずに JSON が途中で切れていないか |
 
 ## 5. EnronQA の採点とモデルの取得（p0004）
@@ -164,7 +174,7 @@ mise run analyze <run_id>                           # 正答率に採点の結�
 bash scripts/tasks/judge.sh down
 ```
 
-- データセットとモデルは全て制御点で取得する（gpu2 のディスクは空きが少ない．2026-10-09 のユーザーの指示）．
+- データセットとモデルは全て制御点で取得する（gpu2 のディスクは空きが少ない）．
 - `judgements.jsonl` には質問 ID・正誤・回答と正解のメールの最長共通部分列の比率だけを書く．メールの本文と判定モデルの出力は
   制御点の `<data_dir>/enronqa/judge_raw/` にだけ残す．
 - `judge.sh up` は GPU の PC の専門家のコンテナを止める（GPU を判定モデルに使うため）．実験の後に使う．

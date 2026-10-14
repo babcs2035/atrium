@@ -8,10 +8,11 @@
 | 役割 | ホスト | すること | 主なコード |
 |---|---|---|---|
 | 操作端末 | gpu2 | mise のタスク・イメージの build・外部の資材の取得・分析・テスト | `scripts/tasks/`，`atrium.analysis` |
-| 制御点（データ中継点）・質問者 | wafl-ctrl5（RTX 3060） | registry・データ準備・各ノードの操作．質問者として，クエリ埋め込み・ルーティング・統合・断片返却型の回答も行う | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router`，`atrium.requester`，`atrium.experiment` |
-| 埋め込みの分担 | 192.168.15.101〜109 = wafl501〜509（RTX 3060） | データ準備の間だけ，MedCPT の埋め込みを制御点と分担する | `scripts/remote/prepare_data.sh` |
-| 質問者の LLM | 192.168.15.100 = wafl500（RTX 3060．`cluster.requester_llm`） | 断片返却型の回答を生成する Ollama（llama3.1:8b）．質問者（制御点）の GPU は再ランクとクエリ埋め込みに使う | `docker/compose.requester_llm.yml` |
-| 専門家 | 192.168.13.100〜109，192.168.14.100〜109（GPU なし） | シャードの検索・宿る型の回答 | `atrium.node`，`atrium.store` |
+| 制御点（データ中継点）・質問者 | wafl-ctrl5（RTX 3060） | registry・データ準備・各ノードの操作．質問者として，クエリ埋め込み・ルーティング・統合・断片返却型の回答も行う（`cluster.requester_llm` を省略したとき．省略しないと質問者の LLM は別の GPU PC で動く） | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router`，`atrium.requester`，`atrium.experiment` |
+| 埋め込み・採点の分担 | 192.168.15.100〜109 = wafl500〜509（RTX 3060．`cluster.gpu_workers`） | データ準備の間は MedCPT・EnronQA の埋め込みを制御点と分担し，実験の後は判定モデルでの採点を分担する．実験の間は専門家（GPU）になる（時間を分けて使う．[d0002](d0002_configuration.md)） | `scripts/remote/prepare_data.sh`，`scripts/remote/judge.sh` |
+| 質問者の LLM（省略可） | `cluster.requester_llm` に書いた GPU PC（MedRAG の `merge=cross_encoder` を流すときは wafl500） | 断片返却型の回答を生成する Ollama（llama3.1:8b）．質問者（制御点）の GPU で再ランクを動かすと VRAM を取り合うので，別の GPU に分ける | `docker/compose.requester_llm.yml` |
+| 専門家（CPU） | 192.168.13.100〜109，192.168.14.100〜109（GPU なし） | シャードの検索・宿る型の回答 | `atrium.node`，`atrium.store` |
+| 専門家（GPU） | 192.168.15.100〜109 = wafl500〜509 | 同上．Ollama を GPU で動かし（`llm.expert_model_gpu`），`delegate_gpu` では対応づけた CPU の専門家 2 台の回答を引き受ける | `atrium.node`，`docker/compose.node_gpu.yml` |
 
 操作端末は各ノードへ直接 SSH しない．操作端末はリポジトリを制御点の `cluster.remote_dir`（既定は `/home/denjo/workspace/ktakahashi/atrium`）へ rsync し，
 `ssh wafl-ctrl5 "bash scripts/remote/<task>.sh"` を実行する．制御点は `denjo@<IP>` で各ノードへ SSH する．
@@ -27,7 +28,7 @@
 `placement.json`）を消さないよう除外してあり，`mise run clean -- --full` もこれらだけを消す（リポジトリは残る）．
 
 各ノードはインターネットに出ない．研究室側の回線は不安定で，ノードからの取得が 700 KB/s 程度しか出ないことや，
-制御点がインターネットに出られなくなることがあった（2026-10-06）．そこで外部の資材は全て操作端末で取得する．
+制御点がインターネットに出られなくなることがある．そこで外部の資材は全て操作端末で取得する（EnronQA のデータだけは，操作端末のディスクの空きが少ないため，制御点で取得する）．
 
 | 資材 | 操作端末での取得 | ノードへの配り方 |
 |---|---|---|
@@ -35,7 +36,7 @@
 | 外部のイメージ（ollama・llama.cpp・iperf3） | pull（`scripts/tasks/fetch_assets.sh`） | registry の `mirror/` |
 | Ollama のモデル（`llm.expert_model`・`llm.requester_model`） | ollama pull | 制御点の `$DATA_DIR/ollama` から rsync |
 | E0 の GGUF | Hugging Face | 制御点の `$DATA_DIR/gguf` から rsync |
-| Hugging Face のモデル（MedCPT・再ランク・FeB4RAG の検索器） | 制御点の `fetch-models`，または操作端末で取得して送る | 制御点の HF のキャッシュから rsync（ノードでは `HF_HUB_OFFLINE=1`） |
+| Hugging Face のモデル（MedCPT・再ランク・FeB4RAG の検索器・EnronQA の符号化器．リビジョンは `atrium.hf_revisions` で固定） | 制御点の `fetch-models`，または操作端末で取得して送る | 制御点の HF のキャッシュから rsync（ノードでは `HF_HUB_OFFLINE=1`） |
 
 ## 2. データの流れ
 
@@ -81,6 +82,20 @@
    （既定 2,000 件．trec-covid は 500 件）をそのエンジンの検索器で埋め込んだ平均で近似する．
 4. 検索器（8 種類）ごとに全要求のクエリ埋め込みを計算する．質問者はこれを引いて使う（`cached`）．
 
+### 2.3 EnronQA
+
+1. Hugging Face の `MichaelR207/enron_qa_0922`（リビジョンを固定）の parquet を取得し，受信箱 150 個ごとにメールを `corpus/<inbox>/chunk/<inbox>.jsonl` へ書く．
+   メール本文の "File:" の行（受信箱の名前がそのまま入っている付属情報）は，検索・回答・公開情報の全てから除く．
+2. メールを arctic-embed-m-v1.5 で埋め込み，fp16 で保存する（制御点と `cluster.gpu_workers` で分担する）．
+3. 質問を評価用（test．受信箱あたり最大 20 問）・公開情報の大きさの選択用（dev）・中央の分類器の学習用（train）に抜き出し，全質問のクエリ埋め込みを計算する．
+   他の受信箱にほぼ同じメールがある質問は主評価から除く（Jaccard 類似度の閾値 `data.enronqa.duplicate_jaccard`）．
+4. 関連ラベル（質問 → 正解のメールの受信箱）と分割を作り，受信箱ごとに 1 シャードを作る．シャードには，持ち主のメールだけから計算した
+   公開情報（`Advert`．語のスケッチ・k-means の中心・Agent Card の説明文の埋め込み）を付ける．
+5. deploy が，150 個の受信箱を専門家 30 台に 5 個ずつ配置する（`placement.json`．`experiment.seed` で並べ替えた受信箱を，メールの数がおおよそ均等になるよう同数ずつ配る．CPU の専門家に GPU の専門家を対応づける `delegate_of` も入る）．
+6. 実験の後に，判定モデル（qwen3:8b）が自由記述の回答を採点する（`judgements.jsonl`．[d0003](d0003_experiment_workflow.md) §5）．
+
+本文は制御点のデータディレクトリにだけ置き，`results/` と Git には入れない．
+
 ## 3. 専門家ノードの API
 
 | メソッド | パス | 要求 | 応答 |
@@ -111,16 +126,21 @@ curl -s http://192.168.13.100:8100/v1/retrieve -H 'content-type: application/jso
 
 1. クエリ埋め込み（medrag は MedCPT でその場で計算，feb4rag は事前計算を引く）
 2. ルーティング：各ノードの `/v1/profile` をデータ源ごとにまとめた `SourceProfile`（重心はシャードの重心を
-   文書数で重み付けした平均）を入力に，`Router.select()` が問い合わせるデータ源を返す
+   文書数で重み付けした平均）を入力に，`Router.select()` が問い合わせるデータ源を返す．`flood_score` は先に全ノードの `/v1/probe` へ
+   クエリ埋め込みを送り，返事のあったデータ源の最高スコアを `RoutingQuery.probe_scores` として渡す．
+   `experiment.churn` を指定した実験では，質問者のメンバー表（`Requester.visible_urls`）に載っているノードのデータ源だけを `Router.select()` に渡し，
+   離脱したノードの失敗（HTTP のエラー・接続の失敗）は問の失敗にせず，返事のあった分で続ける
 3. 回答方式ごとの処理
    - `retrieval_only`・`snippet_return`：選んだデータ源の全シャードへ `/v1/retrieve` を並列に送る．
      データ源ごとに上位 `k_ret` 件へ絞ってから（シャードに分けない場合と同じ結果になる），
      `retrieval.merge` の方法で上位 `k_rerank` 件に統合する．`snippet_return` はこれを質問者の LLM に渡す．
-   - `local_answer`：選んだシャードを持つノードへ `/v1/answer` を送り，選択肢を多数決で統合する
-     （同数なら，その選択肢を出したノードの最高検索スコアが高い方を採る）．
+   - `local_answer`・`delegate_gpu`：選んだシャードを持つノードへ `/v1/answer` を送る．MedRAG は選択肢を多数決で統合する
+     （同数なら，その選択肢を出したノードの最高検索スコアが高い方を採る）．EnronQA は最高の検索スコアのノードの回答を採る．
+     `delegate_gpu` では，対応づけた GPU の専門家（`placement.json` の `delegate_of`）が，CPU の専門家の断片を受け取って答える．
+   - `snippet_return_small`：`snippet_return` と同じ流れで，質問者が `llm.expert_model` で答える．
 4. 結果を `results.jsonl` に 1 行で追記する（書式は [d0004_metrics.md](d0004_metrics.md)）．
 
-## 5. ルーティング方式の追加（E2 以降）
+## 5. ルーティング方式
 
 `src/atrium/routing/` に次のプロトコルを満たすクラスを作り，`make_router()` に名前を登録し，
 `config.py` の `RoutingName` に名前を加える．
@@ -137,7 +157,7 @@ class Router(Protocol):
 
 E2 の LOSO の評価（p0003）は，実機を使わずに `atrium loso <dataset> --split <split>` が操作端末で行う
 （`src/atrium/loso.py`．入力は制御点から写した `artifacts/<dataset>/` の manifest・クエリ埋め込み・ラベル・分割・ルーター）．
-方式は次のとおりで，p0003 の案と違い，新しい `Router` は足さずに既存のものを使う．
+方式は次のとおりで，新しい `Router` は足さずに既存のものを使う．
 
 | 方式 | 実装 | 新参源の扱い |
 |---|---|---|
@@ -148,7 +168,6 @@ E2 の LOSO の評価（p0003）は，実機を使わずに `atrium loso <datase
 
 上位 k 個を選ぶ方式の k は，設定に置かず，除外ごとに新参源を候補とラベルから外した N−1 源で，
 `train`・`val` の質問の F1 が最大のものを選ぶ（候補は `loso.K_CANDIDATES`）．
-
 
 EnronQA（p0004 の RQ-A）のために，公開情報を使う方式を `src/atrium/routing/advert.py` に置いた．
 各受信箱は，自分のメールだけから計算した公開情報（`Advert`．語のスケッチ・k-means の中心・Agent Card の説明文の埋め込み）を
@@ -162,6 +181,9 @@ EnronQA（p0004 の RQ-A）のために，公開情報を使う方式を `src/at
 | `term_sketch` | 多く使う語と，その語を含むメールの割合 | クエリの語と重なる語の割合の和の上位 m 個 |
 | `centroid_sim` | 埋め込みの平均 | 内積の上位 m 個 |
 | `multi_centroid` | k-means の C 個の中心 | 中心との内積の最大の上位 m 個 |
+
+これらの評価は，実機を使わないもの（`atrium advert-eval`．RQ-A のオフライン評価，`atrium churn-eval`．参加・離脱のオフライン評価）と，
+実機に流すもの（`experiment.routing` に名前を書く．参加・離脱の再生は `experiment.churn`）がある．指標は [d0004](d0004_metrics.md) にある．
 
 ## 6. データの配置
 
@@ -180,10 +202,10 @@ EnronQA（p0004 の RQ-A）のために，公開情報を使う方式を `src/at
 
 | 項目 | 値 |
 |---|---|
-| MedRAG の 4 コーパスのシャード数（6 GiB ごと） | PubMed 6，Wikipedia 8，StatPearls 1，Textbooks 1 の計 16（1 シャード最大約 419 万断片）．StatPearls は 384,050 断片で，研究計画書 §7.1 の約 30.1 万より多い（2026-10 時点の NCBI の配布物を MedRAG のスクリプトで断片化した結果） |
+| MedRAG の 4 コーパスのシャード数（6 GiB ごと） | PubMed 6，Wikipedia 8，StatPearls 1，Textbooks 1 の計 16（1 シャード最大約 419 万断片）．StatPearls は 384,050 断片で，研究計画書 §7.1 の約 30.1 万より多い（NCBI の配布物を MedRAG のスクリプトで断片化した結果） |
 | 専門家 1 台のメモリ | fp16 索引 約 6 GB ＋ 行の先頭位置（1 断片 8 バイト）＋ Ollama（宿る型のみ） |
-| 専門家 1 台のディスク | MedRAG のシャード 1 個で 12〜18 GB（埋め込み約 6 GB ＋ 本文）．FeB4RAG のシャードは数十 MB．使用率は 41〜83%（2026-10-06．他の用途のファイルを含む） |
-| 制御点のデータディレクトリ | MedRAG 約 186 GB（本文と fp16 の埋め込み），FeB4RAG 約 16 GB，HF のモデル約 73 GB，Ollama のモデルと GGUF 約 14 GB．ディスクの空きは約 500 GB（2026-10-06） |
+| 専門家 1 台のディスク | MedRAG のシャード 1 個で 12〜18 GB（埋め込み約 6 GB ＋ 本文）．FeB4RAG のシャードは数十 MB．使用率は専門家によって違う（他の用途のファイルを含む）．実験の前に確かめる |
+| 制御点のデータディレクトリ | MedRAG 約 187 GB（本文と fp16 の埋め込み），FeB4RAG 約 16 GB，EnronQA 約 1.2 GB，Ollama のモデル約 20 GB，GGUF 約 8.5 GB．HF のモデルのキャッシュは質問者の作業ディレクトリの `hf-cache/`（約 4 GB） |
 
 制御点では，断片化を終えた StatPearls の tarball と展開物，BEIR の取得に使った一時ファイルは削除してある．
 コーパスの取得の段は `chunk/.complete` があれば飛ばされるので，削除しても setup の再実行には影響しない．

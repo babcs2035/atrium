@@ -12,7 +12,8 @@
 | `metrics.json` | analyze | 指標（§3） |
 | `analysis_report.md` | analyze | 指標の表 |
 | `logs/<host>.log` | start | 専門家のログ（実行の直後に集める．Git では追跡しない） |
-| `placement.json` | start | この実行の配置（どのホストがどのシャードを持っていたか） |
+| `placement.json` | start | この実行の配置（どのホストがどのシャードを持っていたか．委託先の対応 `delegate_of` を含む） |
+| `judgements.jsonl` | `atrium judge` | EnronQA の回答の採点（§3．Git で追跡する．本文は含まない） |
 | `e0/<host>/`，`e0_summary.md` | start / analyze | E0 の実測値とその表（§4） |
 
 git のコミットは，未コミットの変更があると末尾に `-dirty` が付く．
@@ -62,6 +63,7 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | `latency.<段>.p50` / `p95` | 段ごとの所要時間の中央値と 95 パーセンタイル（秒） |
 | `mean_bytes_received` | 1 問あたりの受信バイト数の平均 |
 | `mean_snippets_exposed` | 1 問あたりのデバイス外へ出た原文の断片数の平均 |
+| `gold_doc_retrieval.recall_at_k` | EnronQA：正解のメールが，統合後に LLM へ渡した上位 `k_context` 通に入った質問の割合（検索そのものの再現率） |
 | `exposure.mean_docs_exposed` / `mean_query_recipients` / `mean_answer_overlap_lcs` | p0004 の露出の指標（上の 3 つのフィールドの平均）．フィールドの無い実行では `null` |
 
 ### 関連ラベル
@@ -75,6 +77,38 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 - 2 つの実行の正答率の比較は，同じ質問の正誤の組に対する McNemar の正確検定（両側）で行う
   （`atrium compare`）．p 値は二項分布 Bin(b + c, 0.5) の両側確率で，b と c は片方だけが正解した問数である．
 - 正答率の信頼区間は Wilson のスコア区間（z = 1.96）である．
+
+### EnronQA の採点（`atrium judge`・`judge-validate`・`judge-kappa`）
+
+EnronQA の回答は自由記述なので，実験の後に判定モデル（`data.enronqa.judge_model`）が，正解のメールを見て回答が正解と一致するかを判定する．
+`atrium judge` は `results/<run_id>/judgements.jsonl`（質問 ID・正誤・回答と正解のメールの最長共通部分列の比率）を書き，
+`atrium analyze` が `accuracy` にこの採点を使う．判定できなかった回答は不正解として数え，`accuracy.unparsed_choice_rate` に割合を出す．
+メールの本文と判定モデルの出力は，制御点の `<data_dir>/enronqa/judge_raw/` にだけ残す．
+
+| 指標 | 定義 |
+|---|---|
+| `judge-validate`：`alternate_judged_correct` / `incorrect_judged_incorrect` | 付属の別解を正解とした割合と，付属の誤答を不正解とした割合（それぞれ 500 件）．どちらも 0.95 以上で合格 |
+| `judge-kappa`：`kappa` / `agreement` | 判定モデルと参照モデル（`judge_reference_model`）の判定の Cohen の κ と一致率（各実行から同数を抜き出した 300 件）．κ が 0.8 以上で合格 |
+
+判定モデルは，中身の無い回答（質問の言い換えやひな形の文だけ）を一部，正解とみなすことがある（偽陽性）．この偽陽性は上の 2 つの検証では測れない．
+判定の結果は，回答の中身（ひな形の文だけでないか）を併せて確認する．
+
+### RQ-A のオフライン評価（`atrium advert-eval`．p0004 EQ2）
+
+実機のノードを使わず，各方式のスコアから，正解の受信箱の順位を求める．`results/<run_id>/metrics.json` の `selection`（dev．公開情報の大きさの選択に使う）と
+`test`（評価）に，方式ごとの値を書く．
+
+| 指標 | 定義 |
+|---|---|
+| `param` | 選んだ公開情報の大きさ（card の件名の数・語のスケッチの語数 T・中心の数 C） |
+| `hit@1` / `hit@2` / `hit@3`，`hit@1_ci95` | 正解の受信箱が上位 1・2・3 個に入る割合と，ブートストラップの 95% 信頼区間．順位は，正解と同点の受信箱を正解より上に数える |
+| `mrr` | 正解の受信箱の順位の逆数の平均（dev で公開情報の大きさを選ぶ指標） |
+| `advert_bytes` | 事前に公開する情報の大きさ（全受信箱の合計） |
+| `inboxes_receiving_query` | 1 問でクエリを受け取る受信箱の数（質問の露出．`flood_score` は全受信箱） |
+| `owner_top1` / `owner_auc` | 所有者の特定：各受信箱から抜き出したメールを，公開情報だけから持ち主の受信箱に当てる正解率と AUC．`flood_score`・`ragroute` は公開情報が無く偶然の水準 |
+| `curve` | 公開情報の大きさを変えたときの `hit@1`・`owner_top1`・`advert_bytes` |
+
+`m`（問い合わせる受信箱の数）は，dev で最良の方式の hit@m が 0.9 以上になる最小の値（`m_rule`）である．
 
 ### E2 の LOSO（`atrium loso`）
 
