@@ -17,6 +17,29 @@
 
 ---
 
+## B10 [proposal 2026-10-14] 外部レビューの指摘（R1〜R4）．今回の Iteration 1 には混ぜず，別提案として保留する
+
+出典: ユーザーが共有した外部レビュー．R1・R2 は実機を使わないオフライン評価で，制御点で各 1 時間程度の見込み．
+- **R1（T2 の入力がヘッダーだけの疑い）**: `data_enronqa.py` は `File:` 行だけを除くので，E_short（先頭 28 トークン）は `Subject:`・`Sender:`・`Recipients:` で埋まる可能性が高い（実際の中身は未確認）．
+  T2 の「同じ長さ」の比較が「質問文対ヘッダー」になり，term_sketch の逆転（E_short 0.543）も，持ち主のアドレスが特徴語に入ることで説明できる．
+  確認: (a) term_sketch の特徴語の上位にアドレス・人名が占める割合を数える，(b) ヘッダーを除いた本文の先頭 28 トークンで T2 を測り直す．
+  T2 の結論（journal の「T2」）と EQ2 の「持ち主を当てることの方に役立つ」の書き直しに影響する．
+- **R2（質問文の人名による見つけやすさの水増し）**: EnronQA の質問は送信者名を含むことが多い．名前を含む質問の割合を数え，含む問と含まない問で hit@1・hit@2 を分けて報告する（flood_score の高さの一部が名前の一致による可能性）．
+- **R3（B8 の追認）**: 下の B8 を追認するか．PYTHONHASHSEED をコンテナで固定すれば揺れは消えるが，EQ2 の値が ±0.002 ずれる．
+- **R4（論文での扱いを決める未説明の点．新しい実験は不要）**: (a) EQ3（2,940 問・parallel 30．p50 92 秒・`ReadError` 175 件）と T4（300 問．p95 19 秒・失敗 0）の食い違いは，規模の違いか長時間の実行で蓄積する問題（接続の枯渇など）かを区別できていない．運用の頑健性は主張しない．
+  (b) parallel 1 で multi_centroid（0.120 秒）が flood_score（0.076 秒）より遅い理由は，質問者側の重心の採点が律速という推測にとどまり未確認．
+  (c) ragroute-frozen が新参者の one-hot を 0 にしても hit@2 0.118 で選ぶ理由は，ベクトル 0 のデータ源が「平均的なデータ源」として採点されるためという解釈で，未確認．
+
+## B9 [auto-decided 2026-10-14] levers を使い切ったので，新しいレバー centroid_probe（二段ルーティング）を追加した
+
+- 状況: config.yml の levers（E1-a〜E1-e，E2 card_sim，EQ8 k_context）と p0005（T1〜T4）が全て完了し，research-cycle の Iteration 1 で振るレバーが無かった．
+- 調査: tavily-search で分散検索の資源選択（ReDDE，Rank-S，Taily，Dynamic Shard Cutoff Prediction，分散 selective search の負荷）と連合 RAG（RAGRoute，DFAMS）を調べた（出典は journal の Iteration 1）．
+  候補は (a) 公開情報で上位 K 個に絞ってから probe する二段の方式，(b) 問ごとに問い合わせ数を変える打ち切り（m の可変化），(c) term_sketch を 1 段目に使う変形，(d) DFAMS 型の学習した prototype であった．
+- 自動選択: (a) `experiment.routing: centroid_probe`（multi_centroid の上位 K 個 → probe → 上位 m = 2 個）．K は新しいキー `routing.probe_k.enronqa` で dev から選ぶ．評価はオフライン．
+- 根拠: EQ2・T4 で残った問い（flood_score は hit@2 0.804 だが 150 受信箱に届いて負荷で処理量が落ち，multi_centroid は 2 受信箱で 0.440）の間を直接測れる．
+  Router 1 個と評価の CLI 1 個で済み，データ準備・ラベルの作り直しが要らない．(b) は m の意味を変える．(c) は B8 の結論に依存する．(d) は中央での学習が要り，研究の前提（中央で学習しない）と合わない．
+- 要レビュー: 新しい設定キー `routing.probe_k`（既存のキーは変えない）を足してよいか．K の候補と選び方（dev の hit@2 が flood_score の 0.95 倍以上になる最小の K）が妥当か．
+
 ## B8 [auto-decided 2026-10-14] T2 の退行の確認が term_sketch だけ不一致だったが，止まらずに続けた
 
 - 状況: p0005 §9 の 1「検算・退行の確認が一致しない」は，作業を止めて報告する条件である．T2（`atrium owner-eval`）の退行の確認で，term_sketch の Q の top-1（差 −0.0007）と E の top-1（差 +0.0021）が基準（5e-4）を超えた．

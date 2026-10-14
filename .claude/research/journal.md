@@ -3,6 +3,73 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 1: 公開情報で候補を絞ってから probe する二段ルーティング
+
+### 調査・計画（2026-10-14．research-cycle の phase 1）
+
+**レバーの状況**：config.yml の levers（E1-a〜E1-e，E2 card_sim，EQ8 k_context）は全て実施済みである（journal の「E1 の判定」「s8」「E2：LOSO の判定」「E2 の下流確認」「EQ8〜EQ10」）．
+p0005（T1〜T4）も完了した．そこで関連研究を調べ，新しいレバーを 1 つ定義して config.yml の levers 末尾に追記した（backlog B9 [auto-decided]）．
+B8（term_sketch の退行の許容）はレビュー待ちなので，term_sketch に依存する設計は避けた．
+
+**これまでの結果から見える課題**（EQ2・T3・T4）
+- 公開情報なしで全員に聞く flood_score は hit@2 0.804 だが，1 問が全 150 受信箱（30 台）に届き，parallel 30 では処理量が 12.8 → 2.5 問/秒に落ちる（T4）．
+- 公開情報を使う最良の multi_centroid は 2 台だけに聞くが，hit@2 は 0.440 にとどまる．ただし hit@3 0.489，MRR 0.447 で，正解の受信箱は上位の近くに来ていることが多い（`results/20261009_eq2_advert_eval/metrics.json`）．
+- この 2 つの間（問い合わせる受信箱の数 K を 2〜150 の間で選ぶ）は，まだ測っていない．
+
+**調査で分かったこと**（tavily-search．事実と推測を分けて書く）
+- 分散検索の資源選択では，安い要約（語の統計・標本の索引）でシャードを順位づけてから，上位の一部だけを検索する「selective search」が標準的な構成である．
+  ReDDE（Si & Callan, SIGIR 2003）は中央の標本索引で関連文書の分布を推定し，Rank-S（Kulkarni et al., CIKM 2012．https://www.cs.cmu.edu/~anaghak/cikm2012.pdf）は検索するシャード数の打ち切りも推定する．
+  Kulkarni et al. は，提案法が ReDDE と同等の効果で 1 問あたりに処理する文書数を減らしたと報告している（検索結果の断片では「Rank-S は Gov2 で検索コストを 27% 減らす」．比較の基準は本文で確認していない）．
+- Taily（Aly et al., SIGIR 2013．https://ugentt2k.github.io/papers/2013/aly2013sigir.pdf）はシャードごとのスコア分布の裾の統計だけで選ぶ．公開する要約から候補を選ぶ点で，本研究の公開情報の方式に近い．
+- 検索するシャード数を問ごとに予測する研究がある（Mohammad et al., "Dynamic Shard Cutoff Prediction for Selective Search", SIGIR 2018．https://espace.library.uq.edu.au/view/UQ:1b7a48c）．
+  打ち切りの数 K が効果とコストの兼ね合いを決める主要な変数であるという扱いは，これらの研究で共通している．
+- 負荷のある分散 selective search では，問の待ち時間の多くが中央と各ノードの待ち行列で生じ，ネットワークと統合のコストは小さい（Kim et al., "Efficient distributed selective search", Information Retrieval Journal 2016．https://www.cs.cmu.edu/~callan/Papers/IRJ16-yubink.pdf）．T4 の flood_score の処理量の低下と同じ向きの観察である．
+- 連合 RAG の側では，DFAMS（Yang et al., arXiv:2508.20353, 2025）がデータ源ごとに複数の prototype を学習して振り分ける．multi_centroid と同じく「データ源を複数の代表点で表す」発想だが，注釈つきの質問での学習が要る．
+  RAGRoute（EuroMLSys 2025）は中央の分類器で絞る．どちらも，公開要約で絞った候補にだけ実際の検索スコアを問い合わせる二段の構成は評価していない（2 本の抄録・序論を読んだ範囲．網羅的な確認ではない）．
+- 未確認：EnronQA のような「1 人 1 受信箱」の私的データで，二段構成の K と hit の関係を報告した研究は見つからなかった．
+
+**仮説**：multi_centroid の外れの多くは，正解の受信箱が上位 K（K ≪ 150）の中にはあるが 1〜2 位に来ないものである．
+候補を multi_centroid の上位 K 個に絞り，その K 個にだけ flood_score と同じ probe（各受信箱のメールとの内積の最大）を送って上位 m = 2 個を選べば，
+flood_score に近い hit@2 を，クエリを受け取る受信箱を 150 から K に減らして得られる．
+
+**単一レバー**：`experiment.routing` を，新しい方式 `centroid_probe`（multi_centroid の上位 K 個 → その K 個への probe → 上位 m 個）にする．
+- 新しい Router を `src/atrium/routing/advert.py` に 1 個追加し，`make_router()` に登録する（config.yml の運用ルール 1）．
+- K は方式の大きさであり，新しい設定キー `routing.probe_k.enronqa` で持つ．EQ2 の公開情報の大きさと同じく，dev で事前登録の規則で選ぶ（下）．
+- 評価は実機を使わないオフライン（EQ2・T3 と同じ制御点のコンテナ）で行う新しい CLI（例：`atrium cascade-eval`）．既存の `advert-eval` の出力（`results/20261009_eq2_advert_eval/`）は作り直さない．
+
+**固定する構成**：`dataset: enronqa`，m = 2（`routing.top_m.enronqa`），multi_centroid の C = 32（`data.enronqa.n_centroids`），probe は flood_score の密ベクトル（arctic-embed-m-v1.5），
+EQ2 と同じ dev・test の質問集合（test 2,940 問）と所有者推定のメール．データ準備・ラベル・シャードは作り直さない．
+
+**K の選び方（事前登録．実装の後，評価の前に journal に書いて push する）**：候補 K ∈ {4, 8, 15, 30, 50, 75}．dev の hit@2 が，dev の flood_score の hit@2 の 0.95 倍以上になる最小の K を選ぶ．
+どの K も届かなければ K = 75 とし，その旨を記録する．test の全 K の曲線は参考として出す（判定には選んだ K だけを使う）．
+
+**退行の確認**（一致しなければ判定に進まない）：K = 150 で test の hit@2 が flood_score の 0.8041 と，K = 2 で multi_centroid の 0.4401 と，5e-4 以内で一致すること．
+
+**期待効果**：test の hit@2 が 0.70〜0.78 程度（推測．multi_centroid の上位 K の再現率が上限になる），クエリを受け取る受信箱が 1 問あたり K 個．
+
+**成功条件**（test 2,940 問．95% ブートストラップ信頼区間．EQ2 の hit@2 の区間の半幅は約 ±0.015 で，オフラインの評価は流し直しの揺れが無い）
+- **S1**：選んだ K での centroid_probe の hit@2 が，multi_centroid（0.440）より 0.10 以上高く，区間が重ならない．
+- **S2**：選んだ K での hit@2 が，flood_score（0.804）との差 0.05 以内（0.754 以上）で，かつ K ≤ 30（受信箱の 20% 以下）．
+- S1 と S2 の両方で「採用」，S1 だけで「部分的に支持（K と hit の兼ね合いを記録）」，S1 が成り立たなければ「棄却」．
+- 参考（判定に使わない）：T3 の新参者 600 問での hit@2（学習が要らないので新参者でも同じ値になるはず），所有者の特定は multi_centroid と同じ公開情報なので変わらない．
+
+**限界と次の候補**：オフラインの評価は待ち時間を測らない．採用なら，次のイテレーションで T4 と同じ条件（300 問，parallel 1〜30）で実機の待ち時間・処理量を flood_score・multi_centroid と比べる．
+1 段目に term_sketch（公開情報 0.87 MB）を使う変形は，B8 の結論が出るまで扱わない．
+
+### 事前登録（2026-10-14．実行の前に push する．実装は commit `0d019f9`）
+
+調査・計画の節の規則を，実行の前にそのまま固定する（結果を見て条件・基準を変えない）．
+
+- **評価**：`atrium cascade-eval`（`src/atrium/cascade_eval.py`）を制御点のコンテナで 1 回だけ流す．`bash scripts/tasks/remote.sh cascade_eval 20261014_iter1_cascade_eval 20261009_eq2_advert_eval`．
+  `dataset: enronqa`，m = 2，C = 32，probe は flood_score の密ベクトル，dev・test は EQ2 と同じ．
+- **K の選び方**：候補 K ∈ {4, 8, 15, 30, 50, 75}．dev の hit@2 が dev の flood_score の hit@2 の 0.95 倍以上になる最小の K．届かなければ K = 75 とし，その旨を記録する．
+  `config.yaml` の `routing.probe_k.enronqa` は評価前は 75（届かない場合の値の仮置き）で，評価の入力ではない．評価の後に選んだ K へ書き換える．
+- **退行の確認**：test の hit@2 が K = 150 で 0.8041（flood_score），K = 2 で 0.4401（multi_centroid）に 5e-4 以内で一致する（基準は EQ2 の metrics.json の値）．一致しなければ判定に進まず，原因を調べて記録する．
+- **成功条件**：S1（選んだ K の test の hit@2 が multi_centroid より 0.10 以上高く，95% ブートストラップ区間が重ならない），
+  S2（flood_score との差が 0.05 以内で K ≤ 30）．両方で採用，S1 だけで部分的に支持，S1 が不成立なら棄却．
+- **出力**：全 K の test の hit@1・hit@2 と区間，1 問あたりにクエリを受け取る受信箱の数（= K），T3 の新参者 600 問（30 受信箱）での参考値（判定には使わない）．
+- 前提：実機の質問者の 2 段目（候補だけへの probe）は未実装なので，評価はオフラインだけである．B8 は未解決なので term_sketch は使わない．
+
 ## p0005 の完了のまとめ（2026-10-14．T1〜T4．各節は下にある）
 
 | 仮説・項目 | 判定 | 要点 |

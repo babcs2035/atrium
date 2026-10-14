@@ -86,6 +86,11 @@ levers:
   - {name: data.enronqa.k_context, values: [1, 3, 5],
      note: "p0004 EQ8．EnronQA の文脈の通数．routing=oracle，answer_mode は snippet_return・local_answer．
             結果は journal の「EQ8〜EQ10」．B2'（CPU の専門家が qwen3:1.7b）は k = 3 と k = 5 の正答率に差がない"}
+  - {name: experiment.routing, values: [centroid_probe],
+     note: "Iteration 1 で追加（backlog B9 [auto-decided]）．multi_centroid の上位 K 個にだけ flood_score と同じ probe を送り，
+            上位 m = 2 個を選ぶ二段の方式（selective search の資源選択＋打ち切りに当たる）．K は新しいキー routing.probe_k.enronqa で，
+            dev で事前登録の規則で選ぶ．評価はオフライン（test 2,940 問の hit@2 と，クエリを受け取る受信箱の数）．
+            退行の確認は K = 150 で flood_score，K = 2 で multi_centroid の hit@2 と一致すること"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
@@ -105,7 +110,7 @@ slack:
 notion:
   parent_page: "Lab/Research"
   database_id: "12c71cc0-c905-49b4-810f-247c230b3964"   # data_source_id（Research Cycle Log，他リポジトリと共通）
-  repo_page_id: "<impl で解決>"                         # 初回に Cycle Log へ atrium の行を作って書き戻す
+  repo_page_id: "3f95abda-e3f1-819b-8a00-f76631531de7"   # Cycle Log の atrium の行（行の作成には親の database_id 80425009-f0d8-4abc-89fc-e8da7d3d5d6e を使う）
 
 git:
   enabled: true
