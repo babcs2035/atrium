@@ -17,6 +17,17 @@
 
 ---
 
+## B15 [auto-decided 2026-10-14] Iteration 3 の実装の形（CLI か設定キーか）と card_sim の件名の扱い（B14 の要レビュー (b)・(c)）
+
+- 状況: B14 で，レバー `advert.input: [body_only]` のキー名・実装の形と，件名だけを公開する card_sim の扱いを rc-researcher が決めることになっていた．
+- 自動選択: (c) **新しい設定キーは足さず，オフライン評価 CLI `atrium body-advert-eval`（`src/atrium/body_advert_eval.py`）として実装する**．config.yml のレバー名を `advert_eval.input` に改めた．config.yaml・シャード・Advert・ラベルは変えない．
+  (b) **card_sim は件名を残し，公開情報を変えない（対照）**．本文だけの公開情報の値が，ヘッダー込みの値と一致することを退行の確認に使う．
+  参考として，card_sim の説明文に持ち主の姓が入る受信箱の数を出す．
+- 根拠: (1) 評価は実機を使わず，シャードの公開情報を作り直さないので，実験の条件を決める config.yaml に置く理由が無い（Iteration 2 の `header-eval` と同じ形）．設定ファイルの形式を変えないので B9 のような確認も要らない．
+  (2) card_sim の公開情報は件名そのもの（`card_text`）で，件名を除くと方式そのものが無くなる．R1 で問題になったのは `Sender:`・`Recipients:` のアドレスであり，card_sim はもともとそれを含まない（Iteration 2 の E_subj_short 0.195 も件名の寄与が小さいことと矛盾しない）．
+  本文から作る説明文（例：本文の頻出語）に変えると別の方式になり，単一レバーの範囲を超える．
+- 要レビュー: 件名にも持ち主の名前が入りうるので，card_sim から件名を除いた変形（例：本文の先頭の文）を別の方式として比べるべきか．採用時にシャードの公開情報を本文だけで作り直す場合は，`data.enronqa` に入力の指定を足すことになり，そのときは config.yaml の形式の変更として改めて確認する．
+
 ## B14 [auto-decided 2026-10-14] Iteration 2（R1）は H-R1b 支持．Iteration 3 は公開情報をヘッダーを除いた本文から作り直して EQ2 を測り直す
 
 - 状況: Iteration 2 の判定は H-R1b 支持（term_sketch の E_body_short 0.219 [0.197, 0.238] 対 E_short 0.543 [0.515, 0.568]，Q 0.292 とは `lower`．journal の「Iteration 2 実行済み」）．

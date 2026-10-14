@@ -98,8 +98,9 @@ levers:
      note: "Iteration 2 で追加（backlog B10 [human-decided]・B11・B12）．外部レビュー R1．T2（owner-eval）の短い入力を，ヘッダー込みの先頭 28 トークン（E_short）から
             区切り線より後の本文の先頭 28 トークン（E_body_short．Subject は含めない）へ変える．新しい CLI atrium header-eval でオフラインに評価し，
             term_sketch の特徴語に占めるヘッダー依存の語の割合（R1 (a)）と，質問文の人名の有無で分けた hit（R2）を追加の集計として出す．config.yaml は変えない"}
-  - {name: advert.input, values: [body_only],
-     note: "Iteration 2 の評価で追加（backlog B14 [auto-decided]）．キー名は仮称で，実装する rc-researcher が確定する（新しい設定キーか評価 CLI の引数か）．
+  - {name: advert_eval.input, values: [body_only],
+     note: "Iteration 2 の評価で追加（backlog B14 [auto-decided]）．Iteration 3 の rc-researcher が確定（backlog B15）：設定キーではなく新しいオフライン評価 CLI `atrium body-advert-eval`
+            （src/atrium/body_advert_eval.py）として実装し，config.yaml は変えない．card_sim は件名だけの公開情報なので変えずに対照とする．
             EnronQA の公開情報（card_sim・term_sketch・centroid_sim・multi_centroid）を，ヘッダー込みのメールではなく区切り線より後の本文（Subject なし）から作り直し，
             EQ2 と同じ test 2,940 問の hit@1・hit@2 と，所有者の特定（E と E_body_short）を測り直す．EQ2 で選んだ大きさ（件名 40，T = 200，C = 32）は固定する（card_sim は件名を使うので扱いを事前登録で決める）．
             flood_score・ラベル・シャードは変えない．hit は持ち主の姓を含む問（R2 の A 群）とそれ以外に分けて出す．オフライン評価で，既存の Advert と results は消さない"}

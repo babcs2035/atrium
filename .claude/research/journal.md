@@ -3,6 +3,94 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 3: ヘッダーを除いた本文から公開情報を作り直した RQ-A の測り直し
+
+### 調査・計画（2026-10-14．research-cycle の phase 1）
+
+**レバーの由来**：backlog B14 [auto-decided]（Iteration 2 の H-R1b 支持を受け，公開情報の作り直しを centroid_probe の実機化より先にする）．実装の形と card_sim の扱いは B15 [auto-decided] で決めた．
+config.yml の levers 末尾のレバー名を `advert_eval.input: [body_only]` に確定した（設定キーではなく評価 CLI）．実機は使わず，データ準備・ラベル・シャード・既存の Advert・既存の results は作り直さない・消さない．
+
+**コードとデータから確かめたこと**（事実）
+- 4 方式の公開情報は全て受信箱の chunk（`content`．`File:` だけを除いたメールの文字列）から作られる．term_sketch は `term_sketch(content)`，centroid_sim は既存の埋め込み（ヘッダー込みの文字列を埋め込んだ `corpus/<inbox>/emb/<inbox>.f16.npy`）の平均，multi_centroid はその k-means（C = 32，種 `experiment.seed`），
+  card_sim は `title`（`clean_email` が先頭行の `Subject:` から取った件名）の頻出 40 個の説明文の埋め込みである（`src/atrium/data_enronqa.py` の `card_text`・`term_sketch`・`kmeans_centroids`，`src/atrium/advert_eval.py` の `build_methods`）．
+  したがって card_sim はもともと `Sender:`・`Recipients:` を含まず，残る 3 方式が作り直しの対象になる．
+- centroid_sim・multi_centroid の作り直しには，全 73,772 通の本文（区切り線より後）の埋め込みが要る．既存の手順では同じ件数のヘッダー込みのメールを制御点の GPU 1 枚で約 20 分で埋め込んだ（journal の「p0004 の実装と退行の確認」）．本文はヘッダーの分だけ短いので，**所要は 20 分以下と見積もる**（推測．arctic-embed-m-v1.5 は 512 トークンで切る）．
+  `remote/header_eval.sh` はデータディレクトリを読み取り専用で載せるので，本文の埋め込みはデータディレクトリに保存せず，評価の中で計算してメモリだけに持つ（73,772 × 768 × 4 バイト ≈ 230 MB）．EQ2（`advert-eval`）の所要は 339 秒で，評価全体は 30 分前後の見込み．
+- Iteration 2 で，所有者推定の 1,460 通には区切り線の無いメールも本文が空のメールも 0 通だった．全 73,772 通での数は未確認（評価で数える）．
+- 既存の関数で足りる：`header_eval.split_header_body`・`owner_surname`・`classify_question`（A 群），`owner_eval.truncate_to_tokens`・`median_token_count`・`owner_metrics`，`cascade_eval.cascade_scores`・`hit_stats`，`advert_eval` の採点の関数．
+
+**調査で分かったこと**（tavily-search．事実と推測を分けて書く）
+- 分散検索の資源選択では，データ源の要約（resource description）を内容の標本から作るのが標準である（Callan, "Distributed Information Retrieval", 2000．https://www.cs.cmu.edu/~callan/Papers/ciir00.pdf．query-based sampling で得た少数の文書の語の統計が完全な要約に十分近いという仮説）．
+  要約はもともと「中身の語の統計」として定義されており，メールの宛先のような付属情報を含めるかは扱われていない．本文だけから公開情報を作るのは，この定義に近い（推測）．
+- Enron のメールを使う著者推定のコーパスは，ヘッダー・署名などの付属情報を全て除いた本文だけにしている（Enron Authorship Verification Corpus，Mendeley Data．https://data.mendeley.com/datasets/n77w7mygwg/1）．除かないと「誰のメールか」を付属情報で当てることになる（Iteration 2 の H-R1b 支持と同じ向き）．
+- 埋め込みは名前を強く保持する．Morris et al., "Text Embeddings Reveal (Almost) As Much As Text", EMNLP 2023（https://aclanthology.org/anthology-files/pdf/emnlp/2023.emnlp-main.765.pdf）は，臨床記録の埋め込みから姓の 95%・名の 94% を復元したと報告している．
+  重心（多数の埋め込みの平均）に同じことが言えるかは確かめられていない（未確認）．ただ，ヘッダーのアドレスが全メールに入る受信箱では，重心が持ち主の名前の方向に寄りうる．Iteration 2 で埋め込みの 3 方式もヘッダーを除くと持ち主の特定が下がったことと矛盾しない．
+- 仮名化の指針（EDPB, "Guidelines 01/2025 on Pseudonymisation", 2025．https://www.edpb.europa.eu/system/files/2025-01/edpb_guidelines_202501_pseudonymisation_en.pdf）は，直接の識別子を除いても準識別子（役職・勤続年数など）で本人に結びつけられる場合があり，その最も直接の対策は準識別子を除くことだと述べる．
+  B14 の要レビュー (d)（持ち主が自分の名前を公開情報から除くのは現実的か）について：ヘッダーを除くことは公開情報を作る前の前処理 1 段で済み，持ち主が自分で行える．ただし本文の署名・引用ヘッダーの名前と話題は準識別子として残るので，「名前を除いた」とは言えない（限界）．
+
+**B14 の要レビューへの対応**
+- (a) 順序：B14 のとおり，公開情報の作り直しを先にする．centroid_probe の 1 段目は multi_centroid なので，本文だけの multi_centroid を 1 段目にした centroid_probe（K = 75）の hit@2 を参考として同時に出す（実機化の前の見積もりになる）．
+- (b) card_sim の件名：残す（B15）．card_sim の公開情報は変わらないので，対照として退行の確認に使う．
+- (c) 設定キーか CLI か：CLI（B15）．
+- (d) 上の調査のとおり，ヘッダーの除去は持ち主が行える前処理である．除けない運用では EQ2 の値が実態に近い．両方を並べて報告する．
+
+**仮説**
+- **H-B1（見つけてもらう度合い）**：term_sketch の test の hit@2 は，本文だけの公開情報で下がり，下がり幅は A 群（持ち主の姓を含む問．757 問）に集まる（Iteration 2 で A 群の hit@2 0.956，それ以外 0.151）．
+  埋め込みの 2 方式（centroid_sim・multi_centroid）は，ヘッダーの成分が無くなる分だけ重心が話題に寄るので，A 群以外では下がらない（推測）．
+- **H-B2（持ち主の特定）**：本文だけの公開情報では，ヘッダー込みのメール全体（E）からの持ち主の top-1 は下がる（公開情報からアドレスの語・成分が消えるので）．ヘッダーを除いた本文の先頭 28 トークン（E_body_short）からの top-1 は，入力と公開情報が同じ種類の文字列になるので，上がりうる（向きは事前に決めない）．
+- **H-B3（RQ-A の兼ね合い）**：EQ2 の H-A2（公開情報を増やすほど hit も持ち主の特定も上がる）は，本文だけの公開情報でも成り立つ．
+
+**単一レバー**：EnronQA の公開情報（term_sketch・centroid_sim・multi_centroid）を作る入力を，**chunk の `content`（ヘッダー込み）から区切り線より後の本文（`Subject:`・`Sender:`・`Recipients:` を含まない）へ**変える．card_sim は件名だけの公開情報なので変えない（対照）．
+- 実装：新しい CLI `atrium body-advert-eval`（`src/atrium/body_advert_eval.py`），`scripts/remote/body_advert_eval.sh`，`scripts/tasks/remote.sh` の `body_advert_eval` タスク，`tests/test_body_advert_eval.py`，`docs/d0004_metrics.md` の節の追加．
+  同じ実行の中で，ヘッダー込み（既存の chunk と埋め込み）と本文だけの 2 通りの公開情報を作って同じ採点で比べる．既存の `advert-eval`・`owner-eval`・`header-eval`・`cascade-eval` とその出力，config.yaml は変えない．
+- 本文の埋め込み：全 73,772 通の `split_header_body(content)` の本文を `ArcticEncoder.encode_texts`（文書側．接頭辞なし）で埋め込み，既存の保存と同じく **fp16 に丸めてから float32 に戻す**（ヘッダー込みの埋め込みとの精度の条件を揃える）．行の順は既存の埋め込みと同じ．データディレクトリには書かない．
+
+**固定する構成**：`dataset: enronqa`，公開情報の大きさ（件名 40，T = 200，C = 32．dev で選び直さない），m = 2，k-means の種（`experiment.seed`），test 2,940 問とそのクエリ埋め込み，所有者推定のメール 1,460 通（EQ2・T2・Iteration 2 と同じ抜き出し．種 12），
+E_body_short の切り詰めの長さ 28 トークン（Iteration 2 と同じ規則で求める），flood_score（既存のヘッダー込みの埋め込み）と centroid_probe の K = 75．ラベル・シャードは変えない．
+
+### 事前登録（2026-10-14．実装の後，実行の前に push する．結果を見て変えない）
+
+**評価する量**（4 方式 × 公開情報 2 通り（`full`：ヘッダー込み，`body_only`：本文だけ））
+- test 2,940 問の hit@1・hit@2（95% ブートストラップ区間），全体・A 群（`classify_question` が A を返す問．持ち主の姓を単語として含む）・A 以外（B+C）のそれぞれ．
+- 所有者の特定（1,460 通）の top-1（区間）と AUC：入力 E（EQ2 と同じヘッダー込みのメール全体の既存の埋め込み．term_sketch はその文字列），E_body_short（Iteration 2 と同じ），参考に E_body（本文の全体）．
+- 差（`body_only` − `full`）は，同じ質問・同じメールの組で対にしたブートストラップ（1,000 回．種は `experiment.seed`．問またはメールの番号を復元抽出して差の平均を取る）の 95% 区間で示し，
+  区間の上端 < 0 を「下がる」，下端 > 0 を「上がる」，それ以外を「差がはっきりしない」とする．
+- H-A2 の曲線（EQ2 と同じ大きさの候補．term_sketch の T ∈ {10, 20, 50, 100, 200}，multi_centroid の C ∈ {2, 4, 8, 16, 32}）の test の hit@1・所有者 top-1（E）と，大きさとのスピアマンの順位相関を `body_only` で出す．card_sim は `full` と同じ値になる．
+- 参考（判定に使わない）：本文だけの multi_centroid を 1 段目にした centroid_probe（K = 75）の hit@1・hit@2，公開情報の大きさ（バイト），term_sketch の上位 20 語・200 語に持ち主の姓が入る受信箱の数と card_sim の説明文に持ち主の姓が入る受信箱の数（`full`・`body_only`），
+  全 73,772 通のうち区切り線の無いメール・本文が空のメールの数（区切り線が無ければ全体を本文とし，本文が空ならそのメールは本文だけの公開情報の計算から除く．除いた数が全体の 1% を超えたら限界に書く）．
+
+**退行の確認**（一致しなければ判定に進まず，原因を調べて記録する．許容は 5e-4，term_sketch だけ 2e-3（B8））
+- `full` の hit@1・hit@2・所有者 top-1（E）・AUC が EQ2（`results/20261009_eq2_advert_eval/metrics.json`）と一致する．基準：hit@2 は card_sim 0.1527，term_sketch 0.3592，centroid_sim 0.3228，multi_centroid 0.4401．所有者 top-1 は 0.1685，0.4247，0.2842，0.5267．
+- `full` の E_body_short の top-1 が Iteration 2（`results/20261014_iter2_header_eval/metrics.json` の `subset.E_body_short`）と一致する（card_sim 0.0342，term_sketch 0.2185，centroid_sim 0.0836，multi_centroid 0.1075）．
+- `full` の centroid_probe（K = 75）の hit@2 が Iteration 1（`results/20261014_iter1_cascade_eval/metrics.json`）の 0.761 と一致する．
+- card_sim の `body_only` の全ての値が `full` と完全に一致する（公開情報を変えていないことの確認）．
+- 本文の埋め込みの行数が既存の埋め込みの行数と受信箱ごとに一致する．
+
+**判定の規則**
+- **H-B1**：方式ごとに，全体と A 以外の hit@2 の差の区分（下がる・上がる・差がはっきりしない）を記録する．term_sketch で「全体は下がる，かつ A 以外は差がはっきりしない」なら H-B1 の term_sketch の部分を支持とする．
+- **H-B2**：方式ごとに，E と E_body_short の所有者 top-1 の差の区分を記録する（向きは事前に決めない）．
+- **H-B3**：EQ2 の H-A2 と同じ規則（term_sketch・multi_centroid は `body_only` の曲線，card_sim は `full` の値で，大きさと hit@1 の順位相関と，大きさと所有者 top-1（E）の順位相関がどちらも正なら，その方式で単調な兼ね合いがある．3 方式全てで支持，どれでもなければ反証，それ以外は部分的に支持）．
+- **このイテレーションの結論（成功条件）**：最良の公開情報の方式 multi_centroid（centroid_probe の 1 段目）について，
+  - **採用**（本文だけの公開情報を以後の既定の候補にする）：hit@2 の差の 95% 区間の下端が −0.03 より上（見つけてもらう度合いをほぼ失わない），かつ E_body_short の所有者 top-1 の差の区間の上端が 0 より下（ヘッダーを除いた本文からも持ち主を当てにくくなる）．
+  - **部分的に支持**：どちらか一方だけが成り立つ．
+  - **棄却**：どちらも成り立たない．
+  - 非劣性の幅 0.03 は，EQ2 の hit@2 の区間の半幅（約 ±0.018）の 1.5 倍強で，対にした差の区間は単独の区間より狭い見込み（推測）．
+  - どの結論でも，`d0006_research_overview.md` の RQ-A の数値に「ヘッダーを除いた公開情報での値」を並べて書く．採用でもシャードの公開情報は自動では作り直さない（`data.enronqa` に入力の指定を足す config.yaml の形式の変更になるので，B15 の要レビューとして確認する）．
+
+**ノイズの見積もり**：オフラインの評価で流し直しの揺れは無い．k-means は faiss の CPU 実装で種を固定している．本文の埋め込みは GPU の計算順の違いで 1e-3 程度の値の揺れがありうるが，評価は 1 回だけなので結果を固定する．
+hit@2 の 95% 区間の半幅は 2,940 問で約 ±0.018，A 群（757 問）で約 ±0.02〜0.03，所有者 top-1 は 1,460 通で約 ±0.02〜0.025．term_sketch の値は文字列のハッシュの種で ±0.002 揺れる（B8．PYTHONHASHSEED は固定しない）．
+
+**期待効果**（推測．判定に使わない）：term_sketch の hit@2 は 0.359 → 0.20〜0.28（A 群の 0.956 が大きく下がり，A 以外の 0.151 は同程度）．multi_centroid の hit@2 は 0.440 → 0.40〜0.47．
+所有者 top-1（E）は 3 方式とも下がる（multi_centroid 0.527 → 0.35〜0.45）．E_body_short の所有者 top-1 は multi_centroid で 0.108 → 0.10〜0.16 で，「採用」より「部分的に支持」の可能性が高い．
+
+**実行**（実装・テスト・push の後に 1 回だけ．所要 30 分前後の見込み．制御点の GPU 1 枚）：`bash scripts/tasks/remote.sh body_advert_eval 20261014_iter3_body_advert_eval 20261009_eq2_advert_eval`
+（Iteration 2・Iteration 1 の metrics.json を既定の引数で読む）．出力は `results/20261014_iter3_body_advert_eval/`（`metrics.json`，`analysis_report.md`）．本文・本文の埋め込みは results/ と git に入れない．
+
+**限界**：メール先頭のヘッダーだけを除き，本文の中の引用ヘッダー（`From:`・`To:`）と署名の人名は残る（公開情報にも名前が残りうる）．card_sim は件名を残すので，件名の中の名前は除かれない．
+質問の側（A 群）の人名は変えない．flood_score の受信箱の埋め込みはヘッダー込みのまま（probe はメールそのものとの照合で，公開情報ではない）．公開情報の大きさは EQ2 で選んだ値に固定し，本文だけの公開情報で dev から選び直さない．
+
+**次の候補**：採用・部分的に支持なら，centroid_probe の実機化（backlog B11）で 1 段目に使う公開情報をどちらにするかを，本イテレーションの参考の centroid_probe の値で決める．
+
 ## Iteration 2: T2 の入力からヘッダーを除いた持ち主推定の測り直し
 
 ### 調査・計画（2026-10-14．research-cycle の phase 1）
