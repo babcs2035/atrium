@@ -17,6 +17,36 @@
 
 ---
 
+## B17 [auto-decided 2026-10-14] Iteration 3（公開情報の本文だけからの作り直し）は棄却．Iteration 4 は centroid_probe の実機化（1 段目はヘッダー込みの既存の公開情報）
+
+- 状況: Iteration 3 の判定は棄却（multi_centroid の hit@2 差 −0.093 [−0.110, −0.076] は非劣性の幅 −0.03 を外れ，E_body_short の持ち主 top-1 の差 +0.012 [−0.003, +0.027] は「当てにくくなる」を満たさない．journal の「Iteration 3 実行済み」）．
+  H-B1（term_sketch の部分）支持，H-B3 支持（単調な兼ね合いは本文だけでも成り立つ）．参考の centroid_probe（K = 75）は 0.761 → 0.751（差 −0.011 [−0.021, +0.000]）．
+  config.yml の levers は全て試し終えている．
+- 自動選択: **Iteration 4 の単一レバーは centroid_probe の実機化**（B11 の「次の候補」の内容）．質問者の 2 段目（multi_centroid の上位 K 個の受信箱だけへの probe）を実装し，T4 と同じ条件（EnronQA 300 問，検索だけ，parallel 1・4・8・16・30 × 3 回）で，
+  e2e の待ち時間・処理量を flood_score・multi_centroid（T4 の値）と比べる．1 問あたりに届くデバイスの数と各デバイスに届く受信箱の数も記録する．K は Iteration 1 で選んだ 75 に固定する．
+  **1 段目の公開情報はシャードにある既存のヘッダー込みの multi_centroid（C = 32）を使う**．あわせて，上位 K の再現率（2 段目の上限）と，K ごとの届くデバイスの数の分布をオフラインで出す（実機の前に，K = 75 でほぼ全台に届くかを確かめられる）．
+  config.yml の levers 末尾に `experiment.routing: [centroid_probe]`（実機）を追記した．
+- iteration_name: 「centroid_probe（二段ルーティング）の実機での待ち時間と処理量の測定」．
+- 根拠: (1) 本文だけの公開情報は，二段では hit@2 をほとんど変えない（−0.011，区間は 0 を含む）が，ヘッダーを除いた本文からの持ち主の特定を減らさず（E_body は +0.038），採用の条件も満たさなかった．シャードの作り直しと config.yaml の形式の変更（B15）を伴ってまで 1 段目に使う理由が無い．
+  (2) 実機の待ち時間・処理量は 1 段目の公開情報の中身ではなく，2 段目に届くデバイスの数で決まる見込みであり（公開情報の大きさは 77.2 MB と 77.4 MB でほぼ同じ），1 段目の選択は測りたい量に影響しにくい（推測）．
+  (3) T4 で flood_score の処理量が parallel 30 で 12.8 → 2.5 問/秒に落ちた問題に対して，二段の方式が負荷をどれだけ減らすかは RQ-A・RQ3 の論点として未測定のまま残っている．config.yml の運用ルール 8 により，フルスペックの実機実験を行ってよい．
+- 要レビュー: (a) K = 75 ではほぼ全 30 台に届くと推定され（Iteration 1 の学び．各台に 1 つも当たらない確率 ≈ 0.5^5），処理量の改善は小さい可能性がある．オフラインのデバイスの数の分布で全台に近いと分かった場合，K = 30 も実機で測るか（K の追加は単一レバーの範囲内の条件の追加として扱う）を rc-researcher が事前登録で決める．
+  (b) 質問者の 2 段目の実装は既存の Router の公開の挙動（`experiment.routing` の既存の値）を変えない形にすること．(c) 件名を残してアドレスだけを除いた公開情報の変形（Iteration 3 で件名とアドレスの寄与を分けられなかった点）は，必要なら後の候補にする．
+
+## B16 [needs-human 2026-10-14] Iteration 3 の実験が docker の権限不足で止まっている（Slack で @mention 済み）
+
+- 状況: 実装は commit・push 済み（`e57ab75`・`6ead387`．テスト 228 件・ruff・mypy 通過）．`publish_images` が B13 と同じ
+  `permission denied ... /var/run/docker.sock` で失敗した（ktakahashi は docker グループに無い）．
+  先に流した `remote.sh body_advert_eval` は制御点の古いイメージに `body-advert-eval` が無く，argparse の invalid choice で EXIT 2 になった．評価は始まっておらず，事前登録の「実験 1 回」は消費していない（ログ `/tmp/iter3_run.log`）．
+- 選択肢:
+  - A1: 人間が docker 権限のある端末で `bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'` を実行し，Slack のスレッドに「1」と返信する．その後 `remote.sh body_advert_eval 20261014_iter3_body_advert_eval 20261009_eq2_advert_eval` はサイクルが 1 回だけ流す．(Recommended)
+  - A2: ktakahashi を docker グループに追加する（権限設定の変更．実質 root 相当のため人間の判断が要る）．
+  - A3: 制御点 wafl-ctrl5 でイメージを build して配る手順に変える（`mise run deploy` の既存手順の変更．運用ルール 7・B5 との整合の確認が要る）．
+- 要レビュー: どれを選んでも評価の仕様（事前登録）は変えない．B13 と同じ原因で 2 回目のため，A2 か A3 で恒久対応するかも検討してほしい．
+- 備考: rc-executor が cli.py の編集に global の `python3` を 1 回使った（uv の規約違反．差分は確認済み）．
+- [human-decided 2026-10-14] 回答: Slack の返信「1」（A1．`publish_images` を人間が実行したと解釈）．
+  したこと: `status` を `running` に戻し，rc-executor へ再委譲した．イメージが今の HEAD のものかは rc-executor が確認してから `remote.sh body_advert_eval` を 1 回だけ流す．恒久対応（A2・A3）は未決のまま残る．
+
 ## B15 [auto-decided 2026-10-14] Iteration 3 の実装の形（CLI か設定キーか）と card_sim の件名の扱い（B14 の要レビュー (b)・(c)）
 
 - 状況: B14 で，レバー `advert.input: [body_only]` のキー名・実装の形と，件名だけを公開する card_sim の扱いを rc-researcher が決めることになっていた．
@@ -27,6 +57,7 @@
   (2) card_sim の公開情報は件名そのもの（`card_text`）で，件名を除くと方式そのものが無くなる．R1 で問題になったのは `Sender:`・`Recipients:` のアドレスであり，card_sim はもともとそれを含まない（Iteration 2 の E_subj_short 0.195 も件名の寄与が小さいことと矛盾しない）．
   本文から作る説明文（例：本文の頻出語）に変えると別の方式になり，単一レバーの範囲を超える．
 - 要レビュー: 件名にも持ち主の名前が入りうるので，card_sim から件名を除いた変形（例：本文の先頭の文）を別の方式として比べるべきか．採用時にシャードの公開情報を本文だけで作り直す場合は，`data.enronqa` に入力の指定を足すことになり，そのときは config.yaml の形式の変更として改めて確認する．
+- 追記（2026-10-14．Iteration 3 の評価）: 判定は棄却だったので，シャードの公開情報は作り直さず，config.yaml の形式の変更も要らなくなった（この点は閉じる）．card_sim の件名の扱いの問いは残る（card_sim の説明文に持ち主の姓が入る受信箱は 31/150）．
 
 ## B14 [auto-decided 2026-10-14] Iteration 2（R1）は H-R1b 支持．Iteration 3 は公開情報をヘッダーを除いた本文から作り直して EQ2 を測り直す
 

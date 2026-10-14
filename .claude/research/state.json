@@ -1,0 +1,15 @@
+{
+  "repo": "atrium",
+  "iteration": 3,
+  "iteration_name": "ヘッダーを除いた本文から公開情報を作り直した RQ-A の測り直し",
+  "phase": "evaluate",
+  "status": "running",
+  "current_lever": "advert_eval.input: body_only（atrium body-advert-eval．公開情報をヘッダーを除いた本文から作り直す）",
+  "experiment_dir": "results/20261014_iter3_body_advert_eval",
+  "experiment_deadline": 1791987708,
+  "updated_at": 1791983380,
+  "last_slack_ts": "1791978732.645629",
+  "iteration_thread_ts": "1791980329.363289",
+  "notion_toggle_created": true,
+  "last_commit": "6ead387"
+}
