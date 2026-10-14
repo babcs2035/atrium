@@ -13,6 +13,7 @@
     advert-eval               RQ-A のオフラインの評価（EnronQA．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
+    owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
     churn-live-report  EQ7b の実機の実行を集めて EQ7a と比べる（操作端末）
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
@@ -246,6 +247,17 @@ def cmd_churn_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     churn_eval.write_outputs(Path(args.out_dir), metrics)
     print(churn_eval.render_report(metrics))
+    return 0
+
+
+def cmd_owner_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """持ち主推定の定義の統一（p0005 T2）を行い，metrics.json と analysis_report.md を書く．"""
+    from atrium import owner_eval
+
+    reference = json.loads(Path(args.reference_metrics).read_text(encoding="utf-8"))
+    metrics = owner_eval.evaluate(cfg, dataset_paths(Path(args.data_dir), "enronqa"), reference)
+    owner_eval.write_outputs(Path(args.out_dir), metrics)
+    print(owner_eval.render_report(metrics))
     return 0
 
 
@@ -504,6 +516,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--data-dir", required=True)
     p.add_argument("--out-dir", required=True)
     p.set_defaults(func=cmd_advert_eval)
+
+    p = sub.add_parser("owner-eval", help="持ち主推定の入力を揃えた評価（EnronQA．p0005 T2）")
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--reference-metrics", required=True, help="退行の確認の基準（EQ2 の metrics.json）"
+    )
+    p.set_defaults(func=cmd_owner_eval)
 
     p = sub.add_parser("churn-live-report", help="EQ7b の実機の実行を集めて EQ7a と比べる")
     p.add_argument(

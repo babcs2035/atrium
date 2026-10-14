@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import torch
@@ -236,6 +236,11 @@ class ArcticEncoder:
         self._model = SentenceTransformer(
             name, device=device or _device(), revision=pinned_revision(name)
         )
+
+    @property
+    def tokenizer(self) -> Any:
+        """埋め込みに使うトークナイザ（文章のトークン数を数えるため．T2 の owner-eval）．"""
+        return self._model.tokenizer
 
     def encode_queries(self, queries: Sequence[str]) -> F32Array:
         """クエリを埋め込む（行がクエリ．正規化済み）．"""
