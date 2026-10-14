@@ -126,6 +126,19 @@ EnronQA の回答は自由記述なので，実験の後に判定モデル（`da
 `h_o1` は，`E_short` の `top1` の 95% 区間が `Q` の区間より上（`higher`），重なる（`overlap`），下（`lower`）かを示す．
 term_sketch の採点は，語の集合を走査して重みを足す順序が Python の文字列のハッシュの種で変わるため，プロセスごとに `top1` が 0.001〜0.003 揺れる（同点の扱い）．
 
+### 150 人での新参者の評価（`atrium newcomer-eval`．p0005 T3）
+
+`results/<run_id>/metrics.json` の `pooled.<方式>` に，新参者の問（正解の受信箱が新参者である test の質問）を合わせた `hit@1`・`hit@2` と，95% ブートストラップ信頼区間を書く．
+
+| 方式 | 内容 |
+|---|---|
+| `ragroute-upper` | 全受信箱で学習済みの既存のルーター |
+| `ragroute-frozen` | 新参者 1 個を除いた 149 受信箱で学習し直したルーター（新参者の one-hot は 0）．新参者ごとに 1 個学習する |
+| 学習の要らない方式 | `card_sim`・`term_sketch`・`centroid_sim`・`multi_centroid`・`flood_score`・`random`．EQ2 と同じ計算 |
+
+`judgement` に H-N1（`ragroute-frozen` < `ragroute-upper`，区間が重ならない）と H-N2（`flood_score` と，公開情報を使う最良の方式が `ragroute-frozen` より高い）を書く．
+`frozen_on_existing_inboxes` は，`ragroute-frozen` の，新参者ではない受信箱の質問での `hit@2`（参考）．再学習したルーターは制御点のデータディレクトリの `enronqa/newcomer/` に置き，`results/` には書かない．
+
 ### E2 の LOSO（`atrium loso`）
 
 `results/e2_loso_<YYYYMMDD_HHMMSS>/metrics.json` の `methods.<方式>` に，除外ごと（`by_holdout.<新参源>`）と，
