@@ -17,6 +17,35 @@
 
 ---
 
+## B14 [auto-decided 2026-10-14] Iteration 2（R1）は H-R1b 支持．Iteration 3 は公開情報をヘッダーを除いた本文から作り直して EQ2 を測り直す
+
+- 状況: Iteration 2 の判定は H-R1b 支持（term_sketch の E_body_short 0.219 [0.197, 0.238] 対 E_short 0.543 [0.515, 0.568]，Q 0.292 とは `lower`．journal の「Iteration 2 実行済み」）．
+  R2 の A 群（持ち主の姓を含む問．26%）だけで見ると，term_sketch の hit@2 は 0.956，それ以外は 0.151 で，EQ2 の term_sketch の発見はヘッダー由来の持ち主の名前に強く依存する．
+  B11 では次の候補を「centroid_probe の実機化」としていたが，事前登録の「次の候補」は「H-R1b が支持なら公開情報を作り直す」を先にしていた．
+- 自動選択: **Iteration 3 の単一レバーは「公開情報の入力をヘッダーを除いた本文にする」**（config.yml の levers 末尾に `advert.input: [body_only]` を仮称で追記）．
+  4 方式の公開情報を区切り線より後の本文から作り直し，EQ2 と同じ test 2,940 問の hit@1・hit@2 と，所有者の特定（E・E_body_short）を測り直す．大きさ（件名 40，T = 200，C = 32）と m = 2 は固定する．
+  hit は A 群（持ち主の姓を含む）とそれ以外に分けて添える．centroid_probe の実機化は Iteration 4 以降の候補に回す（B11 の内容のまま）．
+- iteration_name: 「ヘッダーを除いた本文から公開情報を作り直した RQ-A の測り直し」．
+- 根拠: (1) RQ-A の主張（公開情報の量と，見つけてもらう度合い・持ち主を当てられる度合いの兼ね合い）の数値そのものが，ヘッダーの名前に依存している可能性が高く，論文の中心の数値を先に確かめる方が価値が高い．
+  (2) centroid_probe の 1 段目は multi_centroid の公開情報なので，公開情報を作り直すと K と hit の兼ね合いが変わりうる．実機化（フルスペックで数時間）を先にすると，やり直しになりうる．
+  (3) オフラインの評価で，データ準備・ラベル・シャードの作り直しは要らない見込み（multi_centroid・centroid_sim は本文の埋め込みの計算し直しが要る．所要は未見積もりで，rc-researcher が確認する）．
+- 要レビュー: (a) この順序（公開情報の作り直しを centroid_probe の実機化より先にする）でよいか．(b) card_sim は件名だけを公開する方式なので，「ヘッダーを除く」とき件名を残すか（B12 では E_body_short から件名を除いた）．
+  (c) 新しい設定キーを足すか，評価 CLI の引数にとどめるか（config.yaml の形式の変更は B9 と同じく要レビュー）．(d) 持ち主が自分の名前を公開情報から除くことは現実的な運用か（除けない場合，今の EQ2 の値が実態に近い）．
+
+## B13 [needs-human 2026-10-14] Iteration 2 の実験が docker の権限不足で止まっている（Slack で @mention 済み）
+
+- 状況: 実装は commit・push 済み（`da091ec`・`c817f02`．テスト 213 件・ruff・mypy 通過）．実験の前段の `publish_images` が
+  `permission denied while trying to connect to the docker API at unix:///var/run/docker.sock` で失敗した．
+  この操作端末の ktakahashi は docker グループに入っていない（groups: sudo, systemd-journal, elab-ops）．`remote.sh header_eval` は未実行（1 回だけの規則は消費していない）．
+- 選択肢:
+  - A1: 人間が docker 権限のある端末で `bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'` を実行する．その後 `bash scripts/tasks/remote.sh header_eval 20261014_iter2_header_eval 20261009_eq2_advert_eval` はサイクルが続ける．(Recommended)
+    メリット: 権限設定を変えず，既存の手順どおり．デメリット: 人間の作業が 1 回要る．
+  - A2: ktakahashi を docker グループに追加する（権限設定の変更．人間が行う）．メリット: 以後の Iteration も自動で進む．デメリット: docker グループは実質 root 相当の権限で，セキュリティ上の判断が要る．
+  - A3: 制御点 wafl-ctrl5（docker が動く）でイメージを build して配る手順に変える．メリット: この端末の権限が不要．デメリット: `mise run deploy` の既存手順（gpu2 での build）の変更で，運用ルール 7・B5 との整合の確認が要る．
+- 要レビュー: どれを選んでも，評価の仕様（事前登録）は変えない．
+- [human-decided 2026-10-14] 回答: ユーザーが「実行した」と返信した（A1．`publish_images` を人間が実行したと解釈）．
+  したこと: `status` を `running` に戻し，rc-executor へ再委譲した．イメージが今の HEAD のものかは rc-executor が確認してから `remote.sh header_eval` を 1 回だけ流す．
+
 ## B12 [auto-decided 2026-10-14] R1 (b) の「ヘッダー」の範囲：区切り線より前の全行とし，Subject を本文に含めない
 
 - 状況: B11 の要レビューで，R1 (b) で「ヘッダー」とみなす行の範囲（`Subject:` を本文に含めるか）を事前登録で決めることになっていた．
