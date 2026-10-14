@@ -17,6 +17,15 @@
 
 ---
 
+## B12 [auto-decided 2026-10-14] R1 (b) の「ヘッダー」の範囲：区切り線より前の全行とし，Subject を本文に含めない
+
+- 状況: B11 の要レビューで，R1 (b) で「ヘッダー」とみなす行の範囲（`Subject:` を本文に含めるか）を事前登録で決めることになっていた．
+- 自動選択: 区切り線（`HEADER_SEPARATOR`）より前の全行（`Subject:`・`Sender:`・`Recipients:`）をヘッダーとし，判定に使う E_body_short は件名を含めない．件名＋本文の先頭 28 トークン（E_subj_short）は参考として出し，判定には使わない．
+  あわせて，config.yml の levers 末尾に `owner_eval.input: [body_short]` を追記した（実装は新しい CLI `atrium header-eval`．config.yaml は変えない）．
+- 根拠: (1) 重複の検出（`write_questions_files`）が既に `split(HEADER_SEPARATOR, 1)[-1]` を本文としており，同じ定義にできる．(2) R1 の問いは「メールの付属情報で持ち主を当てているか」であり，件名も送信者が付ける付属情報で，返信・転送で受信箱をまたいで繰り返される．
+  (3) card_sim の公開情報は件名そのものなので，件名を含めると card_sim に有利さを与え，方式間の比較が崩れる．
+- 要レビュー: 件名を本文とみなすべき（件名は書き手の書いた中身である）と考える場合は，参考の E_subj_short を判定に使うよう差し替える（事前登録の前に限る）．journal の「Iteration 2」の事前登録．
+
 ## B11 [auto-decided 2026-10-14] Iteration 1（centroid_probe）は部分的に支持．Iteration 2 の単一レバーを R1 にする
 
 - 状況: Iteration 1 の判定は「部分的に支持」（S1 成立 +0.321，S2 不成立．K = 75 > 30．journal の「Iteration 1 実行済み」）．config.yml の levers は全て試し終えている．

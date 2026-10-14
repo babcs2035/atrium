@@ -94,6 +94,10 @@ levers:
             上位 m = 2 個を選ぶ二段の方式（selective search の資源選択＋打ち切りに当たる）．K は新しいキー routing.probe_k.enronqa で，
             dev で事前登録の規則で選ぶ．評価はオフライン（test 2,940 問の hit@2 と，クエリを受け取る受信箱の数）．
             退行の確認は K = 150 で flood_score，K = 2 で multi_centroid の hit@2 と一致すること"}
+  - {name: owner_eval.input, values: [body_short],
+     note: "Iteration 2 で追加（backlog B10 [human-decided]・B11・B12）．外部レビュー R1．T2（owner-eval）の短い入力を，ヘッダー込みの先頭 28 トークン（E_short）から
+            区切り線より後の本文の先頭 28 トークン（E_body_short．Subject は含めない）へ変える．新しい CLI atrium header-eval でオフラインに評価し，
+            term_sketch の特徴語に占めるヘッダー依存の語の割合（R1 (a)）と，質問文の人名の有無で分けた hit（R2）を追加の集計として出す．config.yaml は変えない"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

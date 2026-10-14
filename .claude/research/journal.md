@@ -3,6 +3,87 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 2: T2 の入力からヘッダーを除いた持ち主推定の測り直し
+
+### 調査・計画（2026-10-14．research-cycle の phase 1）
+
+**レバーの由来**：backlog B10 の [human-decided 2026-10-14]（外部レビューの R1・R2 を Iteration 1 の後に行う）と B11 [auto-decided] による．config.yml の levers 末尾に `owner_eval.input`（R1）を追記した．
+実機は使わず，データ準備・ラベル・シャード・公開情報（Advert）は作り直さない．
+
+**コードとデータから確かめたこと**（事実）
+- EnronQA のメールの文字列は `Subject: …` `Sender: …` `Recipients: [...]` `File: …` の各行，区切り線 `=====================================`，本文の順に並ぶ（`tests/test_data_enronqa.py` の `RAW`）．
+  `clean_email` は `File:` の行だけを除くので，受信箱の本文（`content`）・埋め込み・公開情報（term_sketch の語の文書頻度）は，`Subject:`・`Sender:`・`Recipients:` の行を含んで作られている．
+- T2 の E_short（`owner_eval.py`）は，この本文を先頭から 28 トークンに切ったものである．28 トークンはヘッダーの 3 行でほぼ埋まると見込まれる（Recipients が 1 件でも `Subject:`・`Sender:` の行と合わせて 20 トークン前後．未計測）．
+- 重複の検出（`write_questions_files`）は既に `text.split(HEADER_SEPARATOR, 1)[-1]` で区切り線より後だけを使っており，リポジトリ内に「区切り線より前をヘッダーとする」定義が既にある．
+- term_sketch は語を `[a-z0-9]+` に分けるので，`stephanie.panus@enron.com` は `stephanie`・`panus`・`enron`・`com` になる．持ち主のアドレスはほぼ全てのメールの `Sender:` か `Recipients:` にあるので，文書頻度の上位に入りうる（未計測．これを (a) で数える）．
+
+**調査で分かったこと**（tavily-search．事実と推測を分けて書く）
+- EnronQA の論文（Ryan et al., "EnronQA: Towards Personalized RAG over Private Documents", arXiv:2505.00263, 2025．https://arxiv.org/html/2505.00263v1）は，質問の生成を「10 通の中から 1 通を特定できるほど具体的」になるよう最適化したため，質問が**メール中の特定の実体を名指しする必要があった**と書き，BM25 の Recall@5 が 87.5 と高いのは質問とメールの語の重なりが大きいためと述べている．
+  R2（質問文の人名による見つけやすさの水増し）は，データセットの作り方から起こりうる．人名を含む質問の割合は論文に書かれていない（未確認．本イテレーションで数える）．
+- Enron のメールを使う著者推定・本文の研究では，ヘッダー・引用・機械的な定型文を除く前処理が一般的である（EnronSent，Styler 2011．https://www.colorado.edu/ics/sites/default/files/attached-files/01-11_0.pdf は引用と機械生成の文を状態機械で除いた．Enron Authorship Verification Corpus，Mendeley Data．https://data.mendeley.com/datasets/n77w7mygwg/1 も同じ前処理を全文書に適用している）．
+  ヘッダーを残したまま「本文から持ち主を当てる」と，文体や話題ではなくアドレスで当てることになる，というのが外部レビュー R1 の懸念であり，これらの前処理の慣行と同じ向きである（推測．本研究のデータで (b) によって確かめる）．
+- 本文の中にも，転送・返信の引用ヘッダー（`-----Original Message----- From: … To: …`）と署名に人名が残る（EnronSent が除いた対象）．本イテレーションはメール先頭のヘッダーだけを除き，引用・署名は残す（限界に書く）．
+
+**仮説**
+- **H-R1a**：term_sketch の特徴語（受信箱ごとの上位の語）の上位は，ヘッダーにしか現れない語（アドレス・人名・ドメイン）が多くを占める．
+- **H-R1b**：T2 で term_sketch の E_short（0.543）が Q（0.292）や E（0.427）より高かったのは，E_short の 28 トークンがヘッダー（持ち主のアドレス）で占められ，それが特徴語と一致したためである．ヘッダーを除いた本文の先頭 28 トークン（E_body_short）では，term_sketch の持ち主の top-1 は大きく下がる．
+  埋め込みの 3 方式（card_sim・centroid_sim・multi_centroid）は，T2 で既に「E_short の方が低い」であり，ヘッダーの除去で判定は変わらないと予想する（推測）．
+- **H-R2**：人名を含む質問は，含まない質問より見つけやすい（flood_score の hit@2 0.804 の一部は名前の一致による）．
+
+**単一レバー**：T2（`atrium owner-eval`）の短い入力を，**「本文（ヘッダー込み）の先頭 28 トークン（E_short）」から「区切り線より後の本文の先頭 28 トークン（E_body_short）」へ**変える．
+- 実装：`src/atrium/header_eval.py`（新規．`owner_eval` の `median_token_count`・`truncate_to_tokens`・`owner_metrics`・`compare_inputs` と `cascade_eval` の採点を再利用する）と CLI の `atrium header-eval`，`scripts/tasks/remote.sh` の `header_eval` のタスク．
+  既存の `owner-eval`・`advert-eval`・`cascade-eval` とその出力は変えない．`config.yaml` は変えない．
+- (a) の特徴語の集計と R2 の集計は，同じ CLI の追加の出力として出す（判定の対象は下のとおり）．
+
+**固定する構成**：`dataset: enronqa`，EQ2 で選んだ公開情報の大きさ（件名 40，T = 200，C = 32．ヘッダー込みで作った既存の Advert のまま），所有者推定のメール 1,460 通（EQ2・T2 と同じ抜き出し．種 12），test 2,940 問，
+切り詰めの長さは T2 と同じ 28 トークン（test の質問のトークン数の中央値．arctic-embed-m-v1.5 のトークナイザ），E_body_short の埋め込みは T2 の E_short と同じく文書側（接頭辞なし）．m = 2，centroid_probe の K = 75．
+
+### 事前登録（2026-10-14．実装の後，実行の前に push する．結果を見て変えない）
+
+**「ヘッダー」の範囲（B11 の要レビュー．backlog B12）**：区切り線（`HEADER_SEPARATOR`）より前の全行（`Subject:`・`Sender:`・`Recipients:`．`File:` は既に除かれている）をヘッダーとし，**判定に使う E_body_short は `Subject:` を含めない**．
+理由：(1) リポジトリの既存の定義（重複の検出の `split(HEADER_SEPARATOR, 1)[-1]`）と同じにできる．(2) R1 の問いは「書かれた中身ではなく，メールの付属情報で持ち主を当てているか」であり，件名も送信者が付ける付属情報で，返信・転送で受信箱をまたいで同じものが繰り返される．
+(3) card_sim の公開情報は件名そのもの（`card_text`）なので，件名を本文に含めると card_sim に，アドレスが term_sketch に与えたのと同じ種類の有利さを与える．
+参考として，件名の行の値＋本文の先頭 28 トークン（E_subj_short）も出すが，判定には使わない．
+区切り線の無いメールは文字列全体を本文とし（既存の定義と同じ），その通数を出す．1,460 通の 1% を超えたら限界に書く．
+
+**評価する入力**（4 方式：card_sim・term_sketch・centroid_sim・multi_centroid．同じ採点の関数）
+- 判定に使う：Q（test の質問文），E_short（T2 と同じ．ヘッダー込みの先頭 28 トークン），E_body_short（ヘッダーを除いた本文の先頭 28 トークン）．
+- 参考：E_body（ヘッダーを除いた本文の全体を文書側で埋め込み直したもの．埋め込みのモデルの上限で切れる），E_subj_short．
+- 本文が空（トークン 0）になるメールは，E_body_short・E_body・E_subj_short と，判定で比べる E_short の両方から除き（同じ部分集合で対にして比べる），その通数を出す．退行の確認は 1,460 通の全体で行う．
+
+**退行の確認**（一致しなければ判定に進まず，原因を調べて記録する）
+- 1,460 通の全体で，Q の top-1，E の top-1・AUC，E_short の top-1・AUC が T2 の `results/20261014_t2_owner_eval/metrics.json` と一致する．許容は 5e-4，**term_sketch だけは 2e-3**（B8）．
+  基準：E_short の top-1 は card_sim 0.0740，term_sketch 0.5432，centroid_sim 0.1651，multi_centroid 0.2110．切り詰めの長さが 28 であること．
+- R2 の集計：群ごとの hit@1・hit@2 を問の数で重みづけて合わせた値が，全 test の値（flood_score 0.7221/0.8041，multi_centroid 0.3486/0.4401，centroid_probe K = 75 の 0.688/0.761．Iteration 1 の metrics.json の値）と 5e-4 以内で一致する．
+
+**判定の規則**（95% ブートストラップ信頼区間．種は experiment.seed．T2 と同じ関数）
+- **H-R1b（主判定．term_sketch）**：E_body_short と E_short（同じ部分集合）の top-1 を比べる．
+  - **支持**：E_body_short の区間の上端が E_short の区間の下端より下，かつ E_body_short と Q の比較（T2 の H-O1 の 3 区分）が「higher」でない（T2 の term_sketch の結論「同じ長さでも，メール本文の方が持ち主を当てやすい」はヘッダーに依存していた）．
+  - **部分的に支持**：E_body_short の区間が E_short より下だが，Q との比較は「higher」のまま（ヘッダーは寄与したが，本文だけでも質問文より当てやすい）．
+  - **棄却**：E_body_short と E_short の区間が重なる（ヘッダーは T2 の term_sketch の値の主因ではない）．
+- 埋め込みの 3 方式は，E_body_short と Q の H-O1 の 3 区分と，E_short からの差を記録する（判定は付けない）．
+- **H-R1a（特徴語．記述と閾値）**：受信箱ごとの term_sketch の上位 20 語と上位 200 語のうち，「ヘッダー依存の語」（その受信箱で，区切り線より後の本文だけで数えた文書頻度が，ヘッダー込みの文書頻度の半分未満の語）の割合を，150 受信箱で平均する．
+  上位 20 語の平均の割合が 0.25 以上なら「特徴語の上位はヘッダーに多くを占められる」とする．
+  参考として，全メールの `Sender:`・`Recipients:` のアドレスから取った語を，ドメインの語（@ より後）とアドレスの名前の語（@ より前．3 文字以上，英語の機能語を除く）に分けた割合，持ち主の姓（受信箱の名前の `-` より前）が上位 20 語に入る受信箱の数，語の重み（文書頻度の割合）で重みづけた割合を出す．
+- **H-R2（追加の集計）**：test の質問を 3 群に分ける．(A) 持ち主の姓（受信箱の名前の `-` より前．3 文字以上）を単語として含む（大文字小文字を区別しない），(B) A でなく，大文字で始まる語のうち小文字にするとアドレスの名前の語の集合に入るものを含む，(C) どちらでもない．
+  flood_score・multi_centroid・centroid_probe（K = 75）について群ごとの n・hit@1・hit@2 と区間を出す（参考に term_sketch も）．
+  方式ごとに，(A ∪ B) の hit@2 の区間の下端が C の区間の上端より上なら「名前を含む問の方が見つけやすい」と書く．B で一致した語の上位 30 個を出力し，人名でない語の誤検出を目で確かめられるようにする．
+- **このイテレーションの結論**は H-R1b の 3 区分とする（成功・失敗ではなく，T2 と EQ2 の記述を書き直すかどうかを決める確認である）．支持・部分的に支持なら T2 の節と EQ2 の「持ち主を当てることの方に役立つ」の term_sketch の記述を訂正する．
+
+**ノイズの見積もり**：オフラインの評価で流し直しの揺れは無い．持ち主の top-1 の 95% 区間の半幅は 1,460 通で約 ±0.025（T2 の term_sketch の E_short は [0.515, 0.568]）．term_sketch の採点は文字列のハッシュの種で揺れる（Q の top-1 ±0.001，E の top-1 ±0.002．B8）．
+term_sketch の上位の語は同じ文書頻度の語の並びがハッシュの種で変わるので，上位 20・200 語の境界の語が入れ替わりうる（H-R1a の割合が受信箱ごとに 1/20 程度動きうる）．PYTHONHASHSEED は固定しない（B8 の追認）．
+
+**期待効果**（推測．判定に使わない）：term_sketch の E_body_short は 0.25〜0.40 に下がり，Q（0.292）と区間が重なる（H-R1b 支持）．埋め込みの 3 方式の E_body_short は E_short と同程度か少し上がる（ヘッダーで切り詰めの枠を使わなくなるため）．
+特徴語の上位 20 語には `enron`・`com` と持ち主の姓・名が入る受信箱が多い．人名を含む質問（A ∪ B）は半数以上で，flood_score の hit@2 は C より高い．
+
+**実行**（実装の後，push してから 1 回だけ．所要は T2 と同程度の数分の見込み）：`bash scripts/tasks/remote.sh header_eval 20261014_iter2_header_eval 20261009_eq2_advert_eval`．出力は `results/20261014_iter2_header_eval/`（`metrics.json`，`analysis_report.md`）．本文は results/ と git に入れない（p0004 §2.3）．B の一致語は語だけを出す．
+
+**限界**：メール先頭のヘッダーだけを除き，本文の中の引用ヘッダー（`From:`・`To:`）と署名の人名は残る．E_body_short の 28 トークンにも引用の人名が入りうる．
+公開情報（Advert）はヘッダー込みのまま作り直さない（持ち主の側がヘッダーを除いて公開情報を作る変形は別のレバー）．R2 の名前の検出は規則による近似で，固有表現の抽出器は使わない．
+term_sketch の値は ±0.002 の揺れと退行の許容 2e-3 を持つ（B8）．
+
+**次の候補**：H-R1b が支持なら，公開情報（term_sketch・multi_centroid）をヘッダーを除いた本文から作り直し，EQ2 の hit と所有者の特定を測り直す（term_sketch は文字列だけで作り直せるが，multi_centroid は本文の埋め込みの計算し直しが要る．ラベルは変わらない見込み．要確認）．その後に backlog B11 の centroid_probe の実機化．
+
 ## Iteration 1: 公開情報で候補を絞ってから probe する二段ルーティング
 
 ### 調査・計画（2026-10-14．research-cycle の phase 1）
