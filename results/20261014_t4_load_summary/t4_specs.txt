@@ -1,0 +1,32 @@
+# T4 負荷試験：EnronQA 300 問（受信箱ごとの先頭 2 問），retrieval_only，m = 2．routing × parallel × 3 回 = 30 実行．並びは routing → parallel → 回（失敗率の打ち切り規則のため）
+
+20261014_t4_flood_score_p1_r1 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=2
+20261014_t4_flood_score_p1_r2 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=2
+20261014_t4_flood_score_p1_r3 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=2
+20261014_t4_flood_score_p4_r1 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=4 question_limit=2
+20261014_t4_flood_score_p4_r2 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=4 question_limit=2
+20261014_t4_flood_score_p4_r3 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=4 question_limit=2
+20261014_t4_flood_score_p8_r1 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=8 question_limit=2
+20261014_t4_flood_score_p8_r2 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=8 question_limit=2
+20261014_t4_flood_score_p8_r3 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=8 question_limit=2
+20261014_t4_flood_score_p16_r1 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=16 question_limit=2
+20261014_t4_flood_score_p16_r2 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=16 question_limit=2
+20261014_t4_flood_score_p16_r3 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=16 question_limit=2
+20261014_t4_flood_score_p30_r1 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=30 question_limit=2
+20261014_t4_flood_score_p30_r2 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=30 question_limit=2
+20261014_t4_flood_score_p30_r3 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=30 question_limit=2
+20261014_t4_multi_centroid_p1_r1 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=2
+20261014_t4_multi_centroid_p1_r2 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=2
+20261014_t4_multi_centroid_p1_r3 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=2
+20261014_t4_multi_centroid_p4_r1 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=4 question_limit=2
+20261014_t4_multi_centroid_p4_r2 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=4 question_limit=2
+20261014_t4_multi_centroid_p4_r3 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=4 question_limit=2
+20261014_t4_multi_centroid_p8_r1 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=8 question_limit=2
+20261014_t4_multi_centroid_p8_r2 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=8 question_limit=2
+20261014_t4_multi_centroid_p8_r3 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=8 question_limit=2
+20261014_t4_multi_centroid_p16_r1 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=16 question_limit=2
+20261014_t4_multi_centroid_p16_r2 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=16 question_limit=2
+20261014_t4_multi_centroid_p16_r3 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=16 question_limit=2
+20261014_t4_multi_centroid_p30_r1 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=30 question_limit=2
+20261014_t4_multi_centroid_p30_r2 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=30 question_limit=2
+20261014_t4_multi_centroid_p30_r3 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=30 question_limit=2
