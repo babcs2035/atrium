@@ -113,6 +113,19 @@ EnronQA の回答は自由記述なので，実験の後に判定モデル（`da
 
 `m`（問い合わせる受信箱の数）は，dev で最良の方式の hit@m が 0.9 以上になる最小の値（`m_rule`）である．
 
+### 持ち主推定の入力を揃えた評価（`atrium owner-eval`．p0005 T2）
+
+同じ公開情報・同じ採点で，入力だけを変えて持ち主を当てる．`results/<run_id>/metrics.json` の `methods.<方式>` に，入力ごとの `top1`・`top1_ci95`・`auc` を書く．
+
+| 入力 | 定義 |
+|---|---|
+| `Q` | 質問文からの特定．test の質問の正解の受信箱を当てる．`top1` は `advert-eval` の `hit@1`（見つけてもらえる度合い）と同じ値になる |
+| `E` | メール本文からの特定．各受信箱から抜き出したメール（最大 10 通）の持ち主を当てる．`top1`・`auc` は `advert-eval` の `owner_top1`・`owner_auc` と同じ値になる |
+| `E_short` | 短く切ったメール本文からの特定．`E` の各メールを，test の質問のトークン数の中央値（`short_tokens`）に先頭から切ったもの |
+
+`h_o1` は，`E_short` の `top1` の 95% 区間が `Q` の区間より上（`higher`），重なる（`overlap`），下（`lower`）かを示す．
+term_sketch の採点は，語の集合を走査して重みを足す順序が Python の文字列のハッシュの種で変わるため，プロセスごとに `top1` が 0.001〜0.003 揺れる（同点の扱い）．
+
 ### E2 の LOSO（`atrium loso`）
 
 `results/e2_loso_<YYYYMMDD_HHMMSS>/metrics.json` の `methods.<方式>` に，除外ごと（`by_holdout.<新参源>`）と，
