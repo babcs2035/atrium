@@ -126,6 +126,21 @@ EnronQA の回答は自由記述なので，実験の後に判定モデル（`da
 `h_o1` は，`E_short` の `top1` の 95% 区間が `Q` の区間より上（`higher`），重なる（`overlap`），下（`lower`）かを示す．
 term_sketch の採点は，語の集合を走査して重みを足す順序が Python の文字列のハッシュの種で変わるため，プロセスごとに `top1` が 0.001〜0.003 揺れる（同点の扱い）．
 
+### 持ち主推定の入力からヘッダーを除いた測り直し（`atrium header-eval`．Iteration 2 の R1・R2）
+
+`owner-eval` の `E_short`（ヘッダー込みの先頭トークン）を，区切り線（`=====…`）より後の本文の先頭トークン（`E_body_short`．`Subject:` を含めない）に変えて，持ち主の `top1` を比べる．
+`results/<run_id>/metrics.json` の `methods.<方式>`（`Q`・`E`・`E_short` は全 1,460 通，`subset` は本文が空でないメールだけ）と，次の集計を書く．本文は出さず，集計値と語だけを書く．
+
+| キー | 内容 |
+|---|---|
+| `methods.<方式>.subset.{E_short,E_body_short,E_body,E_subj_short}` | 同じ部分集合での `top1`・`top1_ci95`・`auc`．`E_body` は本文の全体，`E_subj_short` は件名の値＋本文の先頭トークン（参考） |
+| `methods.<方式>.judgement` | `h_r1b`（`supported`・`partially_supported`・`rejected`・`above`．`E_body_short` の区間が `E_short` より下か）と，`E_body_short` と `Q` の `h_o1` |
+| `n_empty_body`・`n_no_separator` | 本文が空のメールの通数（部分集合から除く）と，区切り線の無いメール（全体を本文とする）の通数 |
+| `regression.t2`・`regression.r2` | 全体の `Q`・`E`・`E_short` が T2 の `metrics.json` と（許容 5e-4，term_sketch は 2e-3），群の重みづけ和が全 test の hit と（5e-4）一致するか |
+| `feature_terms` | 受信箱ごとの term_sketch の上位 20・200 語の，ヘッダー依存の語（本文だけの文書頻度がヘッダー込みの半分未満）・ドメインの語・アドレスの名前の語の割合の平均 |
+| `r2.groups.<方式>` | 質問を A（持ち主の姓を含む）・B（アドレスの名前の語を含む）・C（どちらでもない）に分けた群ごとの `n`・`hit@1`・`hit@2` と区間（`A+B` も）．`r2.named_easier` は `A+B` の `hit@2` の区間の下端が `C` の上端より上か |
+| `r2.matched_words_in_b` | 群 B で一致した語の上位 30 個（人名でない語の誤検出を確かめる） |
+
 ### 150 人での新参者の評価（`atrium newcomer-eval`．p0005 T3）
 
 `results/<run_id>/metrics.json` の `pooled.<方式>` に，新参者の問（正解の受信箱が新参者である test の質問）を合わせた `hit@1`・`hit@2` と，95% ブートストラップ信頼区間を書く．

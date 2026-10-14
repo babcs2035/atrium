@@ -192,6 +192,7 @@ bash scripts/tasks/remote.sh advert_eval   <out_name>                           
 bash scripts/tasks/remote.sh cascade_eval  <out_name> <reference_run>              # 二段ルーティング centroid_probe（Iteration 1）
 bash scripts/tasks/remote.sh churn_eval    <out_name> <placement_run> <reference_run>   # 参加・離脱（EQ7a）
 bash scripts/tasks/remote.sh owner_eval    <out_name> <reference_run>              # 持ち主推定の入力を揃える（p0005 T2）
+bash scripts/tasks/remote.sh header_eval   <out_name> <reference_run> [t2_run] [cascade_run]  # T2 の入力からヘッダーを除く（Iteration 2 の R1・R2）
 bash scripts/tasks/remote.sh newcomer_eval <out_name> <reference_run> [n_newcomers]  # 150 人での新参者（p0005 T3）
 # 3. 結果を操作端末へ取得する
 rsync -az wafl-ctrl5:<remote_dir>/results/<out_name>/ results/<out_name>/
