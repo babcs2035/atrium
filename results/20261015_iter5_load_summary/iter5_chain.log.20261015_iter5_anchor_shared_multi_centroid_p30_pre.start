@@ -1,0 +1,3 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[01:49:34] run 20261015_iter5_anchor_shared_multi_centroid_p30_pre (kind=e1_routing dataset=enronqa routing=multi_centroid answer_mode=retrieval_only)
+[01:51:03] results: results/20261015_iter5_anchor_shared_multi_centroid_p30_pre (exit 0)

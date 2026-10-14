@@ -17,6 +17,23 @@
 
 ---
 
+## B21 [auto-decided 2026-10-15] Iteration 5（質問者の接続の池）は採用．Iteration 6 は 1 段目の採点の重心の前計算による二段の方式の処理量の測り直し
+
+- 状況: Iteration 5 の判定は採用（parallel 30 の flood_score の処理量は per_node 12.53〜12.78 問/秒で T4 の 2.44〜2.59 の 5.09 倍，e2e p95 3.39〜3.63 秒．H-H3 は (i) 池の管理の費用．journal の「Iteration 5 実行済み」）．
+  per_node の下では，3 方式の parallel 30 の処理量が「1 問の時間 = route_s ＋ 要求の数 ÷ 約 400 要求/秒」でほぼ説明でき，multi_centroid（8.55 問/秒）と K = 75（5.37 問/秒）は 1 段目の採点（route_s 約 0.111 秒）で決まっている．
+  `MultiCentroidRouter.score` は問ごと・受信箱ごとに `np.asarray(advert.centroids, np.float32)` でリストから変換しており，操作端末の測定では 150 × 32 × 768 の変換で 0.105 秒，変換済みなら 0.001 秒だった．config.yml の levers は全て試し終えている．
+- 自動選択: **Iteration 6 の単一レバーは「1 段目の採点の重心の持ち方」**（問ごとにリストから変換 → 公開情報を読み込んだときに numpy の行列として 1 回だけ前計算）とし，config.yml の levers 末尾に `requester.advert_scoring: [precomputed]`（仮称）を追記した．
+  選択の結果は変えない（全問で `selected_sources` が Iteration 5 と一致すること）．`experiment.http_pool: per_node` を明示し，multi_centroid と centroid_probe（K = 75．K = 30 は記録）を T4 と同じ 300 問・検索だけで parallel 1・4・16・30 × 3 回測り，Iteration 5 の per_node の値と比べる．
+  設定キーにするか（新旧を同じイメージで比べられる）コードの置き換えにするか，揺れの確認の条件（flood_score × per_node の p30 は採点を持たないので変わらないはず），判定の規則は rc-researcher が事前登録で決める．
+- iteration_name: 「1 段目の採点の重心の前計算による二段の方式の処理量の測り直し」．
+- 根拠: (1) per_node の下で，1 段目の採点を持つ方式（multi_centroid・centroid_probe・次の候補のデバイスを単位に選ぶ方式）は，どれも route_s が処理量を決めており，この費用を外さないと方式の比較が「numpy の変換の費用」の比較になる．
+  (2) d0006 §6.3 の未確認の項目（外部レビュー R4 (b)．multi_centroid が 1 問ずつで flood_score より遅い理由が重心の変換か）に答える．(3) コードの変更は小さく，選択は変わらないので正しさの確認が容易である．データ・シャード・ラベルは作り直さない．
+  (4) 期待（推測）：route_s 0.111 → 0.01 秒未満，multi_centroid の parallel 30 の処理量は 8.5 → 数十問/秒（2 要求の扱いと質問者の他の費用で頭打ち），K = 75 は 5.4 → flood_score と同じ程度（約 12〜13 問/秒．要求の数がほぼ同じため）．
+- 要レビュー: (a) この順序（デバイスを単位に上位を選ぶ方式より，1 段目の採点の費用の除去を先にする）でよいか．デバイスを単位に選ぶ方式は Iteration 7 の候補として残す．
+  (b) `experiment.http_pool` の既定値は `shared` のまま（過去の実験の再現のため．B20 (c)）とし，以後の負荷の実験では `per_node` を明示する．既定値を `per_node` に変えるかは人間の判断とする（急がない）．
+  (c) per_node でも質問者のプロセスの CPU は 1 コアに張り付いている（約 400 要求/秒）．専門家の側の限界を測るには，複数の質問者のプロセス・デバイスから流す構成が要る．これは構成（cluster の requester が 1 台）の変更を伴うので，二段の方式の比較の後の候補として残す．
+  (d) d0006 §6.3 の T4 の記述（「全員に聞く方式の代償は処理量にも現れる」）を，per_node の測定では成り立たないと訂正した．論文で負荷を主張する場合は per_node の値を使う．
+
 ## B20 [auto-decided 2026-10-15] Iteration 5 のレバーの形：新しい設定キー `experiment.http_pool`（per_node を主，shared_unlimited を副）
 
 - 状況: B19 で，レバー `requester.http_pool: [per_node]`（仮称）の具体的な形（ノードごとの client か池の上限か，parallel の点，回数）と判定の規則を rc-researcher が事前登録で決めることになっていた．

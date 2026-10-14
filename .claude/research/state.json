@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 4,
-  "iteration_name": "centroid_probe（二段ルーティング）の実機での待ち時間と処理量の測定",
+  "iteration": 5,
+  "iteration_name": "質問者の HTTP 接続の持ち方を変えた負荷の律速の切り分け",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "experiment.routing: centroid_probe（実機の 2 段目．K = 75 を主，K = 30 を追加．routing.probe_k.enronqa）",
-  "experiment_dir": "results/20261014_iter4_load_summary",
-  "experiment_deadline": 1792006790,
-  "updated_at": 1791984086,
-  "last_slack_ts": "1791983686.446409",
-  "iteration_thread_ts": "1791984128.051809",
+  "current_lever": "experiment.http_pool: shared -> per_node (主) / shared_unlimited (副)",
+  "experiment_dir": "results/20261015_iter5_load_summary (run_id prefix 20261015_iter5_)",
+  "experiment_deadline": 1792017743,
+  "updated_at": 1792007004,
+  "last_slack_ts": "1791995552.090969",
+  "iteration_thread_ts": "1791995949.504629",
   "notion_toggle_created": true,
-  "last_commit": "9ac114e"
+  "last_commit": "cd42b41"
 }

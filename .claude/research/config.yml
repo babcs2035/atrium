@@ -115,6 +115,12 @@ levers:
             全ノードで共有する 1 つの httpx.AsyncClient（max_connections = 512．src/atrium/experiment.py）を，律速の候補（接続の池の管理・池の上限による接続の作り直し）を外す形
             （ノードごとの AsyncClient，または池の上限を同時の要求の数より大きくする．形は rc-researcher が事前登録で決める）に変え，flood_score・centroid_probe（K = 75）・multi_centroid を
             T4 と同じ 300 問・検索だけで測り直す．質問者の CPU 使用率，requester.log の retrying の数，ノードの access log の接続の数も記録する．既存の方式の選択の挙動は変えない"}
+  - {name: requester.advert_scoring, values: [precomputed],
+     note: "Iteration 5 の評価で追加（backlog B21 [auto-decided]）．仮称．Iteration 5 は採用（per_node で flood_score の parallel 30 が 5.09 倍）．per_node の下では multi_centroid・centroid_probe の処理量は
+            1 段目の採点（route_s 約 0.111 秒）で決まっており，その主因は MultiCentroidRouter.score が問ごと・受信箱ごとに重心のリストを np.asarray で変換していることと読める（操作端末で 0.105 秒 → 前計算で 0.001 秒）．
+            重心を公開情報の読み込み時に numpy の行列として前計算し，選択は変えずに（selected_sources が全問一致），experiment.http_pool: per_node を明示して multi_centroid・centroid_probe（K = 75，K = 30 は記録）を
+            300 問・検索だけ・parallel 1/4/16/30 × 3 回で Iteration 5 の per_node の値と比べる．設定キーにするかコードの置き換えにするかは rc-researcher が事前登録で決める．
+            次の候補はデバイスを単位に上位を選ぶ方式，その後に複数の質問者のプロセスの構成"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
