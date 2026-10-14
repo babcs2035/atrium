@@ -26,7 +26,7 @@
 
 E0（実機の性能実測）と E1（RAGRoute の再現）は，これらの比較の土台である．
 
-## 2. 現状（2026-10-13）
+## 2. 現状（2026-10-14）
 
 | 段階 | 状態 | 記録 |
 |---|---|---|
@@ -36,7 +36,7 @@ E0（実機の性能実測）と E1（RAGRoute の再現）は，これらの比
 | E2（RQ1） | MedRAG の leave-one-source-out で，`desc_sim` が成功条件を満たした（新参源の再現率 0.830．上限の 1.04 倍）．実機の下流確認は失敗 0，test の F1 0.634 | journal の「E2：LOSO の判定」「E2 の下流確認」 |
 | E3（RQ2） | 主評価は EnronQA の RQ-B（EQ5・EQ8・EQ10）に移した．MedRAG の宿る型のパイロット（S6）は 100 問のうち 64 問が専門家のメモリ不足で失敗し，不成功として閉じた（backlog の B6）．cross_encoder の全問（s8）は失敗 0，正答率 0.689（s4 の 0.659 より高い） | journal の「EQ5」「EQ8〜EQ10」「S6」「s8」 |
 | EnronQA の拡張（p0004） | EQ0〜EQ6，EQ8〜EQ10 を完了．RQ-A・RQ-B・待ち時間・文脈の通数の判定がある | journal の EQ の各節 |
-| E4（RQ3） | RQ-C のうち，実機を使わない EQ7a を完了した（H-C1 は multi_centroid で支持．差は小さい）．実機で再生する EQ7b は事前登録して実行中 | journal の「EQ7a」「EQ7b の事前登録」 |
+| E4（RQ3） | RQ-C のうち，実機を使わない EQ7a を完了した（H-C1 は multi_centroid で支持．差は小さい）．実機の 30 台で再生する EQ7b も完了し，H-C1 は支持，hit@2 は EQ7a と全 22 回で一致した | journal の「EQ7a」「EQ7b」 |
 | E5 | 未着手 | － |
 
 ## 3. 実験系の構成

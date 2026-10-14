@@ -76,5 +76,5 @@
 | `20261011_eq10_{b1_p1,b4_p1,b2_k1,b2_k3,b2_1p7b_k1,b2_1p7b_k3}_r{1,2,3}` | EQ10：待ち時間（parallel 1）．300 問 × 3 回 | － | EQ8〜EQ10 |
 | `20261011_eq8_summary` | EQ8〜EQ10 の連続実行（`eq8_chain.sh`）と集計（`eq8_summary.py`・`eq10_summary.py`） | － | EQ8〜EQ10 |
 | `20261012_eq7a_churn` | EQ7a：RQ-C のオフラインの評価（参加・離脱とメンバー表の古さ） | H-C1 支持（差は小さい） | EQ7a：RQ-C のオフラインの評価 |
-| `20261013_eq7b_summary` | EQ7b の 22 回の条件（`eq7b_specs.txt`）と集計（`gate/` は退行ゲートの 2 回） | － | EQ7b の事前登録，EQ7b：実機の参加・離脱の再生 |
-| `20261013_eq7b_{multi_centroid,flood_score}_a100_r1_s0` | EQ7b の退行ゲート：稼働率 1，2,940 問 | hit@2 0.4401・0.8041（EQ7a と一致） | EQ7b：実機の参加・離脱の再生 |
+| `20261013_eq7b_summary` | EQ7b の 22 回の条件（`eq7b_specs.txt`）と集計（`final/` が全 22 回，`gate/` は退行ゲートの 2 回） | H-C1 支持，EQ7a と全 22 回で一致 | EQ7b の事前登録，EQ7b：実機の参加・離脱の再生 |
+| `20261013_eq7b_{multi_centroid,flood_score}_a{100,70}_r{1,1000}_s{0..4}` | EQ7b：稼働率 1（退行ゲート 2 回）と 0.7（20 回），2,940 問 | hit@2 は EQ7a と一致．H-C1 支持 | EQ7b：実機の参加・離脱の再生 |
