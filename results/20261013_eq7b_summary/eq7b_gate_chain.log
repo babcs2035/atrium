@@ -1,0 +1,13 @@
+[2026-10-13_19:05:27] BEGIN 20261013_eq7b_multi_centroid_a100_r1_s0 dataset=enronqa routing=multi_centroid answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":1.0,"refresh_steps":1,"schedule_seed":0}
+[19:15:43] 20261013_eq7b_multi_centroid_a100_r1_s0 deployed
+[19:59:33] 20261013_eq7b_multi_centroid_a100_r1_s0 start=0 inner=0
+[19:59:35] 20261013_eq7b_multi_centroid_a100_r1_s0 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 0.124 | 0.153 |
+[2026-10-13_19:59:35] BEGIN 20261013_eq7b_flood_score_a100_r1_s0 dataset=enronqa routing=flood_score answer_mode=retrieval_only parallel=1 question_limit=null churn={"availability":1.0,"refresh_steps":1,"schedule_seed":0}
+[20:02:00] 20261013_eq7b_flood_score_a100_r1_s0 deployed
+[20:43:48] 20261013_eq7b_flood_score_a100_r1_s0 start=0 inner=0
+[20:43:50] 20261013_eq7b_flood_score_a100_r1_s0 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 0.089 | 0.100 |
+[2026-10-13_20:43:50] ALL DONE
