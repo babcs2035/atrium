@@ -1,0 +1,752 @@
+{
+ "n_test": 2940,
+ "m": 2,
+ "regression": {
+  "tolerance": 0.0003401360544217687,
+  "diff": {
+   "flood_score": 0.0,
+   "multi_centroid": 0.0
+  },
+  "passed": true
+ },
+ "summary": [
+  {
+   "method": "flood_score",
+   "availability": 1.0,
+   "refresh": 1,
+   "hit": {
+    "mean": 0.8040816326530612,
+    "min": 0.8040816326530612,
+    "max": 0.8040816326530612
+   },
+   "hit_given_gold_online": {
+    "mean": 0.8040816326530612,
+    "min": 0.8040816326530612,
+    "max": 0.8040816326530612
+   },
+   "gold_online_rate": {
+    "mean": 1.0,
+    "min": 1.0,
+    "max": 1.0
+   },
+   "contacted": {
+    "mean": 30.0,
+    "min": 30.0,
+    "max": 30.0
+   },
+   "wasted": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+   }
+  },
+  {
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1000,
+   "hit": {
+    "mean": 0.4274829931972789,
+    "min": 0.4,
+    "max": 0.4564625850340136
+   },
+   "hit_given_gold_online": {
+    "mean": 0.6101009420560721,
+    "min": 0.5714285714285714,
+    "max": 0.6543149683081424
+   },
+   "gold_online_rate": {
+    "mean": 0.7008163265306122,
+    "min": 0.6908163265306122,
+    "max": 0.7108843537414966
+   },
+   "contacted": {
+    "mean": 20.835374149659863,
+    "min": 19.61904761904762,
+    "max": 22.0
+   },
+   "wasted": {
+    "mean": 5.766802721088435,
+    "min": 5.135034013605442,
+    "max": 6.498639455782313
+   }
+  },
+  {
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1,
+   "hit": {
+    "mean": 0.580204081632653,
+    "min": 0.5727891156462585,
+    "max": 0.5867346938775511
+   },
+   "hit_given_gold_online": {
+    "mean": 0.827914867810178,
+    "min": 0.8252895752895753,
+    "max": 0.8317893710385178
+   },
+   "gold_online_rate": {
+    "mean": 0.7008163265306122,
+    "min": 0.6908163265306122,
+    "max": 0.7108843537414966
+   },
+   "contacted": {
+    "mean": 21.075170068027212,
+    "min": 20.626190476190477,
+    "max": 21.444897959183674
+   },
+   "wasted": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+   }
+  },
+  {
+   "method": "multi_centroid",
+   "availability": 1.0,
+   "refresh": 1,
+   "hit": {
+    "mean": 0.44013605442176873,
+    "min": 0.44013605442176873,
+    "max": 0.44013605442176873
+   },
+   "hit_given_gold_online": {
+    "mean": 0.44013605442176873,
+    "min": 0.44013605442176873,
+    "max": 0.44013605442176873
+   },
+   "gold_online_rate": {
+    "mean": 1.0,
+    "min": 1.0,
+    "max": 1.0
+   },
+   "contacted": {
+    "mean": 1.9585034013605442,
+    "min": 1.9585034013605442,
+    "max": 1.9585034013605442
+   },
+   "wasted": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+   }
+  },
+  {
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1000,
+   "hit": {
+    "mean": 0.23843537414965987,
+    "min": 0.22653061224489796,
+    "max": 0.25
+   },
+   "hit_given_gold_online": {
+    "mean": 0.3402484122595027,
+    "min": 0.3236151603498542,
+    "max": 0.3583617747440273
+   },
+   "gold_online_rate": {
+    "mean": 0.7008163265306122,
+    "min": 0.6908163265306122,
+    "max": 0.7108843537414966
+   },
+   "contacted": {
+    "mean": 1.9439455782312927,
+    "min": 1.9346938775510205,
+    "max": 1.9496598639455782
+   },
+   "wasted": {
+    "mean": 0.5473469387755102,
+    "min": 0.5180272108843538,
+    "max": 0.5867346938775511
+   }
+  },
+  {
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1,
+   "hit": {
+    "mean": 0.33408163265306123,
+    "min": 0.3238095238095238,
+    "max": 0.34285714285714286
+   },
+   "hit_given_gold_online": {
+    "mean": 0.4766704451706462,
+    "min": 0.4687346134908912,
+    "max": 0.48229665071770333
+   },
+   "gold_online_rate": {
+    "mean": 0.7008163265306122,
+    "min": 0.6908163265306122,
+    "max": 0.7108843537414966
+   },
+   "contacted": {
+    "mean": 1.9423809523809523,
+    "min": 1.939795918367347,
+    "max": 1.9476190476190476
+   },
+   "wasted": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+   }
+  }
+ ],
+ "stat_fields": [
+  "hit",
+  "hit_given_gold_online",
+  "gold_online_rate",
+  "contacted",
+  "wasted"
+ ],
+ "hc1": {
+  "availability": 0.7,
+  "max_refresh": 1000,
+  "judged_method": "multi_centroid",
+  "flood_rel_drop": [
+   0.29797101449275376,
+   0.3098591549295774,
+   0.23976608187134507,
+   0.21336459554513487,
+   0.25475059382422804
+  ],
+  "per_method": {
+   "multi_centroid": {
+    "rel_drop": [
+     0.314484126984127,
+     0.32110091743119273,
+     0.2621951219512195,
+     0.2545638945233266,
+     0.27836134453781514
+    ],
+    "minus_flood": [
+     0.016513112491373216,
+     0.011241762501615349,
+     0.02242904007987445,
+     0.041199298978191745,
+     0.023610750713587092
+    ],
+    "larger_in_all_seeds": true
+   }
+  },
+  "supported": true
+ },
+ "equivalence": {
+  "tolerance": 0.0006802721088435374,
+  "rows": [
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 0,
+    "live_hit": 0.4119047619047619,
+    "offline_hit": 0.4119047619047619,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 1,
+    "live_hit": 0.4,
+    "offline_hit": 0.4,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 2,
+    "live_hit": 0.4421768707482993,
+    "offline_hit": 0.4421768707482993,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 3,
+    "live_hit": 0.4564625850340136,
+    "offline_hit": 0.4564625850340136,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 4,
+    "live_hit": 0.4268707482993197,
+    "offline_hit": 0.4268707482993197,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 0,
+    "live_hit": 0.5867346938775511,
+    "offline_hit": 0.5867346938775511,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 1,
+    "live_hit": 0.5795918367346938,
+    "offline_hit": 0.5795918367346938,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 2,
+    "live_hit": 0.5816326530612245,
+    "offline_hit": 0.5816326530612245,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 3,
+    "live_hit": 0.5802721088435374,
+    "offline_hit": 0.5802721088435374,
+    "diff": 0.0
+   },
+   {
+    "method": "flood_score",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 4,
+    "live_hit": 0.5727891156462585,
+    "offline_hit": 0.5727891156462585,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 0,
+    "live_hit": 0.23503401360544218,
+    "offline_hit": 0.23503401360544218,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 1,
+    "live_hit": 0.22653061224489796,
+    "offline_hit": 0.22653061224489796,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 2,
+    "live_hit": 0.24693877551020407,
+    "offline_hit": 0.24693877551020407,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 3,
+    "live_hit": 0.25,
+    "offline_hit": 0.25,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1000,
+    "seed": 4,
+    "live_hit": 0.2336734693877551,
+    "offline_hit": 0.2336734693877551,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 0,
+    "live_hit": 0.34285714285714286,
+    "offline_hit": 0.34285714285714286,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 1,
+    "live_hit": 0.3336734693877551,
+    "offline_hit": 0.3336734693877551,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 2,
+    "live_hit": 0.3346938775510204,
+    "offline_hit": 0.3346938775510204,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 3,
+    "live_hit": 0.33537414965986395,
+    "offline_hit": 0.33537414965986395,
+    "diff": 0.0
+   },
+   {
+    "method": "multi_centroid",
+    "availability": 0.7,
+    "refresh": 1,
+    "seed": 4,
+    "live_hit": 0.3238095238095238,
+    "offline_hit": 0.3238095238095238,
+    "diff": 0.0
+   }
+  ],
+  "max_abs_diff": 0.0,
+  "equivalent": true
+ },
+ "runs": [
+  {
+   "run_id": "20261013_eq7b_flood_score_a100_r1_s0",
+   "method": "flood_score",
+   "availability": 1.0,
+   "refresh": 1,
+   "seed": 0,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.08878636313602328,
+   "hit": 0.8040816326530612,
+   "hit_given_gold_online": 0.8040816326530612,
+   "gold_online_rate": 1.0,
+   "contacted": 30.0,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1000_s0",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 0,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.05142390099354088,
+   "hit": 0.4119047619047619,
+   "hit_given_gold_online": 0.5794258373205742,
+   "gold_online_rate": 0.7108843537414966,
+   "contacted": 19.61904761904762,
+   "wasted": 5.135034013605442
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1000_s1",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 1,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.05055886530317366,
+   "hit": 0.4,
+   "hit_given_gold_online": 0.5714285714285714,
+   "gold_online_rate": 0.7,
+   "contacted": 19.93877551020408,
+   "wasted": 5.435034013605442
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1000_s2",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 2,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.05711848381906748,
+   "hit": 0.4421768707482993,
+   "hit_given_gold_online": 0.6274131274131274,
+   "gold_online_rate": 0.7047619047619048,
+   "contacted": 21.639455782312925,
+   "wasted": 5.779931972789115
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1000_s3",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 3,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.056571441469714046,
+   "hit": 0.4564625850340136,
+   "hit_given_gold_online": 0.6543149683081424,
+   "gold_online_rate": 0.6976190476190476,
+   "contacted": 22.0,
+   "wasted": 6.498639455782313
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1000_s4",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 4,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.05403716885484755,
+   "hit": 0.4268707482993197,
+   "hit_given_gold_online": 0.6179222058099458,
+   "gold_online_rate": 0.6908163265306122,
+   "contacted": 20.979591836734695,
+   "wasted": 5.985374149659864
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1_s0",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 0,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.07371641905047,
+   "hit": 0.5867346938775511,
+   "hit_given_gold_online": 0.8253588516746412,
+   "gold_online_rate": 0.7108843537414966,
+   "contacted": 21.24251700680272,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1_s1",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 1,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.07658554194495082,
+   "hit": 0.5795918367346938,
+   "hit_given_gold_online": 0.8279883381924198,
+   "gold_online_rate": 0.7,
+   "contacted": 21.249319727891155,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1_s2",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 2,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.07084472361020744,
+   "hit": 0.5816326530612245,
+   "hit_given_gold_online": 0.8252895752895753,
+   "gold_online_rate": 0.7047619047619048,
+   "contacted": 21.444897959183674,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1_s3",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 3,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.06676565809175372,
+   "hit": 0.5802721088435374,
+   "hit_given_gold_online": 0.8317893710385178,
+   "gold_online_rate": 0.6976190476190476,
+   "contacted": 20.626190476190477,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_flood_score_a70_r1_s4",
+   "method": "flood_score",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 4,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.0690374094992876,
+   "hit": 0.5727891156462585,
+   "hit_given_gold_online": 0.8291482028557361,
+   "gold_online_rate": 0.6908163265306122,
+   "contacted": 20.812925170068027,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a100_r1_s0",
+   "method": "multi_centroid",
+   "availability": 1.0,
+   "refresh": 1,
+   "seed": 0,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.12384769367054105,
+   "hit": 0.44013605442176873,
+   "hit_given_gold_online": 0.44013605442176873,
+   "gold_online_rate": 1.0,
+   "contacted": 1.9585034013605442,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1000_s0",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 0,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.08425609860569239,
+   "hit": 0.23503401360544218,
+   "hit_given_gold_online": 0.330622009569378,
+   "gold_online_rate": 0.7108843537414966,
+   "contacted": 1.9476190476190476,
+   "wasted": 0.5200680272108843
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1000_s1",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 1,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.07880344684235752,
+   "hit": 0.22653061224489796,
+   "hit_given_gold_online": 0.3236151603498542,
+   "gold_online_rate": 0.7,
+   "contacted": 1.9346938775510205,
+   "wasted": 0.5493197278911565
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1000_s2",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 2,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.09318441082723439,
+   "hit": 0.24693877551020407,
+   "hit_given_gold_online": 0.3503861003861004,
+   "gold_online_rate": 0.7047619047619048,
+   "contacted": 1.9438775510204083,
+   "wasted": 0.5180272108843538
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1000_s3",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 3,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.09052508976310492,
+   "hit": 0.25,
+   "hit_given_gold_online": 0.3583617747440273,
+   "gold_online_rate": 0.6976190476190476,
+   "contacted": 1.9496598639455782,
+   "wasted": 0.5625850340136055
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1000_s4",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1000,
+   "seed": 4,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.08650752785615623,
+   "hit": 0.2336734693877551,
+   "hit_given_gold_online": 0.33825701624815363,
+   "gold_online_rate": 0.6908163265306122,
+   "contacted": 1.9438775510204083,
+   "wasted": 0.5867346938775511
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1_s0",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 0,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.09092941554263234,
+   "hit": 0.34285714285714286,
+   "hit_given_gold_online": 0.48229665071770333,
+   "gold_online_rate": 0.7108843537414966,
+   "contacted": 1.9476190476190476,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1_s1",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 1,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.09132560691796243,
+   "hit": 0.3336734693877551,
+   "hit_given_gold_online": 0.47667638483965014,
+   "gold_online_rate": 0.7,
+   "contacted": 1.9428571428571428,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1_s2",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 2,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.09220473398454487,
+   "hit": 0.3346938775510204,
+   "hit_given_gold_online": 0.4749034749034749,
+   "gold_online_rate": 0.7047619047619048,
+   "contacted": 1.941156462585034,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1_s3",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 3,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.08912273938767612,
+   "hit": 0.33537414965986395,
+   "hit_given_gold_online": 0.4807411019015115,
+   "gold_online_rate": 0.6976190476190476,
+   "contacted": 1.9404761904761905,
+   "wasted": 0.0
+  },
+  {
+   "run_id": "20261013_eq7b_multi_centroid_a70_r1_s4",
+   "method": "multi_centroid",
+   "availability": 0.7,
+   "refresh": 1,
+   "seed": 4,
+   "n": 2940,
+   "failed": 0,
+   "e2e_p50_s": 0.08954477193765342,
+   "hit": 0.3238095238095238,
+   "hit_given_gold_online": 0.4687346134908912,
+   "gold_online_rate": 0.6908163265306122,
+   "contacted": 1.939795918367347,
+   "wasted": 0.0
+  }
+ ]
+}
