@@ -74,6 +74,7 @@
 | `20261011_eq8_{b1,b2,b2_1p7b}_k{1,3,5}` | EQ8：文脈の通数 k．oracle，2,940 問 | B2' は k = 3 と 5 で同じ 0.685 | EQ8〜EQ10 |
 | `20261011_eq9_b3_k5` | EQ9：B3 の流し直し（EQ5 の B3 との揺れ） | 0.256（EQ5 は 0.258） | EQ8〜EQ10 |
 | `20261011_eq10_{b1_p1,b4_p1,b2_k1,b2_k3,b2_1p7b_k1,b2_1p7b_k3}_r{1,2,3}` | EQ10：待ち時間（parallel 1）．300 問 × 3 回 | － | EQ8〜EQ10 |
+| `20261014_t1_judge_audit` | p0005 T1：判定の補正（狭い補正）の集計．EnronQA の採点済み全 16 実行（`judge_audit.py`・`judge_audit.out`） | B2 0.297 → 0.261，B3 0.260 → 0.215（CPU の受信箱） | 判定の補正の確定と EQ8 の読み方の訂正 |
 | `20261011_eq8_summary` | EQ8〜EQ10 の連続実行（`eq8_chain.sh`）と集計（`eq8_summary.py`・`eq10_summary.py`） | － | EQ8〜EQ10 |
 | `20261012_eq7a_churn` | EQ7a：RQ-C のオフラインの評価（参加・離脱とメンバー表の古さ） | H-C1 支持（差は小さい） | EQ7a：RQ-C のオフラインの評価 |
 | `20261013_eq7b_summary` | EQ7b の 22 回の条件（`eq7b_specs.txt`）と集計（`final/` が全 22 回，`gate/` は退行ゲートの 2 回） | H-C1 支持，EQ7a と全 22 回で一致 | EQ7b の事前登録，EQ7b：実機の参加・離脱の再生 |

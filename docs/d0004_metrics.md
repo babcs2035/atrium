@@ -92,6 +92,9 @@ EnronQA の回答は自由記述なので，実験の後に判定モデル（`da
 
 判定モデルは，中身の無い回答（質問の言い換えやひな形の文だけ）を一部，正解とみなすことがある（偽陽性）．この偽陽性は上の 2 つの検証では測れない．
 判定の結果は，回答の中身（ひな形の文だけでないか）を併せて確認する．
+補正値（`results/20261014_t1_judge_audit/judge_audit.py`）は，`final_answer` が例文 `The answer to the question` **だけ**の回答
+（`re.fullmatch(r"\s*the answer to the question\s*[.:]?\s*", ..., re.IGNORECASE)`）を不正解に直した正答率である（狭い補正）．
+例文を含む回答を全て不正解にする広い補正は，中身のある正しい答えまで消すので使わない．正答率の主な値は判定モデルの元の値で，補正値は併記する．
 
 ### RQ-A のオフライン評価（`atrium advert-eval`．p0004 EQ2）
 
