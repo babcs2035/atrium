@@ -84,6 +84,40 @@ term_sketch の値は ±0.002 の揺れと退行の許容 2e-3 を持つ（B8）
 
 **次の候補**：H-R1b が支持なら，公開情報（term_sketch・multi_centroid）をヘッダーを除いた本文から作り直し，EQ2 の hit と所有者の特定を測り直す（term_sketch は文字列だけで作り直せるが，multi_centroid は本文の埋め込みの計算し直しが要る．ラベルは変わらない見込み．要確認）．その後に backlog B11 の centroid_probe の実機化．
 
+### 実行の要約（2026-10-14．`results/20261014_iter2_header_eval/`．数値のみ．判定・解釈は phase 3）
+
+実行は 1 回（`remote.sh header_eval`．イメージの `/etc/atrium-git-head` は `c817f02cbabd-dirty`．dirty は `.claude/` 配下の差分による）．所要 70.7 秒．
+n_inboxes 150，n_test 2,940，n_owner_probes 1,460，切り詰め 28 トークン，空の本文 0 通，区切り線なし 0 通，対にした部分集合 1,460 通．
+
+**退行の確認**：T2 は通過（許容 5e-4．term_sketch は 2e-3）．最大の差は term_sketch の E の top-1 が -6.8e-4（許容 2e-3 以内），term_sketch の Q の AUC が 1.9e-4．他の方式は全て 0．R2 の群の重みづけ和は全 test の値と差 0.0（flood_score・multi_centroid・centroid_probe の hit@1・hit@2）で通過．
+
+**持ち主の top-1（1,460 通．[95% 区間]）**
+
+| 方式 | Q（2,940 問） | E_short | E_body_short | E_body | E_subj_short |
+|---|---|---|---|---|---|
+| card_sim | 0.1116 | 0.0740 [0.060, 0.088] | 0.0342 [0.024, 0.044] | 0.1397 [0.120, 0.156] | 0.1027 [0.088, 0.118] |
+| term_sketch | 0.2918 | 0.5432 [0.515, 0.568] | 0.2185 [0.197, 0.238] | 0.3568 [0.331, 0.381] | 0.1952 [0.174, 0.214] |
+| centroid_sim | 0.2639 | 0.1651 [0.146, 0.186] | 0.0836 [0.070, 0.098] | 0.2377 [0.216, 0.258] | 0.1301 [0.113, 0.148] |
+| multi_centroid | 0.3486 | 0.2110 [0.190, 0.232] | 0.1075 [0.092, 0.123] | 0.4473 [0.422, 0.472] | 0.2445 [0.222, 0.266] |
+
+CLI が出した区分（H-R1b．E_body_short と E_short の比較）：4 方式とも `supported`．E_body_short と Q の H-O1：4 方式とも `lower`．E_short と Q：term_sketch だけ `higher`，他は `lower`．
+E_body_short - E_short の top-1 の差：card_sim -0.0397，term_sketch -0.3247．
+
+**H-R1a（特徴語）**：上位 20 語のヘッダー依存の語の割合の平均 0.179（重み付き 0.295），上位 200 語は 0.029（重み付き 0.104）．閾値 0.25 に対する `h_r1a_header_dominated`：false．
+上位 20 語の内訳：ドメインの語 0.292，アドレスの名前の語 0.577．上位 200 語：0.201，0.480．持ち主の姓が上位 20 語に入る受信箱：132/150．
+
+**R2（hit@1 / hit@2．群 A 757 問，B 1,880 問，C 303 問）**
+
+| 方式 | A hit@2 | B hit@2 | C hit@2 | A+B hit@2 [95% 区間] | A+B の方が見つけやすい |
+|---|---|---|---|---|---|
+| flood_score | 0.933 | 0.789 | 0.574 [0.515, 0.630] | 0.830 [0.816, 0.844] | True |
+| multi_centroid | 0.647 | 0.368 | 0.370 [0.317, 0.426] | 0.448 [0.430, 0.468] | True |
+| centroid_probe（K = 75） | 0.939 | 0.722 | 0.561 [0.502, 0.617] | 0.784 [0.769, 0.799] | True |
+| term_sketch（参考） | 0.956 | 0.152 | 0.142 [0.102, 0.182] | 0.383 [0.364, 0.401] | True |
+
+hit@1 は A / B / C：flood_score 0.880 / 0.697 / 0.488，multi_centroid 0.499 / 0.299 / 0.281，centroid_probe 0.890 / 0.637 / 0.498，term_sketch 0.843 / 0.101 / 0.102．
+B で一致した語の上位：enron(155)，energy(71)，gas(49)，john(40)，williams(38)，new(37)，mark(36)，houston(34)，power(33)，news(32)，january(31)，scott(27)，david(26)，michael(25)．（enron・energy・gas・new・houston・power・news・january・center・market・live・report・day・june は人名でない語の一致）
+
 ## Iteration 1: 公開情報で候補を絞ってから probe する二段ルーティング
 
 ### 調査・計画（2026-10-14．research-cycle の phase 1）
