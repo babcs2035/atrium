@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[01:10:52] run 20261014_iter4_cp30_p30_r3 (kind=e1_routing dataset=enronqa routing=centroid_probe answer_mode=retrieval_only)
+[01:13:23] results: results/20261014_iter4_cp30_p30_r3 (exit 2)
+[start] ERROR task failed

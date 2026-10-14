@@ -17,6 +17,34 @@
 
 ---
 
+## B19 [auto-decided 2026-10-15] Iteration 4（centroid_probe の実機化）は棄却．Iteration 5 は負荷の律速が質問者の HTTP クライアントにあるかの切り分け
+
+- 状況: Iteration 4 の判定は棄却（parallel 30 で K = 75 の処理量 1.974〜2.113 問/秒は flood_score（T4）の 2.440〜2.585 より下，e2e p95 22.8〜27.5 秒は 18.9〜20.6 秒より上．journal の「Iteration 4 実行済み」）．
+  段ごとの時間から，ノードの計算は probe の時間の 0.1% 未満で，parallel 30 の待ちは質問者の側（1 秒あたりに扱える HTTP 要求の数が flood_score と K = 75 でほぼ同じ約 79〜80 要求/秒）にあると読めた．parallel 16 以上で接続の作り直し（1 実行で 1,000〜3,000 の新しい接続）と接続のエラーの再試行（100〜280 回）が起きている．
+  事前登録の「次の候補」は，棄却なら「デバイスを単位に上位を選ぶ方式」としていた．config.yml の levers は全て試し終えている．
+- 自動選択: **Iteration 5 の単一レバーは「質問者の HTTP の接続の持ち方」**とし，config.yml の levers 末尾に `requester.http_pool: [per_node]`（仮称）を追記した．
+  今は全ノードで 1 つの `httpx.AsyncClient`（`max_connections` = 512，`src/atrium/experiment.py`）を共有している．これを，律速の候補（接続の池の管理・池の上限による接続の作り直し）を外す形（例：ノードごとの `AsyncClient`，または池の上限を同時の要求の数より大きくする）に変え，
+  flood_score・centroid_probe（K = 75）・multi_centroid を T4 と同じ 300 問・検索だけで parallel 1・4・16・30（各 3 回）測り直す．質問者の CPU 使用率（または py-spy のプロファイル），`retrying` の数，ノードの access log の接続の数も記録する．
+  具体的な形（ノードごとの client か池の上限か，parallel の点，回数）と判定の規則は rc-researcher が事前登録で決める．既存の方式の選択の挙動は変えない．
+- iteration_name: 「質問者の HTTP 接続の持ち方を変えた負荷の律速の切り分け」．
+- 根拠: (1) T4 と Iteration 4 の「処理量」は，単一の質問者プロセスの HTTP クライアントの能力を測っている可能性が高く，その場合，デバイスを単位に選ぶ方式などのどの方式の比較も，同じ律速の下での「要求の数」の比較にしかならない．律速を先に確かめる方が，以降の負荷の比較の意味を決める．
+  (2) d0006 §6.3 の「全員に聞く方式の代償は…処理量にも現れる」という T4 の主張の解釈がこの結果で変わる（専門家の負荷か，質問者の負荷か）．
+  (3) コードの変更は質問者の HTTP クライアントの作り方だけで小さく，データ準備・ラベル・シャードの作り直しは要らない．フルスペックの実機実験（運用ルール 8）で 1 実行約 5 分．
+- 要レビュー: (a) この順序（律速の切り分けを，デバイスを単位に選ぶ方式より先にする）でよいか．(b) 接続の持ち方を変えると T4 の値と直接比べられなくなるので，基準の方式（flood_score・multi_centroid）も同じイテレーションで測り直す（実行の数が増える）．
+  (c) 律速が質問者の側と確かめられた場合，負荷の主張は「質問者 1 台が扱う要求の数」として書き直すか，複数の質問者（プロセス・デバイス）から流す構成を別に作るか．(d) 律速が質問者の側でなければ（処理量が変わらなければ），次はデバイスを単位に上位を選ぶ方式に進む．
+
+## B18 [needs-human 2026-10-14] Iteration 4 の実験が docker の権限不足で止まっている（Slack で @mention 済み）
+
+- 状況: 実装は `adbf605` で commit・push 済み（pytest 237 件・ruff・`mypy src` 通過）．`docker info` が `permission denied ... /var/run/docker.sock` で失敗した（B13・B16 と同じ原因で 3 回目）．実験は 1 回も流していない．
+- 選択肢:
+  - A1: 人間が docker 権限のある端末で，作業ツリーに未コミットの変更がある状態のまま `bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'` を 1 回実行し，Slack のスレッドに「1」と返信する．その後の各回の deploy は `sync_to_control && remote deploy` だけにし，最初にイメージの印が `<HEAD>-dirty` と一致することを確かめる．運用ルール 7（毎回 build・push）からは外れるが，`start.sh` の照合は残る．(Recommended)
+  - A2: 人間が docker 権限のある端末から，連続実行のスクリプト `results/20261014_iter4_load_summary/iter4_chain.sh` そのものを流す（約 3 時間）．サイクルは結果の分析から再開する．
+  - A3: 恒久対応（ktakahashi を docker グループに追加する，または制御点の denjo で build する）．権限設定の変更は人間の判断が要る．3 回目なので検討を求める．
+- 要レビュー: どれを選んでも事前登録（journal の Iteration 4）は変えない．連続実行の途中で deploy が失敗した回は飛ばし，同じ run_id で流し直す（deploy の失敗は失敗率に数えない）．連続実行の間は commit しない（HEAD が変わると start.sh が止まる）．
+- 備考: rc-executor は docker の回避（グループ変更・sudo・別の build）を行っていない．
+- [human-decided 2026-10-14] 回答: Slack の返信「3 が完了済みである」（A3．恒久対応を人間が済ませたと解釈）．
+  したこと: `status` を `running` に戻し，rc-executor へ再委譲する．rc-executor は最初に `docker info` が通ること（新しいグループは新規ログインのセッションにしか効かない場合がある）を確かめ，通らなければ回避せず再び停止する．通れば事前登録どおり通常の `mise run deploy` を含む連続実行に進む．
+
 ## B17 [auto-decided 2026-10-14] Iteration 3（公開情報の本文だけからの作り直し）は棄却．Iteration 4 は centroid_probe の実機化（1 段目はヘッダー込みの既存の公開情報）
 
 - 状況: Iteration 3 の判定は棄却（multi_centroid の hit@2 差 −0.093 [−0.110, −0.076] は非劣性の幅 −0.03 を外れ，E_body_short の持ち主 top-1 の差 +0.012 [−0.003, +0.027] は「当てにくくなる」を満たさない．journal の「Iteration 3 実行済み」）．

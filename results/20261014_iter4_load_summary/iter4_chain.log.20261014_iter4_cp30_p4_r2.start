@@ -1,0 +1,3 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[00:21:42] run 20261014_iter4_cp30_p4_r2 (kind=e1_routing dataset=enronqa routing=centroid_probe answer_mode=retrieval_only)
+[00:24:12] results: results/20261014_iter4_cp30_p4_r2 (exit 0)

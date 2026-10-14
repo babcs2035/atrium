@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 3,
-  "iteration_name": "ヘッダーを除いた本文から公開情報を作り直した RQ-A の測り直し",
+  "iteration": 4,
+  "iteration_name": "centroid_probe（二段ルーティング）の実機での待ち時間と処理量の測定",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "advert_eval.input: body_only（atrium body-advert-eval．公開情報をヘッダーを除いた本文から作り直す）",
-  "experiment_dir": "results/20261014_iter3_body_advert_eval",
-  "experiment_deadline": 1791987708,
-  "updated_at": 1791983380,
-  "last_slack_ts": "1791978732.645629",
-  "iteration_thread_ts": "1791980329.363289",
+  "current_lever": "experiment.routing: centroid_probe（実機の 2 段目．K = 75 を主，K = 30 を追加．routing.probe_k.enronqa）",
+  "experiment_dir": "results/20261014_iter4_load_summary",
+  "experiment_deadline": 1792006790,
+  "updated_at": 1791984086,
+  "last_slack_ts": "1791983686.446409",
+  "iteration_thread_ts": "1791984128.051809",
   "notion_toggle_created": true,
-  "last_commit": "6ead387"
+  "last_commit": "9ac114e"
 }

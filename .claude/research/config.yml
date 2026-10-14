@@ -109,6 +109,11 @@ levers:
             T4 と同じ条件（EnronQA 300 問，retrieval_only，parallel 1・4・8・16・30 × 3 回）で e2e の待ち時間・処理量を flood_score・multi_centroid（T4）と比べる．
             1 段目はシャードにある既存のヘッダー込みの multi_centroid（C = 32）．1 問あたりに届くデバイスの数と受信箱の数を記録し，上位 K の再現率と K ごとのデバイスの数の分布をオフラインで出す．
             既存の routing の値の挙動は変えない．フルスペックの実機実験（運用ルール 8）"}
+  - {name: requester.http_pool, values: [per_node],
+     note: "Iteration 4 の評価で追加（backlog B19 [auto-decided]）．仮称．Iteration 4 で，parallel 30 の待ちはノードの計算（probe の時間の 0.1% 未満）ではなく質問者の側の HTTP の扱いにあると読めた．
+            全ノードで共有する 1 つの httpx.AsyncClient（max_connections = 512．src/atrium/experiment.py）を，律速の候補（接続の池の管理・池の上限による接続の作り直し）を外す形
+            （ノードごとの AsyncClient，または池の上限を同時の要求の数より大きくする．形は rc-researcher が事前登録で決める）に変え，flood_score・centroid_probe（K = 75）・multi_centroid を
+            T4 と同じ 300 問・検索だけで測り直す．質問者の CPU 使用率，requester.log の retrying の数，ノードの access log の接続の数も記録する．既存の方式の選択の挙動は変えない"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
