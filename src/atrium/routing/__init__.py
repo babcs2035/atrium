@@ -10,9 +10,11 @@ from __future__ import annotations
 import json
 import random
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Protocol
+
+import numpy as np
 
 from atrium.arrays import F32Array
 from atrium.config import AtriumConfig
@@ -47,6 +49,15 @@ class SourceProfile:
     # 事前に公開する情報（EnronQA は 1 データ源 1 シャードなので，そのシャードの advert．
     # MedRAG の card_sim は，受け取った側が with_card_embeddings で付ける）
     advert: Advert | None = None
+    # advert の k-means の中心を (C, 次元) の fp32 の行列にしたもの（advert が無ければ None）．
+    # multi_centroid の採点が問ごと・データ源ごとに JSON のリストから変換すると，150 受信箱 × 32 × 768 で
+    # 1 問あたり約 0.1 秒かかり，質問者の処理量を決めていた（Iteration 5）．読み込み時に 1 回だけ変換する．
+    advert_centroids: F32Array | None = field(init=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        """advert の中心の行列を前計算する（frozen なので object.__setattr__ で入れる）．"""
+        matrix = None if self.advert is None else np.asarray(self.advert.centroids, np.float32)
+        object.__setattr__(self, "advert_centroids", matrix)
 
 
 class Router(Protocol):

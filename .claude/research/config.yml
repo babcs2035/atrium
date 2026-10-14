@@ -119,7 +119,8 @@ levers:
      note: "Iteration 5 の評価で追加（backlog B21 [auto-decided]）．仮称．Iteration 5 は採用（per_node で flood_score の parallel 30 が 5.09 倍）．per_node の下では multi_centroid・centroid_probe の処理量は
             1 段目の採点（route_s 約 0.111 秒）で決まっており，その主因は MultiCentroidRouter.score が問ごと・受信箱ごとに重心のリストを np.asarray で変換していることと読める（操作端末で 0.105 秒 → 前計算で 0.001 秒）．
             重心を公開情報の読み込み時に numpy の行列として前計算し，選択は変えずに（selected_sources が全問一致），experiment.http_pool: per_node を明示して multi_centroid・centroid_probe（K = 75，K = 30 は記録）を
-            300 問・検索だけ・parallel 1/4/16/30 × 3 回で Iteration 5 の per_node の値と比べる．設定キーにするかコードの置き換えにするかは rc-researcher が事前登録で決める．
+            300 問・検索だけ・parallel 1/4/16/30 × 3 回で Iteration 5 の per_node の値と比べる．Iteration 6 の rc-researcher が確定（backlog B22）：設定キーではなくコードの置き換え
+            （SourceProfile.advert_centroids に読み込み時に前計算し，MultiCentroidRouter.score がそれを使う）．config.yaml は変えない．事前登録は journal の Iteration 6．
             次の候補はデバイスを単位に上位を選ぶ方式，その後に複数の質問者のプロセスの構成"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）

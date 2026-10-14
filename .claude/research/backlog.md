@@ -17,6 +17,16 @@
 
 ---
 
+## B22 [auto-decided 2026-10-15] Iteration 6 のレバーの形：設定キーにせず，SourceProfile での重心の前計算へコードを置き換える
+
+- 状況: B21 で，レバー `requester.advert_scoring: [precomputed]`（仮称）を設定キーにするか（新旧を同じイメージで比べられる）コードの置き換えにするかを rc-researcher が事前登録で決めることになっていた．
+- 自動選択: **コードの置き換え**．`SourceProfile` に `advert_centroids`（advert の中心の (C, 次元) の fp32 の行列．`__post_init__` で 1 回だけ作る）を足し，`MultiCentroidRouter.score` はそれを使う．config.yaml・設定の形式は変えない．
+  比べる相手は Iteration 5 の per_node の値（`cd42b41`）とし，環境の揺れは採点を持たない flood_score × per_node の p30 を前後に 1 回ずつ流して確かめる．揺れの規則を外れたら採用の倍率を引き上げる（journal の Iteration 6 の事前登録）．計 38 実行．config.yml のレバー名は仮称のまま残し，note に「設定キーではない」と書いた．
+- 根拠: (1) 前計算は選択の値をビット単位で変えず（同じ fp32 の値を同じ行列積に渡す），遅い方の形を残す理由が実験の比較以外に無い．比較のためだけに本番のコードに分岐と設定キーを残すのは，設定の形式を不要に広げる．
+  (2) 期待する差（route_s 0.111 → 0.001 秒，処理量の 1.5 倍以上）は，Iteration 5 の per_node の p30 の 3 回の揺れ（±1.5% 以内）より 2 桁大きく，同じイメージで新旧を並べなくても前後の揺れの確認で区別できる．
+  (3) route_s は各問で直接記録されており，機構（H-S1：route_s の p50 が 0.010 秒未満）は環境の揺れに左右されにくい．
+- 要レビュー: (a) 同じイメージでの新旧の比較を省いたこと（揺れの確認で代える）でよいか．(b) `CardSimRouter` の `card_embedding` の毎回の変換（1 本 768 要素．150 受信箱で数 ms の見込み）は単一レバーの外として残した．card_sim を実機の負荷で測るときに同じ前計算を足すかは別に決める．
+
 ## B21 [auto-decided 2026-10-15] Iteration 5（質問者の接続の池）は採用．Iteration 6 は 1 段目の採点の重心の前計算による二段の方式の処理量の測り直し
 
 - 状況: Iteration 5 の判定は採用（parallel 30 の flood_score の処理量は per_node 12.53〜12.78 問/秒で T4 の 2.44〜2.59 の 5.09 倍，e2e p95 3.39〜3.63 秒．H-H3 は (i) 池の管理の費用．journal の「Iteration 5 実行済み」）．

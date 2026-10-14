@@ -148,11 +148,11 @@ class MultiCentroidRouter(_AdvertRouter):
     name = "multi_centroid"
 
     def score(self, query: RoutingQuery, source: SourceProfile) -> float:
-        """中心との内積の最大．"""
-        advert = _require_advert(source)
-        return multi_centroid_score(
-            _embedding_of(query, source), np.asarray(advert.centroids, np.float32)
-        )
+        """中心との内積の最大（中心は SourceProfile が読み込み時に前計算した行列を使う）．"""
+        _require_advert(source)
+        if source.advert_centroids is None:
+            raise ValueError(f"source {source.source!r} has no precomputed advert centroids")
+        return multi_centroid_score(_embedding_of(query, source), source.advert_centroids)
 
     def advert_bytes(self, sources: Sequence[SourceProfile]) -> int:
         """中心の JSON の大きさ．"""
