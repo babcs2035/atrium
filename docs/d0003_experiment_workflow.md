@@ -189,6 +189,7 @@ bash scripts/tasks/judge.sh down
 bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'
 # 2. 制御点のコンテナで評価を 1 回流す（出力は制御点の results/<out_name>/）
 bash scripts/tasks/remote.sh advert_eval   <out_name>                              # RQ-A（EQ2）
+bash scripts/tasks/remote.sh cascade_eval  <out_name> <reference_run>              # 二段ルーティング centroid_probe（Iteration 1）
 bash scripts/tasks/remote.sh churn_eval    <out_name> <placement_run> <reference_run>   # 参加・離脱（EQ7a）
 bash scripts/tasks/remote.sh owner_eval    <out_name> <reference_run>              # 持ち主推定の入力を揃える（p0005 T2）
 bash scripts/tasks/remote.sh newcomer_eval <out_name> <reference_run> [n_newcomers]  # 150 人での新参者（p0005 T3）

@@ -26,7 +26,7 @@ Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLA
 |---|---|---|
 | `kind` | `e0_measure` / `e1_routing` | E0（実機の実測）か，連合 RAG の実行か |
 | `dataset` | `medrag` / `feb4rag` / `enronqa` | MIRAGE ＋ MedRAG コーパス（4 データ源）か，FeB4RAG（13 エンジン）か，EnronQA（150 人の受信箱．p0004） |
-| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5） |
+| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid`，Iteration 1 で `centroid_probe` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5） |
 | `answer_mode` | `retrieval_only` / `snippet_return` / `local_answer` / `snippet_return_small` / `delegate_gpu` | LLM を呼ばず検索まで／断片返却型／宿る型／断片返却型で質問者が専門家と同じ小型のモデルを使う（B3．p0004）／GPU の無い専門家が対応づけた GPU の専門家に断片を渡して答えさせる（B4．p0004） |
 | `question_limit` | 整数または `null` | 各問題集の先頭からこの数だけを使う（動作確認用） |
 | `parallel` | 整数 | 質問者が同時に処理する質問数 |
@@ -60,6 +60,7 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | `random_k.medrag` / `random_k.feb4rag` / `random_k.enronqa` | 3 / 9 / 2 | `random` で選ぶデータ源の数（medrag・feb4rag は RAGRoute と同じ．enronqa は `top_m.enronqa` と同じにして比べる） |
 | `ragroute_threshold` | 0.5 | `ragroute` の判定閾値（RAGRoute の推論コードと同じ）．検証データで Youden 指数が最大になる閾値は `router/train_report.json` に記録される |
 | `top_m.enronqa` | 2（dev で選んだ値） | 公開情報を使う方式と `flood_score` が問い合わせるデータ源の数 m（p0004 の RQ-A） |
+| `probe_k.enronqa` | 評価前は 75（仮置き） | `centroid_probe` が probe を送る候補の数 K（`multi_centroid` の上位 K 個．`top_m.enronqa` 以上）．`atrium cascade-eval` の dev で，hit@2 が `flood_score` の 0.95 倍以上になる最小の K（候補 {4, 8, 15, 30, 50, 75}．届かなければ 75）を選ぶ．実機の質問者の 2 段目（候補だけへの probe）は未実装で，評価はオフラインだけ |
 | `top_m.medrag` | 3 | MedRAG で `card_sim`（E2 の `desc_sim`）が問い合わせるデータ源の数（p0003 S5）．4 源の `train`・`val` で F1 が最大の k（候補 {1, 2, 3}）．MedRAG のデータ源は広告を持たないので，質問者が起動時に自己紹介文を MedCPT の文書側で埋め込んで付ける |
 
 ## llm

@@ -11,6 +11,7 @@
 | term_sketch | 多く使う語と，その語を含むメールの割合 | クエリの語と重なる語の割合の和 |
 | centroid_sim | 埋め込みの平均（重心） | クエリ埋め込みとの内積 |
 | multi_centroid | k-means の C 個の中心 | 中心との内積の最大 |
+| centroid_probe | multi_centroid と同じ | 1 段目に multi_centroid の上位 K 個を選び，その K 個にだけ flood_score と同じ probe を送って上位 m 個を選ぶ |
 """
 
 from __future__ import annotations
@@ -184,6 +185,41 @@ class FloodScoreRouter:
     def advert_bytes(self, sources: Sequence[SourceProfile]) -> int:
         """事前に公開する情報は無い．"""
         return 0
+
+
+class CentroidProbeRouter:
+    """multi_centroid の上位 K 個にだけ probe を送り，その最高スコアの上位 m 個に本照会する二段の方式．
+
+    1 段目（公開情報だけ．クエリは送らない）で候補 K 個を選び，2 段目で候補にだけ flood_score と同じ probe を送る．
+    probe_scores には候補の分だけが入っていればよい（候補以外の値は無視する）．
+    実機の質問者の 2 段目（候補だけへの probe）は未実装で，評価は atrium cascade-eval（オフライン）で行う．
+    """
+
+    name = "centroid_probe"
+
+    def __init__(self, m: int, probe_k: int) -> None:
+        """本照会するデータ源の数 m と，probe を送る候補の数 K を持つ．"""
+        if probe_k < m:
+            raise ValueError(f"probe_k ({probe_k}) must be at least m ({m})")
+        self.m = m
+        self.probe_k = probe_k
+        self._first_stage = MultiCentroidRouter(probe_k)
+
+    def candidates(self, query: RoutingQuery, sources: Sequence[SourceProfile]) -> list[str]:
+        """1 段目：multi_centroid の上位 K 個（probe を送る先）を返す．"""
+        return self._first_stage.select(query, sources)
+
+    def select(self, query: RoutingQuery, sources: Sequence[SourceProfile]) -> list[str]:
+        """候補のうち，probe の最高スコアの上位 m 個を返す．"""
+        if query.probe_scores is None:
+            raise ValueError("centroid_probe requires probe scores of the candidates")
+        candidates = self.candidates(query, sources)
+        scores = [query.probe_scores.get(c, float("-inf")) for c in candidates]
+        return top_m(candidates, scores, self.m)
+
+    def advert_bytes(self, sources: Sequence[SourceProfile]) -> int:
+        """公開情報は multi_centroid と同じ．"""
+        return self._first_stage.advert_bytes(sources)
 
 
 class OracleRouter:

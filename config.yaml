@@ -50,6 +50,11 @@ routing:
   top_m:
     enronqa: 2
     medrag: 3
+  # centroid_probe が probe を送る候補の数 K（multi_centroid の上位 K 個）．atrium cascade-eval の dev で
+  # 事前登録の規則（dev の hit@2 が flood_score の 0.95 倍以上になる最小の K．届かなければ 75）で選ぶ．
+  # 評価の前の値は届かない場合の 75 を仮置きしたもので，評価の入力にはならない
+  probe_k:
+    enronqa: 75
 
 llm:
   # 各ノードで使う Ollama のバージョン（イメージは制御点の registry の mirror/ から取得する）

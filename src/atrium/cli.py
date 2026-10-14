@@ -11,6 +11,7 @@
     fetch-models DATASET      データセットで使うモデルを Hugging Face のキャッシュへ取得する（コンテナ内）
     analyze / metrics / compare  結果の分析（操作端末）
     advert-eval               RQ-A のオフラインの評価（EnronQA．制御点のコンテナ）
+    cascade-eval              二段ルーティング centroid_probe のオフラインの評価（EnronQA．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
@@ -231,6 +232,17 @@ def cmd_advert_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     metrics = advert_eval.evaluate(cfg, dataset_paths(Path(args.data_dir), "enronqa"))
     advert_eval.write_outputs(Path(args.out_dir), metrics)
     print(advert_eval.render_report(metrics))
+    return 0
+
+
+def cmd_cascade_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """二段ルーティング centroid_probe のオフラインの評価を行い，metrics.json と analysis_report.md を書く．"""
+    from atrium import cascade_eval
+
+    reference = json.loads(Path(args.reference_metrics).read_text(encoding="utf-8"))
+    metrics = cascade_eval.evaluate(cfg, dataset_paths(Path(args.data_dir), "enronqa"), reference)
+    cascade_eval.write_outputs(Path(args.out_dir), metrics)
+    print(cascade_eval.render_report(metrics))
     return 0
 
 
@@ -534,6 +546,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--data-dir", required=True)
     p.add_argument("--out-dir", required=True)
     p.set_defaults(func=cmd_advert_eval)
+
+    p = sub.add_parser(
+        "cascade-eval", help="二段ルーティング centroid_probe のオフラインの評価（EnronQA）"
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--reference-metrics", required=True, help="退行の確認の基準（EQ2 の metrics.json）"
+    )
+    p.set_defaults(func=cmd_cascade_eval)
 
     p = sub.add_parser("owner-eval", help="持ち主推定の入力を揃えた評価（EnronQA．p0005 T2）")
     p.add_argument("--data-dir", required=True)

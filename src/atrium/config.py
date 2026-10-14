@@ -25,6 +25,7 @@ RoutingName = Literal[
     "term_sketch",
     "centroid_sim",
     "multi_centroid",
+    "centroid_probe",
 ]
 # snippet_return_small（B3）と delegate_gpu（B4）は p0004 で追加（RQ-B）
 AnswerMode = Literal[
@@ -109,6 +110,8 @@ class RoutingConfig(_Strict):
     ragroute_threshold: float = 0.5
     # 公開情報を使う方式と flood_score が問い合わせるデータ源の数（p0004．dev で選ぶ）
     top_m: dict[DatasetName, int] = Field(default_factory=dict)
+    # centroid_probe が probe を送る候補の数 K（multi_centroid の上位 K 個．dev で事前登録の規則で選ぶ）
+    probe_k: dict[DatasetName, int] = Field(default_factory=dict)
 
 
 class LlmConfig(_Strict):

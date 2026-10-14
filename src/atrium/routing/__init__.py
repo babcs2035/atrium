@@ -177,6 +177,12 @@ def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = 
         "centroid_sim": advert.CentroidSimRouter,
         "multi_centroid": advert.MultiCentroidRouter,
     }
+    if name == "centroid_probe":
+        if dataset not in cfg.routing.top_m or dataset not in cfg.routing.probe_k:
+            raise ValueError(
+                f"routing={name} requires routing.top_m.{dataset} and probe_k.{dataset}"
+            )
+        return advert.CentroidProbeRouter(cfg.routing.top_m[dataset], cfg.routing.probe_k[dataset])
     if name in by_name:
         if dataset not in cfg.routing.top_m:
             raise ValueError(f"routing={name} requires routing.top_m.{dataset}")
