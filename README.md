@@ -56,7 +56,7 @@ mise run check         # テスト・lint・型検査
 - データ準備の各段は冪等であり，`mise run setup` を再び実行しても，終わっている段は飛ばされる．
 - 2 つの実行の正答率は `uv run atrium compare results/<A> results/<B>`（McNemar の正確検定）で比べる．
 - EnronQA の自由記述の回答は，実験の後に判定モデルで採点する（[docs/d0003_experiment_workflow.md](docs/d0003_experiment_workflow.md) §5）．
-- 実機を使わない評価（`atrium advert-eval`・`churn-eval`・`loso`）と，その集計の使い方は [docs/d0004_metrics.md](docs/d0004_metrics.md) にある．
+- 実機を使わない評価（`atrium advert-eval`・`owner-eval`・`newcomer-eval`・`churn-eval`・`loso`）の流し方は [docs/d0003_experiment_workflow.md](docs/d0003_experiment_workflow.md) §6，指標は [docs/d0004_metrics.md](docs/d0004_metrics.md) にある．
 
 手順の詳細・所要時間・失敗時の確認先は [docs/d0003_experiment_workflow.md](docs/d0003_experiment_workflow.md) にある．
 
@@ -78,7 +78,7 @@ mise run check         # テスト・lint・型検査
 | `docker/` | 専門家・質問者の compose のひな形（deploy が `config.yaml` の値で埋める） |
 | `Dockerfile` | `node`（専門家）と `full`（質問者・データ準備）の 2 種類のイメージ |
 | `tests/` | テスト（`mise run check`） |
-| `plans/` | 研究計画書（p0001）・実装計画（p0002）・E1 の後の計画（p0003）・EnronQA による拡張（p0004） |
+| `plans/` | 研究計画書（p0001）・実装計画（p0002）・E1 の後の計画（p0003）・EnronQA による拡張（p0004）・報告に向けた補強（p0005） |
 | `docs/` | 技術仕様と研究の概要 |
 | `results/` | 実験の結果（実行ごとのディレクトリ）．索引は [results/README.md](results/README.md)．専門家・質問者のログは Git で追跡しない |
 | `artifacts/` | 操作端末の作業用の生成物（Git で追跡しない）．`cache/` は外部から取得したモデルの写しで，setup の再実行で取り直さないために残す |

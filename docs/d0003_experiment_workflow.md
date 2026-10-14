@@ -178,3 +178,35 @@ bash scripts/tasks/judge.sh down
 - `judgements.jsonl` には質問 ID・正誤・回答と正解のメールの最長共通部分列の比率だけを書く．メールの本文と判定モデルの出力は
   制御点の `<data_dir>/enronqa/judge_raw/` にだけ残す．
 - `judge.sh up` は GPU の PC の専門家のコンテナを止める（GPU を判定モデルに使うため）．実験の後に使う．
+
+## 6. 実機を使わない評価と連続実行
+
+実機のノードを使わず，制御点のコンテナでスコアから評価するもの（メールの本文と埋め込みは制御点にだけあるため）は，次の手順で流す．
+各評価の入力・出力・指標は [d0004](d0004_metrics.md) にある．
+
+```bash
+# 1. 今の作業ツリーでイメージを build して registry へ push する（deploy の前半だけ）
+bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'
+# 2. 制御点のコンテナで評価を 1 回流す（出力は制御点の results/<out_name>/）
+bash scripts/tasks/remote.sh advert_eval   <out_name>                              # RQ-A（EQ2）
+bash scripts/tasks/remote.sh churn_eval    <out_name> <placement_run> <reference_run>   # 参加・離脱（EQ7a）
+bash scripts/tasks/remote.sh owner_eval    <out_name> <reference_run>              # 持ち主推定の入力を揃える（p0005 T2）
+bash scripts/tasks/remote.sh newcomer_eval <out_name> <reference_run> [n_newcomers]  # 150 人での新参者（p0005 T3）
+# 3. 結果を操作端末へ取得する
+rsync -az wafl-ctrl5:<remote_dir>/results/<out_name>/ results/<out_name>/
+```
+
+- `<reference_run>` は退行の確認の基準にする EQ2 の実行（`20261009_eq2_advert_eval`）．評価は実験の前に条件と基準を journal に書いて push し，結果を見て変えずに 1 回だけ流す．
+- LOSO（`atrium loso`）と，EQ7b の集計（`atrium churn-live-report`）は操作端末で動く．
+- 評価を流している間はリポジトリを編集しない（publish が作業ツリーから build するため）．
+
+条件ごとに deploy し直す実験（EQ8〜EQ10・EQ7b・負荷試験）は，条件の一覧（`<run_id> key=value ...` の行）を読んで，各回の前に deploy → start → analyze を行う連続実行のスクリプトで流す．
+実際のスクリプトは `results/20261011_eq8_summary/eq8_chain.sh`（EQ8〜EQ10．採点を含む）と `results/20261014_t4_load_summary/t4_chain.sh`（負荷試験．失敗した問を流し直さず，失敗率が高い条件より上を飛ばす）にある．
+
+```bash
+(nohup setsid sg docker -c "bash <chain.sh> <log> <specs>" > <log>.nohup 2>&1 < /dev/null &)
+```
+
+- 連続実行の間は，commit しない（HEAD が進むと，deploy で作ったイメージと start の版が合わず止まる）．`config.yaml` は各回の後と終了時に元へ戻る．
+- 起動するプロセスが `docker` グループを持たないと docker のソケットに触れないので，`sg docker -c` で起動する．
+- 結果のある回は飛ばされるので，止まったら同じ条件の一覧で再実行すればよい．
