@@ -141,6 +141,23 @@ term_sketch の採点は，語の集合を走査して重みを足す順序が P
 | `r2.groups.<方式>` | 質問を A（持ち主の姓を含む）・B（アドレスの名前の語を含む）・C（どちらでもない）に分けた群ごとの `n`・`hit@1`・`hit@2` と区間（`A+B` も）．`r2.named_easier` は `A+B` の `hit@2` の区間の下端が `C` の上端より上か |
 | `r2.matched_words_in_b` | 群 B で一致した語の上位 30 個（人名でない語の誤検出を確かめる） |
 
+### 公開情報をヘッダーを除いた本文から作り直した測り直し（`atrium body-advert-eval`．Iteration 3）
+
+4 方式（card_sim・term_sketch・centroid_sim・multi_centroid）の公開情報を，ヘッダー込み（`full`．既存の chunk と埋め込み）と，区切り線（`=====…`）より後の本文だけ（`body_only`．`Subject:`・`Sender:`・`Recipients:` を含まない）の 2 通りで作り，同じ質問・同じメール・同じ採点で比べる．
+本文は全メールを文書側で埋め込み直し（fp16 に丸めてから float32 に戻す），データディレクトリには保存しない．card_sim は件名だけの公開情報なので `body_only` でも変わらず，対照になる．公開情報の大きさ（件名 40，T = 200，C = 32）・m・k-means の種は固定する．
+`results/<run_id>/metrics.json` に集計値だけを書く（本文・本文の埋め込みは書かない）．
+
+| キー | 内容 |
+|---|---|
+| `variants.{full,body_only}.methods.<方式>.hit.{all,A,non_A}` | test の `hit@1`・`hit@2` と区間．A は持ち主の姓を含む問．`centroid_probe` は本文だけの multi_centroid を 1 段目にした参考の二段（K = `routing.probe_k.enronqa`） |
+| `variants.<v>.owner.<方式>.{E,E_body_short,E_body,E_all}` | 所有者の `top1`・`top1_ci95`・`auc`．`E_all` は本文が空のメールも含む全体（退行の確認用） |
+| `diff_body_only_minus_full` | 同じ問・同じメールの組で対にした，`body_only` − `full` の差の `diff`・`ci95`（復元抽出 1,000 回，種は `experiment.seed`）・`verdict`（上端 < 0 で `lower`，下端 > 0 で `higher`，他は `unclear`） |
+| `curves_body_only` | term_sketch の T・multi_centroid の C を変えた H-A2 の曲線（公開情報の大きさ，`hit@1`，所有者 `top1`（E））と順位相関 |
+| `surname_in_public_info` | 持ち主の姓が term_sketch の上位 20 語・全 T 語・card_sim の説明文に入る受信箱の数 |
+| `n_no_separator`・`n_empty_body`・`n_emails` | 区切り線の無いメール（全体を本文とする）・本文が空のメール（本文だけの公開情報から除く）・全メールの通数 |
+| `regression` | `full` が EQ2・Iteration 2（`header-eval`）・Iteration 1（`cascade-eval`）の `metrics.json` と（許容 5e-4，term_sketch は 2e-3），card_sim の `body_only` が `full` と，本文の埋め込みの行数が既存の埋め込みと一致するか |
+| `judgement` | 事前登録の規則：H-B1（term_sketch）・H-B3・結論（multi_centroid．`adopt`・`partial`・`reject`） |
+
 ### 150 人での新参者の評価（`atrium newcomer-eval`．p0005 T3）
 
 `results/<run_id>/metrics.json` の `pooled.<方式>` に，新参者の問（正解の受信箱が新参者である test の質問）を合わせた `hit@1`・`hit@2` と，95% ブートストラップ信頼区間を書く．

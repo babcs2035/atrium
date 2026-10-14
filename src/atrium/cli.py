@@ -17,6 +17,7 @@
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
     owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
     header-eval               持ち主推定の入力からヘッダーを除いた測り直しと質問の人名の集計（EnronQA．Iteration 2．制御点のコンテナ）
+    body-advert-eval          公開情報をヘッダーを除いた本文から作り直した RQ-A の測り直し（EnronQA．Iteration 3．制御点のコンテナ）
     churn-live-report  EQ7b の実機の実行を集めて EQ7a と比べる（操作端末）
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
@@ -290,6 +291,26 @@ def cmd_header_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     metrics = header_eval.evaluate(cfg, dataset_paths(Path(args.data_dir), "enronqa"), references)
     header_eval.write_outputs(Path(args.out_dir), metrics)
     print(header_eval.render_report(metrics))
+    return 0
+
+
+def cmd_body_advert_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """公開情報をヘッダーを除いた本文から作り直した RQ-A の測り直し（Iteration 3）を行い，metrics.json と analysis_report.md を書く．"""
+    from atrium import body_advert_eval
+
+    references = {
+        key: json.loads(Path(path).read_text(encoding="utf-8"))
+        for key, path in (
+            ("eq2", args.reference_metrics),
+            ("header", args.header_metrics),
+            ("cascade", args.cascade_metrics),
+        )
+    }
+    metrics = body_advert_eval.evaluate(
+        cfg, dataset_paths(Path(args.data_dir), "enronqa"), references
+    )
+    body_advert_eval.write_outputs(Path(args.out_dir), metrics)
+    print(body_advert_eval.render_report(metrics))
     return 0
 
 
@@ -597,6 +618,23 @@ def build_parser() -> argparse.ArgumentParser:
         "--cascade-metrics", required=True, help="退行の確認の基準（cascade-eval の metrics.json）"
     )
     p.set_defaults(func=cmd_header_eval)
+
+    p = sub.add_parser(
+        "body-advert-eval",
+        help="公開情報をヘッダーを除いた本文から作り直した RQ-A の測り直し（EnronQA．Iteration 3）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--reference-metrics", required=True, help="退行の確認の基準（EQ2 の metrics.json）"
+    )
+    p.add_argument(
+        "--header-metrics", required=True, help="退行の確認の基準（header-eval の metrics.json）"
+    )
+    p.add_argument(
+        "--cascade-metrics", required=True, help="退行の確認の基準（cascade-eval の metrics.json）"
+    )
+    p.set_defaults(func=cmd_body_advert_eval)
 
     p = sub.add_parser("newcomer-eval", help="150 人での新参者の評価（EnronQA．p0005 T3）")
     p.add_argument("--data-dir", required=True)
