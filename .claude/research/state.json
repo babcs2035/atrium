@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 5,
-  "iteration_name": "質問者の HTTP 接続の持ち方を変えた負荷の律速の切り分け",
+  "iteration": 6,
+  "iteration_name": "1 段目の採点の重心の前計算による二段の方式の処理量の測り直し",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "experiment.http_pool: shared -> per_node (主) / shared_unlimited (副)",
-  "experiment_dir": "results/20261015_iter5_load_summary (run_id prefix 20261015_iter5_)",
-  "experiment_deadline": 1792017743,
-  "updated_at": 1792007004,
-  "last_slack_ts": "1791995552.090969",
-  "iteration_thread_ts": "1791995949.504629",
+  "current_lever": "1 段目の採点の重心: 問ごとに Advert.centroids のリストから変換 -> SourceProfile.advert_centroids に読み込み時に前計算（コードの置き換え．http_pool=per_node を明示）",
+  "experiment_dir": "results/20261015_iter6_load_summary (run_id prefix 20261015_iter6_)",
+  "experiment_deadline": 1792081630,
+  "updated_at": 1791984086,
+  "last_slack_ts": "1792007293.900799",
+  "iteration_thread_ts": "1792007781.007609",
   "notion_toggle_created": true,
-  "last_commit": "cd42b41"
+  "last_commit": "9e55253"
 }
