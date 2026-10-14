@@ -1,0 +1,5 @@
+# ts_diag.py の出力（制御点のコンテナ．PYTHONHASHSEED だけを変えた 4 回．term_sketch の Q・E の top-1 と，Q で正解が同点の問の数）
+0 Q top1 0.292177 E top1 0.425342 n_ties_Q 88
+1 Q top1 0.291837 E top1 0.427397 n_ties_Q 89
+2 Q top1 0.291497 E top1 0.423973 n_ties_Q 89
+3 Q top1 0.292177 E top1 0.425342 n_ties_Q 88
