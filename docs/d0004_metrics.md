@@ -38,7 +38,8 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | `error` | 失敗したときの例外（成功なら `null`） |
 | `docs_exposed_by_source` | 持ち主のデバイスの外に出た本文の数（データ源ごと．p0004）．断片返却型は受け取った断片，委託（`delegate_gpu`）は委託先へ渡した断片，宿る型は空 |
 | `query_recipients` | クエリ（質問文または埋め込み）を受け取ったデバイスの数（p0004）．`flood_score` の 1 段目は全ノードに届く |
-| `probe_recipients`，`probe_bytes` | `flood_score` の 1 段目で問い合わせたノードの数と，受け取ったスコアの大きさ |
+| `probe_recipients`，`probe_bytes` | probe（`flood_score` の 1 段目，`centroid_probe` の 2 段目）で問い合わせたノードの数と，受け取ったスコアの大きさ |
+| `probe_shards`，`probe_shards_per_device`，`probe_node_s_max` | probe したシャードの数（`flood_score` は全シャード，`centroid_probe` は K），デバイスごとのシャードの数の並び，ノード内の probe の時間（`ProbeResponse.duration_s`）の最大（`timings.probe_s` との差が待ち行列と通信の時間）．`centroid_probe` の `route_s` は 1 段目の採点と 2 段目の選択の合計で，probe の待ちは `probe_s` に入る |
 | `final_answer` | EnronQA の自由記述の回答（出力の最後の "Answer:" の行） |
 | `answer_overlap_lcs` | 回答文と正解のメールの最長共通部分列の比率（判定 `atrium judge` の後に付く．p0004 §6.3） |
 
@@ -157,6 +158,13 @@ term_sketch の採点は，語の集合を走査して重みを足す順序が P
 | `n_no_separator`・`n_empty_body`・`n_emails` | 区切り線の無いメール（全体を本文とする）・本文が空のメール（本文だけの公開情報から除く）・全メールの通数 |
 | `regression` | `full` が EQ2・Iteration 2（`header-eval`）・Iteration 1（`cascade-eval`）の `metrics.json` と（許容 5e-4，term_sketch は 2e-3），card_sim の `body_only` が `full` と，本文の埋め込みの行数が既存の埋め込みと一致するか |
 | `judgement` | 事前登録の規則：H-B1（term_sketch）・H-B3・結論（multi_centroid．`adopt`・`partial`・`reject`） |
+
+### centroid_probe の届くデバイスの数と再現率（`atrium probe-reach`．Iteration 4）
+
+制御点のコンテナで流す（`scripts/remote/probe_reach.sh`．`results/<run>/placement.json` の配置を使う）．実機のノードは使わない．
+実機の質問（questions.jsonl の受信箱ごとの先頭 2 問 = 300 問）と test の全問について，K ∈ {4, 8, 15, 30, 50, 75, 150} ごとに，
+1 問で probe が届くデバイスの数（平均・中央値・最小・最大・度数），デバイスあたりに probe するシャードの数，上位 K の再現率（正解の受信箱が 1 段目の上位 K に入る割合），2 段目まで通した hit@m を `metrics.json` に出す．
+`selected_sources` は，実機の質問の K = 30・75 での選ばれる受信箱（上位 m 個）で，実機の `selected_sources` との照合に使う．
 
 ### 150 人での新参者の評価（`atrium newcomer-eval`．p0005 T3）
 

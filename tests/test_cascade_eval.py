@@ -120,3 +120,38 @@ def test_router_requires_probe_scores_and_k_at_least_m() -> None:
         CentroidProbeRouter(m=1, probe_k=2).select(_query(None), SOURCES)
     with pytest.raises(ValueError, match="at least m"):
         CentroidProbeRouter(m=3, probe_k=2)
+
+
+def test_select_among_matches_select_without_rescoring_the_first_stage() -> None:
+    router = CentroidProbeRouter(m=1, probe_k=2)
+    probe = {"a": 0.1, "b": 0.5, "c": 0.9}
+    candidates = router.candidates(_query(None), SOURCES)
+    assert router.select_among(candidates, probe) == router.select(_query(probe), SOURCES)
+
+
+def test_selection_by_the_router_matches_the_offline_cascade_scores() -> None:
+    # 実機の選択（候補の top_m）が，オフラインの cascade_scores の上位 m 個と同じ受信箱になる
+    from atrium.probe_reach import selected_sources
+
+    names = ["a", "b", "c", "d"]
+    offline = selected_sources(cascade_scores(FIRST, SECOND, 2), names, 2)
+    sources = [
+        SourceProfile(
+            source=n,
+            kind="faiss",
+            description="",
+            encoder="enc",
+            centroid=np.zeros(2, np.float32),
+            n_docs=1,
+            shard_ids=(n,),
+            advert=Advert(
+                terms=[], term_weights=[], centroids=[[float(f), 0.0]], card_embedding=[0.0]
+            ),
+        )
+        for n, f in zip(names, FIRST[0], strict=True)
+    ]
+    router = CentroidProbeRouter(m=2, probe_k=2)
+    query = RoutingQuery("q", "", {"enc": np.asarray([1.0, 0.0], np.float32)})
+    candidates = router.candidates(query, sources)
+    probe = dict(zip(names, SECOND[0].tolist(), strict=True))
+    assert router.select_among(candidates, probe) == offline[0]

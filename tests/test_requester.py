@@ -457,3 +457,117 @@ async def test_stale_member_table_hides_new_nodes_and_keeps_offline_ones(
     assert record["contacted_nodes"] == 1
     assert record["failed_nodes"] == 1
     assert record["docs_exposed_by_source"] == {}
+
+
+def _with_adverts(requester: Requester, centroids: dict[str, list[float]]) -> None:
+    """データ源ごとに 1 個の中心だけを持つ公開情報を付ける（centroid_probe の 1 段目の入力）．"""
+    from dataclasses import replace
+
+    from atrium.manifest import Advert
+
+    requester.sources = [
+        replace(
+            s,
+            advert=Advert(
+                terms=[], term_weights=[], centroids=[centroids[s.source]], card_embedding=[0.0]
+            ),
+        )
+        for s in requester.sources
+    ]
+
+
+def _spy_probes(
+    requester: Requester, monkeypatch: pytest.MonkeyPatch
+) -> list[tuple[str, list[str]]]:
+    """/v1/probe に送られた（URL，shard_ids）を記録する．"""
+    calls: list[tuple[str, list[str]]] = []
+    original = requester.client.post
+
+    async def spy(url: str, **kwargs: Any) -> httpx.Response:
+        if url.endswith("/v1/probe"):
+            calls.append((url, kwargs["json"]["shard_ids"]))
+        return await original(url, **kwargs)
+
+    monkeypatch.setattr(requester.client, "post", spy)
+    return calls
+
+
+async def test_flood_score_still_probes_every_node_with_all_its_shards(
+    cfg: AtriumConfig,
+    tmp_path: Path,
+    corpus: dict[str, F32Array],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from atrium.routing.advert import FloodScoreRouter
+
+    question = _questions(1)[0]
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"),
+        tmp_path,
+        FloodScoreRouter(1),
+        {question.qid: np.ones(DIM, np.float32)},
+    )
+    calls = _spy_probes(requester, monkeypatch)
+    record = await requester.process(question)
+    assert sorted(calls) == [
+        ("http://node-a/v1/probe", ["pubmed-00"]),
+        ("http://node-b/v1/probe", ["pubmed-01", "textbooks-00"]),
+    ]
+    assert record["probe_shards"] == 3
+    assert sorted(record["probe_shards_per_device"]) == [1, 2]
+    assert record["probe_node_s_max"] >= 0.0
+
+
+async def test_centroid_probe_probes_only_the_nodes_holding_the_candidates(
+    cfg: AtriumConfig,
+    tmp_path: Path,
+    corpus: dict[str, F32Array],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from atrium.routing.advert import CentroidProbeRouter
+
+    question = _questions(1)[0]
+    vec = corpus["t0"][0].astype(np.float16).astype(np.float32)
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"),
+        tmp_path,
+        CentroidProbeRouter(m=1, probe_k=1),
+        {question.qid: vec},
+    )
+    # 1 段目は textbooks だけを候補にする（クエリと同じ向きの中心を持たせる）
+    _with_adverts(requester, {"pubmed": (-vec).tolist(), "textbooks": vec.tolist()})
+    calls = _spy_probes(requester, monkeypatch)
+    record = await requester.process(question)
+    assert record["error"] is None
+    # node-a は候補のシャードを持たないので probe を受けず，node-b には候補のシャードだけを送る
+    assert calls == [("http://node-b/v1/probe", ["textbooks-00"])]
+    assert record["probe_recipients"] == 1
+    assert record["probe_shards"] == 1
+    assert record["probe_shards_per_device"] == [1]
+    assert record["selected_sources"] == ["textbooks"]
+    assert record["query_recipients"] >= 1
+
+
+async def test_centroid_probe_scores_the_first_stage_once_per_question(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    from atrium.routing.advert import CentroidProbeRouter
+
+    class CountingRouter(CentroidProbeRouter):
+        """1 段目の採点と，選択の呼び出し回数を数える．"""
+
+        first_stage_calls = 0
+
+        def candidates(self, query: Any, sources: Any) -> list[str]:
+            self.first_stage_calls += 1
+            return super().candidates(query, sources)
+
+    question = _questions(1)[0]
+    vec = corpus["t0"][0].astype(np.float16).astype(np.float32)
+    router = CountingRouter(m=1, probe_k=2)
+    requester = await _requester(_cfg(cfg, "retrieval_only"), tmp_path, router, {question.qid: vec})
+    _with_adverts(requester, {"pubmed": (-vec).tolist(), "textbooks": vec.tolist()})
+    record = await requester.process(question)
+    assert record["error"] is None
+    assert router.first_stage_calls == 1
+    assert record["probe_shards"] == 3

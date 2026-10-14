@@ -53,7 +53,7 @@ from atrium.protocol import (
     ShardProfile,
 )
 from atrium.routing import Router, RoutingQuery, SourceProfile
-from atrium.routing.advert import tokenize
+from atrium.routing.advert import CentroidProbeRouter, tokenize
 from atrium.store import RetrievedDoc
 
 logger = logging.getLogger(__name__)
@@ -449,10 +449,23 @@ class Requester:
         return embeddings
 
     async def _probe(
-        self, embeddings: dict[str, F32Array], record: dict[str, Any]
+        self,
+        embeddings: dict[str, F32Array],
+        record: dict[str, Any],
+        targets: Sequence[str] | None = None,
     ) -> dict[str, float]:
-        """flood_score の 1 段目：全ノードへクエリ埋め込みを送り，データ源ごとの最高の検索スコアを集める．"""
-        source_of_shard = {sid: s for s in self.sources for sid in s.shard_ids}
+        """probe（/v1/probe）の 1 段目：クエリ埋め込みを送り，データ源ごとの最高の検索スコアを集める．
+
+        targets を省略すると，flood_score と同じく全ノードの全シャードへ送る．centroid_probe は，候補のデータ源の名前を
+        渡し，そのシャードを持つノードにだけ，候補のシャードの shard_ids で送る．
+        """
+        target_set = None if targets is None else set(targets)
+        source_of_shard = {
+            sid: s
+            for s in self.sources
+            if target_set is None or s.source in target_set
+            for sid in s.shard_ids
+        }
 
         async def ask(node: NodeAssignment) -> tuple[ProbeResponse, int]:
             shard_ids = [sid for sid in node.shard_ids if sid in source_of_shard]
@@ -475,6 +488,12 @@ class Requester:
         results = [o for o in outcomes if o is not None]
         record["timings"]["probe_s"] = time.perf_counter() - start
         record["probe_recipients"] = len(nodes)
+        # ノードの probe の仕事量はシャードの数に比例するので，デバイスごとの数も残す
+        per_device = [sum(s in source_of_shard for s in n.shard_ids) for n in nodes]
+        record["probe_shards"] = sum(per_device)
+        record["probe_shards_per_device"] = per_device
+        # ノードの計算時間の最大（probe_s との差が，待ち行列と通信の時間）
+        record["probe_node_s_max"] = max((r.duration_s for r, _ in results), default=0.0)
         if self._tolerant:
             record["probe_failed"] = len(failed)
         record["probe_bytes"] = sum(size for _, size in results)
@@ -504,6 +523,32 @@ class Requester:
         record["timings"]["route_s"] = time.perf_counter() - start
         return selected
 
+    async def _route_by_candidate_probe(
+        self,
+        router: CentroidProbeRouter,
+        question: Question,
+        embeddings: dict[str, F32Array],
+        record: dict[str, Any],
+    ) -> list[str]:
+        """centroid_probe：1 段目の候補を同期に求め（multi_centroid と同じくイベントループの上），候補だけへ probe を送って上位 m 個を選ぶ．
+
+        route_s は 1 段目の採点と 2 段目の選択の合計である（probe の待ちは probe_s に入る）．
+        """
+        start = time.perf_counter()
+        query = RoutingQuery(
+            question.qid,
+            question.question,
+            embeddings,
+            tokens=tuple(tokenize(question.question)),
+        )
+        candidates = router.candidates(query, self._routable_sources())
+        first_stage_s = time.perf_counter() - start
+        probe_scores = await self._probe(embeddings, record, candidates)
+        start = time.perf_counter()
+        selected = router.select_among(candidates, probe_scores)
+        record["timings"]["route_s"] = first_stage_s + (time.perf_counter() - start)
+        return selected
+
     async def process(self, question: Question) -> dict[str, Any]:
         """1 問を処理して結果の 1 行を返す（失敗は error に記録し，例外は投げない）．"""
         mode = self.cfg.experiment.answer_mode
@@ -521,12 +566,17 @@ class Requester:
         start = time.perf_counter()
         try:
             embeddings = await asyncio.to_thread(self._embed, question, record)
-            probe_scores = (
-                await self._probe(embeddings, record)
-                if getattr(self.router, "needs_probe", False)
-                else None
-            )
-            selected = self._route(question, embeddings, probe_scores, record)
+            if isinstance(self.router, CentroidProbeRouter):
+                selected = await self._route_by_candidate_probe(
+                    self.router, question, embeddings, record
+                )
+            else:
+                probe_scores = (
+                    await self._probe(embeddings, record)
+                    if getattr(self.router, "needs_probe", False)
+                    else None
+                )
+                selected = self._route(question, embeddings, probe_scores, record)
             record["selected_sources"] = selected
             record["n_shards_queried"] = sum(len(self._profile(s).shard_ids) for s in selected)
             choice: str | None = None

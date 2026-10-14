@@ -192,7 +192,8 @@ class CentroidProbeRouter:
 
     1 段目（公開情報だけ．クエリは送らない）で候補 K 個を選び，2 段目で候補にだけ flood_score と同じ probe を送る．
     probe_scores には候補の分だけが入っていればよい（候補以外の値は無視する）．
-    実機の質問者の 2 段目（候補だけへの probe）は未実装で，評価は atrium cascade-eval（オフライン）で行う．
+    実機の質問者は，1 段目の候補（`candidates`）を 1 問で 1 回だけ求め，候補のシャードを持つ
+    ノードにだけ probe を送り，`select_among` で上位 m 個を選ぶ．オフラインの評価は atrium cascade-eval で行う．
     """
 
     name = "centroid_probe"
@@ -213,8 +214,13 @@ class CentroidProbeRouter:
         """候補のうち，probe の最高スコアの上位 m 個を返す．"""
         if query.probe_scores is None:
             raise ValueError("centroid_probe requires probe scores of the candidates")
-        candidates = self.candidates(query, sources)
-        scores = [query.probe_scores.get(c, float("-inf")) for c in candidates]
+        return self.select_among(self.candidates(query, sources), query.probe_scores)
+
+    def select_among(
+        self, candidates: Sequence[str], probe_scores: Mapping[str, float]
+    ) -> list[str]:
+        """求め済みの候補のうち，probe の最高スコアの上位 m 個を返す（1 段目の採点をやり直さない）．"""
+        scores = [probe_scores.get(c, float("-inf")) for c in candidates]
         return top_m(candidates, scores, self.m)
 
     def advert_bytes(self, sources: Sequence[SourceProfile]) -> int:

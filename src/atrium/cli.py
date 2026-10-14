@@ -12,6 +12,7 @@
     analyze / metrics / compare  結果の分析（操作端末）
     advert-eval               RQ-A のオフラインの評価（EnronQA．制御点のコンテナ）
     cascade-eval              二段ルーティング centroid_probe のオフラインの評価（EnronQA．制御点のコンテナ）
+    probe-reach               centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA．Iteration 4．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
@@ -245,6 +246,19 @@ def cmd_cascade_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     metrics = cascade_eval.evaluate(cfg, dataset_paths(Path(args.data_dir), "enronqa"), reference)
     cascade_eval.write_outputs(Path(args.out_dir), metrics)
     print(cascade_eval.render_report(metrics))
+    return 0
+
+
+def cmd_probe_reach(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """centroid_probe の K ごとの届くデバイスの数と再現率（Iteration 4）を出し，metrics.json と analysis_report.md を書く．"""
+    from atrium import probe_reach
+    from atrium.manifest import read_placement
+
+    metrics = probe_reach.evaluate(
+        cfg, dataset_paths(Path(args.data_dir), "enronqa"), read_placement(Path(args.placement))
+    )
+    probe_reach.write_outputs(Path(args.out_dir), metrics)
+    print(probe_reach.render_report(metrics))
     return 0
 
 
@@ -596,6 +610,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--reference-metrics", required=True, help="退行の確認の基準（EQ2 の metrics.json）"
     )
     p.set_defaults(func=cmd_cascade_eval)
+
+    p = sub.add_parser(
+        "probe-reach", help="centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA）"
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--placement", required=True, help="受信箱の配置（results/<run>/placement.json）"
+    )
+    p.set_defaults(func=cmd_probe_reach)
 
     p = sub.add_parser("owner-eval", help="持ち主推定の入力を揃えた評価（EnronQA．p0005 T2）")
     p.add_argument("--data-dir", required=True)

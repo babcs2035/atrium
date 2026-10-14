@@ -60,7 +60,7 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | `random_k.medrag` / `random_k.feb4rag` / `random_k.enronqa` | 3 / 9 / 2 | `random` で選ぶデータ源の数（medrag・feb4rag は RAGRoute と同じ．enronqa は `top_m.enronqa` と同じにして比べる） |
 | `ragroute_threshold` | 0.5 | `ragroute` の判定閾値（RAGRoute の推論コードと同じ）．検証データで Youden 指数が最大になる閾値は `router/train_report.json` に記録される |
 | `top_m.enronqa` | 2（dev で選んだ値） | 公開情報を使う方式と `flood_score` が問い合わせるデータ源の数 m（p0004 の RQ-A） |
-| `probe_k.enronqa` | 評価前は 75（仮置き） | `centroid_probe` が probe を送る候補の数 K（`multi_centroid` の上位 K 個．`top_m.enronqa` 以上）．`atrium cascade-eval` の dev で，hit@2 が `flood_score` の 0.95 倍以上になる最小の K（候補 {4, 8, 15, 30, 50, 75}．届かなければ 75）を選ぶ．実機の質問者の 2 段目（候補だけへの probe）は未実装で，評価はオフラインだけ |
+| `probe_k.enronqa` | 評価前は 75（仮置き） | `centroid_probe` が probe を送る候補の数 K（`multi_centroid` の上位 K 個．`top_m.enronqa` 以上）．`atrium cascade-eval` の dev で，hit@2 が `flood_score` の 0.95 倍以上になる最小の K（候補 {4, 8, 15, 30, 50, 75}．届かなければ 75）を選ぶ．実機（`experiment.routing: centroid_probe`）では，質問者が 1 段目の候補（既存のヘッダー込みの `multi_centroid`）を 1 問で 1 回だけ求め，候補のシャードを持つノードにだけ，候補の `shard_ids` で `/v1/probe` を送って上位 m 個を選ぶ．届くデバイスの数・シャードの数は `atrium probe-reach`（オフライン）と結果の `probe_*` で確かめる |
 | `top_m.medrag` | 3 | MedRAG で `card_sim`（E2 の `desc_sim`）が問い合わせるデータ源の数（p0003 S5）．4 源の `train`・`val` で F1 が最大の k（候補 {1, 2, 3}）．MedRAG のデータ源は広告を持たないので，質問者が起動時に自己紹介文を MedCPT の文書側で埋め込んで付ける |
 
 ## llm
