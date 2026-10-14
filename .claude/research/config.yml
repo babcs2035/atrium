@@ -31,6 +31,9 @@
 #   7. `mise run deploy` は毎回イメージを build・push してから配る．`mise run start` は質問者の
 #      config.yaml が今の config.yaml と違えば止まるので，config.yaml を変えたら必ず deploy からやり直す．
 #      start は制御点で切り離して動くので，待機が切れても `mise run start <run_id>` で待ち直せる．
+#   8. 単一の GPU を使う検証は，gpu2 ではなく制御点 wafl-ctrl5 で行う（gpu2 は B5 のとおりディスクの空きが少ない）．
+#      実機の全構成（質問者 1 台と専門家 30 台）で確かめる必要があるレバーは，フルスペックの実機実験を行ってよい
+#      （人間の指示 2026-10-14．データ・成果物の削除や課金を伴う操作は従来どおり人間の判断を要する）．
 
 repo_name: atrium
 
