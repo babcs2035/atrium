@@ -18,6 +18,9 @@ experiment:
   parallel: 4
   # 乱数の種（random ルーティング・学習の分割で使う）
   seed: 12
+  # 質問者の HTTP 接続の持ち方．shared：全ノードで 1 つの池（上限 512）／shared_unlimited：1 つの池のまま上限なし／
+  # per_node：ノードの origin ごとに別の池（上限 64）．負荷の実験（Iteration 5）で切り分けるためのキーで，既定は従来の shared
+  http_pool: shared
   # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
   churn: null
 

@@ -3,6 +3,108 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 5: 質問者の HTTP 接続の持ち方を変えた負荷の律速の切り分け
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B19 [auto-decided]（Iteration 4 は棄却．parallel 30 の待ちはノードの計算ではなく質問者の側の HTTP の扱いにあると読めた）．config.yml の levers 末尾の `requester.http_pool: [per_node]`（仮称）を，下の B20 のとおり `experiment.http_pool: [per_node, shared_unlimited]` と確定した．
+docker の権限は B18 の [human-decided]（A3．恒久対応済み）で解決している．データ準備・ラベル・シャード・公開情報は作り直さない．
+
+**コードと既存の結果から確かめたこと**（事実）
+- 質問者は全ノードと自分の Ollama で 1 つの `httpx.AsyncClient(limits=httpx.Limits(max_connections=MAX_CONNECTIONS))`（`MAX_CONNECTIONS` = 512．`src/atrium/experiment.py` の `run_experiment`）を共有する．
+  この指定の `httpx.Limits` は `max_keepalive_connections=None, keepalive_expiry=5.0` になる（操作端末の httpx 0.28.1 で `print(httpx.Limits(max_connections=512))` を確かめた）．したがって「待機中の接続を 20 本までしか持たない」ことによる作り直しは起きておらず，Iteration 4 の接続の作り直しは池の上限 512 に当たったときのもの（上限で待つ要求に，別のノードの待機中の接続を閉じて開き直す）と読める．
+- `uv.lock` の版は httpx 0.28.1・httpcore 1.0.9・uvicorn 0.54.0 である．httpcore 1.0.9 の `AsyncConnectionPool._assign_requests_to_connections`（操作端末の `.venv` の `httpcore/_async/connection_pool.py` 270 行目〜）は，要求の追加と終了のたびに呼ばれ，
+  (1) 全接続の走査の中で待機中の接続ごとに全接続の内包表記を作り直す（接続の数 N に対して O(N²)），(2) 待ち行列の要求ごとに全接続を 2 回走査する（待ちの要求の数 M に対して O(N × M)）．
+- 専門家の `/v1/probe`・`/v1/retrieve` は同期の `def`（`src/atrium/node.py`．uvicorn の既定の設定で `uvicorn.run(app, host, port)`）で，uvicorn の待機中の接続の打ち切りは既定の 5 秒である．質問者の `keepalive_expiry` も 5.0 秒で同じ長さである．
+- Iteration 4 の parallel 30 で，同時に処理中の要求は flood_score で約 900（30 問 × 30 台）であり，池の上限 512 を超える．parallel 1 では約 30 で，上限にも O(N × M) の費用にもほとんど当たらない．parallel 1 の flood_score は約 410 要求/秒，parallel 30 では約 80 要求/秒を扱った（journal の「Iteration 4 実行済み」の分析 3・4）．
+
+**調査で分かったこと**（tavily-search・tavily-extract．事実と推測を分けて書く）
+- httpcore の `_assign_requests_to_connections` は，接続の数 N・要求の数 M に対して O(N² + N × M) であり，要求の開始と終了の 2 回ずつ呼ばれる hot path である．プロファイルではこの関数が全標本の 59% を占め，O(N + M) に書き直すと 4% に下がり，アプリケーションの CPU 使用率が半分になったと報告されている
+  （V. Prins, "Fix 2 bugs and improve performance from O(N²+NxM) to O(N+M) in _assign_requests_to_connections", encode/httpcore PR #1035, 2025-09-14．https://github.com/encode/httpcore/pull/1035 ．2026-10-15 の時点で未マージ）．
+  同 PR は `max_keepalive_connections` の判定の誤り（`len([... is_idle() ...])` が全接続の数を返す）も指摘している．本研究の設定では `max_keepalive_connections` が None なのでこの誤りの影響は受けないが，O(N²) の内包表記は残る．
+- NVIDIA の NeMo Gym の技術メモ（"aiohttp vs httpx", NeMo Gym documentation, 2025．https://docs.nvidia.com/nemo/gym/infrastructure/engineering-notes/aiohttp-vs-httpx ）は，同時の要求が多いと httpx（httpcore の池）が待ち行列の要求の数の 2 乗の時間を使い，16,000 の同時要求で最初の要求の処理まで 40 分止まったこと，並列を 32 程度に抑えざるを得なかったことを報告し，aiohttp に替えて解決している．
+  「並列が 32 を超えると影響しうる」という同メモの目安は，本研究で parallel 4（同時の要求 約 120）から処理量が下がり始めたことと矛盾しない（推測．本研究の値は測っていない）．
+- 同じ問題の利用者側の報告として，`httpx.AsyncClient` が同時の要求で aiohttp より大幅に遅いという issue（pydantic/httpx2 #827．https://github.com/pydantic/httpx2/issues/827 ）がある．httpx は `mounts` で接続先ごとに別の `AsyncHTTPTransport`（別の接続の池）を持てる（例：Bhagya Rana, "5 uvloop + httpx Clients That Actually Hit High QPS", Medium．httpx の公式の機能）．
+- uvicorn の待機中の接続の打ち切りは既定で 5 秒であり（Uvicorn documentation, "Server Behavior"．https://uvicorn.dev/server-behavior ），クライアント側の待機の長さが同じか長いと，サーバーが閉じた直後の接続を再利用して接続のエラーになる競合が知られている（Kludex/uvicorn Discussion #2939．https://github.com/Kludex/uvicorn/discussions/2939 ）．
+  `post_with_retry` の docstring が想定している「ノードが待機中の接続を閉じた直後の再利用」はこれに当たる．ただし Iteration 4 では再試行が parallel 16 以上で急に増えており（parallel 1〜8 で 0〜4 回），待機の 5 秒の競合だけでは増え方を説明しにくい（推測．池の上限での接続の作り直しとの関係は未確認）．
+
+**問い**：Iteration 4 の parallel 30 の律速は，(i) 質問者の接続の池の管理の CPU（httpcore の O(N² + N × M)．全ノードの要求が 1 つの池に集まる），(ii) 池の上限 512 による接続の作り直し，(iii) それ以外（イベントループ上の JSON の組み立て・解釈，ノードの側の受け付け）のどれか．
+
+**B19 の要レビューへの対応**
+- (a) **律速の切り分けを，デバイスを単位に選ぶ方式より先にする**．理由：上の調査で，同時の要求の数とともに質問者の 1 要求あたりの費用が増える既知の仕組み（httpcore の池の 2 乗の費用）が見つかり，Iteration 4 の事実 4（parallel 1 → 4 で既に 1 要求あたりの費用が増える）をそのまま説明できる候補である．これを確かめないまま方式を比べると，どの方式も「1 つの池に入る要求の数」の比較になる．
+- (b) **基準の方式も同じイテレーションで測り直す**．flood_score は per_node で parallel 1・4・8・16・30 の全曲線を 3 回ずつ測り（T4 と同じ点），multi_centroid は per_node の parallel 30 だけを対照として 3 回測る（multi_centroid は 1 問 2 要求で，律速は 1 段目の採点 0.111 秒なので，per_node で変わらないことを確かめる）．
+  K = 75 の centroid_probe も per_node で測り，Iteration 4 の「K = 75 は flood_score より遅い」が池の律速の下でだけ成り立つのかを記録する．環境の揺れは，今の構成（shared）の flood_score・multi_centroid の parallel 30 を前後に流して T4 と比べる．
+- (c) 律速が質問者の接続の池と確かめられた場合（採用），以後の負荷の実験は `experiment.http_pool: per_node` を明示して行い，d0006 §6.3 の T4 の記述を「1 つの接続の池を共有した質問者の値」と限定し，per_node での値を並べる．`experiment.http_pool` の既定値は `shared`（今の挙動）のまま変えない（既存の実験の再現のため）．
+  複数の質問者（プロセス・デバイス）から流す構成は，per_node でも parallel 30 で質問者のプロセスの CPU 使用率が 1 コアに張り付く場合にだけ，次の候補にする．
+- (d) 棄却（per_node でも処理量が変わらない）なら，次はデバイスを単位に上位を選ぶ方式（Iteration 4 の事前登録の「次の候補」）に進む．質問者の CPU 使用率の記録から (iii) の手がかりも添える．
+
+**仮説**
+- **H-H1（処理量）**：flood_score の parallel 30 の処理量は，per_node で shared（T4）より高い．仕組み：ノードごとの池では N・M がそれぞれ高々 2 × parallel（60）程度（多くの時間は parallel 程度）になり，池の管理の 1 回の費用が約 (512 × 400) から約 (30 × 30) の規模に下がる（推測．400 は上限で待つ要求の数の概算）．池の上限にも当たらないので接続の作り直しも無くなる．
+- **H-H2（待ち時間）**：flood_score の parallel 30 の e2e p95 は，per_node で shared（T4）より小さい．
+- **H-H3（何が律速か．記録）**：shared_unlimited（1 つの池のまま上限を外す）は (ii) だけを外し，per_node は (i) と (ii) の両方を外す．parallel 30 の flood_score の処理量の中央値で，
+  shared_unlimited が T4 の中央値の ±10% 以内かつ per_node が T4 の 1.5 倍以上なら「(i) 池の管理の費用」，shared_unlimited が per_node の 0.9 倍以上かつ T4 の 1.5 倍以上なら「(ii) 池の上限による作り直し」，per_node も T4 の ±10% 以内なら「(iii) 池以外」，それ以外は「混合」とする．
+  質問者のプロセスの CPU 使用率（下の記録）が shared の parallel 30 で 0.9 コア以上なら「質問者のイベントループが CPU で飽和」を支持する手がかりとして添える．
+- 参考（判定に使わない）：per_node でも K = 75 の centroid_probe は 1 段目の採点（0.111 秒）を直列に行うので，処理量は約 9 問/秒を超えない．per_node で flood_score が 9 問/秒に近づけば，parallel 30 で K = 75 が flood_score より遅いという Iteration 4 の順序は変わらない（推測）．
+
+**単一レバー**：質問者の HTTP の接続の持ち方．新しい設定キー `experiment.http_pool`（`config.yaml` の `experiment` の直下）を，今の `shared`（既定．全ノードで 1 つの池，`max_connections` = 512）から **`per_node`**（判定の主）と **`shared_unlimited`**（切り分けの副）へ変える．他は全て固定する．
+- **実装**（変更するファイル）
+  - `src/atrium/config.py`：`ExperimentConfig` に `http_pool: Literal["shared", "shared_unlimited", "per_node"] = "shared"` を足す（既定は今の挙動．既存の config.yaml はそのまま読める）．`config.yaml` の `experiment` に既定値 `http_pool: shared` を説明のコメント付きで書く．`docs/d0002_configuration.md` に項目を足す．
+  - `src/atrium/experiment.py`：`run_experiment` の `httpx.AsyncClient` の作り方だけを `http_pool` で分ける．
+    - `shared`：今と同じ `httpx.Limits(max_connections=MAX_CONNECTIONS)`（挙動を変えない）．
+    - `shared_unlimited`：1 つの池のまま `httpx.Limits(max_connections=None)`（上限なし．`keepalive_expiry` は既定の 5.0 のまま）．
+    - `per_node`：1 つの `httpx.AsyncClient` に，`placement` の各ノードの URL の origin ごとに別の `httpx.AsyncHTTPTransport(limits=httpx.Limits(max_connections=MAX_CONNECTIONS_PER_NODE))` を `mounts` で付ける（ノードの数だけ池ができる）．`MAX_CONNECTIONS_PER_NODE` = 64 とし，parallel ≤ 30 では 1 ノードへの同時の要求が 2 × parallel を超えない（各問はノードへ probe を 1 件送り，その後に本照会を高々 m = 2 件送る）ので上限に当たらない，と定数の近くにコメントで書く．
+      質問者の Ollama など mounts に無い宛先は既定の池（`shared` と同じ上限）を使う．`Requester` の公開の挙動・要求の内容・宛先は変えない（client を 1 個渡す形のまま）．
+  - **記録の追加**（3 つの持ち方の全てで同じく記録する．判定の解釈に使う）：`run_meta.json` に `http_pool` と，質問の処理の区間（`run_questions` の前後）の質問者のプロセスの CPU 時間（`resource.getrusage(RUSAGE_SELF)` の user・sys の差）と `requester_cpu_util`（CPU 時間 ÷ 経過時間．1.0 が 1 コアの飽和）を書く．
+    再試行の数は Iteration 4 と同じく `requester.log` の `retrying` の行の数，新しい接続の数はノードの uvicorn の access log の送信元ポートの数で数え，集計のスクリプトで自動で出す（事後に手で数えない）．
+  - `tests/`：`shared` は今と同じ上限 512 の 1 つの池であること，`per_node` はノードの origin ごとに別の transport へ振り分けられ，mounts に無い宛先は既定の池に行くこと，`shared_unlimited` は上限が None であること．httpx の `MockTransport` などで要求の宛先の振り分けを確かめる（標準の httpx の機能そのものは試さない）．
+  - 連続実行のスクリプト（`results/<日付>_iter5_load_summary/iter5_chain.sh`，`iter5_specs.txt`）：`iter4_chain.sh` と同じ形．`setcfg` は `experiment` の直下のキー（`http_pool`・`routing`・`parallel`）と `routing.probe_k.enronqa` を扱える既存の形を使い，`python3` ではなく `uv run python` を使う．集計 `iter5_summary.py`（`iter4_summary.py` と `iter4_timing_breakdown.py` の指標に CPU 使用率・再試行の数・接続の数を足したもの）．
+
+**固定する構成**（T4・Iteration 4 と同じ）：`dataset: enronqa`，`answer_mode: retrieval_only`，`question_limit: 2`（300 問．T4 と同じ集合），m = 2，`merge: score`，`query_embedding.enronqa: cached`，`seed` は既存の値，`keepalive_expiry` 5.0 秒（httpx の既定），`RETRIEVE_RETRIES` = 2，`RETRIEVE_TIMEOUT_S` = 120，ノードの uvicorn の設定（既定），1 段目の採点はイベントループの上で同期（executor へ移さない），centroid_probe の K = 75，各回の前に `mise run deploy`，失敗した問は流し直さない，連続実行の間は制御点で他のコンテナを動かさず commit もしない．専門家 30 台・質問者（制御点）の構成は T4 と同じ（運用ルール 8 のフルスペックの実機実験）．
+
+### 事前登録（2026-10-15．実装の後，実行の前に push する．結果を見て変えない）
+
+**実行の順序と回数**（計 43 実行．1 回約 5 分，全体で約 3.5 時間の見込み．run_id の接頭辞は `<日付>_iter5_`）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ実行を 1 回も始めずに止め，backlog に `[needs-human]` を記録する（Iteration 4 と同じ）．
+2. **環境の揺れの確認（前）**：`http_pool: shared` の flood_score の parallel 30 と multi_centroid の parallel 30 を各 1 回（`anchor_shared_<routing>_p30_pre`）．
+3. **flood_score × per_node**：parallel 1・4・8・16・30 × 3 回（`fs_pn_p<parallel>_r<1|2|3>`．15 実行）．
+4. **flood_score × shared_unlimited**：parallel 4・16・30 × 3 回（`fs_su_p<parallel>_r<n>`．9 実行．parallel 1 は同時の要求が約 30 で上限 512 に当たらず shared と同じなので測らない）．
+5. **centroid_probe（K = 75）× per_node**：parallel 1・4・16・30 × 3 回（`cp75_pn_p<parallel>_r<n>`．12 実行）．
+6. **multi_centroid × per_node（対照）**：parallel 30 × 3 回（`mc_pn_p30_r<n>`．3 実行）．
+7. **環境の揺れの確認（後）**：2 と同じ 2 条件を各 1 回（`..._post`）．
+- deploy の失敗の扱い（5 分おきに 3 回まで再試行，それでも失敗した回は飛ばして後で同じ run_id で流す．失敗率に数えない）と，失敗率の打ち切り（同じ条件の 3 回とも失敗率が 10% を超えたら，その系列のより大きい parallel は飛ばして記録する）は Iteration 4 と同じ．
+
+**指標**（Iteration 4 と同じ定義に加えて）：処理量（成功した問の数 ÷ `run_meta.json` の finished_at − started_at），e2e_s の p50・p95，probe_s・retrieve_s の p50・p95，route_s の p50，`probe_node_s_max` の p50・p95，失敗率とエラーの種類，
+`requester_cpu_util`，再試行の数（`retrying` の行の数），新しい接続の数（access log の送信元ポートの数），1 秒あたりに扱った HTTP 要求の数（処理量 × 1 問あたりの要求の数），300 問の hit@2（参考）．
+
+**正しさの確認**（満たさなければ判定に進まず，原因を調べて記録する）
+- 全ての実行で，失敗の無い問の `selected_sources` が，同じ方式の T4（flood_score・multi_centroid）または Iteration 4（K = 75）の parallel 1 の r1 の選択と 99% 以上で集合として一致する（接続の持ち方は選択を変えないはず．選択は決定的）．
+- `run_meta.json` の `http_pool` が仕様（`iter5_specs.txt`）の値と一致する．
+- 単体テストで，`shared` の挙動（上限 512 の 1 つの池）が変わっていないこと．
+- per_node の parallel 30 で，新しい接続の数が 1 実行で 300 以下（各ノードへ高々 2 × parallel 本を開いて使い回す見込みで，30 台 × 60 本 = 1,800 が理論の上限．300 は「作り直しが起きていない」ことの目安）．超えた場合は判定に進むが，H-H3 の解釈で (ii) を外せたとはみなさない．
+
+**環境の揺れの規則**（Iteration 4 と同じ）：前後 4 回の確認の処理量と e2e p95 が全て T4 の同じ条件の 3 回の [最小 × 0.9, 最大 × 1.1] に入れば，比べる相手は T4 の 3 回の値とする．1 つでも外れたら「環境が変わった」と記録し，比べる相手を前後の確認の値（各条件 2 回）に替える．
+
+**判定の規則**（比べる 2 条件の回ごとの値の範囲が重ならないときだけ「差がある」）
+- **H-H1**：parallel 30 で，flood_score × per_node の 3 回の処理量の範囲が，比べる相手（shared）の範囲より上にあり，重ならない．
+- **H-H2**：parallel 30 で，flood_score × per_node の 3 回の e2e p95 の範囲が，比べる相手の範囲より下にあり，重ならない．
+- **このイテレーションの結論**：
+  - **採用**（質問者の接続の池が負荷の律速であり，以後の負荷の実験は `per_node` で行う）：H-H1 と H-H2 がどちらも成り立ち，かつ parallel 30 の処理量の 3 回の中央値が比べる相手の中央値の 1.5 倍以上（T4 なら 3.75 問/秒以上）．1.5 倍は Iteration 4 と同じ基準（3 回の揺れ ±5% の 10 倍）．
+  - **部分的に支持**：H-H1 か H-H2 の少なくとも一方が成り立つが，採用の条件を満たさない．
+  - **棄却**：H-H1 と H-H2 がどちらも成り立たない．
+- **H-H3**（記録）：上の仮説の規則を parallel 30 の処理量の中央値に機械的に当てはめる．`requester_cpu_util` と再試行・接続の数を解釈に添える．
+- **対照**：multi_centroid × per_node の parallel 30 の 3 回の処理量が，T4 の [最小 × 0.9, 最大 × 1.1] に入ること．外れた場合は，per_node が池以外の何か（例：振り分けの費用）を変えた疑いとして記録し，結論に「対照が外れた」と添える（結論の規則そのものは変えない）．
+- K = 75 × per_node は判定に使わず，parallel 30 の処理量・e2e p95 を flood_score × per_node と並べて，Iteration 4 の順序（K = 75 が flood_score より遅い）が per_node でも成り立つかを同じ「範囲が重ならない」の規則で記録する．parallel 1〜30 の曲線（3 つの持ち方 × 方式）を T4・Iteration 4 と並べた表で残す．
+
+**ノイズの見積もり**：T4・Iteration 4 の 3 回の幅は処理量で中央値の ±5% 以内，e2e p95 で ±5〜10%（Iteration 4 の K = 75 の parallel 30 の e2e p95 は 22.8〜27.5 秒で ±10% 程度）．1.5 倍の差はこの揺れと区別できる．
+
+**期待効果**（推測．判定に使わない）：per_node の flood_score の parallel 30 の処理量は 5〜10 問/秒（T4 の 2〜4 倍），e2e p95 は 5〜10 秒，`requester_cpu_util` は shared で 0.9 以上，per_node で下がる．shared_unlimited は T4 と同じか少し遅い（池の接続の数 N が 512 を超えて増え，2 乗の費用が増えるため）．
+したがって H-H3 は「(i) 池の管理の費用」になる見込み．ただし，parallel 30 の約 900 の同時の要求の JSON の組み立て・解釈（1 要求約 15 KB）も同じイベントループの上にあり，per_node でも 1 コアに張り付いて 1.5 倍に届かない可能性がある（その場合は部分的に支持か棄却になる）．
+
+**限界**：有線 LAN・300 問・検索だけ．質問者は 1 プロセスのまま（複数の質問者は扱わない）．aiohttp など別の HTTP クライアントへの置き換えと httpcore の修正版（PR #1035．未マージ）は扱わない．`keepalive_expiry` と uvicorn の待機の打ち切りが同じ 5 秒である競合は変えない．
+CPU 使用率はプロセス全体の値で，池の管理と JSON の処理などを分けない（py-spy のプロファイルは取らない）．接続の数は送信元ポートの数による下限である．比べる相手は T4（`ffe0880` のイメージ）で，揺れの確認でしか同時性を担保できない．
+
+**次の候補**：採用なら，per_node の下で「デバイスを単位に上位を選ぶ方式」（Iteration 4 の次の候補）と，parallel 30 で `requester_cpu_util` が 1 コアに近ければ 1 段目の採点の executor への移動（multi_centroid・centroid_probe に効く）．部分的に支持で CPU が飽和していれば，質問者の JSON の処理（埋め込みを全ノードへ同じ形で 30 回組み立てている）か，複数の質問者のプロセスを候補にする．棄却なら，デバイスを単位に選ぶ方式に進む．
+
 ## Iteration 4: centroid_probe（二段ルーティング）の実機での待ち時間と処理量の測定
 
 ### 調査・計画（2026-10-14．research-cycle の phase 1）

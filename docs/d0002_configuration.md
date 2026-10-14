@@ -31,6 +31,7 @@ Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLA
 | `question_limit` | 整数または `null` | 各問題集の先頭からこの数だけを使う（動作確認用） |
 | `parallel` | 整数 | 質問者が同時に処理する質問数 |
 | `seed` | 整数 | `random` のルーティングと，FeB4RAG の重心の無作為抽出の種 |
+| `http_pool` | `shared`（既定）/ `shared_unlimited` / `per_node` | 質問者の HTTP 接続の持ち方（Iteration 5）．`shared`：全ノードと Ollama で 1 つの池（`max_connections` = 512）．`shared_unlimited`：1 つの池のまま上限なし．`per_node`：専門家のノードの origin ごとに別の池（各 64 本）を持ち，ノード以外の宛先（質問者の Ollama など）は上限 512 の既定の池を使う．要求の内容・宛先・選択は変わらない．`run_meta.json` に `http_pool` と質問処理中の質問者の CPU 時間（`requester_cpu_s`・`requester_cpu_util`）が残る |
 | `churn` | `null` または `{availability, refresh_steps, schedule_seed, mean_up_steps}` | EQ7b（p0004）．指定すると，EnronQA の質問を 1 問ずつ順に流し（1 問 = 1 刻み），専門家の参加・離脱を実機に起こす．`dataset: enronqa`・`answer_mode: retrieval_only`・`parallel: 1`・`routing` が公開情報の方式か `flood_score` か `oracle` のときだけ使える．`availability` は稼働率，`refresh_steps` は質問者のメンバー表の更新間隔（刻み），`schedule_seed` は時刻表の種，`mean_up_steps`（既定 200）は稼働中の平均の長さ．時刻表と質問の順番は `atrium churn-eval`（EQ7a）と同じで，離脱は `/v1/admin/availability` で起こす（[d0001](d0001_architecture.md) §3）．結果は途中から再開せず，毎回作り直す |
 
 `random` は質問 ID と種から乱数を作るので，並列度や実行順によらず同じ選択になる．

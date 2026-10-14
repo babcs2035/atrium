@@ -76,6 +76,9 @@ class ExperimentConfig(_Strict):
     question_limit: int | None = None
     parallel: int = Field(default=4, ge=1)
     seed: int = 12
+    # 質問者の HTTP 接続の持ち方（Iteration 5）．shared：全ノードで 1 つの池（上限 512．従来の挙動）／
+    # shared_unlimited：1 つの池のまま上限なし／per_node：ノードの origin ごとに別の池
+    http_pool: Literal["shared", "shared_unlimited", "per_node"] = "shared"
     # EQ7b．指定すると質問を 1 問ずつ順に流し，離脱したノードがあっても返事のあった分で続ける
     churn: ChurnConfig | None = None
 

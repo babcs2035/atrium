@@ -17,6 +17,19 @@
 
 ---
 
+## B20 [auto-decided 2026-10-15] Iteration 5 のレバーの形：新しい設定キー `experiment.http_pool`（per_node を主，shared_unlimited を副）
+
+- 状況: B19 で，レバー `requester.http_pool: [per_node]`（仮称）の具体的な形（ノードごとの client か池の上限か，parallel の点，回数）と判定の規則を rc-researcher が事前登録で決めることになっていた．
+- 調査: httpcore 1.0.9（`uv.lock` の版）の `_assign_requests_to_connections` は接続の数 N・待ちの要求の数 M に対して O(N² + N × M) で，要求の開始と終了のたびに呼ばれる（encode/httpcore PR #1035，未マージ．NVIDIA NeMo Gym の技術メモ "aiohttp vs httpx"）．
+  Iteration 4 の「同時の要求が増えると 1 要求あたりの費用が増える」形をそのまま説明しうる．出典は journal の Iteration 5．
+- 自動選択: `config.yaml` の `experiment` に新しいキー `http_pool`（`shared` 既定＝今の挙動／`shared_unlimited`／`per_node`）を足す．config.yml のレバー名を `experiment.http_pool: [per_node, shared_unlimited]` に改めた．
+  `per_node` は 1 つの `AsyncClient` に，ノードの origin ごとの `AsyncHTTPTransport`（上限 64）を `mounts` で付ける形とする．`shared_unlimited` は 1 つの池のまま上限を外し，池の上限による作り直し（ii）と池の管理の費用（i）を分けるための副の条件である．
+  計 43 実行（揺れの確認 4，flood_score × per_node 15，flood_score × shared_unlimited 9，K = 75 × per_node 12，multi_centroid × per_node 3）．判定は flood_score の parallel 30 の per_node 対 shared（T4）で，Iteration 4 と同じ「範囲が重ならない」と「中央値の 1.5 倍」の規則．
+- 根拠: (1) 既定値を今の挙動にすれば，既存の config.yaml と過去の実験の再現は変わらない（追加だけの形式の変更）．`iter4_chain.sh` の `setcfg` が扱える `experiment` の直下に置けば，連続実行の仕組みをそのまま使える．
+  (2) ノードごとに別の AsyncClient を作ると `Requester` に渡す client の形が変わるが，mounts なら client 1 個のまま宛先ごとに池を分けられる．(3) 2 つの値で (i) と (ii) を分けられ，追加の費用は 9 実行（約 45 分）である．
+- 要レビュー: (a) 設定ファイルの形式に追加のキーを足してよいか（B9 と同じ種類の確認．既定値で今の挙動）．(b) aiohttp への置き換えや httpcore の修正版の利用は，依存の変更を伴うので扱わない．per_node でも質問者の CPU が飽和する場合の次の候補として残す．
+  (c) 採用でも `http_pool` の既定値は `shared` のまま（過去の実験の再現のため）とし，以後の負荷の実験で `per_node` を明示する．既定値を `per_node` に変えるかは人間の判断とする．
+
 ## B19 [auto-decided 2026-10-15] Iteration 4（centroid_probe の実機化）は棄却．Iteration 5 は負荷の律速が質問者の HTTP クライアントにあるかの切り分け
 
 - 状況: Iteration 4 の判定は棄却（parallel 30 で K = 75 の処理量 1.974〜2.113 問/秒は flood_score（T4）の 2.440〜2.585 より下，e2e p95 22.8〜27.5 秒は 18.9〜20.6 秒より上．journal の「Iteration 4 実行済み」）．

@@ -5,16 +5,17 @@ from __future__ import annotations
 import json
 import logging
 import random
+import resource
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 
 from atrium.analysis import read_results
 from atrium.benchmarks import load_questions
 from atrium.config import AtriumConfig
-from atrium.manifest import read_placement
+from atrium.manifest import Placement, read_placement
 from atrium.paths import dataset_paths
 from atrium.requester import (
     CachedQueryEmbedder,
@@ -35,10 +36,15 @@ from atrium.routing import (
 
 logger = logging.getLogger(__name__)
 
+HttpPool = Literal["shared", "shared_unlimited", "per_node"]
+
 RUN_META = "run_meta.json"
 RESULTS = "results.jsonl"
 # 50 台規模へ同時に問い合わせても接続数で詰まらないようにする
 MAX_CONNECTIONS = 512
+# per_node の 1 ノードあたりの上限．parallel ≤ 30 では 1 ノードへの同時の要求が 2 × parallel（probe 1 件＋
+# 本照会 高々 m = 2 件の余裕を見て 60）を超えないので，上限に当たって接続を作り直すことはない
+MAX_CONNECTIONS_PER_NODE = 64
 # イメージの build 時にコミットを書き込むファイル（Dockerfile の GIT_HEAD．start.sh も同じファイルを読む）
 IMAGE_GIT_HEAD_FILE = Path("/etc/atrium-git-head")
 
@@ -48,6 +54,25 @@ def read_image_git_head() -> str:
     if not IMAGE_GIT_HEAD_FILE.exists():
         return "unknown"
     return IMAGE_GIT_HEAD_FILE.read_text(encoding="utf-8").strip()
+
+
+def build_http_client(http_pool: HttpPool, placement: Placement) -> httpx.AsyncClient:
+    """質問者の HTTP クライアントを作る．池の持ち方だけを変え，要求の内容と宛先は変えない．"""
+    if http_pool == "shared":
+        return httpx.AsyncClient(limits=httpx.Limits(max_connections=MAX_CONNECTIONS))
+    if http_pool == "shared_unlimited":
+        return httpx.AsyncClient(limits=httpx.Limits(max_connections=None))
+    # per_node：origin（scheme・host・port）ごとの mounts で別の AsyncHTTPTransport（別の池）へ振り分ける．
+    # mounts に無い宛先（質問者の Ollama など）は既定の池（shared と同じ上限）に行く
+    mounts: dict[str, httpx.AsyncBaseTransport] = {
+        origin: httpx.AsyncHTTPTransport(
+            limits=httpx.Limits(max_connections=MAX_CONNECTIONS_PER_NODE)
+        )
+        for origin in {
+            str(httpx.URL(node.url).copy_with(path="/")).rstrip("/") for node in placement.nodes
+        }
+    }
+    return httpx.AsyncClient(limits=httpx.Limits(max_connections=MAX_CONNECTIONS), mounts=mounts)
 
 
 def _make_embedder(
@@ -108,7 +133,7 @@ async def run_experiment(
         if (out_dir / RUN_META).exists()
         else {}
     )
-    async with httpx.AsyncClient(limits=httpx.Limits(max_connections=MAX_CONNECTIONS)) as client:
+    async with build_http_client(cfg.experiment.http_pool, placement) as client:
         start = time.perf_counter()
         shards = await discover_shards(client, placement)
         discovery_s = time.perf_counter() - start
@@ -152,6 +177,7 @@ async def run_experiment(
             ],
             "config": cfg.model_dump(mode="json"),
             "started_at": previous.get("started_at", time.time()),
+            "http_pool": cfg.experiment.http_pool,
         }
         _write_meta(out_dir, meta)
         if churn is not None:
@@ -160,7 +186,22 @@ async def run_experiment(
             schedule = build_schedule(cfg, churn, len(placement.nodes), len(questions))
             await run_churn_questions(requester, questions, out_dir / RESULTS, churn, schedule)
         else:
+            # 質問の処理の区間の質問者のプロセスの CPU 時間（1 コアの飽和 = requester_cpu_util 1.0）
+            cpu_before = resource.getrusage(resource.RUSAGE_SELF)
+            wall_before = time.perf_counter()
             await run_questions(requester, questions, out_dir / RESULTS, cfg.experiment.parallel)
+            cpu_after = resource.getrusage(resource.RUSAGE_SELF)
+            cpu_s = (cpu_after.ru_utime - cpu_before.ru_utime) + (
+                cpu_after.ru_stime - cpu_before.ru_stime
+            )
+            meta.update(
+                {
+                    "requester_cpu_user_s": cpu_after.ru_utime - cpu_before.ru_utime,
+                    "requester_cpu_sys_s": cpu_after.ru_stime - cpu_before.ru_stime,
+                    "requester_cpu_s": cpu_s,
+                    "requester_cpu_util": cpu_s / (time.perf_counter() - wall_before),
+                }
+            )
         # 再開した場合も含め，各質問の最後の結果で失敗を数える
         failures = sum(r.get("error") is not None for r in read_results(out_dir / RESULTS))
         meta.update({"finished_at": time.time(), "failures": failures})
