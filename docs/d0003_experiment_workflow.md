@@ -191,6 +191,7 @@ bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel 
 bash scripts/tasks/remote.sh advert_eval   <out_name>                              # RQ-A（EQ2）
 bash scripts/tasks/remote.sh cascade_eval  <out_name> <reference_run>              # 二段ルーティング centroid_probe（Iteration 1）
 bash scripts/tasks/remote.sh probe_reach   <out_name> <placement_run>              # centroid_probe の K ごとの届くデバイスの数と再現率（Iteration 4）
+bash scripts/tasks/remote.sh device_probe_eval <out_name> <placement_run> <reference_run>  # device_probe の D ごとの hit@2 と D の選択（Iteration 7．reference_run は Iteration 1 の cascade-eval）
 bash scripts/tasks/remote.sh churn_eval    <out_name> <placement_run> <reference_run>   # 参加・離脱（EQ7a）
 bash scripts/tasks/remote.sh owner_eval    <out_name> <reference_run>              # 持ち主推定の入力を揃える（p0005 T2）
 bash scripts/tasks/remote.sh header_eval   <out_name> <reference_run> [t2_run] [cascade_run]  # T2 の入力からヘッダーを除く（Iteration 2 の R1・R2）

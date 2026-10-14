@@ -571,3 +571,50 @@ async def test_centroid_probe_scores_the_first_stage_once_per_question(
     assert record["error"] is None
     assert router.first_stage_calls == 1
     assert record["probe_shards"] == 3
+
+
+async def test_device_probe_probes_all_candidate_shards_on_the_top_devices_only(
+    cfg: AtriumConfig,
+    tmp_path: Path,
+    corpus: dict[str, F32Array],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from atrium.routing.advert import DeviceProbeRouter
+
+    question = _questions(1)[0]
+    vec = corpus["t0"][0].astype(np.float16).astype(np.float32)
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"),
+        tmp_path,
+        DeviceProbeRouter(m=1, probe_d=1),
+        {question.qid: vec},
+    )
+    _with_adverts(requester, {"pubmed": (-vec).tolist(), "textbooks": vec.tolist()})
+    # device_probe は 1 データ源 1 シャード（EnronQA の受信箱）を前提にするので，単一シャードの textbooks だけを残す
+    requester.sources = [s for s in requester.sources if s.source == "textbooks"]
+    calls = _spy_probes(requester, monkeypatch)
+    record = await requester.process(question)
+    assert record["error"] is None
+    assert calls == [("http://node-b/v1/probe", ["textbooks-00"])]
+    assert record["probe_recipients"] == 1
+    assert record["selected_sources"] == ["textbooks"]
+
+
+async def test_device_probe_fails_the_question_for_a_source_split_over_devices(
+    cfg: AtriumConfig, tmp_path: Path, corpus: dict[str, F32Array]
+) -> None:
+    from atrium.routing.advert import DeviceProbeRouter
+
+    question = _questions(1)[0]
+    vec = corpus["t0"][0].astype(np.float16).astype(np.float32)
+    requester = await _requester(
+        _cfg(cfg, "retrieval_only"),
+        tmp_path,
+        DeviceProbeRouter(m=1, probe_d=1),
+        {question.qid: vec},
+    )
+    _with_adverts(requester, {"pubmed": (-vec).tolist(), "textbooks": vec.tolist()})
+    record = await requester.process(question)
+    # pubmed は 2 台に分かれているので，デバイスを単位に選べない
+    assert record["error"] is not None
+    assert "single-shard" in record["error"]

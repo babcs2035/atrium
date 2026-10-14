@@ -17,6 +17,16 @@
 
 ---
 
+## B24 [auto-decided 2026-10-15] Iteration 7 のレバーの形：`experiment.routing: device_probe` と新しいキー `routing.probe_d.enronqa`，まとめ方は最大値
+
+- 状況: B23 で，device_probe（仮称）のまとめ方（受信箱の得点のデバイスごとの集約）と D を rc-researcher が事前登録で決めることになっていた．
+- 自動選択: **`experiment.routing` に `device_probe` を追加し，D は新しいキー `routing.probe_d.enronqa`（既定 30 の仮置き）**．まとめ方は**最大値**（和はオフラインの参考だけ）．D は `atrium device-probe-eval` の dev で，比べる centroid_probe（K = 75・30）の dev の hit@2 以上になる最小の D とし，
+  要求の数が 0.9 倍以下（D ＋ 2 ≤ 0.9 ×（K の届くデバイスの数 ＋ 2））の D だけを実機（per_node・300 問・検索だけ）で，同じ時間帯の centroid_probe（K）と交互に測る．事前登録は journal の Iteration 7．
+- 根拠: (1) 最大値でまとめると，上位 D 台は「届くデバイスが D 台以下の上位 K 個の受信箱」を必ず含むので，同じ台数で centroid_probe より再現率が下がらない（包含の性質．コードの確認項目にした）．和は正解が 1 個の問で「似た受信箱が多い台」を上げてしまう．
+  (2) 既存の centroid_probe の経路（候補のデータ源 → そのシャードを持つノードへの probe）をそのまま使え，既存の routing の値の挙動を変えない．(3) 見込みの規則でオフラインの結果から実機の時間を限り，見込みが無ければ実機を流さずに棄却にできる．
+- 要レビュー: (a) 見込みの閾値 0.9（処理量で約 1.11 倍）と採用の倍率 1.10 は，Iteration 6 の揺れ（±5% 以内）から決めた運用上の値である．(b) device_probe は 1 データ源 1 シャードの EnronQA でしか使えない（MedRAG では問を失敗として記録する）．
+  (c) 比べる相手を Iteration 6 の値ではなく同じ時間帯の centroid_probe にしたので，実行の数が最大 26 に増える．
+
 ## B23 [auto-decided 2026-10-15] Iteration 6（1 段目の採点の重心の前計算）は採用．Iteration 7 はデバイスを単位に上位を選ぶ二段の方式
 
 - 状況: Iteration 6 の判定は採用（事前登録の規則の機械的な適用．H-S1〜H-S4 が全て成立）．route_s の p50 は 0.111 → 0.0013〜0.0016 秒，parallel 30 の処理量の中央値は multi_centroid 8.55 → 169.5 問/秒，K = 75 5.37 → 13.4 問/秒，K = 30 は 19.7 問/秒（journal の「Iteration 6 実行済み」）．

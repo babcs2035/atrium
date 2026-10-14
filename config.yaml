@@ -58,6 +58,10 @@ routing:
   # 評価の前の値は届かない場合の 75 を仮置きしたもので，評価の入力にはならない
   probe_k:
     enronqa: 75
+  # device_probe が probe を送るデバイスの数 D（multi_centroid の得点をデバイスごとに最大値でまとめた上位 D 台）．
+  # atrium device-probe-eval の dev で事前登録の規則（Iteration 7）で選ぶ．評価の前の値は全 30 台（flood_score と同じ選択）の仮置き
+  probe_d:
+    enronqa: 30
 
 llm:
   # 各ノードで使う Ollama のバージョン（イメージは制御点の registry の mirror/ から取得する）

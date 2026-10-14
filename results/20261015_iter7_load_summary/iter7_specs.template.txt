@@ -1,0 +1,27 @@
+# Iteration 7 負荷試験の仕様の雛形（事前登録の順序．journal の Iteration 7 の事前登録と同じ）．EnronQA 300 問（受信箱ごとの先頭 2 問），retrieval_only，m = 2，http_pool=per_node を全実行で明示．
+# rc-executor は atrium device-probe-eval の出力（choices）から，見込みありの比べる K（75 を先，30 を後）ごとに下の「系列」を 1 回ずつ展開して iter7_specs.txt を作る．
+#   <D> は選んだ D，<K> は比べる K．見込みありが 1 つも無ければ実機の実行は 0 回（揺れの確認も流さない）．
+#   K = 75 と K = 30 で選んだ D が同じなら，dp の系列（手順 2・3 の dp の行）は 1 回だけ流し，cp<K> の 3 回は両方の K で流す（cp と dp の交互の並びは K = 75 の系列で行う）．
+# 連続実行は iter7_chain.sh を使う．<date> は実行日．
+
+# 1. 環境の揺れの確認（前）
+<date>_iter7_anchor_fs_pn_p30_pre dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=flood_score http_pool=per_node parallel=30
+
+# 系列（見込みありの K ごと）
+# 2. parallel 30 を centroid_probe（K）と device_probe（D）で交互に 3 回ずつ（同じ時間帯で比べる）
+<date>_iter7_cp<K>_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=centroid_probe http_pool=per_node parallel=30 routing.probe_k.enronqa=<K>
+<date>_iter7_dp<D>_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=30 routing.probe_d.enronqa=<D>
+<date>_iter7_cp<K>_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=centroid_probe http_pool=per_node parallel=30 routing.probe_k.enronqa=<K>
+<date>_iter7_dp<D>_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=30 routing.probe_d.enronqa=<D>
+<date>_iter7_cp<K>_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=centroid_probe http_pool=per_node parallel=30 routing.probe_k.enronqa=<K>
+<date>_iter7_dp<D>_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=30 routing.probe_d.enronqa=<D>
+# 3. device_probe（D）の parallel 1・16 を 3 回ずつ（曲線の記録．判定に使わない）
+<date>_iter7_dp<D>_pn_p1_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=1 routing.probe_d.enronqa=<D>
+<date>_iter7_dp<D>_pn_p1_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=1 routing.probe_d.enronqa=<D>
+<date>_iter7_dp<D>_pn_p1_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=1 routing.probe_d.enronqa=<D>
+<date>_iter7_dp<D>_pn_p16_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=16 routing.probe_d.enronqa=<D>
+<date>_iter7_dp<D>_pn_p16_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=16 routing.probe_d.enronqa=<D>
+<date>_iter7_dp<D>_pn_p16_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=device_probe http_pool=per_node parallel=16 routing.probe_d.enronqa=<D>
+
+# 4. 環境の揺れの確認（後）
+<date>_iter7_anchor_fs_pn_p30_post dataset=enronqa answer_mode=retrieval_only question_limit=2 routing=flood_score http_pool=per_node parallel=30

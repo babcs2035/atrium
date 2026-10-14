@@ -53,7 +53,7 @@ from atrium.protocol import (
     ShardProfile,
 )
 from atrium.routing import Router, RoutingQuery, SourceProfile
-from atrium.routing.advert import CentroidProbeRouter, tokenize
+from atrium.routing.advert import CentroidProbeRouter, DeviceProbeRouter, tokenize
 from atrium.store import RetrievedDoc
 
 logger = logging.getLogger(__name__)
@@ -212,6 +212,13 @@ class Requester:
     def __post_init__(self) -> None:
         """シャード → ノード URL の表を作る．"""
         self._url_of_shard = self.placement.url_of_shard()
+        # device_probe：データ源 → それを持つノードの URL（EnronQA は 1 データ源 1 シャード．複数のシャードの
+        # データ源は 1 台に決まらないので，device_probe では使えない）
+        self._device_of_source = {
+            s.source: self._url_of_shard[s.shard_ids[0]]
+            for s in self.sources
+            if len(s.shard_ids) == 1
+        }
         # churn を指定した実験では，離脱したノードの失敗を問の失敗にせず，返事のあった分で続ける
         self._tolerant = self.cfg.experiment.churn is not None
 
@@ -525,13 +532,14 @@ class Requester:
 
     async def _route_by_candidate_probe(
         self,
-        router: CentroidProbeRouter,
+        router: CentroidProbeRouter | DeviceProbeRouter,
         question: Question,
         embeddings: dict[str, F32Array],
         record: dict[str, Any],
     ) -> list[str]:
-        """centroid_probe：1 段目の候補を同期に求め（multi_centroid と同じくイベントループの上），候補だけへ probe を送って上位 m 個を選ぶ．
+        """centroid_probe・device_probe：1 段目の候補を同期に求め（multi_centroid と同じくイベントループの上），候補だけへ probe を送って上位 m 個を選ぶ．
 
+        centroid_probe の候補は上位 K 個のデータ源，device_probe の候補は上位 D 台のデバイスに載る全てのデータ源である．
         route_s は 1 段目の採点と 2 段目の選択の合計である（probe の待ちは probe_s に入る）．
         """
         start = time.perf_counter()
@@ -541,7 +549,14 @@ class Requester:
             embeddings,
             tokens=tuple(tokenize(question.question)),
         )
-        candidates = router.candidates(query, self._routable_sources())
+        sources = self._routable_sources()
+        if isinstance(router, DeviceProbeRouter):
+            missing = [s.source for s in sources if s.source not in self._device_of_source]
+            if missing:
+                raise ValueError(f"device_probe needs single-shard sources: {missing[:5]}")
+            candidates = router.candidates(query, sources, self._device_of_source)
+        else:
+            candidates = router.candidates(query, sources)
         first_stage_s = time.perf_counter() - start
         probe_scores = await self._probe(embeddings, record, candidates)
         start = time.perf_counter()
@@ -566,7 +581,7 @@ class Requester:
         start = time.perf_counter()
         try:
             embeddings = await asyncio.to_thread(self._embed, question, record)
-            if isinstance(self.router, CentroidProbeRouter):
+            if isinstance(self.router, (CentroidProbeRouter, DeviceProbeRouter)):
                 selected = await self._route_by_candidate_probe(
                     self.router, question, embeddings, record
                 )

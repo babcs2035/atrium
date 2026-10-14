@@ -13,6 +13,7 @@
     advert-eval               RQ-A のオフラインの評価（EnronQA．制御点のコンテナ）
     cascade-eval              二段ルーティング centroid_probe のオフラインの評価（EnronQA．制御点のコンテナ）
     probe-reach               centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA．Iteration 4．制御点のコンテナ）
+    device-probe-eval         device_probe の D ごとの hit@m と D の選択（EnronQA．Iteration 7．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
@@ -259,6 +260,23 @@ def cmd_probe_reach(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     probe_reach.write_outputs(Path(args.out_dir), metrics)
     print(probe_reach.render_report(metrics))
+    return 0
+
+
+def cmd_device_probe_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """device_probe の D ごとの hit@m と D の選択（Iteration 7）を出し，metrics.json と analysis_report.md を書く．"""
+    from atrium import device_probe_eval
+    from atrium.manifest import read_placement
+
+    reference = json.loads(Path(args.reference_metrics).read_text(encoding="utf-8"))
+    metrics = device_probe_eval.evaluate(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        read_placement(Path(args.placement)),
+        reference,
+    )
+    device_probe_eval.write_outputs(Path(args.out_dir), metrics)
+    print(device_probe_eval.render_report(metrics))
     return 0
 
 
@@ -620,6 +638,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--placement", required=True, help="受信箱の配置（results/<run>/placement.json）"
     )
     p.set_defaults(func=cmd_probe_reach)
+
+    p = sub.add_parser(
+        "device-probe-eval",
+        help="device_probe の D ごとの hit@m と D の選択（EnronQA．Iteration 7）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--placement", required=True, help="受信箱の配置（results/<run>/placement.json）"
+    )
+    p.add_argument(
+        "--reference-metrics",
+        required=True,
+        help="centroid_probe の値の一致の基準（Iteration 1 の cascade-eval の metrics.json）",
+    )
+    p.set_defaults(func=cmd_device_probe_eval)
 
     p = sub.add_parser("owner-eval", help="持ち主推定の入力を揃えた評価（EnronQA．p0005 T2）")
     p.add_argument("--data-dir", required=True)

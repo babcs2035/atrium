@@ -181,6 +181,7 @@ EnronQA（p0004 の RQ-A）のために，公開情報を使う方式を `src/at
 | `term_sketch` | 多く使う語と，その語を含むメールの割合 | クエリの語と重なる語の割合の和の上位 m 個 |
 | `centroid_sim` | 埋め込みの平均 | 内積の上位 m 個 |
 | `multi_centroid` | k-means の C 個の中心 | 中心との内積の最大の上位 m 個 |
+| `device_probe` | `multi_centroid` と同じ | 1 段目に `multi_centroid` の得点をノードごとに最大値でまとめた上位 D 台を選び，その D 台の全ての受信箱へ `/v1/probe` を送って上位 m 個に本照会する（D は `routing.probe_d`．Iteration 7） |
 
 これらの評価は，実機を使わないもの（`atrium advert-eval`．RQ-A のオフライン評価，`atrium owner-eval`．持ち主推定の入力を揃えた評価，`atrium newcomer-eval`．150 人での新参者の評価，`atrium churn-eval`．参加・離脱のオフライン評価）と，
 実機に流すもの（`experiment.routing` に名前を書く．参加・離脱の再生は `experiment.churn`）がある．指標は [d0004](d0004_metrics.md) にある．

@@ -26,6 +26,7 @@ RoutingName = Literal[
     "centroid_sim",
     "multi_centroid",
     "centroid_probe",
+    "device_probe",
 ]
 # snippet_return_small（B3）と delegate_gpu（B4）は p0004 で追加（RQ-B）
 AnswerMode = Literal[
@@ -115,6 +116,9 @@ class RoutingConfig(_Strict):
     top_m: dict[DatasetName, int] = Field(default_factory=dict)
     # centroid_probe が probe を送る候補の数 K（multi_centroid の上位 K 個．dev で事前登録の規則で選ぶ）
     probe_k: dict[DatasetName, int] = Field(default_factory=dict)
+    # device_probe が probe を送るデバイスの数 D（multi_centroid の得点をデバイスごとに最大値でまとめた上位 D 台．
+    # Iteration 7 の事前登録の規則で選ぶ）
+    probe_d: dict[DatasetName, int] = Field(default_factory=dict)
 
 
 class LlmConfig(_Strict):

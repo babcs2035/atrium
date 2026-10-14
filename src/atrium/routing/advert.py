@@ -12,6 +12,7 @@
 | centroid_sim | 埋め込みの平均（重心） | クエリ埋め込みとの内積 |
 | multi_centroid | k-means の C 個の中心 | 中心との内積の最大 |
 | centroid_probe | multi_centroid と同じ | 1 段目に multi_centroid の上位 K 個を選び，その K 個にだけ flood_score と同じ probe を送って上位 m 個を選ぶ |
+| device_probe | multi_centroid と同じ | 1 段目に multi_centroid の得点をデバイスごとに最大値でまとめた上位 D 台を選び，その D 台の全てのデータ源に probe を送って上位 m 個を選ぶ |
 """
 
 from __future__ import annotations
@@ -215,6 +216,74 @@ class CentroidProbeRouter:
         if query.probe_scores is None:
             raise ValueError("centroid_probe requires probe scores of the candidates")
         return self.select_among(self.candidates(query, sources), query.probe_scores)
+
+    def select_among(
+        self, candidates: Sequence[str], probe_scores: Mapping[str, float]
+    ) -> list[str]:
+        """求め済みの候補のうち，probe の最高スコアの上位 m 個を返す（1 段目の採点をやり直さない）．"""
+        scores = [probe_scores.get(c, float("-inf")) for c in candidates]
+        return top_m(candidates, scores, self.m)
+
+    def advert_bytes(self, sources: Sequence[SourceProfile]) -> int:
+        """公開情報は multi_centroid と同じ．"""
+        return self._first_stage.advert_bytes(sources)
+
+
+def top_devices(
+    names: Sequence[str],
+    scores: Sequence[float],
+    device_of_source: Mapping[str, str],
+    d: int,
+) -> list[str]:
+    """データ源の得点をデバイスごとに最大値でまとめ，上位 d 台に載るデータ源を names の順で返す．
+
+    デバイスの並びは names の中で最初に現れた順で，同点はその順の先の方を採る（top_m と同じ考え方）．
+    最大値でまとめると，デバイスの順位は「そのデバイスのデータ源が得点の順位に最初に現れる位置」の順になる．
+    したがって上位 d 台は，上位 K 個のデータ源が載るデバイスが d 台以下で収まる限り，その K 個を全て含む．
+    """
+    best: dict[str, float] = {}
+    for name, score in zip(names, scores, strict=True):
+        device = device_of_source[name]
+        best[device] = max(best.get(device, float("-inf")), score)
+    devices = list(best)
+    chosen = set(top_m(devices, [best[v] for v in devices], d))
+    return [n for n in names if device_of_source[n] in chosen]
+
+
+class DeviceProbeRouter:
+    """multi_centroid の得点をデバイスごとに最大値でまとめた上位 D 台にだけ probe を送り，上位 m 個に本照会する二段の方式．
+
+    centroid_probe（受信箱を単位に上位 K 個）は，受信箱がデバイスに散らばった配置では K = 75 でも 29 台に届き，
+    質問者の扱う要求の数がほとんど減らない（Iteration 4・6）．この方式は probe を受けるデバイスの数を D に固定し，
+    選んだデバイスに載る全てのデータ源を候補にする．デバイスの対応はルーターの外（質問者の配置）から受け取る．
+    実機の質問者は `candidates` を 1 問で 1 回だけ求め，`select_among` で上位 m 個を選ぶ（centroid_probe と同じ流れ）．
+    オフラインの評価は atrium device-probe-eval で行う．
+    """
+
+    name = "device_probe"
+
+    def __init__(self, m: int, probe_d: int) -> None:
+        """本照会するデータ源の数 m と，probe を送るデバイスの数 D を持つ．"""
+        if probe_d < 1:
+            raise ValueError(f"probe_d ({probe_d}) must be at least 1")
+        self.m = m
+        self.probe_d = probe_d
+        self._first_stage = MultiCentroidRouter(m)
+
+    def candidates(
+        self,
+        query: RoutingQuery,
+        sources: Sequence[SourceProfile],
+        device_of_source: Mapping[str, str],
+    ) -> list[str]:
+        """1 段目：得点の最大値の上位 D 台のデバイスに載る全てのデータ源（probe を送る先）を返す．"""
+        names = [s.source for s in sources]
+        scores = [self._first_stage.score(query, s) for s in sources]
+        return top_devices(names, scores, device_of_source, self.probe_d)
+
+    def select(self, query: RoutingQuery, sources: Sequence[SourceProfile]) -> list[str]:
+        """デバイスの対応はルーターの外にあるので，質問者の candidates と select_among を使う．"""
+        raise ValueError("device_probe needs the device of each source; use candidates()")
 
     def select_among(
         self, candidates: Sequence[str], probe_scores: Mapping[str, float]

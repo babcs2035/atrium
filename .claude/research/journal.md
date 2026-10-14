@@ -3,6 +3,103 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 7: デバイスを単位に上位を選ぶ二段の方式の再現率と処理量
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B23 [auto-decided]（Iteration 6 は採用．前計算の後も処理量は「1 問の時間 = route_s ＋ 要求の数 ÷ R」，R ≈ 420 要求/秒で決まり，K = 75 は probe が 29.1 台に届くので flood_score と同じ程度にしかならない）．config.yml の levers 末尾の `experiment.routing: [device_probe]`（仮称）を，下のとおり **`experiment.routing: device_probe` と新しいキー `routing.probe_d.enronqa`（D）** として確定した（backlog B24）．
+データ準備・ラベル・シャード・公開情報は作り直さない．既存の routing の値の挙動は変えない．
+
+**コードと既存の結果から確かめたこと**（事実）
+- 配置は 30 台 × 5 受信箱で，T4 から Iteration 6 まで同じ（`results/20261014_t4_flood_score_p1_r1/placement.json` と `results/20261015_iter6_cp75_pn_p30_r1/placement.json` はバイト単位で同じ）．
+- 受信箱を単位に上位 K 個を選ぶ centroid_probe の届くデバイスの数（`results/20261014_iter4_probe_reach/`．test 2,940 問の平均）は K = 4 で 3.8，15 で 12.1，30 で 19.9，50 で 26.0，75 で 29.1 台であり，K を半分にしても届く台数はほとんど減らない．test の hit@2 は K = 30 で 0.6905，K = 75 で 0.7612，flood_score で 0.8041（Iteration 1 の dev は K = 30 で 0.6906，K = 75 で 0.7649）．
+- Iteration 6 の per_node・前計算の下の parallel 30 の処理量は，K = 75 が 13.099〜13.444 問/秒（e2e p95 3.436〜3.558 秒），K = 30 が 18.709〜19.698 問/秒（2.311〜2.741 秒）である．R は K = 75 で 415〜426，K = 30 で 421〜444 要求/秒．
+- 質問者の 2 段目（`Requester._route_by_candidate_probe`・`_probe`）は「候補のデータ源の名前」を受け取り，そのシャードを持つノードにだけ，候補のシャードの `shard_ids` で probe を送る．したがってデバイスを単位に選ぶ方式は，候補を「上位 D 台に載る全ての受信箱」にすれば同じ経路で流せる．
+
+**調査で分かったこと**（tavily-search・tavily-extract．事実と推測を分けて書く）
+- selective search の負荷の研究では，資源選択はシャード（本研究の受信箱）を単位に行い，シャードを機械へ割り当てる方針（Random と，学習の問の記録から負荷を均す Log-based）を別に扱う．機械の数が増えると Random の割り当てでは負荷が偏り，Log-based の割り当てで処理量が上がったと報告している
+  （Y. Kim, J. Callan, J. S. Culpepper, A. Moffat, "Load-balancing in distributed selective search", SIGIR 2016, pp. 905–908．https://www.cs.cmu.edu/~callan/Papers/sigir16-yubink.pdf ）．同じ著者らの IRJ 2017（https://people.eng.unimelb.edu.au/ammoffat/abstracts/kccm17irj.pdf ）も，資源選択の後に「選ばれたシャードを持つ機械へ」問を送る構成を測っている．
+  これらは「シャードを選び，その結果として届く機械が決まる」形で，**機械を単位に上位を選ぶ資源選択は，今回の検索では見つからなかった**（無いとは言えない）．本研究のように 1 台の質問者が要求の数で律速され，ノードの計算が無視できる（Iteration 4 の事実 1）条件では，届く機械の数を直接選ぶ方が式の上で効く（推測）．
+- 分散のベクトル検索でも，パーティションの中心で問の行き先を選ぶ階層の設計が普通で，問ごとに触るノードの数が処理量を決める．SPire は，DSPANN が 1 問あたり全パーティションの 20〜80% を読むために処理量が伸びないこと，全ノードに問う Milvus+ は処理量が低いことを報告し，近い中心のパーティションを同じノードに集める配置は偏り（hot spot）で処理量を下げると述べている
+  （"Scalable Distributed Vector Search via Accuracy Preserving Index Construction", arXiv:2512.17264, 2025．https://arxiv.org/abs/2512.17264 ．著者は今回の取得では確かめていない）．本研究の配置は受信箱の話題と無関係に散らばっているので，デバイスを単位に選んでも特定の台に問が集まりにくい一方，1 台に正解に近い受信箱が集まる効果も期待できない（推測）．
+- 受信箱の得点のデバイスごとのまとめ方について：sample-based の資源選択（ReDDE・Rank-S など）は，標本の文書の得点を「票」として親のシャードに足し合わせる（Rank-S は順位で指数的に減らした得点の和．Kim ほか IRJ 2017 の §2 の説明）．和は「関連の文書を多く持つシャード」を上げる規則であり，CORI と ReDDE は大きさの正規化の向きが違うと整理されている
+  （A. Kulkarni, "Efficient and Effective Large-scale Search", CMU 博士論文, 2013．https://www.lti.cs.cmu.edu/people/alumni/alumni-thesis/kulkarni_anagha-thesis.pdf ）．本研究の問は正解の受信箱が 1 個で，デバイスの 5 受信箱は話題と無関係に置かれているので，和は「正解を持つか」ではなく「似た受信箱が多いか」を測ってしまう（推測）．このため主のまとめ方は最大値とし，和はオフラインの参考に留める（下の事前登録）．
+
+**問い**：(1) 受信箱の得点をデバイスごとに最大値でまとめた上位 D 台に probe を送ると，centroid_probe（K = 75・30）と同じ hit@2 を，より少ないデバイス（＝要求）で得られるか．(2) 得られるなら，実機の parallel 30 の処理量は要求の数の比のとおりに上がるか．
+
+**B23 の要レビューへの対応**
+- (a) 複数の質問者のプロセス・デバイスの構成は，この比較の後の候補のまま残す（どの方式の処理量も質問者 1 プロセスの能力の比較である点は限界に書く）．
+- (b) 処理量の高い条件の揺れ（約 1 秒の一斉の待ち）への対策として，比べる centroid_probe（同じ K）を**同じ時間帯に device_probe と交互に 3 回ずつ流し**，Iteration 6 の値ではなく同じ時間帯の値と比べる．問の数は，オフラインの選択と実機の選択を照合するため 300 問のままとする（device_probe の想定の処理量 15〜23 問/秒では 1 回 13〜20 秒で，1 秒の待ちは 5〜8% に当たる．判定は 3 回の範囲が重ならないことを要るので，1 回の待ちで差を作り出すことはない）．
+- (c) `experiment.http_pool` の既定値は `shared` のまま．全実行の仕様に `http_pool=per_node` を明示する．
+
+**仮説**
+- **H-D1（再現率．オフライン）**：最大値でまとめた device_probe は，同じ hit@2 を centroid_probe より少ないデバイスの数で得る．dev で K の hit@2 以上になる最小の D（D_K）が，K の届くデバイスの数より 1 割以上少ない要求の数になり，test の hit@2 が K の hit@2 − 0.01 以上である．
+  根拠：最大値でまとめたデバイスの順位は「そのデバイスの受信箱が受信箱の順位に最初に現れる位置」の順なので，上位 D 台は，届くデバイスが D 台以下の上位 K 個を全て含む（包含．コードの確認項目にした）．さらに各台の残りの受信箱も probe されるので，同じ台数で再現率は centroid_probe 以上になる見込みである（推測）．
+- **H-D2（処理量）**：parallel 30 で，device_probe（D_K）の処理量は同じ時間帯の centroid_probe（K）より高い．仕組み：1 問あたりの要求の数が（K の届くデバイス ＋ 2）から（D_K ＋ 2）に減る．
+- **H-D3（待ち時間）**：parallel 30 で，device_probe（D_K）の e2e p95 は同じ時間帯の centroid_probe（K）より小さい．
+
+**単一レバー**：`config.yaml` の `experiment.routing` を，Iteration 6 の `centroid_probe` から **`device_probe`** へ変える．D は新しいキー `routing.probe_d.enronqa`（既定は全 30 台の仮置き．評価の後に事前登録の規則の値を連続実行が書き換える）．1 段目（前計算した multi_centroid の採点）・2 段目（`/v1/probe`）・本照会は centroid_probe と同じで，**候補の単位（上位 K 個の受信箱 → 上位 D 台のデバイスの全ての受信箱）だけ**が違う．
+- **まとめ方（事前登録）：最大値**（上の調査と包含の性質）．和はオフラインの評価に参考として並べ，判定に使わない．同点はデバイスが受信箱の並びに最初に現れた順の先を採る（`top_m` と同じ考え方）．
+- **実装**（済み．下の commit）
+  - `src/atrium/routing/advert.py`：`top_devices`（データ源の得点をデバイスごとに最大値でまとめ，上位 d 台に載るデータ源を返す）と `DeviceProbeRouter`（`candidates(query, sources, device_of_source)`・`select_among`．`select` はデバイスの対応を持たないので `ValueError`）．
+  - `src/atrium/routing/__init__.py`：`make_router` に `device_probe` を登録（`routing.top_m` と `routing.probe_d` が要る）．`src/atrium/config.py`：`RoutingName` に `device_probe`，`RoutingConfig.probe_d` を追加．`config.yaml`：`routing.probe_d.enronqa: 30`（仮置き）．
+  - `src/atrium/requester.py`：起動時にデータ源 → ノードの URL の表（1 データ源 1 シャードのものだけ）を作り，`DeviceProbeRouter` のときは `_route_by_candidate_probe` で候補を求める（複数のシャードのデータ源があればその問を失敗として記録する）．centroid_probe・flood_score などの経路は変えていない．
+  - `src/atrium/device_probe_eval.py`・`atrium device-probe-eval`・`scripts/remote/device_probe_eval.sh`：下の事前登録の手順をコードに固定したオフラインの評価．
+  - `tests/test_device_probe.py`（15 件．最大値と和の違い，同点の規則，包含の性質，オフラインの選択と実機のルーターの一致，D の選択と見込みの規則）と `tests/test_requester.py`（2 件．候補のデバイスにだけ候補のシャードで probe を送ること，複数台に分かれたデータ源で問が失敗すること）．pytest 263 件・`ruff check src tests`・`ruff format --check src tests`・`mypy src` は通過．
+  - 連続実行：`results/20261015_iter7_load_summary/iter7_chain.sh`（`iter5_chain.sh` に `routing.probe_d.enronqa` を足したもの）と，仕様の雛形 `iter7_specs.template.txt`．
+  - 文書：`docs/d0001_architecture.md`（方式の表），`docs/d0002_configuration.md`（`routing` の値と `probe_d.enronqa`），`docs/d0003_experiment_workflow.md`（コマンド），`docs/d0004_metrics.md`（出力の項目）．
+
+**固定する構成**（Iteration 6 の per_node と同じ）：`dataset: enronqa`，`answer_mode: retrieval_only`，`question_limit: 2`（300 問），m = 2，`merge: score`，`query_embedding.enronqa: cached`，`seed` は既存の値，**`http_pool: per_node`（全実行で明示）**，前計算した 1 段目（`d510a21` 以降の実装），1 段目の採点はイベントループの上で同期，
+公開情報はシャードにある既存のヘッダー込みの multi_centroid（C = 32），配置は T4 以来の 30 台 × 5 受信箱，各回の前に `mise run deploy`，失敗した問は流し直さない，連続実行の間は制御点で他のコンテナを動かさず commit もしない．専門家 30 台・質問者（制御点）の構成は T4 と同じ（運用ルール 8 のフルスペックの実機実験）．
+
+### 事前登録（2026-10-15．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**手順 1：オフラインの評価**（イメージを publish した後，実機の実行の前に 1 回．`bash scripts/tasks/remote.sh device_probe_eval 20261015_iter7_device_probe_eval 20261014_t4_flood_score_p1_r1 20261014_iter1_cascade_eval` → rsync で取得）
+- D の候補：2, 4, …, 28, 30（偶数と全台）．まとめ方は最大値（主）と和（参考）．
+- **D の選択（dev だけ）**：比べる K ∈ {75, 30} ごとに，最大値の device_probe の dev の hit@2 が，同じ採点の centroid_probe（K）の dev の hit@2 以上になる最小の D を D_K とする（無ければ「見込みなし」）．
+- **見込みあり**：D_K ＋ 2 ≤ 0.9 ×（centroid_probe（K）の dev の届くデバイスの数の平均 ＋ 2）．1 問あたりの要求の数が 1 割以上減り，Iteration 6 の式で処理量が約 1.11 倍以上になる見込みの D だけを実機で測る（test の届くデバイスの数で見積もると，K = 75 は約 29.1 台なので D_75 ≤ 25.99，K = 30 は約 19.9 台なので D_30 ≤ 17.7，偶数の候補では 24 以下・16 以下．判定には dev の値を使う）．
+- **H-D1（test での確認）**：見込みありの D_K について，test の hit@2 が centroid_probe（K）の test の hit@2 − 0.01 以上．
+- **正しさの確認**（満たさなければ判定にも実機にも進まず，原因を調べて記録する）：`checks.passed`（centroid_probe の dev・test の hit@2 が Iteration 1 と 5e-4 以内で一致，flood_score の test が一致，D = 30 が flood_score と一致，包含の違反が全ての D と K で 0 問）．
+- 見込みありが 1 つも無ければ，実機の実行は 0 回とし，結論は「棄却（オフラインで見込みなし）」とする．
+
+**手順 2：実機の連続実行**（`iter7_specs.template.txt` を手順 1 の結果で展開した `iter7_specs.txt` を `iter7_chain.sh` で流す．run_id の接頭辞は実行日の `<YYYYMMDD>_iter7_`）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ 1 回も流さずに止め，backlog に `[needs-human]` を記録する．
+2. 環境の揺れの確認（前）：flood_score × per_node の parallel 30 を 1 回．
+3. 見込みありの K ごとに（K = 75 を先）：parallel 30 を centroid_probe（K）と device_probe（D_K）で交互に 3 回ずつ（cp r1 → dp r1 → cp r2 → dp r2 → cp r3 → dp r3），続けて device_probe（D_K）の parallel 1・16 を 3 回ずつ（曲線の記録）．D_75 = D_30 なら dp の系列は 1 回だけ流し，cp は両方の K で流す．
+4. 環境の揺れの確認（後）：2 と同じ．
+- 最大 26 実行（1 回 1〜3 分，全体で約 1.5 時間の見込み）．deploy の失敗の扱い・失敗率の打ち切り（routing・K・D ごと）は Iteration 4〜6 と同じ（`iter7_chain.sh` の実装のとおり）．
+
+**指標**（Iteration 6 と同じ定義）：処理量，e2e_s の p50・p95，probe_s・retrieve_s・route_s の p50・p95，`probe_node_s_max`，失敗率とエラーの種類，`requester_cpu_util`，再試行の数，新しい接続の数，1 秒あたりの HTTP 要求の数，**1 問あたりの probe を受けたデバイスの数（`probe_recipients`）と probe したシャードの数**，300 問の hit@2，parallel 30 の R（記録）．
+
+**正しさの確認（実機）**（満たさなければ判定に進まず，原因を調べて記録する）
+- device_probe の全実行で，失敗の無い問の `selected_sources` が `device-probe-eval` の `live_selected_sources`（同じ D）と **100%** 一致し，全問で `probe_recipients` = D，`probe_shards` = 5D．
+- centroid_probe の全実行で，失敗の無い問の `selected_sources` が `results/20261014_iter4_probe_reach` の選択（同じ K）と 100% 一致する．
+- `run_meta.json` の `http_pool` が全実行で `per_node`，routing・K・D が仕様と一致する．
+
+**環境の揺れの規則**（記録のため．比べる相手は同じ時間帯の centroid_probe なので，判定の基準は変えない）：前後 2 回の flood_score × per_node の p30 の処理量が [11.127, 14.247] 問/秒（Iteration 5・6 の 5 回の [最小 × 0.9, 最大 × 1.1]），e2e p95 が [3.053, 4.067] 秒に入るかを記録する．外れたら「環境が変わった」と記録し，同じ時間帯の centroid_probe の値を Iteration 6 の値と並べる．
+
+**判定の規則**（比べる K ごと．比べる 2 条件の 3 回の範囲が重ならないときだけ「差がある」）
+- **H-D1**：手順 1 の test の確認が成り立つ．
+- **H-D2**：parallel 30 の device_probe（D_K）の 3 回の処理量の範囲が，同じ時間帯の centroid_probe（K）の 3 回の範囲より上にあり，重ならない．
+- **H-D3**：parallel 30 の device_probe（D_K）の 3 回の e2e p95 の範囲が，同じ時間帯の centroid_probe（K）の範囲より下にあり，重ならない．
+- **K ごとの結論**：
+  - **採用**（device_probe（D_K）は，同じ再現率で centroid_probe（K）より負荷の軽い方式として以後の候補になる）：H-D1・H-D2・H-D3 が全て成り立ち，かつ parallel 30 の処理量の 3 回の中央値の比（dp ÷ cp）が 1.10 以上．1.10 は見込みの規則（要求の数が 0.9 倍以下）から予想される最小の倍率 1.11 に合わせ，Iteration 6 の同じ条件の 3 回の幅（K = 75 で中央値の −2.3%〜+0.2%，K = 30 で −4.9%〜+0.1%）の約 2 倍とした．
+  - **部分的に支持**：H-D1 が成り立ち，H-D2 か H-D3 の少なくとも一方が成り立つが，採用の条件を満たさない．
+  - **棄却**：H-D1 が成り立たない，H-D2 と H-D3 がどちらも成り立たない，またはその K で見込みありの D が無い．
+- **このイテレーションの結論**：主は K = 75（Iteration 1 の規則で選んだ K）の結論．K = 75 で見込みありの D が無ければ K = 30 の結論を主とする．どちらも見込みなしなら「棄却（オフラインで見込みなし）」．もう一方の K の結論は記録する．
+- 記録（判定に使わない）：parallel 1・16 の device_probe の曲線，和でまとめた hit@2 の曲線，Iteration 6 の式による処理量の予測（1 ÷（route_s ＋（D ＋ 2）÷ R），R は同じ時間帯の centroid_probe の R）と実測の比，300 問の hit@2．
+
+**ノイズの見積もり**：オフラインの hit@2 は決定的（同じ埋め込み・同じ k-means の種）で，揺れは問の標本の揺れだけである（test 2,940 問の hit@2 の 95% 区間の幅は約 ±0.015．Iteration 1）．H-D1 の許容 0.01 はこの区間より狭く，「劣らない」を緩く判定しない側に置いた．
+実機の処理量の 3 回の幅は Iteration 6 で中央値の ±5% 以内（parallel 30 の K = 75・30）であり，採用の 1.10 倍と範囲が重ならない規則で区別できる．
+
+**期待効果**（推測．判定に使わない）：D_75 は 20〜26，D_30 は 14〜20 のどこかで，どちらの K も見込みあり（D_75 ≤ 24，D_30 ≤ 16）にぎりぎり入るかどうかである．見込みありなら，parallel 30 の処理量は K = 75 の比較で約 13.4 → 15〜17 問/秒，K = 30 の比較で約 19.7 → 22〜25 問/秒（R ≈ 420 の式）．`requester_cpu_util` は 1.0 に張り付いたままの見込みで，処理量の差は要求の数の比でほぼ決まる．
+和でまとめた hit@2 は最大値より低い見込み．
+
+**限界**：有線 LAN・300 問・検索だけ・単一の質問者（1 プロセス・1 コア）であり，比べるのは質問者が扱える要求の数で，専門家の側の限界は測らない．配置は話題と無関係な 30 台 × 5 受信箱の 1 通りで，1 台の受信箱の数や話題の偏った配置では結果が変わりうる．
+device_probe は 1 データ源 1 シャード（EnronQA）でしか使えない．D は dev で選び，test は H-D1 の確認にだけ使う．
+
+**次の候補**：採用か部分的に支持なら，複数の質問者のプロセス・デバイスの構成（専門家の側の限界の測定．B23 (a)）．棄却なら，デバイスの数を減らしても再現率を保てない理由（正解の受信箱の 1 段目の順位の分布）を記録し，同じく複数の質問者の構成へ進む．
+
 ## Iteration 6: 1 段目の採点の重心の前計算による二段の方式の処理量の測り直し
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）

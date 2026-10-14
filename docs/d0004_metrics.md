@@ -166,6 +166,15 @@ term_sketch の採点は，語の集合を走査して重みを足す順序が P
 1 問で probe が届くデバイスの数（平均・中央値・最小・最大・度数），デバイスあたりに probe するシャードの数，上位 K の再現率（正解の受信箱が 1 段目の上位 K に入る割合），2 段目まで通した hit@m を `metrics.json` に出す．
 `selected_sources` は，実機の質問の K = 30・75 での選ばれる受信箱（上位 m 個）で，実機の `selected_sources` との照合に使う．
 
+### device_probe の D ごとの hit@m と D の選択（`atrium device-probe-eval`．Iteration 7）
+
+制御点のコンテナで流す（`scripts/remote/device_probe_eval.sh`．`results/<run>/placement.json` の配置と，Iteration 1 の cascade-eval の `metrics.json` を使う）．実機のノードは使わない．
+`curve.<dev|test>.device_probe` は D（2〜全台の偶数と全台）ごとの probe する受信箱の数の平均と hit@m（最大値でまとめたもの `max_hit@m` と，参考の和 `sum_hit@m`．test は最大値の hit@1・hit@m の 95% 区間も），
+`curve.<split>.centroid_probe` は同じ採点での K ごとの届くデバイスの数の平均と hit@m である．
+`choices` は比べる K（75・30）ごとの D の選択（dev の目標 hit@m，選んだ D，要求の数の比 (D ＋ m) ／（届くデバイス ＋ m），見込みあり，test の劣らないかの確認）．
+`checks` は正しさの確認（centroid_probe の値が Iteration 1 と一致，D = 全台が flood_score と一致，最大値でまとめた上位 D 台が「届くデバイスが D 台以下の上位 K 個」を含まない問の数が 0）．
+`live_selected_sources` は見込みありの D での，実機の質問（受信箱ごとの先頭 2 問）の選ばれる受信箱で，実機の `selected_sources` との照合に使う．
+
 ### 150 人での新参者の評価（`atrium newcomer-eval`．p0005 T3）
 
 `results/<run_id>/metrics.json` の `pooled.<方式>` に，新参者の問（正解の受信箱が新参者である test の質問）を合わせた `hit@1`・`hit@2` と，95% ブートストラップ信頼区間を書く．
