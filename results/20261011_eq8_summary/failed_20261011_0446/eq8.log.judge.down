@@ -1,0 +1,13 @@
+  [31m×[0m Failed to build `atrium @
+  [31m│[0m file:///mnt/data-raid/ktakahashi/workspace/atrium`
+[31m  ├─▶ [0mFailed to resolve requirements from `build-system.requires`
+[31m  ├─▶ [0mNo solution found when resolving: `hatchling>=1.25`
+[31m  ├─▶ [0mFailed to fetch: `https://pypi.org/simple/hatchling/`
+[31m  ├─▶ [0mCould not connect, are you offline?
+[31m  ├─▶ [0mRequest failed after 3 retries
+[31m  ├─▶ [0merror sending request for url (https://pypi.org/simple/hatchling/)
+[31m  ├─▶ [0mclient error (Connect)
+[31m  ├─▶ [0mdns error: failed to lookup address information: Temporary failure in
+[31m  │   [0mname resolution
+[31m  ╰─▶ [0mfailed to lookup address information: Temporary failure in name
+[31m      [0mresolution

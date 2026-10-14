@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[02:50:18] run 20261011_eq8_b2_k5 (kind=e1_routing dataset=enronqa routing=oracle answer_mode=local_answer)
+[04:38:58] results: results/20261011_eq8_b2_k5 (exit 2)
+[start] ERROR task failed

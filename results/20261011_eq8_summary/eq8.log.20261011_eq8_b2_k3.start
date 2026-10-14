@@ -1,0 +1,3 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[01:48:33] run 20261011_eq8_b2_k3 (kind=e1_routing dataset=enronqa routing=oracle answer_mode=local_answer)
+[02:47:26] results: results/20261011_eq8_b2_k3 (exit 0)

@@ -1,0 +1,258 @@
+[2026-10-11_01:18:54] BEGIN 20261011_eq8_b2_k1 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer enronqa.k_context=1
+[01:21:24] 20261011_eq8_b2_k1 deployed
+[01:46:03] 20261011_eq8_b2_k1 start=0 inner=0
+[01:46:05] 20261011_eq8_b2_k1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 9.859 | 40.954 |
+[2026-10-11_01:46:05] BEGIN 20261011_eq8_b2_k3 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer enronqa.k_context=3
+[01:48:32] 20261011_eq8_b2_k3 deployed
+[02:47:26] 20261011_eq8_b2_k3 start=0 inner=0
+[02:47:28] 20261011_eq8_b2_k3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 19.672 | 130.387 |
+[2026-10-11_02:47:28] BEGIN 20261011_eq8_b2_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer enronqa.k_context=5
+[02:50:17] 20261011_eq8_b2_k5 deployed
+[04:38:58] 20261011_eq8_b2_k5 start=2 inner=2
+[04:40:28] 20261011_eq8_b2_k5 resume=0 inner=0
+[04:40:29] 20261011_eq8_b2_k5 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 32.713 | 249.088 |
+[2026-10-11_04:40:29] BEGIN 20261011_eq8_b2_1p7b_k1 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+[04:46:31] 20261011_eq8_b2_1p7b_k1 DEPLOY FAILED
+[2026-10-11_04:46:31] BEGIN 20261011_eq8_b2_1p7b_k3 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+[04:46:32] 20261011_eq8_b2_1p7b_k3 DEPLOY FAILED
+[2026-10-11_04:46:32] BEGIN 20261011_eq8_b2_1p7b_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=5
+[04:46:32] 20261011_eq8_b2_1p7b_k5 DEPLOY FAILED
+[2026-10-11_04:46:32] BEGIN 20261011_eq8_b1_k1 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=1
+[04:46:33] 20261011_eq8_b1_k1 DEPLOY FAILED
+[2026-10-11_04:46:33] BEGIN 20261011_eq8_b1_k3 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=3
+[04:46:33] 20261011_eq8_b1_k3 DEPLOY FAILED
+[2026-10-11_04:46:33] BEGIN 20261011_eq8_b1_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=5
+[04:46:33] 20261011_eq8_b1_k5 DEPLOY FAILED
+[2026-10-11_04:46:33] BEGIN 20261011_eq9_b3_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return_small enronqa.k_context=5
+[04:46:34] 20261011_eq9_b3_k5 DEPLOY FAILED
+[2026-10-11_04:46:34] BEGIN judge 20261011_eq8_b2_k1 20261011_eq8_b2_k3 20261011_eq8_b2_k5
+[04:46:37] judge up=1
+[04:46:40] judge down=0
+[2026-10-11_04:46:40] BEGIN 20261011_eq10_b2_k1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+[04:46:41] 20261011_eq10_b2_k1_r1 DEPLOY FAILED
+[2026-10-11_04:46:41] BEGIN 20261011_eq10_b2_k1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+[04:46:41] 20261011_eq10_b2_k1_r2 DEPLOY FAILED
+[2026-10-11_04:46:41] BEGIN 20261011_eq10_b2_k1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+[04:46:42] 20261011_eq10_b2_k1_r3 DEPLOY FAILED
+[2026-10-11_04:46:42] BEGIN 20261011_eq10_b2_k3_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+[04:46:42] 20261011_eq10_b2_k3_r1 DEPLOY FAILED
+[2026-10-11_04:46:42] BEGIN 20261011_eq10_b2_k3_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+[04:46:42] 20261011_eq10_b2_k3_r2 DEPLOY FAILED
+[2026-10-11_04:46:42] BEGIN 20261011_eq10_b2_k3_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+[04:46:43] 20261011_eq10_b2_k3_r3 DEPLOY FAILED
+[2026-10-11_04:46:43] BEGIN 20261011_eq10_b2_1p7b_k1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+[04:46:43] 20261011_eq10_b2_1p7b_k1_r1 DEPLOY FAILED
+[2026-10-11_04:46:43] BEGIN 20261011_eq10_b2_1p7b_k1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+[04:46:44] 20261011_eq10_b2_1p7b_k1_r2 DEPLOY FAILED
+[2026-10-11_04:46:44] BEGIN 20261011_eq10_b2_1p7b_k1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+[04:46:44] 20261011_eq10_b2_1p7b_k1_r3 DEPLOY FAILED
+[2026-10-11_04:46:44] BEGIN 20261011_eq10_b2_1p7b_k3_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+[04:46:44] 20261011_eq10_b2_1p7b_k3_r1 DEPLOY FAILED
+[2026-10-11_04:46:45] BEGIN 20261011_eq10_b2_1p7b_k3_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+[04:46:45] 20261011_eq10_b2_1p7b_k3_r2 DEPLOY FAILED
+[2026-10-11_04:46:45] BEGIN 20261011_eq10_b2_1p7b_k3_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+[04:46:45] 20261011_eq10_b2_1p7b_k3_r3 DEPLOY FAILED
+[2026-10-11_04:46:45] BEGIN 20261011_eq10_b1_p1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+[04:46:46] 20261011_eq10_b1_p1_r1 DEPLOY FAILED
+[2026-10-11_04:46:46] BEGIN 20261011_eq10_b1_p1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+[04:46:46] 20261011_eq10_b1_p1_r2 DEPLOY FAILED
+[2026-10-11_04:46:46] BEGIN 20261011_eq10_b1_p1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+[04:46:47] 20261011_eq10_b1_p1_r3 DEPLOY FAILED
+[2026-10-11_04:46:47] BEGIN 20261011_eq10_b4_p1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
+[04:46:47] 20261011_eq10_b4_p1_r1 DEPLOY FAILED
+[2026-10-11_04:46:47] BEGIN 20261011_eq10_b4_p1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
+[04:46:47] 20261011_eq10_b4_p1_r2 DEPLOY FAILED
+[2026-10-11_04:46:47] BEGIN 20261011_eq10_b4_p1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
+[04:46:48] 20261011_eq10_b4_p1_r3 DEPLOY FAILED
+[2026-10-11_04:46:48] ALL DONE
+[2026-10-11_10:39:16] RETRY after network outage 04:42-04:47 (deploy and judge up now retried 3x, 300s apart); failed logs moved to failed_20261011_0446/
+[10:39:17] 20261011_eq8_b2_k1 skip (results exist)
+[10:39:17] 20261011_eq8_b2_k3 skip (results exist)
+[10:39:17] 20261011_eq8_b2_k5 skip (results exist)
+[2026-10-11_10:39:17] BEGIN 20261011_eq8_b2_1p7b_k1 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+[10:41:43] 20261011_eq8_b2_1p7b_k1 deployed
+[11:19:29] 20261011_eq8_b2_1p7b_k1 start=0 inner=0
+[11:19:31] 20261011_eq8_b2_1p7b_k1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 13.524 | 67.930 |
+[2026-10-11_11:19:31] BEGIN 20261011_eq8_b2_1p7b_k3 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+[11:22:00] 20261011_eq8_b2_1p7b_k3 deployed
+[12:53:09] 20261011_eq8_b2_1p7b_k3 start=0 inner=0
+[12:53:10] 20261011_eq8_b2_1p7b_k3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 32.792 | 191.585 |
+[2026-10-11_12:53:10] BEGIN 20261011_eq8_b2_1p7b_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=5
+[12:55:37] 20261011_eq8_b2_1p7b_k5 deployed
+[15:31:11] 20261011_eq8_b2_1p7b_k5 start=2 inner=2
+[15:39:44] 20261011_eq8_b2_1p7b_k5 resume=0 inner=0
+[15:39:46] 20261011_eq8_b2_1p7b_k5 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 55.915 | 325.149 |
+[2026-10-11_15:39:46] BEGIN 20261011_eq8_b1_k1 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=1
+[15:42:15] 20261011_eq8_b1_k1 deployed
+[17:54:43] 20261011_eq8_b1_k1 start=0 inner=0
+[17:54:52] 20261011_eq8_b1_k1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 79.423 | 106.514 |
+[2026-10-11_17:54:52] BEGIN 20261011_eq8_b1_k3 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=3
+[17:57:58] 20261011_eq8_b1_k3 deployed
+[19:20:03] 20261011_eq8_b1_k3 start=0 inner=0
+[19:20:05] 20261011_eq8_b1_k3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 47.392 | 69.721 |
+[2026-10-11_19:20:05] BEGIN 20261011_eq8_b1_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return enronqa.k_context=5
+[19:22:41] 20261011_eq8_b1_k5 deployed
+[21:02:53] 20261011_eq8_b1_k5 start=0 inner=0
+[21:02:55] 20261011_eq8_b1_k5 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 59.227 | 72.777 |
+[2026-10-11_21:02:55] BEGIN 20261011_eq9_b3_k5 dataset=enronqa routing=oracle question_limit=null parallel=30 answer_mode=snippet_return_small enronqa.k_context=5
+[21:05:27] 20261011_eq9_b3_k5 deployed
+[21:48:16] 20261011_eq9_b3_k5 start=0 inner=0
+[21:48:18] 20261011_eq9_b3_k5 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 23.814 | 35.223 |
+[2026-10-11_21:48:18] BEGIN judge 20261011_eq8_b2_k1 20261011_eq8_b2_k3 20261011_eq8_b2_k5 20261011_eq8_b2_1p7b_k1 20261011_eq8_b2_1p7b_k3 20261011_eq8_b2_1p7b_k5 20261011_eq8_b1_k1 20261011_eq8_b1_k3 20261011_eq8_b1_k5 20261011_eq9_b3_k5
+[21:48:20] attempt 1 failed: eq8.log.judge.up; retrying in 300s
+[21:53:21] attempt 2 failed: eq8.log.judge.up; retrying in 300s
+[2026-10-11_21:56:25] RESTART under sg docker: /var/run/docker.sock lost its access for this user at 21:10:12 (chain process lacked group docker), judge up failed at docker build
+[2026-10-11_21:56:53] RESTART retry: previous launch used a wrong script path (no chain was running 21:56:25-now)
+[21:56:53] 20261011_eq8_b2_k1 skip (results exist)
+[21:56:53] 20261011_eq8_b2_k3 skip (results exist)
+[21:56:53] 20261011_eq8_b2_k5 skip (results exist)
+[21:56:53] 20261011_eq8_b2_1p7b_k1 skip (results exist)
+[21:56:53] 20261011_eq8_b2_1p7b_k3 skip (results exist)
+[21:56:53] 20261011_eq8_b2_1p7b_k5 skip (results exist)
+[21:56:53] 20261011_eq8_b1_k1 skip (results exist)
+[21:56:53] 20261011_eq8_b1_k3 skip (results exist)
+[21:56:53] 20261011_eq8_b1_k5 skip (results exist)
+[21:56:53] 20261011_eq9_b3_k5 skip (results exist)
+[2026-10-11_21:56:53] BEGIN judge 20261011_eq8_b2_k1 20261011_eq8_b2_k3 20261011_eq8_b2_k5 20261011_eq8_b2_1p7b_k1 20261011_eq8_b2_1p7b_k3 20261011_eq8_b2_1p7b_k5 20261011_eq8_b1_k1 20261011_eq8_b1_k3 20261011_eq8_b1_k5 20261011_eq9_b3_k5
+[21:57:55] judge up=0
+[23:43:25] judge run=0
+[23:43:28] analyze 20261011_eq8_b2_k1=0 judged=2940
+[23:43:29] analyze 20261011_eq8_b2_k3=0 judged=2940
+[23:43:31] analyze 20261011_eq8_b2_k5=0 judged=2940
+[23:43:33] analyze 20261011_eq8_b2_1p7b_k1=0 judged=2940
+[23:43:34] analyze 20261011_eq8_b2_1p7b_k3=0 judged=2940
+[23:43:36] analyze 20261011_eq8_b2_1p7b_k5=0 judged=2940
+[23:43:38] analyze 20261011_eq8_b1_k1=0 judged=2940
+[23:43:39] analyze 20261011_eq8_b1_k3=0 judged=2940
+[23:43:41] analyze 20261011_eq8_b1_k5=0 judged=2940
+[23:43:43] analyze 20261011_eq9_b3_k5=0 judged=2940
+[23:43:58] judge down=0
+[2026-10-11_23:43:58] BEGIN 20261011_eq10_b2_k1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+[23:46:57] 20261011_eq10_b2_k1_r1 deployed
+[23:55:31] 20261011_eq10_b2_k1_r1 start=0 inner=0
+[23:55:33] 20261011_eq10_b2_k1_r1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 5.749 | 9.960 |
+[2026-10-11_23:55:33] BEGIN 20261011_eq10_b2_k1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+[23:58:06] 20261011_eq10_b2_k1_r2 deployed
+[00:06:39] 20261011_eq10_b2_k1_r2 start=0 inner=0
+[00:06:41] 20261011_eq10_b2_k1_r2 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 5.767 | 9.945 |
+[2026-10-12_00:06:41] BEGIN 20261011_eq10_b2_k1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=1
+[00:09:12] 20261011_eq10_b2_k1_r3 deployed
+[00:17:45] 20261011_eq10_b2_k1_r3 start=0 inner=0
+[00:17:46] 20261011_eq10_b2_k1_r3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 5.789 | 9.787 |
+[2026-10-12_00:17:46] BEGIN 20261011_eq10_b2_k3_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+[00:20:01] 20261011_eq10_b2_k3_r1 deployed
+[00:34:36] 20261011_eq10_b2_k3_r1 start=0 inner=0
+[00:34:38] 20261011_eq10_b2_k3_r1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 11.153 | 24.852 |
+[2026-10-12_00:34:38] BEGIN 20261011_eq10_b2_k3_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+[00:36:52] 20261011_eq10_b2_k3_r2 deployed
+[00:51:27] 20261011_eq10_b2_k3_r2 start=0 inner=0
+[00:51:29] 20261011_eq10_b2_k3_r2 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 11.070 | 24.638 |
+[2026-10-12_00:51:29] BEGIN 20261011_eq10_b2_k3_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer enronqa.k_context=3
+[00:53:43] 20261011_eq10_b2_k3_r3 deployed
+[01:08:23] 20261011_eq10_b2_k3_r3 start=0 inner=0
+[01:08:25] 20261011_eq10_b2_k3_r3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 11.081 | 24.732 |
+[2026-10-12_01:08:25] BEGIN 20261011_eq10_b2_1p7b_k1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+[01:10:46] 20261011_eq10_b2_1p7b_k1_r1 deployed
+[01:21:19] 20261011_eq10_b2_1p7b_k1_r1 start=0 inner=0
+[01:21:21] 20261011_eq10_b2_1p7b_k1_r1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 6.694 | 16.087 |
+[2026-10-12_01:21:21] BEGIN 20261011_eq10_b2_1p7b_k1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+[01:23:43] 20261011_eq10_b2_1p7b_k1_r2 deployed
+[01:34:17] 20261011_eq10_b2_1p7b_k1_r2 start=0 inner=0
+[01:34:19] 20261011_eq10_b2_1p7b_k1_r2 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 6.709 | 15.798 |
+[2026-10-12_01:34:19] BEGIN 20261011_eq10_b2_1p7b_k1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=1
+[01:36:38] 20261011_eq10_b2_1p7b_k1_r3 deployed
+[01:47:12] 20261011_eq10_b2_1p7b_k1_r3 start=0 inner=0
+[01:47:14] 20261011_eq10_b2_1p7b_k1_r3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 6.743 | 15.610 |
+[2026-10-12_01:47:14] BEGIN 20261011_eq10_b2_1p7b_k3_r1 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+[01:49:35] 20261011_eq10_b2_1p7b_k3_r1 deployed
+[02:12:14] 20261011_eq10_b2_1p7b_k3_r1 start=0 inner=0
+[02:12:16] 20261011_eq10_b2_1p7b_k3_r1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 17.228 | 44.169 |
+[2026-10-12_02:12:16] BEGIN 20261011_eq10_b2_1p7b_k3_r2 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+[02:14:38] 20261011_eq10_b2_1p7b_k3_r2 deployed
+[02:37:18] 20261011_eq10_b2_1p7b_k3_r2 start=0 inner=0
+[02:37:20] 20261011_eq10_b2_1p7b_k3_r2 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 17.186 | 44.295 |
+[2026-10-12_02:37:20] BEGIN 20261011_eq10_b2_1p7b_k3_r3 dataset=enronqa routing=oracle question_limit=2 parallel=4 answer_mode=local_answer expert_model="qwen3:1.7b" enronqa.k_context=3
+[02:39:36] 20261011_eq10_b2_1p7b_k3_r3 deployed
+[03:02:15] 20261011_eq10_b2_1p7b_k3_r3 start=0 inner=0
+[03:02:17] 20261011_eq10_b2_1p7b_k3_r3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 17.147 | 44.301 |
+[2026-10-12_03:02:17] BEGIN 20261011_eq10_b1_p1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+[03:04:47] 20261011_eq10_b1_p1_r1 deployed
+[03:15:21] 20261011_eq10_b1_p1_r1 start=0 inner=0
+[03:15:23] 20261011_eq10_b1_p1_r1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 1.618 | 2.975 |
+[2026-10-12_03:15:23] BEGIN 20261011_eq10_b1_p1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+[03:17:51] 20261011_eq10_b1_p1_r2 deployed
+[03:28:25] 20261011_eq10_b1_p1_r2 start=0 inner=0
+[03:28:27] 20261011_eq10_b1_p1_r2 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 1.620 | 2.973 |
+[2026-10-12_03:28:27] BEGIN 20261011_eq10_b1_p1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=snippet_return enronqa.k_context=5
+[03:30:50] 20261011_eq10_b1_p1_r3 deployed
+[03:41:24] 20261011_eq10_b1_p1_r3 start=0 inner=0
+[03:41:26] 20261011_eq10_b1_p1_r3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 1.618 | 2.970 |
+[2026-10-12_03:41:26] BEGIN 20261011_eq10_b4_p1_r1 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
+[03:43:44] 20261011_eq10_b4_p1_r1 deployed
+[03:53:18] 20261011_eq10_b4_p1_r1 start=0 inner=0
+[03:53:20] 20261011_eq10_b4_p1_r1 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 1.547 | 2.631 |
+[2026-10-12_03:53:20] BEGIN 20261011_eq10_b4_p1_r2 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
+[03:55:47] 20261011_eq10_b4_p1_r2 deployed
+[04:05:20] 20261011_eq10_b4_p1_r2 start=0 inner=0
+[04:05:22] 20261011_eq10_b4_p1_r2 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 1.545 | 2.611 |
+[2026-10-12_04:05:22] BEGIN 20261011_eq10_b4_p1_r3 dataset=enronqa routing=oracle question_limit=2 parallel=1 answer_mode=delegate_gpu enronqa.k_context=5
+[04:07:49] 20261011_eq10_b4_p1_r3 deployed
+[04:17:23] 20261011_eq10_b4_p1_r3 start=0 inner=0
+[04:17:25] 20261011_eq10_b4_p1_r3 analyze=0
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+| e2e_s | 1.542 | 2.635 |
+[2026-10-12_04:17:25] ALL DONE

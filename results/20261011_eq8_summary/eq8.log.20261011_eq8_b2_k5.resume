@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[04:38:59] run 20261011_eq8_b2_k5 (kind=e1_routing dataset=enronqa routing=oracle answer_mode=local_answer)
+[04:38:59] previous attempt exited with 2; resuming
+[04:40:28] results: results/20261011_eq8_b2_k5 (exit 0)
