@@ -1,0 +1,11 @@
+[2026-10-16_02:23:49] BEGIN 20261016_iter14_smoke_dp12_pe_n1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean retrieve_body=pre_encoded
+[02:26:21] 20261016_iter14_smoke_dp12_pe_n1 deployed
+[02:27:51] 20261016_iter14_smoke_dp12_pe_n1 start=0 inner=0
+[02:27:52] 20261016_iter14_smoke_dp12_pe_n1 analyze=0
+[02:27:53] 20261016_iter14_smoke_dp12_pe_n1 failure_rate=0.0
+[2026-10-16_02:27:53] BEGIN 20261016_iter14_smoke_dp12_pe_n8 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean retrieve_body=pre_encoded
+[02:30:14] 20261016_iter14_smoke_dp12_pe_n8 deployed
+[02:31:44] 20261016_iter14_smoke_dp12_pe_n8 start=0 inner=0
+[02:31:46] 20261016_iter14_smoke_dp12_pe_n8 analyze=0
+[02:31:46] 20261016_iter14_smoke_dp12_pe_n8 failure_rate=0.0
+[2026-10-16_02:31:46] ALL DONE

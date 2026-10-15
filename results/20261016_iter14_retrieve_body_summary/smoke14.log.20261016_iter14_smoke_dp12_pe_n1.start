@@ -1,0 +1,3 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[02:26:21] run 20261016_iter14_smoke_dp12_pe_n1 (kind=e1_routing dataset=enronqa routing=device_probe answer_mode=retrieval_only)
+[02:27:51] results: results/20261016_iter14_smoke_dp12_pe_n1 (exit 0)
