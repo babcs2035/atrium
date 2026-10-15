@@ -9,7 +9,8 @@
    要求の本文を前もって JSON にしておく（負荷生成の費用を小さくするため）．
 2. 全プロセスの準備が済んだら，同じ時刻 t0 から一斉に送り始める．[t0 + warmup_s, t0 + warmup_s + measure_s) が測定の区間で，
    区間の終わりで新しい要求を止め，送信中の要求は返るのを待つ（区間の外の要求は集計に入れない）．
-3. 親は区間の始まりと終わりに，対象のノードの /healthz（プロセスとデバイスの CPU 時間）と，このデバイスの /proc/stat を読む．
+3. 親は区間の始まりと終わりに，対象のノードの /healthz（プロセス・コンテナの cgroup・デバイスの CPU 時間）と，このデバイスの /proc/stat を読む．
+   ノードを複数のプロセスで動かすとき（experiment.node_workers．Iteration 10）は，ノードの全体の CPU を cgroup の値で測る．
 
 出力（out_dir）: node_bench.json（水準ごとの集計と条件），scores.json（qid → シャードごとの probe の得点．最初に見た値）．
 使い方: scripts/remote/node_bench.sh（制御点の full イメージのコンテナ）から呼ぶ．指標の定義は docs/d0004_metrics.md．
@@ -101,6 +102,10 @@ class NodeSample:
     host_cpu: CpuSample | None
     n_cpu: int | None
     rtt_s: float
+    # Iteration 10：コンテナの cgroup の CPU 時間の累計，答えたプロセスの pid，ノードのプロセスの数（古いノードは返さない）
+    cgroup_cpu_s: float | None = None
+    pid: int | None = None
+    workers: int | None = None
 
 
 @dataclass(frozen=True)
@@ -133,6 +138,8 @@ class LevelResult:
     node_s: dict[str, float | None]
     little_ratio: float | None
     node_proc_util: float | None
+    node_cgroup_util: float | None
+    node_workers: int | None
     node_host_busy: float | None
     node_host_softirq: float | None
     node_n_cpu: int | None
@@ -192,9 +199,17 @@ def summarize_level(
     latencies = [r.done_at - r.sent_at for r in ok]
     throughput = len(ok) / window.length
     latency_mean = statistics.fmean(latencies) if latencies else None
+    # プロセスの CPU 時間の差は，前後の /healthz に同じプロセスが答えたときだけ意味を持つ（複数のプロセスのノード．Iteration 10）
     node_proc_util = None
-    if node_before.process_cpu_s is not None and node_after.process_cpu_s is not None:
+    if (
+        node_before.process_cpu_s is not None
+        and node_after.process_cpu_s is not None
+        and node_before.pid == node_after.pid
+    ):
         node_proc_util = (node_after.process_cpu_s - node_before.process_cpu_s) / window.length
+    node_cgroup_util = None
+    if node_before.cgroup_cpu_s is not None and node_after.cgroup_cpu_s is not None:
+        node_cgroup_util = (node_after.cgroup_cpu_s - node_before.cgroup_cpu_s) / window.length
     host = busy_fractions(node_before.host_cpu, node_after.host_cpu)
     control = busy_fractions(control_before, control_after)
     ordered = sorted(reports, key=lambda rep: rep.index)
@@ -213,6 +228,8 @@ def summarize_level(
         # 閉じた系の Little の法則：処理量 × 平均の待ち時間 ≈ 同時の要求の数（1 から離れれば負荷生成の側の待ちがある）
         little_ratio=None if latency_mean is None else throughput * latency_mean / concurrency,
         node_proc_util=node_proc_util,
+        node_cgroup_util=node_cgroup_util,
+        node_workers=node_after.workers,
         node_host_busy=None if host is None else host[0],
         node_host_softirq=None if host is None else host[1],
         node_n_cpu=node_after.n_cpu,
@@ -358,7 +375,18 @@ async def read_node_sample(client: httpx.AsyncClient, url: str) -> NodeSample:
             busy=int(host["busy"]), total=int(host["total"]), softirq=int(host["softirq"])
         )
         n_cpu = int(host["n_cpu"]) if host.get("n_cpu") is not None else None
-    return NodeSample(float(cpu) if isinstance(cpu, int | float) else None, host_sample, n_cpu, rtt)
+    cgroup = body.get("cgroup_cpu_s")
+    pid = body.get("pid")
+    workers = body.get("workers")
+    return NodeSample(
+        float(cpu) if isinstance(cpu, int | float) else None,
+        host_sample,
+        n_cpu,
+        rtt,
+        cgroup_cpu_s=float(cgroup) if isinstance(cgroup, int | float) else None,
+        pid=pid if isinstance(pid, int) else None,
+        workers=workers if isinstance(workers, int) else None,
+    )
 
 
 async def resolve_target(client: httpx.AsyncClient, placement: Placement, host: str) -> BenchTarget:
@@ -478,11 +506,12 @@ async def run_bench(
                 for qid, s in rep.scores.items():
                     cross_level_mismatches += scores.setdefault(qid, s) != s
             logger.info(
-                "C=%d: %.1f req/s, p95 %.4f s, node CPU %s, errors %d",
+                "C=%d: %.1f req/s, p95 %.4f s, node CPU %s (cgroup %s), errors %d",
                 concurrency,
                 result.throughput_rps,
                 result.latency_s["p95"] or float("nan"),
                 result.node_proc_util,
+                result.node_cgroup_util,
                 result.n_errors,
             )
             levels.append(asdict(result))
@@ -519,14 +548,14 @@ def write_outputs(
 def render_table(bench: dict[str, object]) -> str:
     """水準ごとの主な指標の表（Markdown）．"""
     lines = [
-        "| C | procs | req/s | p50 s | p95 s | node p95 s | node proc CPU | node host busy | errors | Little |",
-        "|---|---|---|---|---|---|---|---|---|---|",
+        "| C | procs | req/s | p50 s | p95 s | node p95 s | node proc CPU | node cgroup CPU | node host busy | errors | Little |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     levels = bench["levels"]
     assert isinstance(levels, list)
     for lv in levels:
         lines.append(
-            "| {concurrency} | {procs} | {throughput_rps:.1f} | {p50} | {p95} | {np95} | {cpu} | {host} | {n_errors} | {little} |".format(
+            "| {concurrency} | {procs} | {throughput_rps:.1f} | {p50} | {p95} | {np95} | {cpu} | {cgroup} | {host} | {n_errors} | {little} |".format(
                 concurrency=lv["concurrency"],
                 procs=lv["procs"],
                 throughput_rps=lv["throughput_rps"],
@@ -534,6 +563,7 @@ def render_table(bench: dict[str, object]) -> str:
                 p95=_fmt(lv["latency_s"]["p95"]),
                 np95=_fmt(lv["node_s"]["p95"]),
                 cpu=_fmt(lv["node_proc_util"]),
+                cgroup=_fmt(lv["node_cgroup_util"]),
                 host=_fmt(lv["node_host_busy"]),
                 n_errors=lv["n_errors"],
                 little=_fmt(lv["little_ratio"]),

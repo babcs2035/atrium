@@ -100,7 +100,7 @@
 
 | メソッド | パス | 要求 | 応答 |
 |---|---|---|---|
-| GET | `/healthz` | － | `{"status", "node_id", "shards", "process_cpu_s", "host_cpu"}`．`process_cpu_s` はノードのプロセスの CPU 時間の累計（秒）で，質問者が測定の区間の前後に読んで専門家の側の CPU 使用率を求める（Iteration 8）．`host_cpu` はデバイス全体の `/proc/stat` の累計 `{"busy", "total", "softirq"}`（jiffies）と論理 CPU の数 `n_cpu`（Linux 以外では `null`．負荷試験 `atrium node-bench` が使う．Iteration 9） |
+| GET | `/healthz` | － | `{"status", "node_id", "shards", "process_cpu_s", "cgroup_cpu_s", "pid", "workers", "host_cpu"}`．`process_cpu_s` はノードのプロセスの CPU 時間の累計（秒）で，質問者が測定の区間の前後に読んで専門家の側の CPU 使用率を求める（Iteration 8）．`host_cpu` はデバイス全体の `/proc/stat` の累計 `{"busy", "total", "softirq"}`（jiffies）と論理 CPU の数 `n_cpu`（Linux 以外では `null`．負荷試験 `atrium node-bench` が使う．Iteration 9）．`cgroup_cpu_s` はコンテナの cgroup（v2）の全プロセスの CPU 時間の累計（秒．v2 でなければ `null`），`pid` は答えたプロセスの番号，`workers` は `experiment.node_workers`（Iteration 10．複数のプロセスのノードでは答えるプロセスが要求ごとに違いうるので，ノードの全体の CPU は `cgroup_cpu_s` で測る） |
 | GET | `/.well-known/agent-card.json` | － | A2A の Agent Card．シャード 1 個を 1 個の skill として名乗る |
 | GET | `/v1/profile` | － | シャードごとの `source`・`n_docs`・`dim`・`encoder`・`centroid`・`description` |
 | POST | `/v1/retrieve` | `{"shard_id", "k", "embedding"?, "query_id"?}` | `{"shard_id", "docs": [{"doc_id","title","content","score"}], "duration_s"}` |

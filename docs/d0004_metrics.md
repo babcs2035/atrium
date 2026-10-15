@@ -30,7 +30,7 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | `requester_cpu_util` | `requester_cpu_s` ÷ 区間の長さ（コアの数の単位．N 個のプロセスが全て 1 コアに張り付けば N） |
 | `requester_cpu_util_per_proc`，`requester_parallel_per_proc` | プロセスごとの CPU 使用率（そのプロセスが流していた区間で割る）と同時の問の数 |
 | `requester_wall_s_per_proc` | プロセスごとの流していた区間の長さ（2 プロセス以上のときだけ） |
-| `expert_cpu_util`，`expert_cpu_util_max`・`_median` | ノード（ホスト名）ごとの専門家のプロセスの CPU 使用率（`/healthz` の `process_cpu_s` の区間の前後の差 ÷ 区間の長さ．コアの数の単位）と，その最大値・中央値．読めなかったノードは含めない |
+| `expert_cpu_util`，`expert_cpu_util_max`・`_median` | ノード（ホスト名）ごとの専門家のプロセスの CPU 使用率（`/healthz` の `process_cpu_s` の区間の前後の差 ÷ 区間の長さ．コアの数の単位）と，その最大値・中央値．`experiment.node_workers` が 2 以上のノードは `cgroup_cpu_s`（コンテナの全プロセスの合計）の差を使う．読めなかったノードは含めない |
 | `control_cpu_busy`，`control_cpu_softirq` | 質問者のデバイス全体（制御点．`/proc/stat`）の，全 CPU に対する忙しい時間と softirq の時間の割合（0〜1．wafl-ctrl5 は論理 12 CPU・物理 6 コア） |
 
 ## 2. results.jsonl の各行
@@ -203,7 +203,8 @@ term_sketch の採点は，語の集合を走査して重みを足す順序が P
 | `latency_s`（p50・p95・p99），`latency_mean_s` | 負荷生成の側から見た 1 要求の往復の時間 |
 | `node_s` | ノードの中の probe の計算時間（応答の `duration_s`） |
 | `little_ratio` | 処理量 × 平均の往復の時間 ÷ C．閉じた系では 1 に近く，下回れば負荷生成の側の待ち（送れていない時間）がある |
-| `node_proc_util` | 対象のノードのプロセスの CPU 使用率（`/healthz` の `process_cpu_s` の区間の前後の差 ÷ 区間の長さ．コアの数の単位） |
+| `node_proc_util` | 対象のノードのプロセスの CPU 使用率（`/healthz` の `process_cpu_s` の区間の前後の差 ÷ 区間の長さ．コアの数の単位）．前後の `/healthz` に別のプロセスが答えたとき（`pid` が違う．複数のプロセスのノード）は `null` |
+| `node_cgroup_util`，`node_workers` | 対象のノードのコンテナの全プロセスの CPU 使用率（`/healthz` の `cgroup_cpu_s` の差 ÷ 区間の長さ．コアの数の単位．Iteration 10）と，ノードのプロセスの数（`experiment.node_workers`） |
 | `node_host_busy`，`node_host_softirq`，`node_n_cpu` | 対象のノードのデバイス全体の，全 CPU に対する忙しい時間と softirq の時間の割合（`/healthz` の `host_cpu`）と論理 CPU の数 |
 | `generator_cpu_util_per_proc`，`control_cpu_busy` | 負荷生成のプロセスごとの CPU 使用率と，制御点全体の忙しい時間の割合（負荷生成が律速でないことの確認） |
 | `n_errors`，`error_kinds` | 区間の内に失敗した要求の数と例外の種類ごとの数（応答のノード名・シャードが対象と違うものも失敗に数える） |

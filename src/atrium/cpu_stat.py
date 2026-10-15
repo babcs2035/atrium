@@ -1,4 +1,4 @@
-"""デバイス全体の CPU 時間（/proc/stat）の読み方．質問者・負荷試験（atrium.requester_procs・atrium.node_bench）と専門家のノード（/healthz）が共有する．
+"""デバイス全体の CPU 時間（/proc/stat）と cgroup の CPU 時間の読み方．質問者・負荷試験（atrium.requester_procs・atrium.node_bench）と専門家のノード（/healthz）が共有する．
 
 コンテナの中でも /proc/stat はホスト全体の値を示すので，コンテナの外の docker・カーネルのネットワーク処理も含めた
 デバイスの CPU 使用率を，区間の前後の 2 つの標本の差から求められる．
@@ -10,6 +10,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 PROC_STAT = Path("/proc/stat")
+PROC_SELF_CGROUP = Path("/proc/self/cgroup")
+CGROUP_ROOT = Path("/sys/fs/cgroup")
+CGROUP_V2_PREFIX = "0::"
 
 
 @dataclass(frozen=True)
@@ -40,6 +43,40 @@ def read_device_cpu() -> CpuSample | None:
     if not PROC_STAT.exists():
         return None
     return parse_proc_stat(PROC_STAT.read_text(encoding="utf-8"))
+
+
+def parse_cgroup_usage_s(text: str) -> float:
+    """cgroup v2 の cpu.stat の usage_usec（cgroup の全プロセスの CPU 時間の累計）を秒で返す．"""
+    for line in text.splitlines():
+        key, _, value = line.partition(" ")
+        if key == "usage_usec":
+            return int(value) / 1e6
+    raise ValueError("cpu.stat has no usage_usec")
+
+
+def read_cgroup_cpu_s() -> float | None:
+    """このプロセスが属する cgroup（v2）の全プロセスの CPU 時間の累計（秒）．cgroup v2 でなければ None．
+
+    専門家のノードを複数のプロセスで動かすとき（Iteration 10），/healthz に答えたプロセスの CPU 時間だけでは
+    ノードの全体を測れないので，コンテナの cgroup の合計を使う．/proc/self/cgroup の "0::<path>" が v2 の所属で，
+    コンテナの中（cgroup の名前空間が分かれている）では path が "/" になり，/sys/fs/cgroup/cpu.stat がコンテナの値になる．
+    """
+    if not PROC_SELF_CGROUP.exists():
+        return None
+    path = next(
+        (
+            line[len(CGROUP_V2_PREFIX) :]
+            for line in PROC_SELF_CGROUP.read_text(encoding="utf-8").splitlines()
+            if line.startswith(CGROUP_V2_PREFIX)
+        ),
+        None,
+    )
+    if path is None:
+        return None
+    stat = CGROUP_ROOT / path.lstrip("/") / "cpu.stat"
+    if not stat.exists():
+        return None
+    return parse_cgroup_usage_s(stat.read_text(encoding="utf-8"))
 
 
 def busy_fractions(before: CpuSample | None, after: CpuSample | None) -> tuple[float, float] | None:

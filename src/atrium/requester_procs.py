@@ -144,11 +144,19 @@ async def fetch_healthz(client: httpx.AsyncClient, url: str) -> dict[str, object
 async def read_node_cpu_seconds(
     client: httpx.AsyncClient, placement: Placement
 ) -> dict[str, float | None]:
-    """各ノードのプロセスの CPU 時間の累計（秒）．読めなかったノードは None にする．"""
+    """各ノードのプロセスの CPU 時間の累計（秒）．読めなかったノードは None にする．
+
+    複数のプロセスで動くノード（/healthz の workers が 2 以上．Iteration 10）は，答えたプロセスが毎回違いうるので，
+    コンテナの cgroup の累計（cgroup_cpu_s）を使う．
+    """
 
     async def fetch(url: str) -> float | None:
         body = await fetch_healthz(client, url)
-        value = None if body is None else body.get("process_cpu_s")
+        if body is None:
+            return None
+        workers = body.get("workers")
+        several = isinstance(workers, int) and workers > 1
+        value = body.get("cgroup_cpu_s" if several else "process_cpu_s")
         return float(value) if isinstance(value, int | float) else None
 
     values = await asyncio.gather(*(fetch(node.url) for node in placement.nodes))

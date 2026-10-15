@@ -24,6 +24,9 @@ experiment:
   # 質問者のデバイスの上で問を分けて同時に流すプロセスの数（Iteration 8）．parallel は全プロセスの合計で，各プロセスへほぼ均等に割る．
   # 1 は従来どおり 1 プロセス
   requester_procs: 1
+  # 専門家ノード 1 台を動かすプロセスの数（Iteration 10）．2 以上では各プロセスがシャードを読み込み，SO_REUSEPORT で同じポートを開く．
+  # 1 は従来どおり 1 プロセス
+  node_workers: 1
   # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
   churn: null
 

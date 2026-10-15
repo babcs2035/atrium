@@ -17,6 +17,20 @@
 
 ---
 
+## B30 [auto-decided 2026-10-15] Iteration 10 のレバーの形：`experiment.node_workers`（SO_REUSEPORT の W 個のプロセス），主の量は実行ごとの頂点の処理量
+
+- 状況: B29 で，`node.workers`（仮称）のキー名・W・プロセスの分け方・CPU の合計の測り方・判定の規則を rc-researcher が事前登録で決めることになっていた．B29 の要レビュー (a)〜(d) を考慮する．
+- 自動選択: **config.yaml の新しいキー `experiment.node_workers`（既定 1 ＝今の挙動）**，W ∈ {1, 2, 4}．W ≥ 2 では `atrium node` の親が spawn で W 個の子を起こし，各子がシャードを読み込んで**同じポートを SO_REUSEPORT で開く**（uvicorn の `--workers` は使わない）．
+  ノードの全体の CPU は**コンテナの cgroup v2 の `cpu.stat` の `usage_usec`**（`/healthz` の `cgroup_cpu_s`）で測る．負荷は Iteration 9 と同じ `atrium node-bench`（主 13.102，記録 15.103，C ∈ {1, …, 64}，各 W × 3 回）で，負荷生成のプロセスの上限を 4 → 8 にし，W = 1 も同じ条件で測り直す．
+  主の量は実行ごとの頂点の処理量 P，主の仮説 H-W1 は「13.102 で W = 1 → 2 で P が伸び（範囲が重ならず），中央値の比 ≥ 1.5」．事前登録は journal の Iteration 10．
+- 根拠: (1) uvicorn の `--workers` は 1 つのソケットを共有して accept を取り合い，接続が少数のプロセスに偏りうる（LWN 2013・Cloudflare 2017・Envoy #16213）．node-bench は水準の始めに接続を張って使い回すので，偏りが区間の全体に残りうる．また uvicorn の `--workers` はアプリを import の文字列から作るので，compose の command の引数（ノード名・シャード）を子へ渡すのに環境変数が要る．
+  (2) B29 (a)：`process_cpu_s` は答えたプロセスの値なので，cgroup の合計を足した．`*.offsets.npy` の同時の書き込みを避けるため，親が先に 1 回シャードを読み込む．離脱の状態がプロセスごとなので，`churn` とは併用しない（検証で拒否する）．
+  (3) B29 (c)：r3 の C の順を 2,8,32,1,64,4,16 にし，主の量を実行ごとの最大にして，実行の中の位置による低下を 1 つの水準なら受け流す．
+- 要レビュー: (a) **ノードの起動の形を変えた**（W ≥ 2 のときだけ．W = 1 は `uvicorn.run(app)` のまま）．親は要求を受けず，子のどれかが終われば全てを止めて終了コード 1 で終わる（compose の restart に任せる）．W ≥ 2 のメモリはシャードの約 W 倍で，MedRAG の PubMed のシャードでは使えない．
+  (b) `/healthz` に `cgroup_cpu_s`・`pid`・`workers` を足した（追加だけ）．`atrium run` の `expert_cpu_util` は W ≥ 2 のノードで cgroup の値を使う（W = 1 は変わらない）．
+  (c) 負荷生成のプロセスの上限を 8 にしたので，Iteration 9 の値とは負荷生成の条件が違う（比べる基準は今回の W = 1）．
+  (d) B29 (b)・(d)（30 台の deploy の既定の W，ノードあたりの同時の要求の数の目安）は結果を見て決める．W を増やす実験は GIL とイベントループのスレッドを区別しない．
+
 ## B29 [auto-decided 2026-10-15] Iteration 9（node-bench）は採用．Iteration 10 は専門家ノードのプロセス（uvicorn の worker）の数
 
 - 状況: Iteration 9 の判定は採用（事前登録の規則の機械的な適用．G1〜G4 成立，欠け 0，H-N1・H-N2・H-N3 成立）．192.168.13.102（i5-8350U）の X_sat は 354.3 要求/秒（C_best = 4），192.168.15.103（i7-8700）は 473.3．

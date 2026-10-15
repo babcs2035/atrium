@@ -1,0 +1,4 @@
+# Iteration 10 の手順 0（実機の動作確認．判定に使わない）．<date> を実行日にして iter10_chain.sh に絶対パスで渡す．
+# W = 4 で deploy し，192.168.13.102 へ C = 1・16 を流す．確かめる条件は journal の Iteration 10 の事前登録の手順 0．
+anchor <date>_iter10_smoke_anchor_w4 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=4
+bench <date>_iter10_smoke_nb_w4 <date>_iter10_smoke_anchor_w4 192.168.13.102 1,16 8

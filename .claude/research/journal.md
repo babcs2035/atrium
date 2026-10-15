@@ -3,6 +3,109 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 10: 専門家ノードのプロセスの数によるノード 1 台の処理量の頭打ちの確認
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B29 [auto-decided]（Iteration 9 は採用．192.168.13.102 の X_sat 354.3 要求/秒，192.168.15.103 は 473.3．両対象ともノードのプロセスの CPU 約 1.9 コアで頭打ちで，デバイスの CPU は 2〜3 割．律速の分類は「未特定」）．
+config.yml の levers 末尾の `node.workers: [1, 2, 4]`（仮称）を，**config.yaml の新しいキー `experiment.node_workers`（既定 1 ＝今の挙動）**として確定した（backlog B30）．`cluster` の形式とデバイスの役割，方式の選択，データ・ラベル・シャードは変えない．質問者を複数のデバイスに置く形（B25 (a)）は扱わない．
+
+**コードと既存の結果から確かめたこと**（事実）
+- `src/atrium/node.py` の `main` は `uvicorn.run(app, ...)` にアプリの実体を渡しており，1 プロセスで動く．uvicorn 0.54 の `--workers`（`uvicorn/supervisors/multiprocess.py`）は親が 1 つのソケットを開いて spawn の子に共有させ，子はアプリを import の文字列から作り直す（アプリの実体は子へ渡せない）．
+- ノードのコンテナの中の `atrium` は compose の exec 形式の command で PID 1 になる（Dockerfile に ENTRYPOINT が無い）．192.168.13.102 は cgroup v2（`cgroup2fs`，Docker の Cgroup Version 2，cgroupns）で，空きメモリは約 14.6 GB（`free -m`）．13.102 のシャードは 5 受信箱 計 3,304 通で，W 倍にしても数十 MB の見込み．
+- `/v1/admin/availability`（EQ7b の離脱）の状態はプロセスの中の dict なので，複数のプロセスでは全体を切り替えられない．`*.offsets.npy`（行の先頭位置のキャッシュ）はシャードの読み込みのときに書かれ，W 個のプロセスが同時に書くと読みかけを読みうる．
+- `/healthz` の `process_cpu_s` は答えたプロセスの値なので，複数のプロセスでは前後の読み取りが別のプロセスになりうる（B29 (a)）．`atrium run` の `expert_cpu_util`（`read_node_cpu_seconds`）も同じ値を使っていた．
+
+**調査で分かったこと**（tavily-search．事実と推測を分けて書く）
+- 複数のプロセスが 1 つの待ち受けのソケットを共有して accept を取り合う形では，起こされるプロセスが公平でなく，接続が少数のプロセスに偏る．Google では accept の数が最多と最少のスレッドで約 3 倍の差が出たと報告され，SO_REUSEPORT（Linux 3.9〜）で各プロセスが自分のソケットを持つとカーネルが接続を均等に振り分ける（M. Kerrisk, "The SO_REUSEPORT socket option", LWN.net, 2013．https://lwn.net/Articles/542629 ）．
+  Cloudflare も epoll の起こし方（LIFO）で NGINX の 1 つの worker に負荷が集まることを報告し，回避策に SO_REUSEPORT を挙げた（M. Majkowski, "Perfect locality and three epic SystemTap scripts", Cloudflare Blog, 2017．https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts ）．Envoy でも同じ偏りが報告され，TCP の待ち受けには SO_REUSEPORT が望ましいとされた（envoyproxy/envoy issue #16213, 2021．https://github.com/envoyproxy/envoy/issues/16213 ）．
+  node-bench は水準の始めに C 本の接続を一斉に張り，以後は使い回すので，共有のソケットでは偏りがそのまま区間の全体に残りうる（推測）．一方 SO_REUSEPORT は接続の 4 つ組のハッシュで振り分けるので，接続が少ない（C = 4 で W = 4 など）と確率的に偏る（推測．頂点は C の最大で取るので，接続の多い水準で均される）．
+- cgroup v2 の `cpu.stat` の `usage_usec` は cgroup の全てのプロセスの CPU 時間を数える（Linux kernel documentation, "Control Group v2"．https://docs.kernel.org/admin-guide/cgroup-v2.html ）．コンテナの cgroup の値を区間の前後で読めば，W 個のプロセスと親の合計の CPU を 1 回の読み取りで得られる．
+- CPU を使う Python の要求の処理を複数のコアに広げるには，GIL を共有しない複数のプロセス（uvicorn の worker 等）にするのが一般的な手とされる（例：N. Naidu, "Ruminating on FastAPI's Speed and how to scale it with multiple Uvicorn workers", 2025．https://www.narendranaidu.com/2025/07/ruminating-on-fastapis-speed-and-how-to.html ．解説記事であり実測の根拠ではない）．
+  1 プロセスの中の直列の部分には GIL だけでなく，HTTP の受け取りと応答を 1 本のイベントループのスレッドで扱う部分も含まれる．W を増やす実験は両者をまとめて W 倍にするので，どちらが律速かは区別できない（限界に書く）．
+
+**問い**：(1) 専門家ノード 1 台（i5-8350U）の約 1.9 コア・354 要求/秒の頭打ちは，ノードを 2・4 個のプロセスに分けると外れるか（頂点の処理量が W にほぼ比例して伸びるか）．(2) 伸びが止まるとき，デバイスの CPU（論理 8・物理 4）と，プロセスごとの CPU のどちらが張り付くか．(3) i7-8700（論理 12・物理 6）では同じか．
+
+**仮説**
+- **H-W1（主）**：192.168.13.102 で，W = 1 → 2 で頂点の処理量 P が「伸び」，中央値の比が 1.5 以上になる．仕組み：Iteration 9 の頭打ちは 1 プロセスの中の直列（GIL・イベントループ）によるもので，デバイスの CPU は 7〜8 割空いているので，プロセスを 2 個にすれば各プロセスがそれぞれ約 1.9 コアまで使える．
+- **H-W2（記録）**：13.102 で W = 2 → 4 でも伸びる．ただし W = 4 は約 7.6 コア分を要し，物理 4 コア（論理 8）を超えるので，伸びは 2 倍より小さく，頂点で host busy が高くなる見込み．
+- **H-W3（記録）**：192.168.15.103 でも H-W1 と同じことが成り立つ．
+
+**単一レバー**：config.yaml の **`experiment.node_workers`（W）を 1 → 2 → 4** と変える（W ごとに deploy し直し，全 30 台が W 個のプロセスで起動する）．負荷は Iteration 9 と同じ `atrium node-bench`（主 192.168.13.102，記録 192.168.15.103，C ∈ {1, 2, 4, 8, 16, 32, 64}，各 W × 各対象 3 回）．それ以外は全ての W で固定する．
+- **プロセスの分け方を SO_REUSEPORT にした理由**：uvicorn の `--workers` は 1 つのソケットの共有で接続が偏りうり（上の調査），アプリを import の文字列から作る必要がある（ノード名・シャードは compose の command の引数で渡しており，環境変数は使わない方針）．各プロセスが自分のソケットを `SO_REUSEPORT` で開く形なら，引数をそのまま spawn の子へ渡せる．
+- **実装**（済み．下の commit）
+  - `src/atrium/config.py`：`experiment.node_workers: int = 1`（≥ 1）．`churn` は `node_workers = 1` のときだけ使える（離脱の状態がプロセスごとのため）．`config.yaml` に `node_workers: 1` を足した．
+  - `src/atrium/node.py`：W = 1 は従来どおり `uvicorn.run(app)`．W ≥ 2 は親がシャードを 1 回読み込んで（検証と `*.offsets.npy` を 1 回だけ書くため）手放し，`serve_workers` が spawn で W 個の子を起こす．各子（`serve_one_worker`）はシャードを読み込み，`open_reuseport_socket`（SO_REUSEADDR・SO_REUSEPORT，backlog 2048）で同じポートを開いて `uvicorn.Server.run(sockets=[sock])` で待ち受ける．
+    親は要求を受けず，子のどれかが終われば全てを止めて終了コード 1 で終わる（compose の `restart: unless-stopped` で起き直す）．SIGTERM・SIGINT では子を止めて正常に終わる．`/healthz` に `cgroup_cpu_s`（コンテナの cgroup v2 の `usage_usec`．v2 でなければ null）・`pid`・`workers` を足した（追加だけ）．
+  - `src/atrium/cpu_stat.py`：`read_cgroup_cpu_s`（`/proc/self/cgroup` の `0::<path>` から `/sys/fs/cgroup/<path>/cpu.stat` を読む）．
+  - `src/atrium/node_bench.py`：水準ごとに `node_cgroup_util`（cgroup の CPU の差 ÷ 区間）と `node_workers` を出す．`node_proc_util` は前後の `/healthz` の `pid` が同じときだけ求める（別のプロセスが答えたら null）．
+  - `src/atrium/requester_procs.py`：`read_node_cpu_seconds`（`atrium run` の `expert_cpu_util`）は，`workers` ≥ 2 のノードでは `cgroup_cpu_s` を使う（W = 1 は従来どおり `process_cpu_s`）．
+  - `scripts/remote/node_bench.sh`：5 番目の引数で負荷生成のプロセスの数の上限（`--max-procs`．省略時 4）を渡せるようにした．
+  - `tests/test_node_workers.py`（12 件．既定値・0 の拒否・churn との併用の拒否，cgroup の `cpu.stat` の読み方，`summarize_level` の cgroup の CPU と pid の違うときの扱い，`/healthz` の項目，`read_node_cpu_seconds` の W ごとの読み分け，**実際に uvicorn を 2 個のプロセスで立てて，新しい接続ごとに 2 つの pid が答え，SIGTERM で終了コード 0 で全ての子が止まること**）．pytest 307 件・`ruff check src tests`・`ruff format --check src tests`・`mypy src` は通過．
+  - 連続実行：`results/20261015_iter10_node_workers_summary/iter10_chain.sh`（`iter9_chain.sh` に bench の `max_procs` の列を足したもの．anchor の行は `iter8_chain.sh` に渡し，`node_workers=W` で deploy する）と仕様の雛形 `iter10_specs.template.txt`・`iter10_smoke_specs.template.txt`．集計：同じ場所の `iter10_summary.py`（下の規則を機械的に出す．合成の結果で動作を確かめた）．
+  - 文書：`docs/d0001_architecture.md`（`/healthz`），`docs/d0002_configuration.md`（`node_workers`），`docs/d0003_experiment_workflow.md`（`node_bench` の `max_procs`），`docs/d0004_metrics.md`（`node_cgroup_util`・`node_workers`，`expert_cpu_util` の読み方）．
+
+**固定する構成**：Iteration 9 と同じ要求（flood_score の probe，対象のノードの全 5 シャード，k = 1，EnronQA の cached の埋め込み 2,940 問を順に巡回），慣らし 5 秒，区間 30 秒，打ち切り 30 秒，水準の間の休み 2 秒．
+**負荷生成のプロセスの数の上限は全ての W で 8**（Iteration 9 の 4 から変える．W = 4 で 1,000 要求/秒を超えうるので，負荷生成の CPU の余裕を取る．W = 1 も同じ 8 で測り直し，比べる基準にする．Iteration 9 の値は記録として並べるだけ）．
+ノードは各 W の anchor の `mise run deploy` で起動したもので，bench の間は deploy し直さない．負荷生成は制御点 wafl-ctrl5 のコンテナ．連続実行の間は制御点で他のコンテナを動かさず commit もしない．
+
+### 事前登録（2026-10-15．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**手順 0：実機の動作確認**（連続実行の前に 1 回．判定に使わない）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ 1 回も流さずに止め，backlog に `[needs-human]` を記録する．
+2. `iter10_smoke_specs.template.txt` の `<date>` を実行日にしたものを `iter10_chain.sh` に絶対パスで渡す（W = 4 で deploy し，192.168.13.102 へ C = 1・16，max_procs 8）．
+3. 流し終えた直後（W = 4 のまま）に，制御点から `for i in $(seq 40); do curl -s http://192.168.13.102:8100/healthz; echo; done` を流し，答えた `pid` の種類の数を数える．
+4. 次を全て満たすことを確かめる．満たさなければ連続実行を流さず，原因を調べて記録する：anchor の失敗 0 問・`expert_cpu_util` に 30 台が揃う，bench の 2 水準とも `n_errors` = 0・`node_workers` = 4・`node_cgroup_util` と `node_host_busy` が null でない・負荷生成の CPU の最大 ≤ 0.80・`little_ratio` ≥ 0.90，`cross_level_score_mismatches` = 0，手順 3 の pid が 4 種類．
+
+**手順 1：実機の連続実行**（`iter10_specs.template.txt` の `<date>` を実行日にした `iter10_specs.txt` を `iter10_chain.sh` に絶対パスで渡す）
+1. W = 1：anchor（`node_workers=1` の deploy ＋ flood_score × per_node × N = 1 × parallel 30 × 300 問）→ bench 6 回（t13102・t15103 を交互に，r1 は C を昇順，r2 は降順，r3 は 2,8,32,1,64,4,16 の順．B29 (c)）．
+2. W = 2：同じ（anchor は `node_workers=2`）．
+3. W = 4：同じ（anchor は `node_workers=4`）．
+4. W = 1 へ戻す：anchor ＋ t13102 の r4（昇順）を 1 回（時間による変化の記録．判定に使わない）．
+- 計 23 実行（anchor 4・bench 19）．所要は約 2 時間の見込み（anchor 各約 5 分，bench 各約 5 分）．bench が失敗したら 60 秒おいて 1 回だけやり直す（`iter10_chain.sh`）．
+
+**指標**（水準ごと．`docs/d0004_metrics.md`）：Iteration 9 の全ての指標に加え，`node_cgroup_util`（コンテナの全プロセスの CPU．コアの数の単位）と `node_workers`．**主の量は実行ごとの頂点の処理量 P**（その実行の欠けでない水準の処理量の最大．その水準の C を C_peak とする）で，W ごとに 3 個の P を最小〜中央値〜最大で比べる．
+頂点の水準の CPU（cgroup・host busy）は 3 回の中央値．記録として Iteration 9 と同じ X_sat（水準ごとの中央値の最大）と，1 要求あたりの cgroup の CPU（ms）を出す．集計は `iter10_summary.py`．
+- P を主の量にした理由：W を増やすと飽和する C が大きい方へ動きうり，水準ごとの中央値の比較では C の格子と実行の中の位置の揺れ（B29 (c)．13.102 の 5 番目の水準の約 16〜19% の低下）が混ざる．実行ごとの最大なら，1 つの水準が下がっても他の水準が頂点を担う．
+
+**正しさの確認**（G1・G3・G5 を満たさない水準は「欠け」とし，頂点から除く）
+- G1：区間の内の失敗率が 1% 以下．
+- G2（対象ごと）：その対象の全ての W・全ての実行で，同じ問の probe の得点が完全に一致する（実行の内・水準の間・実行の間．プロセスの数で検索の結果は変わらないはず）．成り立たなければその対象の判定に進まない．
+- G3（負荷生成が律速でない）：負荷生成のプロセスごとの CPU の最大が 0.80 以下で，かつ `little_ratio` が 0.90 以上．
+- G4（律速の分類だけに効く）：`node_cgroup_util` と `node_host_busy` が null でない．
+- G5（構成の確認）：水準の `node_workers` がその W と一致する．
+- G6（記録）：W = 1 の頂点の水準で `node_cgroup_util ÷ node_proc_util` が 0.9〜1.2（cgroup の測り方が Iteration 9 のプロセスの CPU と整合するか）．外れたら律速の分類を慎重に読む．
+
+**環境の揺れの規則**（記録のため）：4 回の anchor の処理量が [11.127, 14.247] 問/秒，e2e p95 が [3.053, 4.067] 秒（Iteration 7〜9 と同じ範囲）に入るかを記録する．W = 2・4 の anchor は 30 台に負荷を散らしており質問者が律速なので，W によらず同じ範囲に入る見込み（推測）．r4（W = 1 へ戻した後）の頂点は記録だけ．
+
+**判定の規則**（対象ごと．3 回の範囲が重ならないときだけ「差がある」）
+- **伸びた**（W → 2W）：2W の 3 個の P の範囲が W の範囲より上にあり重ならず，かつ中央値の比 P(2W) ÷ P(W) が 1.10 以上．
+- **スケールの効率** E(W) = P(W) の中央値 ÷ (W × P(1) の中央値)（記録）．
+- **律速の分類**（各 W の頂点の水準の中央値で．上から順に最初に当てはまるもの．Iteration 9 の学びで「プロセスの数 × 約 1.9 コア」の欄を足した）：
+  1. `node_host_busy` ≥ 0.90 → **ノードのデバイスの CPU 全体が律速**．
+  2. G4 が欠け → **測定欠け**．
+  3. W ≥ 2 で `node_cgroup_util` ≥ 0.85 × W × （W = 1 の頂点の `node_cgroup_util`）→ **各プロセスが W = 1 と同じ上限で止まる（プロセスの中の直列が律速）**．
+  4. どれでもない → **未特定（プロセスの外：ネットワーク・カーネル・物理コアの取り合いなど）**．
+- **H-W1（主）**：192.168.13.102 で W = 1 → 2 が「伸びた」で，かつ中央値の比 ≥ 1.5．
+- **H-W2（記録）**：13.102 で W = 2 → 4 が「伸びた」．
+- **H-W3（記録）**：192.168.15.103 で W = 1 → 2 が「伸びた」で，かつ中央値の比 ≥ 1.5．
+- **このイテレーションの結論**（192.168.13.102 で決める）：
+  - **棄却（測定不成立）**：G2 が成り立たないか，G5 が 1 つでも不成立か，いずれかの W で欠けの水準が 2 つ以上か，いずれかの W で有効な実行が無い．原因を調べて記録する．
+  - **採用**（約 1.9 コアの頭打ちは 1 プロセスの中の直列によると判断し，以後のノード 1 台の能力は最も P の高い W の値を使う）：上が当てはまらず，H-W1 が成り立つ．
+  - **部分的に支持**（プロセスの数で一部は外れるが，プロセスの外にも律速がある）：W = 1 → 2 が「伸びた」が，比が 1.5 未満．
+  - **棄却（W を増やしても伸びない）**：W = 1 → 2 が「伸びた」にならない（約 1.9 コアの頭打ちはプロセスの中の直列ではなく，ネットワーク・カーネル・ノードの外にある）．
+- 記録（判定に使わない）：W ごとの処理量と p95 の曲線，C_peak の W による動き，1 要求あたりの cgroup の CPU（W で増えればコアの取り合いの費用），30 台の全体の上限の見積もり（最も P の高い W の P × Iteration 8 の比．fs 0.89〜0.92，dp12 1.14〜1.19．目安），`atrium run` の anchor の `expert_cpu_util`（W ≥ 2 は cgroup の値）．
+
+**ノイズの見積もり**：Iteration 9 の 15.103 は全水準で 3 回の幅が中央値の ±3% 以内，13.102 は正常な回が ±3% 以内で，実行の中の位置に結び付いた約 16〜19% の低下が 21 回・水準のうち 3 つあった．実行ごとの頂点 P はこの低下を 1 つの水準なら受け流すので，3 個の P の幅は ±3% 程度と見込む（推測）．「伸びた」の閾値 1.10 はこの幅の約 3 倍で，範囲が重ならない規則を併用する．H-W1 の 1.5 は「W 倍に比例する」の 2.0 から，カーネルのネットワーク処理・ハイパースレッディングの取り合いの分の余裕を見た値である．
+
+**期待効果**（推測．判定に使わない）：13.102 の P は W = 1 で約 350，W = 2 で 600〜700（比 1.7〜1.9．host busy 約 0.45），W = 4 で 750〜1,000（物理 4 コアを超えるので比は 1.1〜1.4，host busy 0.7〜0.95）．15.103 は W = 1 で約 470，W = 2 で 850〜930，W = 4 で 1,300〜1,700．
+W = 4 で 13.102 が 900 要求/秒に届けば，30 台の flood_score の上限の見積もりは約 800 問/秒になり，制御点 1 台の質問者（N = 8 で約 82 問/秒）の約 10 倍になる．
+
+**限界**：有線 LAN・閉じた系・probe だけ（`/v1/retrieve` を含まない）・1 台ずつの値である．W を増やす実験は GIL とイベントループの 1 本のスレッドをまとめて W 倍にするので，どちらが 1 プロセスの中の律速かは区別しない（区別には py-spy 等の計測が要る）．SO_REUSEPORT の振り分けは接続のハッシュなので，接続の少ない水準（C ≤ W）では偏りうる（頂点は接続の多い水準で取る）．
+W ≥ 2 のノードは各プロセスがシャードを読み込むので，メモリはシャードの約 W 倍になる（EnronQA では数十 MB．MedRAG の PubMed のシャードでは使えない）．`atrium run` の 30 台で W を上げるか（deploy の既定を変えるか）は，結果を見て決める（B29 (b)）．
+
+**次の候補**：採用で W = 4 の分類が「デバイスの CPU」なら，ノード 1 台の能力は W ≈ 物理コアの数で決まると読み，30 台の全体の限界の実測（質問者を複数のデバイスに置く形．B25 (a)．人間の判断）か，1 要求あたりの CPU を減らす実装（probe の JSON の解析・応答の組み立て）へ進む．棄却なら，py-spy でノードの 1 プロセスの中の時間の内訳を取るか，ネットワーク（softirq・NIC の割り込みの CPU）を調べる．
+
 ## Iteration 9: 専門家ノード 1 台への集中負荷による処理能力の飽和点の測定
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）

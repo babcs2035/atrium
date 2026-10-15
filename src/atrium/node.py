@@ -12,16 +12,22 @@
 
 コンテナ内では `atrium node` で起動する．ノード名・シャード・Ollama の URL・宿る型のモデルは，
 deploy が config.yaml から作る compose.yml のコマンドの引数で渡す（環境変数は使わない）．
+experiment.node_workers が 2 以上なら，同じポートを SO_REUSEPORT で開く W 個のプロセスで動かす（Iteration 10）．
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import multiprocessing as mp
+import multiprocessing.connection as mp_connection
 import os
+import signal
+import socket
 import time
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
@@ -30,7 +36,7 @@ from fastapi.responses import JSONResponse
 
 from atrium import llm, prompts
 from atrium.config import AtriumConfig, DatasetName, load_config
-from atrium.cpu_stat import read_device_cpu
+from atrium.cpu_stat import read_cgroup_cpu_s, read_device_cpu
 from atrium.protocol import (
     AnswerRequest,
     AnswerResponse,
@@ -162,12 +168,17 @@ def create_app(
         # process_cpu_s：このプロセスの全スレッドの CPU 時間の累計（秒）．質問者が測定の区間の前後で読み，
         # 専門家の側の CPU 使用率を求める（Iteration 8）．host_cpu：デバイス全体の /proc/stat の累計（jiffies）と論理 CPU の数．
         # プロセスの外（uvicorn の外の docker・カーネルのネットワーク処理）も含めた使用率を負荷試験で求める（Iteration 9）
+        # cgroup_cpu_s・pid・workers（Iteration 10）：複数のプロセスで動かすと，この要求に答えたプロセスは毎回違いうるので，
+        # ノードの全体の CPU はコンテナの cgroup の累計で測り，process_cpu_s は pid が同じ 2 つの読み取りの間でだけ差を取る
         device = read_device_cpu()
         return {
             "status": "ok",
             "node_id": node_id,
             "shards": sorted(stores),
             "process_cpu_s": time.process_time(),
+            "cgroup_cpu_s": read_cgroup_cpu_s(),
+            "pid": os.getpid(),
+            "workers": cfg.experiment.node_workers,
             "host_cpu": None
             if device is None
             else {
@@ -319,10 +330,106 @@ def main(
     ollama_url: str,
     expert_model: str | None = None,
 ) -> None:
-    """指定されたシャードを読み込み，ノードを起動する（値は compose の command の引数で渡される）．"""
+    """指定されたシャードを読み込み，ノードを起動する（値は compose の command の引数で渡される）．
+
+    experiment.node_workers が 1 なら従来どおり 1 プロセスで動かす．2 以上なら serve_workers で W 個のプロセスに分ける．
+    """
     import uvicorn
 
     cfg = load_config(config_path)
     stores = {sid: load_shard(shards_dir / sid) for sid in shard_ids}
-    app = create_app(node_id, stores, cfg, ollama_url, expert_model=expert_model)
-    uvicorn.run(app, host=host, port=port)
+    workers = cfg.experiment.node_workers
+    if workers == 1:
+        app = create_app(node_id, stores, cfg, ollama_url, expert_model=expert_model)
+        uvicorn.run(app, host=host, port=port)
+        return
+    # 親での読み込みは，シャードの検証と行の先頭位置のキャッシュ（*.offsets.npy）を 1 回だけ書くため
+    # （W 個のプロセスが同時に同じキャッシュを書くと，読みかけのファイルを読みうる）．親は要求を受けないので手放す
+    del stores
+    args = WorkerArgs(
+        config_path, host, port, node_id, shards_dir, shard_ids, ollama_url, expert_model
+    )
+    serve_workers(args, workers)
+
+
+# 待ち受けの列の長さ（uvicorn の既定の backlog と同じ）
+LISTEN_BACKLOG = 2048
+
+
+@dataclass(frozen=True)
+class WorkerArgs:
+    """複数のプロセスのノードで，各プロセスがシャードを読み込んでアプリを作るための引数（spawn で子へ渡す）．"""
+
+    config_path: Path
+    host: str
+    port: int
+    node_id: str
+    shards_dir: Path
+    shard_ids: list[str]
+    ollama_url: str
+    expert_model: str | None
+
+
+def open_reuseport_socket(host: str, port: int) -> socket.socket:
+    """SO_REUSEPORT で同じポートを開いた待ち受けのソケット．
+
+    W 個のプロセスがそれぞれ自分のソケットを持ち，カーネルが新しい接続を各ソケットへ振り分ける．1 つのソケットを
+    共有して accept を取り合う形（uvicorn の --workers）は，起こされるプロセスが偏り接続が少数のプロセスに集まりうる
+    （LWN "The SO_REUSEPORT socket option", 2013．Cloudflare blog, 2017）ので使わない．
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    sock.bind((host, port))
+    sock.listen(LISTEN_BACKLOG)
+    return sock
+
+
+def serve_one_worker(args: WorkerArgs) -> None:
+    """複数のプロセスのノードの 1 個のプロセス（spawn の子の入口）．シャードを読み込み，自分のソケットで待ち受ける．"""
+    import uvicorn
+
+    logging.basicConfig(
+        level=logging.INFO, format=f"%(asctime)s %(levelname)s [{os.getpid()}] %(message)s"
+    )
+    cfg = load_config(args.config_path)
+    stores = {sid: load_shard(args.shards_dir / sid) for sid in args.shard_ids}
+    app = create_app(args.node_id, stores, cfg, args.ollama_url, expert_model=args.expert_model)
+    sock = open_reuseport_socket(args.host, args.port)
+    uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port)).run(sockets=[sock])
+
+
+def serve_workers(args: WorkerArgs, workers: int) -> None:
+    """W 個のプロセスでノードを動かし，どれか 1 個が終われば全てを止めて異常終了する（compose の restart に任せる）．
+
+    SIGTERM・SIGINT（docker compose stop）を受けたら全ての子を止めて正常に終わる．
+    """
+    ctx = mp.get_context("spawn")
+    procs = [
+        ctx.Process(target=serve_one_worker, args=(args,), name=f"atrium-node-{i}")
+        for i in range(workers)
+    ]
+    stopping = {"requested": False}
+
+    def stop_children(signum: int, _frame: object) -> None:
+        stopping["requested"] = True
+        logger.info("received signal %d; stopping %d workers", signum, workers)
+        for p in procs:
+            if p.is_alive():
+                p.terminate()
+
+    signal.signal(signal.SIGTERM, stop_children)
+    signal.signal(signal.SIGINT, stop_children)
+    for p in procs:
+        p.start()
+    logger.info("started %d node workers: %s", workers, [p.pid for p in procs])
+    mp_connection.wait([p.sentinel for p in procs])
+    for p in procs:
+        if p.is_alive():
+            p.terminate()
+    for p in procs:
+        p.join()
+    if not stopping["requested"]:
+        codes = [p.exitcode for p in procs]
+        logger.error("a node worker exited unexpectedly (exit codes %s)", codes)
+        raise SystemExit(1)

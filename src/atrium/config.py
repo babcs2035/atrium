@@ -83,16 +83,23 @@ class ExperimentConfig(_Strict):
     # 同じ質問者のデバイスの上で問を分けて同時に流すプロセスの数（Iteration 8．atrium.requester_procs）．
     # parallel は全プロセスの合計の同時の問の数で，各プロセスへほぼ均等に割る．1 は従来どおり 1 プロセス
     requester_procs: int = Field(default=1, ge=1)
+    # 専門家ノード 1 台を動かすプロセス（uvicorn のサーバー）の数（Iteration 10．atrium.node）．2 以上では各プロセスが
+    # シャードを読み込み，SO_REUSEPORT で同じポートを開く（メモリはシャードの W 倍）．1 は従来どおり 1 プロセス
+    node_workers: int = Field(default=1, ge=1)
     # EQ7b．指定すると質問を 1 問ずつ順に流し，離脱したノードがあっても返事のあった分で続ける
     churn: ChurnConfig | None = None
 
     @model_validator(mode="after")
     def _check_requester_procs(self) -> ExperimentConfig:
-        """各プロセスが 1 問以上を同時に持てるよう parallel ≥ requester_procs とし，churn（1 問ずつ順に流す）とは併用しない．"""
+        """各プロセスが 1 問以上を同時に持てるよう parallel ≥ requester_procs とし，churn（1 問ずつ順に流す）は
+        質問者・ノードとも 1 プロセスのときだけ使える．"""
         if self.parallel < self.requester_procs:
             raise ValueError("experiment.parallel must be >= experiment.requester_procs")
         if self.churn is not None and self.requester_procs != 1:
             raise ValueError("experiment.churn requires experiment.requester_procs = 1")
+        # 離脱の状態（/v1/admin/availability）はプロセスごとに持つので，複数のプロセスのノードでは全体を切り替えられない
+        if self.churn is not None and self.node_workers != 1:
+            raise ValueError("experiment.churn requires experiment.node_workers = 1")
         return self
 
     @model_validator(mode="after")

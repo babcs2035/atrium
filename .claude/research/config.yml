@@ -154,7 +154,9 @@ levers:
             Iteration 9 と同じ atrium node-bench（主 192.168.13.102，C ∈ {1, 2, 4, 8, 16, 32, 64}，各 3 回）で，X_sat が W にほぼ比例して伸びるか，頭打ちのときの CPU（プロセスの合計と host busy）を測る．
             約 1.9 コアの頭打ちがプロセスの中の直列（GIL の取り合い．推測）によるかを確かめる．キー名・W・プロセスの分け方・CPU の合計の測り方・判定の規則は rc-researcher が事前登録で決める．
             node.py の main は uvicorn.run にアプリの実体を渡しているので，複数のプロセスには工場関数か import の文字列が要る．cluster の形式とデバイスの役割，既存の routing の挙動は変えない．
-            質問者を複数のデバイスに置く形（B25 (a)）は人間の判断に残す"}
+            質問者を複数のデバイスに置く形（B25 (a)）は人間の判断に残す．
+            Iteration 10 の rc-researcher が確定（backlog B30）：キーは `experiment.node_workers`（既定 1）．W ≥ 2 は spawn の W 個のプロセスが SO_REUSEPORT で同じポートを開く．
+            ノードの全体の CPU は /healthz の cgroup_cpu_s（コンテナの cgroup v2）．負荷生成のプロセスの上限は 8．主の量は実行ごとの頂点の処理量 P，主の仮説は 13.102 で W = 1 → 2 の P の比 ≥ 1.5．事前登録は journal の Iteration 10"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
