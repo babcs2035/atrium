@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 8,
-  "iteration_name": "複数の質問者のプロセスによる専門家の側の処理量の限界の測定",
+  "iteration": 9,
+  "iteration_name": "専門家ノード 1 台への集中負荷による処理能力の飽和点の測定",
   "phase": "research",
   "status": "running",
-  "current_lever": "experiment.requester_procs: 1 → 2, 4, 8（parallel は合計 30 で固定．flood_score・device_probe D=24/12，per_node，2,940 問・検索だけ）",
+  "current_lever": null,
   "experiment_dir": null,
   "experiment_deadline": null,
-  "updated_at": 1792026625,
-  "last_slack_ts": "1792025711.847879",
+  "updated_at": 1792039053,
+  "last_slack_ts": "1792039420.080489",
   "iteration_thread_ts": null,
   "notion_toggle_created": false,
-  "last_commit": "5304827"
+  "last_commit": "37466e9"
 }
