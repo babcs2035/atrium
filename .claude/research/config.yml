@@ -143,7 +143,11 @@ levers:
             ノード 1 台の処理量（要求/秒）・待ち時間・/healthz の process_cpu_s の飽和点を測る．要求の本文は既存の実行の問（EnronQA test，cached の埋め込み，flood_score と同じ 5 シャードの probe）を使う．
             Iteration 8 の見積もり（最も忙しいノードの要求/秒 ÷ expert_cpu_util_max）は約 190〜210 要求/秒（1 コアで飽和すると仮定した推測），実測の下限は 157〜164 要求/秒（dp12）．
             実装の形（新しいオフラインの CLI か，既存の質問者の経路の流用か），対象のノード・同時の要求の数・判定の規則は rc-researcher が事前登録で決める．cluster の形式とデバイスの役割，既存の routing の挙動は変えない．
-            質問者を複数のデバイスに置く形（B25 (a)）は 30 台の全体の限界を測るときにだけ要り，人間の判断に残す"}
+            質問者を複数のデバイスに置く形（B25 (a)）は 30 台の全体の限界を測るときにだけ要り，人間の判断に残す．
+            Iteration 9 の rc-researcher が確定（backlog B28）：設定キーではなく新しい CLI `atrium node-bench`（src/atrium/node_bench.py．scripts/remote/node_bench.sh）の同時の要求の数 C．
+            要求は flood_score と同じ probe（対象のノードの全 5 シャード，EnronQA の 2,940 問の cached の埋め込み），閉じた系，慣らし 5 秒・区間 30 秒，負荷生成は min(C, 4) プロセス．
+            主の対象は 192.168.13.102（i5-8350U．Iteration 8 の dp12 で最も忙しかったノード），記録は 192.168.15.103（i7-8700）．各 3 回．飽和の C は「C を倍にして範囲が重ならず 1.10 倍以上」が初めて成り立たない C．
+            /healthz に host_cpu を足し，/healthz の GET に再試行 1 回を足した（B27 (d)）．事前登録は journal の Iteration 9"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

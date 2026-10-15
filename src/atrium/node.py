@@ -7,7 +7,8 @@
 - flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．
 - 参加・離脱の再生（/v1/admin/availability．EQ7b）: experiment.churn を指定した実験でだけ有効になり，離脱中は
   /healthz 以外の要求を 503 で拒否する．
-- 生存確認（/healthz）: プロセスの CPU 時間の累計も返す（質問者が専門家の側の CPU 使用率を測る．Iteration 8）．
+- 生存確認（/healthz）: プロセスの CPU 時間の累計（Iteration 8）とデバイス全体の CPU 時間の累計（Iteration 9）も返す
+  （質問者・負荷試験が専門家の側の CPU 使用率を測る）．
 
 コンテナ内では `atrium node` で起動する．ノード名・シャード・Ollama の URL・宿る型のモデルは，
 deploy が config.yaml から作る compose.yml のコマンドの引数で渡す（環境変数は使わない）．
@@ -17,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
@@ -28,6 +30,7 @@ from fastapi.responses import JSONResponse
 
 from atrium import llm, prompts
 from atrium.config import AtriumConfig, DatasetName, load_config
+from atrium.cpu_stat import read_device_cpu
 from atrium.protocol import (
     AnswerRequest,
     AnswerResponse,
@@ -157,12 +160,22 @@ def create_app(
     @app.get("/healthz")
     def healthz() -> dict[str, object]:
         # process_cpu_s：このプロセスの全スレッドの CPU 時間の累計（秒）．質問者が測定の区間の前後で読み，
-        # 専門家の側の CPU 使用率を求める（Iteration 8）
+        # 専門家の側の CPU 使用率を求める（Iteration 8）．host_cpu：デバイス全体の /proc/stat の累計（jiffies）と論理 CPU の数．
+        # プロセスの外（uvicorn の外の docker・カーネルのネットワーク処理）も含めた使用率を負荷試験で求める（Iteration 9）
+        device = read_device_cpu()
         return {
             "status": "ok",
             "node_id": node_id,
             "shards": sorted(stores),
             "process_cpu_s": time.process_time(),
+            "host_cpu": None
+            if device is None
+            else {
+                "busy": device.busy,
+                "total": device.total,
+                "softirq": device.softirq,
+                "n_cpu": os.cpu_count(),
+            },
         }
 
     @app.get(AGENT_CARD_PATH)

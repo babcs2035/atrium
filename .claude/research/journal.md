@@ -3,6 +3,113 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 9: 専門家ノード 1 台への集中負荷による処理能力の飽和点の測定
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B27 [auto-decided]（Iteration 8 は採用．N = 8 でも律速は制御点 1 台の質問者のプロセスで，専門家の `expert_cpu_util_max` は最大 0.78．専門家 1 台の能力は「約 190〜210 要求/秒（1 コアで飽和すると仮定した推測）」「実測の下限 157〜164 要求/秒」にとどまる）．
+config.yml の levers 末尾の `node_bench.concurrency: [1, 2, 4, 8, 16, 32, 64]`（仮称）を，下のとおり **新しい負荷試験の CLI `atrium node-bench` の同時の要求の数 C** として確定した（backlog B28）．config.yaml のキーは足さない（ノードの配置・方式の選択・`cluster` の形式とデバイスの役割は変えない）．
+質問者を複数のデバイスに置く形（B25 (a)）は扱わない．データ準備・ラベル・シャード・公開情報は作り直さない．
+
+**コードと既存の結果から確かめたこと**（事実）
+- 専門家は 2 種類のハードウェアである．192.168.13.100〜109・14.100〜109 の 20 台は i5-8350U（物理 4 コア・論理 8 CPU），EnronQA の配置に入っている 192.168.15.100〜109（wafl500〜509）の 10 台は i7-8700（物理 6 コア・論理 12 CPU）である（`lscpu`．13.102・14.100・15.103 で確認）．
+- Iteration 8 の dp12 × N = 8 の r1 で最も忙しかったノードは 192.168.13.102（16.5 秒に probe 2,274・retrieve 308．約 157 要求/秒．`expert_cpu_util` 0.751．`logs/192.168.13.102.log`）である．このノードのシャードは brawner-s・dickson-s・maggi-m・shackleton-s・townsend-j（41・44・47・3,120・52 通．計 3,304 通）．15.x で最も忙しかったのは 192.168.15.103（heard-m ほか 5 受信箱．計 2,094 通）．
+- ノードの `/v1/probe` は同期の関数（FastAPI のスレッドプール．anyio の既定は 40 トークン）で，シャードごとに `FaissShardStore.search` を順に呼ぶ．`search` はシャードごとのロックの中で FAISS の `IndexScalarQuantizer`（fp16）を検索し，k = 1 でも上位の断片の本文を 1 行ファイルから読む（`src/atrium/store.py`）．1 回の probe は 5 シャードの検索と 5 回のファイルの読み出しと，768 次元の埋め込みの JSON の解析を含む．
+- Iteration 8 の `fs_n2_p30_r1` の 11 台の `/healthz` の読み取りの失敗は，`read_node_cpu_seconds` に再試行が無いことによる（B27 (d)）．質問者の検索・probe には `post_with_retry` の再試行（2 回）がある．
+
+**調査で分かったこと**（tavily-search・tavily-extract．事実と推測を分けて書く）
+- 閉じた系の負荷を上げると，処理量は飽和点まで伸びた後に頭打ちになり（あるいは下がり），応答時間は同時の要求の数にほぼ比例して伸びる．この形を直列の部分（競合 α）と整合の費用（β）で表すのが Gunther の Universal Scalability Law である（N. J. Gunther, "Guerrilla Capacity Planning", Springer, 2007．https://link.springer.com/book/10.1007/978-3-540-31010-5 ）．
+  WSO2 の実測の例では，同時の要求を 100 → 200 → 500 → 1,000 にすると処理量は 17,588 → 19,509 → 19,941 → 19,764 要求/秒で頭打ちになり，平均の待ち時間は 5.6 → 10.2 → 24.9 → 50.5 ms とほぼ比例して伸びる（WSO2, "Measuring Software Scalability using Universal Scalability Law"．https://wso2.com/blog/research/measuring-software-scalability-using-universal-scalability-law ）．
+  今回は USL の当てはめはせず（7 水準・3 回では α・β の推定が不安定になりうる．推測），「C を倍にしても処理量が 10% 以上伸びない最小の C」を飽和点とする単純な規則を事前登録する．USL の当てはめは記録として評価フェーズに残す．
+- 閉じた系では Little の法則から「処理量 × 平均の往復の時間 ＝ 同時の要求の数」が成り立つ（Iteration 8 の調査の Schroeder ら NSDI 2006 と同じ前提）．負荷生成の側が送れずに待つと左辺が C を下回るので，その比（`little_ratio`）を負荷生成が律速でないことの確認に使う．
+- Starlette・FastAPI は同期の関数を `anyio.to_thread.run_sync` で動かし，既定のスレッドプールは 40 トークンで，同時に 40 個までしか動かない（Starlette documentation, "Thread Pool"．https://starlette.dev/threadpool ．FastAPI Discussion #8690．https://github.com/fastapi/fastapi/discussions/8690 ）．C = 64 ではノードの中で 24 個以上が待つことになる（推測．待ち時間の伸びとして見えるが，処理量の上限は CPU が先に決める見込み）．
+- FAISS は Python からの呼び出しで GIL を解放し，単一のクエリの検索は呼び出したスレッドで行われるので，Python のスレッドから並列に呼ぶと複数のコアを使える．一方で，クエリの数がスレッドの数より少ないときは内部の OpenMP がデータベースのベクトルを複数のスレッドに分ける，とも書かれている（FAISS wiki, "Threads and asynchronous calls"．https://github.com/facebookresearch/faiss/wiki/Threads-and-asynchronous-calls ．M. Douze et al., "The Faiss Library", arXiv:2401.08281, 2024 は「単一のベクトルの検索では複数のスレッドを起こさない」と書く）．
+  OpenMP の待機中のスレッドは既定で回り続けて CPU を使うことがある（OpenMP 5.0 仕様の `OMP_WAIT_POLICY`．https://www.openmp.org/spec-html/5.0/openmpse55.html ）．
+  操作端末（論理 64 CPU）で実際の uvicorn のノードに小さな索引を載せて `node-bench` を試したところ，C = 1 でノードのプロセスの CPU 使用率が約 62 コア分，デバイス全体の忙しさが 0.997 になった（C = 2・6 では 3.8・5.7 コア分）．小さな索引の 1 件の検索でも OpenMP のスレッドが CPU を使っている可能性がある（推測．実機のノードの論理 8・12 CPU で同じことが起きるかは今回の測定で分かる）．
+
+**問い**：(1) 専門家ノード 1 台（i5-8350U）は，flood_score と同じ probe を閉じた系で受けたとき，同時の要求の数 C をいくつにすると処理量が頭打ちになり，そのときの処理量（要求/秒）と待ち時間はいくらか．(2) 頭打ちのとき，ノードのプロセスとデバイスの CPU のどちらが張り付くか．(3) i7-8700 のノードとの差はどの程度か．
+
+**仮説**
+- **H-N1（主．飽和する）**：192.168.13.102 は C ≤ 64 の範囲で処理量が頭打ちになる（下の飽和の規則で飽和の C が定まる）．仕組み：ノードは 1 プロセスで，probe の処理のうち Python の部分（JSON の解析・pydantic・ファイルの読み出し）は GIL で直列になり，FAISS の部分もシャードごとのロックで直列になる．
+- **H-N2（Iteration 8 の見積もりの確認）**：192.168.13.102 の飽和の処理量（処理量の中央値の最大）は 190 要求/秒以上である（Iteration 8 の「最も忙しいノードの要求/秒 ÷ CPU 使用率」の見積もり 190〜210 が過大でない）．
+- **H-N3（記録）**：192.168.15.103（i7-8700）の飽和の処理量は 192.168.13.102 より高い．
+- **H-N4（記録）**：ノードのプロセスの CPU 使用率は飽和の手前で 1 コアを超えうる（FAISS が GIL を解放し，OpenMP のスレッドも CPU を使うため）．
+
+**単一レバー**：新しい CLI `atrium node-bench` の**同時の要求の数 C** を，1 台のノードに対して **1 → 2 → 4 → 8 → 16 → 32 → 64** と変える（1 回の実行で 7 水準を流す）．それ以外（要求の本文・対象のノード・測定の区間・負荷生成のプロセスの数の上限）は全ての水準で固定する．
+- **実装の形を CLI にした理由**：既存の質問者の経路（`atrium run`）は 1 問で 30 台に probe を送るので，1 台に負荷を集めるには `cluster` の形式か配置を変える必要がある（運用ルール 2・3 に触れる）．新しい CLI は deploy 済みのノードのうち 1 台にだけ要求を送り，配置・シャード・方式の選択を変えない．Iteration 7 の `device-probe-eval` と同じく制御点の full イメージのコンテナで流す．
+- **実装**（済み．下の commit）
+  - `src/atrium/node_bench.py`（新規）：要求の本文は，flood_score がそのノードへ送るのと同じ `/v1/probe`（EnronQA の全 2,940 問の cached の埋め込みを `atrium run` と同じ種で並べ，そのノードの全シャードの `shard_ids`）を前もって JSON にしたもの．C を高々 4 個の負荷生成のプロセス（spawn）へ `split_parallel` で割り，各プロセスの各流れは「前の要求が返ったら次を送る」閉じた系で送る．
+    全プロセスが同じ時刻 t0 から送り始め，[t0 + 5 秒, t0 + 35 秒) を測定の区間とし，区間の内に返った要求だけを集計する．親は区間の始まりと終わりに対象のノードの `/healthz`（プロセスとデバイスの CPU 時間）と制御点の `/proc/stat` を読む．応答のノード名・シャードが対象と違えば失敗として数える．同じ問の probe の得点が違えば数える．
+    対象のノードは配置（`placement.json`）の host で指定し，`/v1/profile` のシャードが配置と一致することと，検索器が 1 種類であることを確かめてから流す．出力は `node_bench.json`（水準ごとの集計）と `scores.json`（qid → シャードごとの得点）．
+  - `src/atrium/cli.py`：`atrium node-bench --data-dir --placement --target-host --concurrency 1,2,... --out-dir [--max-procs 4] [--warmup-s 5] [--measure-s 30]`．`scripts/remote/node_bench.sh`（新規）：制御点の full イメージのコンテナで流す（`bash scripts/tasks/remote.sh node_bench <out> <placement_run> <target> <concurrency>`）．
+  - `src/atrium/node.py`：`/healthz` に `host_cpu`（デバイス全体の `/proc/stat` の累計 `busy`・`total`・`softirq` と `n_cpu`）を足した（追加だけ．既存の項目は変えない）．`/proc/stat` の読み方は `src/atrium/cpu_stat.py`（新規）に移し，`requester_procs`・`experiment`・`node`・`node_bench` が共有する（関数の中身は変えていない）．
+  - **B27 (d) の対処**：`src/atrium/requester_procs.py` に `fetch_healthz` を足し，`/healthz` の GET が `ReadError`・`RemoteProtocolError`・`ConnectError` で落ちたら 1 回だけ送り直す（`HEALTH_RETRIES = 1`）．`read_node_cpu_seconds`（`atrium run` の専門家の CPU）と `node-bench` の両方が使う．処理量の区間の外の読み取りなので，`atrium run` の処理量の定義は変わらない．
+  - `tests/test_node_bench.py`（15 件．区間の内の要求だけを数えること，失敗の種類，Little の比，CPU の使用率の求め方，`atrium run` と同じ問の順，本文の埋め込みの行，実際のノードの ASGI アプリへの閉じた系の送り方と区間の終わりで止まること，別のノードの応答を失敗にすること，対象の確かめ方，`/healthz` の読み取りの再試行）．pytest 295 件・`ruff check src tests`・`ruff format --check src tests`・`mypy src` は通過．
+    加えて，操作端末の localhost に実際の uvicorn のノードを 1 台立て，`run_bench` を C = 1・6・2（spawn の負荷生成 1・4・2 個）で流し，失敗 0・得点の不一致 0・`little_ratio` 0.996〜0.999 を確かめた（スクリプトは `/tmp` に置き，commit しない）．
+  - 連続実行：`results/20261015_iter9_node_bench_summary/iter9_chain.sh`（anchor の行は `iter8_chain.sh` に渡して deploy → start → analyze，bench の行は `node_bench.sh` を流して結果を取得する）と仕様の雛形 `iter9_specs.template.txt`．集計：同じ場所の `iter9_summary.py`（下の判定の規則を機械的に出す．事前に合成の結果で動作を確かめた）．
+  - 文書：`docs/d0001_architecture.md`（`/healthz`・モジュール），`docs/d0003_experiment_workflow.md`（`node_bench` の流し方），`docs/d0004_metrics.md`（`node_bench.json` の項目）．
+
+**固定する構成**：要求は flood_score の probe（そのノードの全 5 シャード，k = 1，EnronQA の cached の埋め込み 2,940 問を順に巡回），慣らし 5 秒，測定の区間 30 秒，負荷生成のプロセスの数は min(C, 4)（C = 64 で 16 × 4），要求の打ち切り 30 秒，水準の間の休み 2 秒．
+ノードは直前の anchor の `mise run deploy`（T4 以来の 30 台 × 5 受信箱，`dataset: enronqa`）で起動したもので，bench の間は deploy し直さない（他のノードには要求を送らない）．負荷生成は制御点 wafl-ctrl5 のコンテナ（質問者のコンテナと同じデバイス）．連続実行の間は制御点で他のコンテナを動かさず commit もしない．
+**主の対象は 192.168.13.102**（i5-8350U．Iteration 8 の dp12 で最も忙しかったノード．全 30 台の 20 台と同じハードウェア），**記録の対象は 192.168.15.103**（i7-8700）．
+
+### 事前登録（2026-10-15．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**手順 0：実機の動作確認**（連続実行の前に 1 回．判定に使わない）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ 1 回も流さずに止め，backlog に `[needs-human]` を記録する．
+2. 次の 2 行の仕様（`<date>` は実行日）を `iter9_chain.sh` に絶対パスで渡して流す：
+   `anchor <date>_iter9_smoke_anchor dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1` と
+   `bench <date>_iter9_smoke_nb <date>_iter9_smoke_anchor 192.168.13.102 1,8`．
+3. 次を全て満たすことを確かめる．満たさなければ連続実行を流さず，原因を調べて記録する：anchor の失敗 0 問・`expert_cpu_util` に 30 台が揃う（B27 (d) の対処の確認），`node_bench.json` の `target.host` = 192.168.13.102・`target.shard_ids` が配置と一致，
+   2 水準とも `n_errors` = 0・`node_proc_util` と `node_host_busy` が null でない・`node_n_cpu` = 8・`generator_cpu_util_per_proc` の最大 ≤ 0.80・`little_ratio` ≥ 0.90，`cross_level_score_mismatches` = 0．
+
+**手順 1：実機の連続実行**（`iter9_specs.template.txt` の `<date>` を実行日に置き換えた `iter9_specs.txt` を，`iter9_chain.sh` に絶対パスで渡す）
+1. 環境の揺れの確認（前）＋ ノードの起動：flood_score × per_node × N = 1 × parallel 30 × 300 問（`question_limit=2`）を 1 回（anchor_pre）．
+2. 主・記録の系列：192.168.13.102（t13102）と 192.168.15.103（t15103）× C ∈ {1, 2, 4, 8, 16, 32, 64} × 3 回．1 回の実行で 7 水準を流し，r1・r3 は C を昇順，r2 は降順にし，対象を交互にする（t13102_r1 → t15103_r1 → t13102_r2 → …）．配置は anchor_pre の `placement.json`．
+3. 環境の揺れの確認（後）：1 と同じ（anchor_post）．
+- 計 8 実行（手順 0 を除く）．所要は約 45〜55 分の見込み（anchor 2 回で各約 4 分，bench 6 回で各約 5 分〔7 水準 × (起動 約 3 秒 ＋ 慣らし 5 秒 ＋ 区間 30 秒 ＋ 休み 2 秒 ＋ 送信中の要求の待ち)〕，deploy の push などの余裕）．手順 0 は約 7 分．
+- bench が失敗したら 60 秒おいて 1 回だけやり直し，それでも失敗すれば記録して次へ進む（`iter9_chain.sh` の実装のとおり）．
+
+**指標**（水準ごと．`docs/d0004_metrics.md` の「専門家ノード 1 台への負荷試験」）：処理量（区間の内に成功した要求の数 ÷ 30 秒），往復の時間の p50・p95・p99・平均，ノードの中の probe の時間の p50・p95・p99，`little_ratio`，`node_proc_util`（コアの数の単位），`node_host_busy`・`node_host_softirq`，負荷生成のプロセスごとの CPU 使用率，`control_cpu_busy`，失敗の数と種類，得点の不一致．
+3 回の集計は，処理量は最小〜中央値〜最大，その他は中央値（`iter9_summary.py`）．
+
+**正しさの確認**（水準ごと．G1・G3 を満たさない水準は「欠け」とし，飽和の規則から除いて原因を記録する）
+- G1：区間の内の失敗率が 1% 以下．
+- G2（対象ごと）：同じ対象の全実行で，実行の内・水準の間・実行の間の同じ問の probe の得点が完全に一致する（`score_mismatches` = 0，`cross_level_score_mismatches` = 0，`scores.json` の共通の問で不一致 0）．成り立たなければその対象の判定に進まない．
+- G3（負荷生成が律速でない）：負荷生成のプロセスごとの CPU 使用率の最大が 0.80 以下で，かつ `little_ratio` が 0.90 以上．
+- G4（律速の分類だけに効く）：`node_proc_util` と `node_host_busy` が null でない．欠けたら律速の分類を「測定欠け」とする．
+- hit@2 は今回の測定に無いので比べない．anchor（300 問）は処理量・e2e p95 だけを Iteration 8 の範囲と比べ，2,940 問の値と同じ欄に並べない（B27 (e)）．
+
+**環境の揺れの規則**（記録のため）：前後の anchor の処理量が [11.127, 14.247] 問/秒，e2e p95 が [3.053, 4.067] 秒（Iteration 7・8 と同じ範囲）に入るかを記録する．外れたら「環境が変わった」と記録する．bench は同じ時間帯の 3 回で比べるので，判定の基準は変えない．
+
+**判定の規則**（対象ごと．3 回の範囲が重ならないときだけ「差がある」）
+- **伸びた**（C/2 → C）：C の 3 回の処理量の範囲が C/2 の範囲より上にあり重ならず，かつ中央値の比（C ÷ C/2）が 1.10 以上．
+- **飽和の C**：C ∈ {2, 4, 8, 16, 32, 64} を小さい順に見て，「伸びた」が初めて成り立たない C（C と C/2 の両方が欠けでないものだけを見る）．全て成り立てば「C = 64 まで飽和なし」．
+- **飽和の処理量 X_sat**：欠けでない水準の処理量の中央値の最大．その C を C_best とする．
+- **律速の分類**（C_best の中央値で．上から順に最初に当てはまるもの）：
+  1. `node_host_busy` ≥ 0.90 → **ノードのデバイスの CPU 全体が律速**．
+  2. 0.85 ≤ `node_proc_util` < 1.5 → **ノードの 1 プロセスの直列の処理（GIL 等）が律速の候補**．
+  3. G4 が欠け → **測定欠け**．
+  4. どれでもない → **未特定**（ロック・スレッドプール・ネットワークなど）．
+- **H-N1（主）**：192.168.13.102 で飽和の C が定まり（C ≤ 64），G2 が成り立つ．
+- **H-N2**：192.168.13.102 の X_sat が 190 要求/秒以上．
+- **H-N3（記録）**：192.168.15.103 の X_sat の C_best の 3 回の範囲が，192.168.13.102 の C_best の範囲より上にあり重ならない．
+- **このイテレーションの結論**（192.168.13.102 で決める）：
+  - **採用**（専門家 1 台の飽和の処理量 X_sat と飽和の C を，以後の負荷の主張と 30 台の全体の限界の見積もりに使う）：G2 が成り立ち，欠けの水準が 1 つ以下で，H-N1 が成り立つ．
+  - **部分的に支持**（C = 64 の処理量を専門家 1 台の能力の下限として使う）：G2 が成り立ち，欠けの水準が 1 つ以下だが，C = 64 まで飽和しない．
+  - **棄却（測定不成立）**：G2 が成り立たないか，欠けの水準が 2 つ以上（負荷生成の側の限界か，ノードの誤り）．原因を調べて記録する．
+- 記録（判定に使わない）：USL の当てはめ（α・β と予測の最大），処理量の曲線と p95 の曲線，ノードの中の時間と往復の時間の差（待ち行列），30 台の全体の限界の見積もり（方式ごとに X_sat × 〔Iteration 8 の N = 8 の 問/秒 ÷ 最も忙しいノードの要求/秒〕．fs 0.89〜0.92，dp12 1.14〜1.19．probe と retrieve の混ざり方が bench と違うので目安），H-N4（`node_proc_util` が 1 を超える水準）．
+
+**ノイズの見積もり**：Iteration 8 の 2,940 問の N = 1 の 3 回の幅は中央値の ±2% 以内だった．bench の 1 水準は 30 秒に数千要求を数えるので，同じ程度か小さい揺れを見込む（推測）．「伸びた」の閾値 1.10 はこの幅の約 2.5 倍で，範囲が重ならない規則を併用する．
+
+**期待効果**（推測．判定に使わない）：192.168.13.102 の処理量は C = 1 で 100〜300 要求/秒（ノードの中の probe 数 ms ＋ 往復 1 ms 未満），C = 4〜16 で 150〜400 要求/秒に頭打ちになり，その先は p95 だけが C に比例して伸びる．`node_proc_util` は 1〜2 コア，`node_host_busy` は 0.2〜0.5 で，分類は「1 プロセスの直列の処理」か「未特定」を見込む．
+X_sat が 190 要求/秒を大きく超えれば，Iteration 8 の 1 コアの仮定は控えめで，30 台の fs の限界は制御点 1 台の能力（約 82 問/秒）より高いことになる．
+
+**限界**：有線 LAN・閉じた系・probe だけ（`/v1/retrieve` を含まない）の処理量である．負荷生成は制御点のコンテナ（docker のブリッジの NAT を通る）で，`atrium run` の質問者とは HTTP クライアントの使い方が違う（本文を前もって JSON にする）．ノードは 1 台ずつ測り，他の 29 台は空いている（30 台に同時に負荷がかかるときのネットワークの混み方は含まない）．
+対象は 2 台で，同じハードウェアの他のノードとの差は測らない．bench の間は deploy し直さないので，前の水準・前の実行の状態（ページキャッシュなど）が残る（C の順を r2 で逆にして偏りを打ち消す）．
+
+**次の候補**：採用で律速が「1 プロセスの直列の処理」なら，ノードの uvicorn の worker の数（プロセスの数）を変える構成．「デバイスの CPU 全体」なら，FAISS の OpenMP のスレッドの数（`OMP_NUM_THREADS`）の固定を先に確かめる（H-N4 で 1 コアを大きく超えるとき）．部分的に支持なら，負荷生成の C を 128 以上に広げる．
+
 ## Iteration 8: 複数の質問者のプロセスによる専門家の側の処理量の限界の測定
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）

@@ -1,0 +1,19 @@
+# Iteration 9 の負荷試験の仕様の雛形（事前登録の順序．journal の Iteration 9 の事前登録と同じ）．
+# rc-executor は <date> を実行日（YYYYMMDD）に置き換えて iter9_specs.txt を作り，iter9_chain.sh に絶対パスで渡す．
+# anchor の行は iter8_chain.sh の仕様（config.yaml を変えて deploy → start → analyze）．bench の行は <run_id> <placement_run> <target_host> <concurrency>．
+# 主の対象は 192.168.13.102（t13102．i5-8350U．Iteration 8 の dp12 で最も忙しかったノード），記録の対象は 192.168.15.103（t15103．i7-8700）．
+# r1・r3 は C を昇順，r2 は降順に流し，対象を交互にする．
+
+# 1. 環境の揺れの確認（前）＋ ノードの起動．Iteration 8 と同じ 300 問・1 プロセス
+anchor <date>_iter9_anchor_fs_n1_p30_pre dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1
+
+# 2. 主・記録の系列：2 台 × C ∈ {1, 2, 4, 8, 16, 32, 64} × 3 回（1 回で 7 水準を流す）
+bench <date>_iter9_nb_t13102_r1 <date>_iter9_anchor_fs_n1_p30_pre 192.168.13.102 1,2,4,8,16,32,64
+bench <date>_iter9_nb_t15103_r1 <date>_iter9_anchor_fs_n1_p30_pre 192.168.15.103 1,2,4,8,16,32,64
+bench <date>_iter9_nb_t13102_r2 <date>_iter9_anchor_fs_n1_p30_pre 192.168.13.102 64,32,16,8,4,2,1
+bench <date>_iter9_nb_t15103_r2 <date>_iter9_anchor_fs_n1_p30_pre 192.168.15.103 64,32,16,8,4,2,1
+bench <date>_iter9_nb_t13102_r3 <date>_iter9_anchor_fs_n1_p30_pre 192.168.13.102 1,2,4,8,16,32,64
+bench <date>_iter9_nb_t15103_r3 <date>_iter9_anchor_fs_n1_p30_pre 192.168.15.103 1,2,4,8,16,32,64
+
+# 3. 環境の揺れの確認（後）
+anchor <date>_iter9_anchor_fs_n1_p30_post dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1

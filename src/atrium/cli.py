@@ -14,6 +14,7 @@
     cascade-eval              二段ルーティング centroid_probe のオフラインの評価（EnronQA．制御点のコンテナ）
     probe-reach               centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA．Iteration 4．制御点のコンテナ）
     device-probe-eval         device_probe の D ごとの hit@m と D の選択（EnronQA．Iteration 7．制御点のコンテナ）
+    node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
@@ -277,6 +278,33 @@ def cmd_device_probe_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     device_probe_eval.write_outputs(Path(args.out_dir), metrics)
     print(device_probe_eval.render_report(metrics))
+    return 0
+
+
+def cmd_node_bench(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """専門家ノード 1 台への閉じた系の probe の負荷試験（Iteration 9）を行い，node_bench.json と scores.json を書く．"""
+    from atrium import node_bench
+    from atrium.experiment import read_image_git_head
+    from atrium.manifest import read_placement
+
+    order = [int(c) for c in args.concurrency.split(",")]
+    if not order or min(order) < 1:
+        raise SystemExit(f"--concurrency must be positive integers: {args.concurrency!r}")
+    bench, scores = asyncio.run(
+        node_bench.run_bench(
+            read_placement(Path(args.placement)),
+            Path(args.data_dir),
+            args.target_host,
+            order,
+            cfg.experiment.seed,
+            args.max_procs,
+            args.warmup_s,
+            args.measure_s,
+            read_image_git_head(),
+        )
+    )
+    node_bench.write_outputs(Path(args.out_dir), bench, scores)
+    print(node_bench.render_table(bench))
     return 0
 
 
@@ -654,6 +682,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="centroid_probe の値の一致の基準（Iteration 1 の cascade-eval の metrics.json）",
     )
     p.set_defaults(func=cmd_device_probe_eval)
+
+    p = sub.add_parser(
+        "node-bench",
+        help="専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--placement", required=True, help="受信箱の配置（results/<run>/placement.json）"
+    )
+    p.add_argument("--target-host", required=True, help="負荷を集めるノード（配置の host）")
+    p.add_argument(
+        "--concurrency", required=True, help="同時の要求の数を流す順に（例: 1,2,4,8,16,32,64）"
+    )
+    p.add_argument("--max-procs", type=int, default=4, help="負荷生成のプロセスの数の上限")
+    p.add_argument("--warmup-s", type=float, default=5.0, help="水準ごとの測定の前の慣らしの秒数")
+    p.add_argument("--measure-s", type=float, default=30.0, help="水準ごとの測定の区間の秒数")
+    p.set_defaults(func=cmd_node_bench)
 
     p = sub.add_parser("owner-eval", help="持ち主推定の入力を揃えた評価（EnronQA．p0005 T2）")
     p.add_argument("--data-dir", required=True)

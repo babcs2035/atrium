@@ -11,14 +11,13 @@ from pydantic import ValidationError
 
 from atrium.benchmarks import Question
 from atrium.config import AtriumConfig, ChurnConfig
+from atrium.cpu_stat import CpuSample, parse_proc_stat
 from atrium.manifest import NodeAssignment, Placement
 from atrium.node import create_app
 from atrium.requester_procs import (
-    CpuSample,
     control_cpu_fractions,
     expert_cpu_meta,
     merge_part_files,
-    parse_proc_stat,
     part_path,
     read_node_cpu_seconds,
     split_parallel,

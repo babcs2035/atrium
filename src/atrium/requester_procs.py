@@ -5,8 +5,8 @@
 親の合図で一斉に流し始める（準備の時間を処理量に含めないため）．各プロセスは結果を results.part{i}.jsonl に書き，
 親が最後に results.jsonl へまとめる．
 
-あわせて，測定の区間の前後で専門家の側の CPU 時間（ノードの /healthz の process_cpu_s）と質問者のデバイス全体の
-CPU 時間（/proc/stat）を読む関数を持つ．1 プロセスの実験（requester_procs = 1）でも同じ指標を記録する．
+あわせて，測定の区間の前後で専門家の側の CPU 時間（ノードの /healthz の process_cpu_s）を読む関数を持つ
+（質問者のデバイス全体の CPU 時間は atrium.cpu_stat で読む）．1 プロセスの実験（requester_procs = 1）でも同じ指標を記録する．
 """
 
 from __future__ import annotations
@@ -29,6 +29,7 @@ import httpx
 
 from atrium.benchmarks import Question
 from atrium.config import AtriumConfig
+from atrium.cpu_stat import CpuSample, busy_fractions, read_device_cpu
 from atrium.manifest import Placement, read_placement
 from atrium.requester import run_questions
 
@@ -39,16 +40,9 @@ READY_TIMEOUT_S = 600.0
 # 子の状態を確かめる間隔（子が落ちたときに親が待ち続けないため）
 POLL_INTERVAL_S = 1.0
 HEALTH_TIMEOUT_S = 10.0
-PROC_STAT = Path("/proc/stat")
-
-
-@dataclass(frozen=True)
-class CpuSample:
-    """/proc/stat の先頭の行（全 CPU の合計．単位は jiffies）．"""
-
-    busy: int
-    total: int
-    softirq: int
+# /healthz の読み取りの再試行の回数．per_node の池の keep-alive の接続をノードが閉じた直後に再利用すると
+# "Server disconnected without sending a response" で落ちる（Iteration 8 の fs_n2_p30_r1 で 11 台が読めなかった）
+HEALTH_RETRIES = 1
 
 
 @dataclass(frozen=True)
@@ -114,54 +108,48 @@ def merge_part_files(out_path: Path) -> int:
     return moved
 
 
-def parse_proc_stat(text: str) -> CpuSample:
-    """/proc/stat の先頭の cpu 行から，忙しい時間・全体の時間・softirq の時間を読む．
-
-    列は user nice system idle iowait irq softirq steal guest guest_nice．guest は user に含まれるので足さない．
-    """
-    first = text.splitlines()[0].split()
-    if first[0] != "cpu":
-        raise ValueError(f"unexpected first line of /proc/stat: {first[:2]}")
-    fields = [int(x) for x in first[1:9]]
-    idle = fields[3] + fields[4]
-    total = sum(fields)
-    return CpuSample(busy=total - idle, total=total, softirq=fields[6])
-
-
-def read_control_cpu() -> CpuSample | None:
-    """このデバイス全体の CPU 時間の累計（コンテナの中でも /proc/stat はホスト全体を示す）．Linux 以外では None．"""
-    if not PROC_STAT.exists():
-        return None
-    return parse_proc_stat(PROC_STAT.read_text(encoding="utf-8"))
-
-
 def control_cpu_fractions(
     before: CpuSample | None, after: CpuSample | None
 ) -> dict[str, float | None]:
     """2 つの標本の間の，全 CPU に対する忙しい時間と softirq の時間の割合（0〜1）．"""
-    if before is None or after is None or after.total <= before.total:
+    fractions = busy_fractions(before, after)
+    if fractions is None:
         return {"control_cpu_busy": None, "control_cpu_softirq": None}
-    total = after.total - before.total
-    return {
-        "control_cpu_busy": (after.busy - before.busy) / total,
-        "control_cpu_softirq": (after.softirq - before.softirq) / total,
-    }
+    return {"control_cpu_busy": fractions[0], "control_cpu_softirq": fractions[1]}
+
+
+async def fetch_healthz(client: httpx.AsyncClient, url: str) -> dict[str, object] | None:
+    """ノードの /healthz の応答．接続の再利用で落ちたときは HEALTH_RETRIES 回まで送り直し，
+    それでも読めなければ None にして警告を残す（実験は止めない）．"""
+    for attempt in range(HEALTH_RETRIES + 1):
+        try:
+            response = await client.get(f"{url}/healthz", timeout=HEALTH_TIMEOUT_S)
+            response.raise_for_status()
+        except (httpx.ReadError, httpx.RemoteProtocolError, httpx.ConnectError) as exc:
+            if attempt < HEALTH_RETRIES:
+                logger.warning(
+                    "retrying %s/healthz (%d/%d): %s", url, attempt + 1, HEALTH_RETRIES, exc
+                )
+                continue
+            logger.warning("could not read %s/healthz: %s", url, exc)
+            return None
+        except httpx.HTTPError as exc:
+            logger.warning("could not read %s/healthz: %s", url, exc)
+            return None
+        body: dict[str, object] = response.json()
+        return body
+    raise AssertionError("unreachable")
 
 
 async def read_node_cpu_seconds(
     client: httpx.AsyncClient, placement: Placement
 ) -> dict[str, float | None]:
-    """各ノードのプロセスの CPU 時間の累計（秒）．読めなかったノードは None にして警告を残す（実験は止めない）．"""
+    """各ノードのプロセスの CPU 時間の累計（秒）．読めなかったノードは None にする．"""
 
     async def fetch(url: str) -> float | None:
-        try:
-            response = await client.get(f"{url}/healthz", timeout=HEALTH_TIMEOUT_S)
-            response.raise_for_status()
-        except httpx.HTTPError as exc:
-            logger.warning("could not read the CPU time of %s: %s", url, exc)
-            return None
-        value = response.json().get("process_cpu_s")
-        return float(value) if value is not None else None
+        body = await fetch_healthz(client, url)
+        value = None if body is None else body.get("process_cpu_s")
+        return float(value) if isinstance(value, int | float) else None
 
     values = await asyncio.gather(*(fetch(node.url) for node in placement.nodes))
     return {node.host: v for node, v in zip(placement.nodes, values, strict=True)}
@@ -334,12 +322,12 @@ async def run_questions_in_processes(
             p.start()
         await _collect(ready, procs_n, procs, READY_TIMEOUT_S)
         node_before = await read_node_cpu_seconds(client, placement)
-        control_before = read_control_cpu()
+        control_before = read_device_cpu()
         started_at = time.time()
         start.set()
         logger.info("started %d requester processes (parallel %s)", procs_n, parallels)
         reports = await _collect(results, procs_n, procs, None)
-        control_after = read_control_cpu()
+        control_after = read_device_cpu()
         node_after = await read_node_cpu_seconds(client, placement)
         await asyncio.to_thread(_join_all, procs)
         _raise_if_a_worker_failed(procs)

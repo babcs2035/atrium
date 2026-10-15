@@ -190,6 +190,27 @@ term_sketch の採点は，語の集合を走査して重みを足す順序が P
 `checks` は正しさの確認（centroid_probe の値が Iteration 1 と一致，D = 全台が flood_score と一致，最大値でまとめた上位 D 台が「届くデバイスが D 台以下の上位 K 個」を含まない問の数が 0）．
 `live_selected_sources` は見込みありの D での，実機の質問（受信箱ごとの先頭 2 問）の選ばれる受信箱で，実機の `selected_sources` との照合に使う．
 
+### 専門家ノード 1 台への負荷試験（`atrium node-bench`．Iteration 9）
+
+制御点のコンテナで流す（`scripts/remote/node_bench.sh`．deploy で起動したノードのうち `--target-host` の 1 台だけへ送る）．`results/<out_name>/node_bench.json` の `levels` に，同時の要求の数 C（流した順）ごとの次の値を書く．
+要求の本文は flood_score がそのノードへ送るのと同じ `/v1/probe`（EnronQA の全 2,940 問の cached の埋め込みを `atrium run` と同じ順に並べ，そのノードの全シャード）で，閉じた系（前の要求が返ったら次を送る）で送り続ける．
+各水準は慣らし `warmup_s`（既定 5 秒）の後の `measure_s`（既定 30 秒）が測定の区間で，区間の内に返った要求だけを集計する．
+
+| 項目 | 意味 |
+|---|---|
+| `concurrency`，`procs`，`concurrency_per_proc` | 同時の要求の数 C と，それを割った負荷生成のプロセスの数（min(C, `max_procs`)）とプロセスごとの数 |
+| `throughput_rps` | 区間の内に成功した要求の数 ÷ 区間の長さ（要求/秒） |
+| `latency_s`（p50・p95・p99），`latency_mean_s` | 負荷生成の側から見た 1 要求の往復の時間 |
+| `node_s` | ノードの中の probe の計算時間（応答の `duration_s`） |
+| `little_ratio` | 処理量 × 平均の往復の時間 ÷ C．閉じた系では 1 に近く，下回れば負荷生成の側の待ち（送れていない時間）がある |
+| `node_proc_util` | 対象のノードのプロセスの CPU 使用率（`/healthz` の `process_cpu_s` の区間の前後の差 ÷ 区間の長さ．コアの数の単位） |
+| `node_host_busy`，`node_host_softirq`，`node_n_cpu` | 対象のノードのデバイス全体の，全 CPU に対する忙しい時間と softirq の時間の割合（`/healthz` の `host_cpu`）と論理 CPU の数 |
+| `generator_cpu_util_per_proc`，`control_cpu_busy` | 負荷生成のプロセスごとの CPU 使用率と，制御点全体の忙しい時間の割合（負荷生成が律速でないことの確認） |
+| `n_errors`，`error_kinds` | 区間の内に失敗した要求の数と例外の種類ごとの数（応答のノード名・シャードが対象と違うものも失敗に数える） |
+| `score_mismatches`，`cross_level_score_mismatches` | 同じ問の probe の得点が水準の内・水準の間で違った回数（索引は読み取りだけなので 0 のはず） |
+
+`scores.json` は qid → シャードごとの probe の得点（最初に見た値）で，実行の間の照合に使う．
+
 ### 150 人での新参者の評価（`atrium newcomer-eval`．p0005 T3）
 
 `results/<run_id>/metrics.json` の `pooled.<方式>` に，新参者の問（正解の受信箱が新参者である test の質問）を合わせた `hit@1`・`hit@2` と，95% ブートストラップ信頼区間を書く．

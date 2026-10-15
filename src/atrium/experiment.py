@@ -15,6 +15,7 @@ import httpx
 from atrium.analysis import read_results
 from atrium.benchmarks import load_questions
 from atrium.config import AtriumConfig
+from atrium.cpu_stat import read_device_cpu
 from atrium.manifest import Placement, read_placement
 from atrium.paths import dataset_paths
 from atrium.requester import (
@@ -31,7 +32,6 @@ from atrium.requester_procs import (
     control_cpu_fractions,
     expert_cpu_meta,
     merge_part_files,
-    read_control_cpu,
     read_node_cpu_seconds,
     run_questions_in_processes,
 )
@@ -220,13 +220,13 @@ async def run_experiment(
             # 質問の処理の区間の質問者のプロセスの CPU 時間（1 コアの飽和 = requester_cpu_util 1.0）．
             # 専門家と質問者のデバイス全体の CPU 時間は，この区間のすぐ外側で読む
             node_before = await read_node_cpu_seconds(client, placement)
-            control_before = read_control_cpu()
+            control_before = read_device_cpu()
             cpu_before = resource.getrusage(resource.RUSAGE_SELF)
             wall_before = time.perf_counter()
             await run_questions(requester, questions, out_dir / RESULTS, cfg.experiment.parallel)
             wall_s = time.perf_counter() - wall_before
             cpu_after = resource.getrusage(resource.RUSAGE_SELF)
-            control_after = read_control_cpu()
+            control_after = read_device_cpu()
             node_after = await read_node_cpu_seconds(client, placement)
             cpu_s = (cpu_after.ru_utime - cpu_before.ru_utime) + (
                 cpu_after.ru_stime - cpu_before.ru_stime
