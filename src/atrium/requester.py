@@ -63,15 +63,30 @@ RETRIEVE_TIMEOUT_S = 120.0
 # 検索要求の接続エラー（ノードが待機中の接続を閉じた直後に，クライアントがその接続を再利用すると起きる）の再試行回数．
 # 検索は読み取りだけなので，同じ要求を送り直しても結果は変わらない
 RETRIEVE_RETRIES = 2
+JSON_CONTENT_TYPE_HEADER = {"Content-Type": "application/json"}
+
+
+def encode_json_like_httpx(value: object) -> bytes:
+    """httpx（0.28）の json= と同じ設定（区切り・ensure_ascii・allow_nan）で JSON の bytes を作る．
+    pre_encoded の本文を json= の本文とバイト単位で一致させるため，この設定を変えてはならない．"""
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode(
+        "utf-8"
+    )
 
 
 async def post_with_retry(
-    client: httpx.AsyncClient, url: str, body: dict[str, Any], timeout: float
+    client: httpx.AsyncClient, url: str, body: dict[str, Any] | bytes, timeout: float
 ) -> httpx.Response:
     """読み取りだけの要求（検索・probe）を送る．ノードが待機中の接続を閉じた直後に再利用して起きる
-    接続エラーは，同じ要求を RETRIEVE_RETRIES 回まで送り直す．"""
+    接続エラーは，同じ要求を RETRIEVE_RETRIES 回まで送り直す．
+
+    body が dict なら httpx の json= で符号化し，bytes なら符号化済みの JSON としてそのまま送る．"""
     for attempt in range(RETRIEVE_RETRIES + 1):
         try:
+            if isinstance(body, bytes):
+                return await client.post(
+                    url, content=body, headers=JSON_CONTENT_TYPE_HEADER, timeout=timeout
+                )
             return await client.post(url, json=body, timeout=timeout)
         except (httpx.ReadError, httpx.RemoteProtocolError, httpx.ConnectError):
             if attempt == RETRIEVE_RETRIES:
@@ -474,12 +489,32 @@ class Requester:
             for sid in s.shard_ids
         }
 
+        # pre_encoded：埋め込みの JSON は検索器ごとに 1 回だけ作り，ノードごとに shard_ids だけ差し替える
+        encoded_embeddings: dict[str, bytes] = {}
+        if self.cfg.experiment.probe_body == "pre_encoded":
+            encoded_embeddings = {
+                encoder: encode_json_like_httpx(embeddings[encoder].tolist())
+                for encoder in {s.encoder for s in self.sources}
+                if encoder in embeddings
+            }
+
         async def ask(node: NodeAssignment) -> tuple[ProbeResponse, int]:
             shard_ids = [sid for sid in node.shard_ids if sid in source_of_shard]
             encoder = source_of_shard[shard_ids[0]].encoder
-            req = ProbeRequest(shard_ids=shard_ids, embedding=embeddings[encoder].tolist())
+            body: dict[str, Any] | bytes
+            if encoder in encoded_embeddings:
+                body = (
+                    b'{"shard_ids":'
+                    + encode_json_like_httpx(shard_ids)
+                    + b',"embedding":'
+                    + encoded_embeddings[encoder]
+                    + b"}"
+                )
+            else:
+                req = ProbeRequest(shard_ids=shard_ids, embedding=embeddings[encoder].tolist())
+                body = req.model_dump()
             response = await post_with_retry(
-                self.client, f"{node.url}/v1/probe", req.model_dump(), RETRIEVE_TIMEOUT_S
+                self.client, f"{node.url}/v1/probe", body, RETRIEVE_TIMEOUT_S
             )
             response.raise_for_status()
             return ProbeResponse.model_validate_json(response.content), len(response.content)

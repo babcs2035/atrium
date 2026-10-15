@@ -1,0 +1,55 @@
+ModuleNotFoundError: No module named 'sniffio'
+base req/s 381.8
+pre req/s 497.4
+base_quiet req/s 388.6
+sniffio base req/s 504.6
+sniffio pre req/s 704.5
+base req/s 384.2
+pre req/s 471.4
+base_quiet req/s 387.9
+sniffio base req/s 497.1
+sniffio pre req/s 687.5
+base req/s 376.4
+pre req/s 484.5
+base_quiet req/s 385.7
+sniffio base req/s 501.9
+sniffio pre req/s 703.9
+base req/s (profiled) 190.4
+         27231743 function calls (27101345 primitive calls) in 18.356 seconds
+
+   Ordered by: internal time
+   List reduced from 1478 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     3629    1.960    0.001    1.960    0.001 /usr/local/lib/python3.12/json/encoder.py:205(iterencode)
+    15041    0.694    0.000    6.165    0.000 /opt/venv/lib/python3.12/site-packages/httpcore/_async/connection_pool.py:270(_assign_requests_to_connections)
+   127828    0.642    0.000    2.129    0.000 <frozen importlib._bootstrap_external>:1597(find_spec)
+   114288    0.496    0.000    1.592    0.000 /opt/venv/lib/python3.12/site-packages/anyio/abc/_sockets.py:143(extra_attributes)
+   128006    0.494    0.000    0.494    0.000 {built-in method posix.stat}
+  2101128    0.494    0.000    0.747    0.000 /opt/venv/lib/python3.12/site-packages/httpcore/_async/connection.py:192(is_idle)
+   639175    0.476    0.000    0.831    0.000 <frozen importlib._bootstrap_external>:126(_path_join)
+   115182    0.285    0.000    0.285    0.000 {method 'getpeername' of '_socket.socket' objects}
+    32008    0.260    0.000    3.037    0.000 <frozen importlib._bootstrap>:1240(_find_spec)
+  2059860    0.253    0.000    0.253    0.000 /opt/venv/lib/python3.12/site-packages/httpcore/_async/http11.py:288(is_idle)
+  1282103    0.214    0.000    0.214    0.000 {method 'rstrip' of 'str' objects}
+   113394    0.194    0.000    0.495    0.000 /opt/venv/lib/python3.12/site-packages/httpcore/_utils.py:8(is_socket_readable)
+1291570/1219338    0.188    0.000    0.302    0.000 {built-in method builtins.isinstance}
+    32008    0.187    0.000    2.391    0.000 <frozen importlib._bootstrap_external>:1495(_get_spec)
+       31    0.170    0.005    0.170    0.005 {method 'load_verify_locations' of '_ssl._SSLContext' objects}
+   697301    0.158    0.000    0.158    0.000 {method 'join' of 'str' objects}
+   113394    0.156    0.000    0.156    0.000 {method 'poll' of 'select.poll' objects}
+   626158    0.155    0.000    0.155    0.000 {method 'get' of 'dict' objects}
+   114288    0.151    0.000    2.482    0.000 /opt/venv/lib/python3.12/site-packages/httpcore/_backends/anyio.py:82(get_extra_info)
+32047/31943    0.139    0.000    4.091    0.000 <frozen importlib._bootstrap>:1349(_find_and_load)
+     7258    0.138    0.000    0.138    0.000 {method 'send' of '_socket.socket' objects}
+   341970    0.134    0.000    0.203    0.000 /usr/local/lib/python3.12/asyncio/transports.py:19(get_extra_info)
+   114288    0.132    0.000    1.835    0.000 /opt/venv/lib/python3.12/site-packages/anyio/_core/_typedattr.py:62(extra)
+    62743    0.125    0.000   18.173    0.000 {method 'run' of '_contextvars.Context' objects}
+    32017    0.122    0.000    0.397    0.000 <frozen importlib._bootstrap>:304(acquire)
+    33740    0.121    0.000    2.620    0.000 /opt/venv/lib/python3.12/site-packages/httpcore/_async/http11.py:65(handle_async_request)
+   341970    0.121    0.000    0.324    0.000 /opt/venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:1392(_raw_socket)
+   167781    0.120    0.000    2.613    0.000 /opt/venv/lib/python3.12/site-packages/httpcore/_async/http11.py:274(has_expired)
+    76023    0.104    0.000    0.119    0.000 /usr/local/lib/python3.12/asyncio/events.py:36(__init__)
+    32017    0.103    0.000    0.154    0.000 <frozen importlib._bootstrap>:426(_get_module_lock)
+
+

@@ -27,6 +27,9 @@ experiment:
   # 専門家ノード 1 台を動かすプロセスの数（Iteration 10）．2 以上では各プロセスがシャードを読み込み，SO_REUSEPORT で同じポートを開く．
   # 1 は従来どおり 1 プロセス
   node_workers: 1
+  # probe の本文の作り方（Iteration 11）．per_request：ノードごとに作る（従来）／pre_encoded：問ごとに埋め込みの JSON を 1 回だけ作って使い回す．
+  # ノードが受け取る本文はバイト単位で同じ
+  probe_body: per_request
   # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
   churn: null
 

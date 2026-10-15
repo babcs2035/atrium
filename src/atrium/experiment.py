@@ -208,6 +208,7 @@ async def run_experiment(
             "started_at": previous.get("started_at", time.time()),
             "http_pool": cfg.experiment.http_pool,
             "requester_procs": cfg.experiment.requester_procs,
+            "probe_body": cfg.experiment.probe_body,
         }
         _write_meta(out_dir, meta)
         finished_at: float | None = None

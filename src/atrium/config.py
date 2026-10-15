@@ -86,6 +86,10 @@ class ExperimentConfig(_Strict):
     # 専門家ノード 1 台を動かすプロセス（uvicorn のサーバー）の数（Iteration 10．atrium.node）．2 以上では各プロセスが
     # シャードを読み込み，SO_REUSEPORT で同じポートを開く（メモリはシャードの W 倍）．1 は従来どおり 1 プロセス
     node_workers: int = Field(default=1, ge=1)
+    # probe の本文の作り方（Iteration 11）．per_request：ノードごとに ProbeRequest → model_dump → httpx の json= で作る（従来の挙動）／
+    # pre_encoded：問ごと（検索器ごと）に埋め込みの JSON を 1 回だけ作り，ノードごとに shard_ids だけを差し替えた bytes を送る．
+    # ノードが受け取る本文はバイト単位で同じ
+    probe_body: Literal["per_request", "pre_encoded"] = "per_request"
     # EQ7b．指定すると質問を 1 問ずつ順に流し，離脱したノードがあっても返事のあった分で続ける
     churn: ChurnConfig | None = None
 

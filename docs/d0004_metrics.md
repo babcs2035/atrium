@@ -26,6 +26,7 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | 項目 | 意味 |
 |---|---|
 | `requester_procs` | 質問者のプロセスの数 |
+| `probe_body` | probe の本文の作り方（`experiment.probe_body`．`per_request` / `pre_encoded`） |
 | `requester_cpu_s`（`_user_s`・`_sys_s`） | 問を流した区間の質問者の全プロセスの CPU 時間の合計（秒） |
 | `requester_cpu_util` | `requester_cpu_s` ÷ 区間の長さ（コアの数の単位．N 個のプロセスが全て 1 コアに張り付けば N） |
 | `requester_cpu_util_per_proc`，`requester_parallel_per_proc` | プロセスごとの CPU 使用率（そのプロセスが流していた区間で割る）と同時の問の数 |

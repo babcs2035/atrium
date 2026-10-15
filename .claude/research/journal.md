@@ -3,6 +3,111 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 11: 質問者の probe の本文を問ごとに 1 回だけ符号化したときの処理量
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B31 [auto-decided]（Iteration 10 は採用．専門家ノードの余裕は W = 1 でも制御点 1 台の質問者の約 3.8 倍あり，システム全体の律速は質問者の 1 要求あたりの CPU）．
+config.yml の levers 末尾の `requester.probe_body: [pre_encoded]`（仮称）を，**config.yaml の新しいキー `experiment.probe_body`（`per_request`〔既定．今の挙動〕/ `pre_encoded`）**として確定した（backlog B32）．ノードの API・要求の意味・方式の選択・データ・シャード・`cluster` は変えない．質問者を複数のデバイスに置く形（B25 (a)）は扱わない．
+
+**コードから確かめたこと**（事実）
+- `src/atrium/requester.py` の `Requester._probe` の `ask` は，宛先のノードごとに `ProbeRequest(shard_ids=..., embedding=embeddings[encoder].tolist())` を作り，`post_with_retry` が `client.post(url, json=req.model_dump())` で送る．1 問の flood_score では同じ 768 次元の埋め込みを 30 回 `tolist` → pydantic の検証 → `model_dump` → JSON にしている．
+- httpx 0.28.1 の `json=` は `json.dumps(obj, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")` で本文を作る（`.venv/.../httpx/_content.py` の `encode_json`）．同じ区切り・同じキーの順（`shard_ids`，`embedding`）で bytes を組めば，ノードが受け取る本文は**バイト単位で今と同じ**になる．
+- `retrieval_only` の 1 問は probe（fs で 30 台，dp12 で約 12 台）と `/v1/retrieve`（m = 2）からなる．今回は probe だけを変える（retrieve の 2 要求は変えない）．
+- 質問者の環境（uv.lock・制御点の `atrium-full` のイメージ）には `sniffio` が入っていない．httpcore 1.0.9 の `current_async_library`（`httpcore/_synchronization.py`）は呼ばれるたびに `import sniffio` を試み，失敗した import は `sys.modules` に残らないので，毎回 `sys.path` の探索（`find_spec`・`stat`）が走る．anyio 4.15.1 は sniffio に依存しない．
+
+**事前の測定**（B31 の指示．制御点 wafl-ctrl5 の `atrium-full` のコンテナで，localhost の偽のノード 30 個〔受け取った `ProbeRequest` を検証して固定の得点を返す FastAPI〕へ，質問者と同じ `per_node` の httpx と `post_with_retry`・`ProbeResponse.model_validate_json` で，parallel 30・1 問 30 probe を 300 問×3 回．偽のノードは同じ 12 コアを使う．
+スクリプトと出力は `results/20261015_iter11_probe_body_summary/prestudy/`．判定に使わない）
+
+| 質問者 1 プロセスの変種 | probe の要求/秒（3 回） | 中央値 | 1 要求の時間（ms） | 比 |
+|---|---|---|---|---|
+| 今の挙動（base） | 376.4・381.8・384.2 | 381.8 | 2.62 | 1.00 |
+| 本文を問ごとに 1 回だけ符号化（pre） | 471.4・484.5・497.4 | 484.5 | 2.06 | 1.27 |
+| httpx の INFO のログを止める（base_quiet） | 385.7・387.9・388.6 | 387.9 | 2.58 | 1.02 |
+| sniffio を入れる（base + sniffio．記録） | 497.1・501.9・504.6 | 501.9 | 1.99 | 1.31 |
+| pre + sniffio（記録．2 つのレバー） | 687.5・703.9・704.5 | 703.9 | 1.42 | 1.84 |
+
+- 1 要求あたりの内訳（今の挙動 2.62 ms に対して）：本文の符号化 約 0.55 ms（21%），sniffio の import の失敗 約 0.63 ms（24%），httpx の INFO のログ 約 0.04 ms（2%）．2 つの節約はほぼ足し算で効く（2.62 − 0.55 − 0.63 = 1.44 ms の予測に対して pre + sniffio は 1.42 ms）．
+- 操作端末 gpu2（論理 64 CPU）でも同じ順位だった（base 457〜476，pre 567〜582，sniffio 648〜656，pre + sniffio 875〜887 要求/秒）．cProfile では `json/encoder.py` の `iterencode` が tottime の 1 位，`_find_and_load`（`current_async_library` から 1 要求あたり約 9.5 回）・httpcore の `_assign_requests_to_connections`（接続の池の走査）が続く．
+- **レバーの選び直しの判断**：B31 は「本文の符号化の割合が小さければ最大の項目に選び直してよい」とした．本文の符号化は 21% で小さくないので，**レバーは予定どおり本文の符号化**とする．sniffio の欠落（24%．1 位だが差は 3 ポイント）は次の候補として backlog B32 に記録する．ログの水準は 2% で候補から外す．
+- 制御点の最初の試行では，6 回の測定のどこかで `httpx.ReadError` が 1 回出た（出力が切れており，どの変種かは不明．偽のノードの起動を 20 秒しか待っていないことによる可能性．推測）．2 回目の試行（表の値）は失敗 0．
+
+**調査で分かったこと**（tavily-search・tavily-extract．事実と推測を分けて書く）
+- httpx の `AsyncClient` は同時の要求が多いと aiohttp より大幅に遅いことが報告されており（20 並列で 10 倍以上の差．localhost の小さな GET．M. Sintonen, encode/httpx issue #3215, 2024．現在は pydantic/httpx2 issue #827 に移されている．https://github.com/pydantic/httpx2/issues/827 ），
+  保守者は原因の候補に h11 による HTTP の組み立てと解析の CPU，anyio を介した非同期の層の CPU を挙げている（T. Christie の同 issue のコメント，2024-06-06）．今回の cProfile で httpcore の接続の池の走査と anyio の `extra_attributes` が上位に出たことと矛盾しない．HTTP クライアントの置き換え（aiohttp 等）は 1 要求の CPU をさらに下げうる候補だが，接続の池・再試行・`per_node` の作り直しを伴うので今回は扱わない．
+- 標準の `json` は他の実装より遅く，twitter.json の直列化で orjson 0.11 ms に対して json 1.36 ms という比較がある（ijl/orjson の README．https://github.com/ijl/orjson ）．orjson は numpy の配列を直接直列化できる．ただし float の文字列の表現が標準の `json` と一致する保証はなく，ノードが受け取る数値が変わりうる（推測．確かめていない）ので，今回は**標準の `json` のまま回数だけを減らし**，本文をバイト単位で今と同じに保つ．
+- 1 回の符号化の結果を宛先ごとに使い回すのは，埋め込みが問ごとに 1 つで宛先によって変わらないので，結果を変えない置き換えである（Iteration 6 の重心の前計算と同じ型）．
+
+**問い**：(1) 本文の符号化を問ごと（検索器ごと）に 1 回にすると，実機（30 台・2,940 問）の質問者 1 プロセスの処理量は事前の測定と同じ程度（約 1.2〜1.3 倍）伸びるか．(2) 1 問あたりの probe の数が少ない device_probe（D = 12）でも伸びるか．(3) N = 8（物理コアを超える）でも同じ比で伸びるか．
+
+**仮説**
+- **H-B1（主）**：flood_score × N = 1 で，`pre_encoded` の 3 回の処理量の範囲が `per_request` の範囲より上にあり重ならず，かつ中央値の比が 1.10 以上．仕組み：N = 1 は質問者のプロセスが 1 コアに張り付いて律速（Iteration 8 の per_proc 1.00）なので，1 要求あたりの CPU を約 0.55 ms 減らせば，その分だけ処理量が伸びる．
+- **H-B2**：device_probe（D = 12）× N = 1 で H-B1 と同じ規則が成り立つ．
+- **H-B3（記録）**：N = 8 で fs・dp12 のそれぞれ H-B1 と同じ規則が成り立つ．
+
+**単一レバー**：config.yaml の **`experiment.probe_body` を `per_request` → `pre_encoded`** と変える．それ以外（方式・D・N・parallel・問・`http_pool`・ノードの W）は両方の値で同じにする．
+- **キーを設定キーにした理由**：Iteration 6（重心の前計算）はコードの置き換えにしたが，今回は事前の測定のとおり sniffio の欠落という別の費用が同じ経路にあり，次のイテレーションで同じ基準（`per_request`）と比べ直す可能性が高い．設定キーなら同じイメージで両方を流せ，連続実行の中で交互に並べて時間の揺れを打ち消せる．
+- **実装**（phase 2 で行う．事前登録の commit に含める）
+  - `src/atrium/config.py`：`ExperimentConfig.probe_body: Literal["per_request", "pre_encoded"] = "per_request"`．`config.yaml` に `probe_body: per_request` を足す．
+  - `src/atrium/requester.py`：`_probe` の始めに，`pre_encoded` なら宛先のノードが使う検索器ごとに `json.dumps(embeddings[encoder].tolist(), ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()` を 1 回だけ作り，`ask` の中ではノードの `shard_ids` の JSON（同じ区切り）と連結して `b'{"shard_ids":' + … + b',"embedding":' + … + b'}'` を作る．
+    `post_with_retry` は本文に `dict` のほかに `bytes` を受け取れるようにし，`bytes` なら `content=` と `Content-Type: application/json` で送る（再試行の挙動は同じ）．`per_request` の経路は変えない．`/v1/retrieve` と `/v1/answer` は変えない．
+  - `src/atrium/experiment.py`：`run_meta.json` に `probe_body` を残す．
+  - テスト（`tests/test_probe_body.py` 等）：同じ埋め込み・`shard_ids` で，`pre_encoded` の本文が `httpx` の `json=req.model_dump()` が作る本文と**バイト単位で一致**すること（複数の `shard_ids`・空でない 768 次元・負の値・非常に小さい値を含む），NaN を含む埋め込みは両方の経路で例外になること，既定値が `per_request` であること，
+    実際のノードの ASGI アプリへ `pre_encoded` で送った probe の得点が `per_request` と一致すること．
+  - 文書：`docs/d0002_configuration.md`（`probe_body`），`docs/d0004_metrics.md`（`run_meta.json` の `probe_body`）．
+  - 連続実行：`results/20261015_iter11_probe_body_summary/` に `iter11_chain.sh`（`iter8_chain.sh` を写し，`probe_body` を `experiment` の直下のキーとして渡す）・`iter11_specs.template.txt`・`iter11_smoke_specs.template.txt`・集計 `iter11_summary.py`（下の規則を機械的に出す．合成の結果で動作を確かめる）．
+
+**固定する構成**：`dataset: enronqa`，`answer_mode: retrieval_only`，m = 2，`http_pool: per_node`，parallel 30（全プロセスの合計），test の全 2,940 問（`question_limit: null`），`node_workers: 1`（deploy の既定），T4 以来の 30 台 × 5 受信箱の配置，各回の前に deploy し直す（Iteration 8 と同じ）．
+連続実行の間は制御点で他のコンテナを動かさず commit もしない．sniffio は入れない（今の環境のまま）．
+
+### 事前登録（2026-10-15．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**手順 0：実機の動作確認**（連続実行の前に 1 回．判定に使わない）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ 1 回も流さずに止め，backlog に `[needs-human]` を記録する．
+2. `<date>_iter11_smoke_fs_pe`（`dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded`）を deploy → start → analyze で 1 回流す．
+3. 次を全て満たすことを確かめる．満たさなければ連続実行を流さず，原因を調べて記録する：失敗 0 問，300 問の `selected_sources` が `results/20261015_iter8_anchor_fs_n1_p30_post/results.jsonl` と 300/300 一致，`run_meta.json` の `probe_body` = pre_encoded・`http_pool` = per_node・`requester_procs` = 1，`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない．
+
+**手順 1：実機の連続実行**（`iter11_specs.template.txt` の `<date>` を実行日にした `iter11_specs.txt` を `iter11_chain.sh` に**絶対パス**で渡す）
+1. 環境の揺れの確認（前）：flood_score × N = 1 × parallel 30 × 300 問（`question_limit=2`）× `per_request` を 1 回（anchor_pre）．
+2. 主の系列：方式 {fs，dp12（`routing=device_probe routing.probe_d.enronqa=12`）} × N ∈ {1, 8} × `probe_body` ∈ {per_request（pr），pre_encoded（pe）} × 3 回，2,940 問．
+   各回の中は fs_n1 → fs_n8 → dp12_n1 → dp12_n8 の順に流し，各組で r1・r3 は pr → pe，r2 は pe → pr の順にする（時間の揺れを両方の値に均等に掛けるため）．
+3. 環境の揺れの確認（後）：1 と同じ（anchor_post）．
+- 計 26 実行（手順 0 を除く）．所要は約 2〜2.5 時間の見込み（Iteration 8 の 1 実行あたりの deploy などの約 3.8 分 × 26 と，流す時間の合計約 30 分）．deploy の失敗の扱い・失敗率の打ち切りは Iteration 8 と同じ（`iter11_chain.sh`）．
+
+**指標**（Iteration 8 と同じ．`docs/d0004_metrics.md`）：処理量（成功した問の数 ÷（`finished_at` − `started_at`）），e2e_s・probe_s の p50・p95，失敗率，再試行の数，1 秒あたりの HTTP 要求の数，`requester_cpu_util`・`requester_cpu_util_per_proc` の中央値，`expert_cpu_util_max`，`control_cpu_busy`，2,940 問の hit@2．
+加えて **1 要求あたりの質問者の CPU**（`requester_cpu_s` ÷ HTTP 要求の数．ms）を記録する．主の量は各条件の 3 回の処理量（最小〜中央値〜最大）．
+
+**正しさの確認**（満たさない実行は判定に使わず「欠け」とし，原因を調べて記録する）
+- G1：失敗率が 1% 以下．
+- G2（方式ごと）：その方式の全ての実行（pr・pe・N = 1・8）で，失敗の無い問の `selected_sources` が問ごとに 100% 一致する．成り立たなければその方式の判定に進まない（本文がバイト単位で同じなら選択は変わらないはず）．
+- G3：`run_meta.json` の `probe_body`・`requester_procs`・`http_pool` = per_node・routing・D・`n_questions` が仕様と一致する．
+- G4（記録）：2,940 問の hit@2 が Iteration 8 の値（fs 0.8041，dp12 0.6830）と一致するか．
+- G5（律速の読みだけに効く）：`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない．
+
+**環境の揺れの規則**（記録のため）：anchor_pre・anchor_post の処理量が [11.127, 14.247] 問/秒，e2e p95 が [3.053, 4.067] 秒（Iteration 7〜10 と同じ範囲）に入るかを記録する．`per_request` の主の系列の値が Iteration 8 の同じ条件の範囲（fs N = 1：13.286〜13.574，fs N = 8：78.11〜84.95，dp12 N = 1：32.22〜32.82，dp12 N = 8：178.3〜186.7 問/秒）から ±5% を超えて外れたら「環境が変わった」と記録する．
+比べる相手は同じ連続実行の中の `per_request` なので，判定の基準は変えない．
+
+**判定の規則**（比べる 2 条件の 3 回の範囲が重ならないときだけ「差がある」）
+- **伸びた**（ある方式・N で pr → pe）：pe の 3 回の処理量の範囲が pr の範囲より上にあり重ならず，かつ中央値の比 pe ÷ pr が 1.10 以上．
+- **H-B1（主）**：fs × N = 1 が「伸びた」．
+- **H-B2**：dp12 × N = 1 が「伸びた」．
+- **H-B3（記録）**：fs × N = 8・dp12 × N = 8 のそれぞれが「伸びた」．
+- **このイテレーションの結論**：
+  - **棄却（測定不成立）**：G2 が fs で成り立たないか，G3 が 1 つでも不成立か，fs × N = 1 の pr・pe のいずれかで有効な実行が 2 回未満．原因を調べて記録する．
+  - **採用**（以後の負荷の実験は `probe_body: pre_encoded` を明示して流す．既定の値は変えない）：上が当てはまらず，H-B1 が成り立つ．
+  - **部分的に支持**：H-B1 が成り立たないが，fs × N = 1 の pe の範囲が pr の範囲より上にある（比 < 1.10），または H-B2 が成り立つ．
+  - **棄却（伸びない）**：どれでもない（事前の測定の節約が実機では効かない．実機の質問者の 1 要求の時間の内訳を py-spy で取り直す）．
+- 記録（判定に使わない）：方式・N ごとの比，1 要求あたりの質問者の CPU の pr と pe の差（事前の測定の約 0.55 ms と比べる），N = 8 の E(8) の変化，`requester_cpu_util_per_proc` が 1 に張り付いたままか（律速が質問者のままか），e2e p95 の変化，`expert_cpu_util_max`．
+
+**ノイズの見積もり**：Iteration 8 の 3 回の処理量の幅は，N = 1 で中央値の −1.4%〜+0.7%（fs）・−1.2%〜+0.6%（dp12），N = 8 で −5.1%〜+3.2%（fs）・−4.2%〜+0.3%（dp12）だった．閾値 1.10 は N = 1 の幅の約 5 倍で，N = 8 の幅でも範囲が重ならない規則を併用すれば取り違えにくい．
+
+**期待効果**（推測．判定に使わない）：事前の測定の 1 要求あたり約 0.55 ms の節約が実機でも同じなら，fs × N = 1 は 1 問 約 74.2 ms のうち probe 30 要求分の 16.5 ms が減り，約 13.5 → 17.0〜17.5 問/秒（比 1.25〜1.30）．dp12 × N = 1 は probe 約 12 要求分の 6.6 ms が減り，約 32.6 → 40〜42 問/秒（比 1.23〜1.28）．
+N = 8 は物理 6 コアを超えるので比は同じか少し小さい見込み（fs 95〜105，dp12 210〜235 問/秒）．事前の測定は偽のノードが同じ 12 コアを使い，ループバックで測ったものなので，実機の節約の大きさは前後しうる．
+
+**限界**：有線 LAN・検索だけ・閉じた系．変えるのは probe の本文だけで，`/v1/retrieve`（1 問 2 要求）の本文は今の作り方のままである．標準の `json` のまま回数を減らすだけで，直列化の速い実装（orjson）・HTTP クライアントの置き換え・sniffio の欠落は扱わない．専門家ノードの側の JSON の解析の費用は変わらない．
+
+**次の候補**：採用なら，事前の測定で次に大きい sniffio の欠落（約 24%）を単一レバーにする（B32）．その後も質問者が律速なら，httpcore の接続の池の走査・h11 の CPU を減らす HTTP クライアントの置き換えを調べる．棄却なら，実機の質問者を py-spy で取り直して内訳を確かめる．
+
 ## Iteration 10: 専門家ノードのプロセスの数によるノード 1 台の処理量の頭打ちの確認
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）
