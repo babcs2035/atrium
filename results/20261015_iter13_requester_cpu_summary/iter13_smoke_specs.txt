@@ -1,0 +1,3 @@
+# Iteration 13 の手順 0（動作確認）の仕様の雛形．判定に使わない．20261015 を実行日に置き換えて iter13_smoke_specs.txt を作る．
+20261015_iter13_smoke_fs_ln_n1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+20261015_iter13_smoke_fs_ln_n8 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean

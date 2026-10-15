@@ -1,0 +1,131 @@
+[2026-10-15_23:56:35] BEGIN 20261015_iter13_anchor_fs_n1_pr_pre dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 probe_body=per_request sniffio_lookup=search pool_assign=stock
+[23:59:10] 20261015_iter13_anchor_fs_n1_pr_pre deployed
+[00:00:41] 20261015_iter13_anchor_fs_n1_pr_pre start=0 inner=0
+[00:00:43] 20261015_iter13_anchor_fs_n1_pr_pre analyze=0
+[00:00:43] 20261015_iter13_anchor_fs_n1_pr_pre failure_rate=0.0
+[2026-10-16_00:00:43] BEGIN 20261015_iter13_fs_n1_sk_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[00:02:58] 20261015_iter13_fs_n1_sk_r1 deployed
+[00:05:29] 20261015_iter13_fs_n1_sk_r1 start=0 inner=0
+[00:05:31] 20261015_iter13_fs_n1_sk_r1 analyze=0
+[00:05:31] 20261015_iter13_fs_n1_sk_r1 failure_rate=0.0
+[2026-10-16_00:05:31] BEGIN 20261015_iter13_fs_n1_ln_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[00:07:41] 20261015_iter13_fs_n1_ln_r1 deployed
+[00:10:14] 20261015_iter13_fs_n1_ln_r1 start=0 inner=0
+[00:10:16] 20261015_iter13_fs_n1_ln_r1 analyze=0
+[00:10:16] 20261015_iter13_fs_n1_ln_r1 failure_rate=0.0
+[2026-10-16_00:10:16] BEGIN 20261015_iter13_fs_n8_sk_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[00:12:30] 20261015_iter13_fs_n8_sk_r1 deployed
+[00:14:03] 20261015_iter13_fs_n8_sk_r1 start=0 inner=0
+[00:14:05] 20261015_iter13_fs_n8_sk_r1 analyze=0
+[00:14:06] 20261015_iter13_fs_n8_sk_r1 failure_rate=0.0
+[2026-10-16_00:14:06] BEGIN 20261015_iter13_fs_n8_ln_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[00:16:20] 20261015_iter13_fs_n8_ln_r1 deployed
+[00:17:51] 20261015_iter13_fs_n8_ln_r1 start=0 inner=0
+[00:17:53] 20261015_iter13_fs_n8_ln_r1 analyze=0
+[00:17:53] 20261015_iter13_fs_n8_ln_r1 failure_rate=0.0
+[2026-10-16_00:17:53] BEGIN 20261015_iter13_dp12_n1_sk_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[00:20:14] 20261015_iter13_dp12_n1_sk_r1 deployed
+[00:21:45] 20261015_iter13_dp12_n1_sk_r1 start=0 inner=0
+[00:21:47] 20261015_iter13_dp12_n1_sk_r1 analyze=0
+[00:21:47] 20261015_iter13_dp12_n1_sk_r1 failure_rate=0.0
+[2026-10-16_00:21:47] BEGIN 20261015_iter13_dp12_n1_ln_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[00:24:12] 20261015_iter13_dp12_n1_ln_r1 deployed
+[00:25:45] 20261015_iter13_dp12_n1_ln_r1 start=0 inner=0
+[00:25:47] 20261015_iter13_dp12_n1_ln_r1 analyze=0
+[00:25:47] 20261015_iter13_dp12_n1_ln_r1 failure_rate=0.0
+[2026-10-16_00:25:47] BEGIN 20261015_iter13_dp12_n8_sk_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[00:28:15] 20261015_iter13_dp12_n8_sk_r1 deployed
+[00:29:47] 20261015_iter13_dp12_n8_sk_r1 start=0 inner=0
+[00:29:49] 20261015_iter13_dp12_n8_sk_r1 analyze=0
+[00:29:49] 20261015_iter13_dp12_n8_sk_r1 failure_rate=0.0
+[2026-10-16_00:29:49] BEGIN 20261015_iter13_dp12_n8_ln_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[00:32:10] 20261015_iter13_dp12_n8_ln_r1 deployed
+[00:33:41] 20261015_iter13_dp12_n8_ln_r1 start=0 inner=0
+[00:33:43] 20261015_iter13_dp12_n8_ln_r1 analyze=0
+[00:33:43] 20261015_iter13_dp12_n8_ln_r1 failure_rate=0.0
+[2026-10-16_00:33:43] BEGIN 20261015_iter13_fs_n1_ln_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[00:36:07] 20261015_iter13_fs_n1_ln_r2 deployed
+[00:38:41] 20261015_iter13_fs_n1_ln_r2 start=0 inner=0
+[00:38:43] 20261015_iter13_fs_n1_ln_r2 analyze=0
+[00:38:43] 20261015_iter13_fs_n1_ln_r2 failure_rate=0.0
+[2026-10-16_00:38:43] BEGIN 20261015_iter13_fs_n1_sk_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[00:41:13] 20261015_iter13_fs_n1_sk_r2 deployed
+[00:43:45] 20261015_iter13_fs_n1_sk_r2 start=0 inner=0
+[00:43:47] 20261015_iter13_fs_n1_sk_r2 analyze=0
+[00:43:47] 20261015_iter13_fs_n1_sk_r2 failure_rate=0.0
+[2026-10-16_00:43:47] BEGIN 20261015_iter13_fs_n8_ln_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[00:46:09] 20261015_iter13_fs_n8_ln_r2 deployed
+[00:47:41] 20261015_iter13_fs_n8_ln_r2 start=0 inner=0
+[00:47:43] 20261015_iter13_fs_n8_ln_r2 analyze=0
+[00:47:43] 20261015_iter13_fs_n8_ln_r2 failure_rate=0.0
+[2026-10-16_00:47:43] BEGIN 20261015_iter13_fs_n8_sk_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[00:50:08] 20261015_iter13_fs_n8_sk_r2 deployed
+[00:51:40] 20261015_iter13_fs_n8_sk_r2 start=0 inner=0
+[00:51:41] 20261015_iter13_fs_n8_sk_r2 analyze=0
+[00:51:41] 20261015_iter13_fs_n8_sk_r2 failure_rate=0.0
+[2026-10-16_00:51:42] BEGIN 20261015_iter13_dp12_n1_ln_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[00:54:00] 20261015_iter13_dp12_n1_ln_r2 deployed
+[00:55:31] 20261015_iter13_dp12_n1_ln_r2 start=0 inner=0
+[00:55:33] 20261015_iter13_dp12_n1_ln_r2 analyze=0
+[00:55:33] 20261015_iter13_dp12_n1_ln_r2 failure_rate=0.0
+[2026-10-16_00:55:33] BEGIN 20261015_iter13_dp12_n1_sk_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[00:57:57] 20261015_iter13_dp12_n1_sk_r2 deployed
+[00:59:28] 20261015_iter13_dp12_n1_sk_r2 start=0 inner=0
+[00:59:30] 20261015_iter13_dp12_n1_sk_r2 analyze=0
+[00:59:30] 20261015_iter13_dp12_n1_sk_r2 failure_rate=0.0
+[2026-10-16_00:59:30] BEGIN 20261015_iter13_dp12_n8_ln_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[01:01:58] 20261015_iter13_dp12_n8_ln_r2 deployed
+[01:03:29] 20261015_iter13_dp12_n8_ln_r2 start=0 inner=0
+[01:03:31] 20261015_iter13_dp12_n8_ln_r2 analyze=0
+[01:03:31] 20261015_iter13_dp12_n8_ln_r2 failure_rate=0.0
+[2026-10-16_01:03:31] BEGIN 20261015_iter13_dp12_n8_sk_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[01:06:02] 20261015_iter13_dp12_n8_sk_r2 deployed
+[01:07:33] 20261015_iter13_dp12_n8_sk_r2 start=0 inner=0
+[01:07:35] 20261015_iter13_dp12_n8_sk_r2 analyze=0
+[01:07:35] 20261015_iter13_dp12_n8_sk_r2 failure_rate=0.0
+[2026-10-16_01:07:35] BEGIN 20261015_iter13_fs_n1_sk_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[01:09:57] 20261015_iter13_fs_n1_sk_r3 deployed
+[01:12:29] 20261015_iter13_fs_n1_sk_r3 start=0 inner=0
+[01:12:31] 20261015_iter13_fs_n1_sk_r3 analyze=0
+[01:12:31] 20261015_iter13_fs_n1_sk_r3 failure_rate=0.0
+[2026-10-16_01:12:31] BEGIN 20261015_iter13_fs_n1_ln_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[01:15:00] 20261015_iter13_fs_n1_ln_r3 deployed
+[01:17:31] 20261015_iter13_fs_n1_ln_r3 start=0 inner=0
+[01:17:33] 20261015_iter13_fs_n1_ln_r3 analyze=0
+[01:17:33] 20261015_iter13_fs_n1_ln_r3 failure_rate=0.0
+[2026-10-16_01:17:33] BEGIN 20261015_iter13_fs_n8_sk_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[01:20:03] 20261015_iter13_fs_n8_sk_r3 deployed
+[01:21:34] 20261015_iter13_fs_n8_sk_r3 start=0 inner=0
+[01:21:36] 20261015_iter13_fs_n8_sk_r3 analyze=0
+[01:21:36] 20261015_iter13_fs_n8_sk_r3 failure_rate=0.0
+[2026-10-16_01:21:36] BEGIN 20261015_iter13_fs_n8_ln_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[01:24:01] 20261015_iter13_fs_n8_ln_r3 deployed
+[01:25:33] 20261015_iter13_fs_n8_ln_r3 start=0 inner=0
+[01:25:34] 20261015_iter13_fs_n8_ln_r3 analyze=0
+[01:25:35] 20261015_iter13_fs_n8_ln_r3 failure_rate=0.0
+[2026-10-16_01:25:35] BEGIN 20261015_iter13_dp12_n1_sk_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[01:28:04] 20261015_iter13_dp12_n1_sk_r3 deployed
+[01:29:35] 20261015_iter13_dp12_n1_sk_r3 start=0 inner=0
+[01:29:37] 20261015_iter13_dp12_n1_sk_r3 analyze=0
+[01:29:37] 20261015_iter13_dp12_n1_sk_r3 failure_rate=0.0
+[2026-10-16_01:29:37] BEGIN 20261015_iter13_dp12_n1_ln_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[01:32:06] 20261015_iter13_dp12_n1_ln_r3 deployed
+[01:33:37] 20261015_iter13_dp12_n1_ln_r3 start=0 inner=0
+[01:33:38] 20261015_iter13_dp12_n1_ln_r3 analyze=0
+[01:33:38] 20261015_iter13_dp12_n1_ln_r3 failure_rate=0.0
+[2026-10-16_01:33:38] BEGIN 20261015_iter13_dp12_n8_sk_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=stock
+[01:36:06] 20261015_iter13_dp12_n8_sk_r3 deployed
+[01:37:38] 20261015_iter13_dp12_n8_sk_r3 start=0 inner=0
+[01:37:39] 20261015_iter13_dp12_n8_sk_r3 analyze=0
+[01:37:39] 20261015_iter13_dp12_n8_sk_r3 failure_rate=0.0
+[2026-10-16_01:37:39] BEGIN 20261015_iter13_dp12_n8_ln_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean
+[01:40:02] 20261015_iter13_dp12_n8_ln_r3 deployed
+[01:41:34] 20261015_iter13_dp12_n8_ln_r3 start=0 inner=0
+[01:41:35] 20261015_iter13_dp12_n8_ln_r3 analyze=0
+[01:41:35] 20261015_iter13_dp12_n8_ln_r3 failure_rate=0.0
+[2026-10-16_01:41:35] BEGIN 20261015_iter13_anchor_fs_n1_pr_post dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 probe_body=per_request sniffio_lookup=search pool_assign=stock
+[01:44:07] 20261015_iter13_anchor_fs_n1_pr_post deployed
+[01:45:38] 20261015_iter13_anchor_fs_n1_pr_post start=0 inner=0
+[01:45:39] 20261015_iter13_anchor_fs_n1_pr_post analyze=0
+[01:45:39] 20261015_iter13_anchor_fs_n1_pr_post failure_rate=0.0
+[2026-10-16_01:45:39] ALL DONE

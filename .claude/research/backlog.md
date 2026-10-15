@@ -17,6 +17,22 @@
 
 ---
 
+## B37 [auto-decided 2026-10-16] Iteration 13（httpcore の接続の池の割り当てを軽くする）は採用．Iteration 14 は質問者の `/v1/retrieve` の本文を問ごとに 1 回だけ符号化する構成
+
+- 状況: Iteration 13 の判定は採用（事前登録の規則の機械的な適用．G1〜G5 成立，H-P1 成立，H-P2 は比 1.090 で不成立，H-P3 は fs・dp12 × N = 8 とも不成立）．処理量の中央値（問/秒，sk → ln）は fs N = 1 で 25.996 → 30.188（1.161．隙間 +14.7%），fs N = 8 で 159.299 → 171.520（1.077），dp12 N = 1 で 56.118 → 61.143（1.090），dp12 N = 8 で 292.395 → 305.855（1.046．ln の r1 が約 1 秒の遅れ 32 問で 198.5 に落ち，範囲が重なる）．
+  1 要求の質問者の CPU は fs N = 1 で 1.208 → 1.033 ms，律速は質問者のまま（dp12 × N = 8 × ln の最も忙しいノード 1.37 コア）（journal の「Iteration 13 実行済み：分析・考察」）．config.yml の levers は全て試し終えている．
+- 自動選択: **Iteration 14 の単一レバーは `requester.retrieve_body: [pre_encoded]`（仮称）**とし，config.yml の levers 末尾に追記した．既定は今の挙動（`_retrieve` がシャードごとに `embedding.tolist()` → `RetrieveRequest.model_dump()` → httpx の `json=` で 768 次元の埋め込みを JSON にする）．
+  pre_encoded は問ごと（検索器ごと）に埋め込みの JSON を 1 回だけ作り（probe の pre_encoded の本文と共有してよい），シャードごとに `shard_id`・`k`・`query_id` だけを差し替えた bytes を `content=` で送る．ノードが受け取る本文はバイト単位で同じにする（Iteration 11 の `probe_body` と同じ作り）．
+  phase 1 で `results/20261015_iter13_requester_cpu_summary/prestudy/run_ctrl.sh`（本物のノード 30 個＋本物の `atrium run`）を `pool_assign: lean` の上で取り直し，`/v1/retrieve` の本文の符号化が設定キーで除ける最大の項目であることを確かめる．違えば最大の除ける項目に選び直してよい（その場合は iteration_name も言い換える）．
+  比べる条件は Iteration 13 と同じ形（fs・dp12 × N ∈ {1, 8} × 3 回，2,940 問，`probe_body: pre_encoded`・`sniffio_lookup: blocked`・**`pool_assign: lean`**・`http_pool: per_node`・`node_workers: 1` を固定，前後の anchor）．キー名・判定の規則は rc-researcher が事前登録で決める．
+- iteration_name: 「質問者の検索要求の本文を問ごとに 1 回だけ符号化したときの処理量」．
+- 根拠: (1) Iteration 13 の事前の測定で，lean の後に残る項目は h11 の送受信（HTTP クライアントの置き換えが要る．B35 (b) で避ける），待機中の接続ごとの `poll`（fs 約 14%．挙動を変えずには除けない），`/v1/retrieve` の本文の `json.dumps`（dp12 10.7%・fs 5.6%），dp12 の routing の 1 段目（7.6%）で，設定キーで挙動を変えずに除ける中では retrieve の本文が最大．
+  (2) Iteration 13 の H-P2 が閾値に届かなかった dp12 の方が効く（dp12 は 1 問の要求が 14 本で，そのうち重い本文の retrieve が 2 本）．(3) Iteration 11 の `probe_body` と同じ作り・同じテスト（バイト単位の一致）で，選択と結果が変わらないことを確かめやすい．
+- 要レビュー: (a) **期待効果は小さい**．dp12 で 10.7% の標本を全て除けても，実機への縮小の率（dp12 は 2 回続けて約 0.6．journal の Iteration 13 の学び）を掛けると処理量の比は約 1.06〜1.07，fs は約 1.03〜1.04 の見込みである．事前登録では，見込みに縮小の率を掛けてから閾値と主の仮説（fs か dp12 か）を決め，N = 1 の 3 回の幅（今回の fs × N = 1 × sk は −3.9%〜+0.9%）で検出できるかを先に確かめる．検出できない見込みなら，回数を増やすか，レバーを選び直す．
+  (b) **質問者の CPU を削る系列は効果が逓減している**（fs × N = 1 の比 1.33 → 1.49 → 1.16，dp12 × N = 1 で 1.30 → 1.19 → 1.09）．Iteration 14 の後に設定キーで除ける大きな項目は残らない見込みで，その先は (i) HTTP クライアントの置き換え（大きな変更），(ii) 質問者を複数のデバイスに置く（B25 (a)．人間の判断），(iii) 負荷の系列を止めて RQ の研究へ戻る，のいずれかになる．どれを選ぶかは人間が確認してよい（可逆なので自動では Iteration 14 を進める）．
+  (c) dp12 × N = 8 × ln の r1 の約 1 秒の遅れは，質問者の名前空間の `TCPSynRetrans` の増加（213．他の N = 8 は 41〜85）と同じ実行で起きた．新しい接続の SYN の再送が原因という読み（推測）を確かめるには，遅れた問の時刻と SYN の再送の時刻を突き合わせる記録（例：実行中の `nstat` の 1 秒ごとの記録，または専門家ノードの `ListenOverflows`・`ListenDrops`）が要る．Iteration 14 の記録の指標に足すかは rc-researcher が決める（判定には使わない）．
+  (d) httpcore の PyPI の最新は 2026-10-16 の時点でも 1.0.9（`lean` の前提の版のまま）．
+
 ## B36 [auto-decided 2026-10-15] Iteration 13 のレバーの形：`experiment.pool_assign`（httpcore の接続の池の割り当ての走査を，挙動を変えずに軽くする差し替え）
 
 - 状況: B35 で，質問者の 1 要求の CPU の残りで最大の項目を，制御点の事前の測定（fs と dp12）で選び，形・キー名・判定の規則を rc-researcher が事前登録で決めることになっていた．HTTP クライアントの置き換えは避ける（B35 (b)）．

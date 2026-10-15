@@ -1,0 +1,137 @@
+run | 失敗率 | e2e p50 | e2e p95 | probe p50 | probe p95 | retrieve p50 | 処理量 | req_util/proc 中央値 | 要求あたり質問者CPU(ms) | expert_max | ctl_busy | 再試行 | 新接続 | 要求/問 | HTTP要求/秒 | hit@2 | 誤り
+anchor_fs_n1_pr_pre | 0.0000 | 2.2050 | 3.4907 | 1.3822 | 2.4130 | 0.6357 | 12.503 | 1.000 | 2.402 | 0.086 | 0.093 | 2 | 496 | 32.0 | 400.1 | 0.9200 | {}
+fs_n1_sk_r1 | 0.0000 | 1.1092 | 1.6087 | 0.6778 | 1.0650 | 0.3194 | 25.996 | 1.006 | 1.208 | 0.154 | 0.093 | 2 | 804 | 32.0 | 831.9 | 0.8041 | {}
+fs_n1_ln_r1 | 0.0000 | 0.9453 | 1.4782 | 0.5802 | 1.0256 | 0.2647 | 30.188 | 0.999 | 1.033 | 0.182 | 0.095 | 7 | 958 | 32.0 | 966.0 | 0.8041 | {}
+fs_n8_sk_r1 | 0.0000 | 0.1702 | 0.2639 | 0.0943 | 0.1671 | 0.0540 | 158.194 | 0.999 | 1.494 | 0.966 | 0.678 | 3 | 1064 | 32.0 | 5062.2 | 0.8041 | {}
+fs_n8_ln_r1 | 0.0000 | 0.1579 | 0.2567 | 0.0885 | 0.1598 | 0.0512 | 171.520 | 0.996 | 1.396 | 1.095 | 0.690 | 2 | 1042 | 32.0 | 5488.6 | 0.8041 | {}
+dp12_n1_sk_r1 | 0.0000 | 0.5007 | 0.7554 | 0.2726 | 0.4836 | 0.1651 | 56.118 | 1.011 | 1.284 | 0.224 | 0.094 | 1 | 430 | 14.0 | 785.6 | 0.6830 | {}
+dp12_n1_ln_r1 | 0.0000 | 0.4582 | 0.7082 | 0.2489 | 0.4537 | 0.1477 | 61.143 | 1.011 | 1.178 | 0.244 | 0.094 | 0 | 407 | 14.0 | 856.0 | 0.6830 | {}
+dp12_n8_sk_r1 | 0.0000 | 0.0955 | 0.1520 | 0.0492 | 0.0818 | 0.0317 | 292.395 | 1.003 | 1.889 | 1.296 | 0.692 | 0 | 804 | 14.0 | 4093.5 | 0.6830 | {}
+dp12_n8_ln_r1 | 0.0000 | 0.0938 | 0.3741 | 0.0483 | 0.3117 | 0.0301 | 198.503 | 0.673 | 1.796 | 0.910 | 0.451 | 0 | 821 | 14.0 | 2779.0 | 0.6830 | {}
+fs_n1_sk_r2 | 0.0000 | 1.1310 | 1.8376 | 0.7127 | 1.2165 | 0.3179 | 24.974 | 1.000 | 1.250 | 0.151 | 0.094 | 2 | 1076 | 32.0 | 799.2 | 0.8041 | {}
+fs_n1_ln_r2 | 0.0000 | 0.9407 | 1.3619 | 0.6075 | 0.9123 | 0.2466 | 30.714 | 1.006 | 1.022 | 0.183 | 0.095 | 1 | 867 | 32.0 | 982.9 | 0.8041 | {}
+fs_n8_sk_r2 | 0.0000 | 0.1712 | 0.2667 | 0.0964 | 0.1681 | 0.0534 | 159.912 | 0.997 | 1.492 | 0.995 | 0.685 | 0 | 1055 | 32.0 | 5117.2 | 0.8041 | {}
+fs_n8_ln_r2 | 0.0000 | 0.1586 | 0.2514 | 0.0886 | 0.1611 | 0.0495 | 171.171 | 0.996 | 1.397 | 0.961 | 0.686 | 0 | 1018 | 32.0 | 5477.5 | 0.8041 | {}
+dp12_n1_sk_r2 | 0.0000 | 0.4982 | 0.7607 | 0.2724 | 0.4823 | 0.1603 | 56.329 | 1.010 | 1.277 | 0.225 | 0.094 | 0 | 461 | 14.0 | 788.6 | 0.6830 | {}
+dp12_n1_ln_r2 | 0.0000 | 0.4461 | 0.6831 | 0.2426 | 0.4407 | 0.1446 | 62.591 | 1.011 | 1.150 | 0.250 | 0.095 | 0 | 432 | 14.0 | 876.3 | 0.6830 | {}
+dp12_n8_sk_r2 | 0.0000 | 0.0939 | 0.1509 | 0.0487 | 0.0834 | 0.0314 | 290.195 | 1.002 | 1.877 | 1.282 | 0.681 | 0 | 792 | 14.0 | 4062.7 | 0.6830 | {}
+dp12_n8_ln_r2 | 0.0000 | 0.0891 | 0.1397 | 0.0466 | 0.0786 | 0.0299 | 307.596 | 1.000 | 1.781 | 1.375 | 0.687 | 0 | 790 | 14.0 | 4306.3 | 0.6830 | {}
+fs_n1_sk_r3 | 0.0000 | 1.0898 | 1.6209 | 0.6858 | 1.0770 | 0.3050 | 26.239 | 1.006 | 1.196 | 0.158 | 0.094 | 2 | 1020 | 32.0 | 839.7 | 0.8041 | {}
+fs_n1_ln_r3 | 0.0000 | 0.9615 | 1.4145 | 0.6186 | 0.9384 | 0.2521 | 30.091 | 1.005 | 1.042 | 0.181 | 0.095 | 0 | 780 | 32.0 | 962.9 | 0.8041 | {}
+fs_n8_sk_r3 | 0.0000 | 0.1694 | 0.2672 | 0.0950 | 0.1622 | 0.0539 | 159.299 | 0.999 | 1.491 | 1.013 | 0.681 | 0 | 1073 | 32.0 | 5097.6 | 0.8041 | {}
+fs_n8_ln_r3 | 0.0000 | 0.1587 | 0.2545 | 0.0899 | 0.1599 | 0.0505 | 171.672 | 0.996 | 1.400 | 1.009 | 0.691 | 1 | 1049 | 32.0 | 5493.5 | 0.8041 | {}
+dp12_n1_sk_r3 | 0.0000 | 0.5145 | 0.7819 | 0.2797 | 0.5152 | 0.1692 | 54.326 | 1.010 | 1.325 | 0.217 | 0.093 | 1 | 449 | 14.0 | 760.6 | 0.6830 | {}
+dp12_n1_ln_r3 | 0.0000 | 0.4715 | 0.7251 | 0.2575 | 0.4643 | 0.1509 | 59.378 | 1.011 | 1.214 | 0.236 | 0.093 | 0 | 447 | 14.0 | 831.3 | 0.6830 | {}
+dp12_n8_sk_r3 | 0.0000 | 0.0948 | 0.1447 | 0.0484 | 0.0769 | 0.0321 | 294.949 | 1.004 | 1.878 | 1.317 | 0.692 | 0 | 793 | 14.0 | 4129.3 | 0.6830 | {}
+dp12_n8_ln_r3 | 0.0000 | 0.0892 | 0.1414 | 0.0462 | 0.0763 | 0.0300 | 305.855 | 1.001 | 1.780 | 1.372 | 0.680 | 0 | 778 | 14.0 | 4282.0 | 0.6830 | {}
+anchor_fs_n1_pr_post | 0.0000 | 2.1426 | 3.6703 | 1.3806 | 2.4213 | 0.6011 | 13.185 | 1.001 | 2.360 | 0.079 | 0.091 | 0 | 431 | 32.0 | 421.9 | 0.9200 | {}
+
+## 正しさの確認（G1・G3・G5．満たさない実行は判定に使わず「欠け」）
+anchor_fs_n1_pr_pre: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n1_sk_r1: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n1_ln_r1: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n8_sk_r1: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n8_ln_r1: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n1_sk_r1: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n1_ln_r1: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n8_sk_r1: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n8_ln_r1: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n1_sk_r2: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n1_ln_r2: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n8_sk_r2: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n8_ln_r2: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n1_sk_r2: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n1_ln_r2: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n8_sk_r2: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n8_ln_r2: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n1_sk_r3: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n1_ln_r3: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n8_sk_r3: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+fs_n8_ln_r3: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n1_sk_r3: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n1_ln_r3: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n8_sk_r3: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+dp12_n8_ln_r3: G1 True（失敗率 0.0000），G3 True（pool_assign lean，httpcore 1.0.9，sniffio_installed False），G5 True
+anchor_fs_n1_pr_post: G1 True（失敗率 0.0000），G3 True（pool_assign stock，httpcore 1.0.9，sniffio_installed False），G5 True
+
+## G2：同じ方式の 2,940 問の全実行（sk・ln・N = 1・8）で selected_sources が問ごとに一致するか（失敗の無い問のみ）
+fs: 実行 12 件，基準 fs_n1_sk_r1，最小の一致率 1.0000 → True
+dp12: 実行 12 件，基準 dp12_n1_sk_r1，最小の一致率 1.0000 → True
+
+## G4（記録）：2,940 問の hit@2
+fs: 実測の値 [0.8041]，Iteration 8・11・12 の値 0.8041 → 5e-4 以内 True
+dp12: 実測の値 [0.683]，Iteration 8・11・12 の値 0.683 → 5e-4 以内 True
+
+## 環境の揺れ（前後の flood_score × N = 1 × per_request × search × stock × 300 問）
+pre: 処理量 12.503 (11.127, 14.247) 内，e2e p95 3.491 (3.053, 4.067) 内
+post: 処理量 13.185 (11.127, 14.247) 内，e2e p95 3.670 (3.053, 4.067) 内
+
+## 判定の規則（3 回の（最小，中央値，最大））
+fs N=1: sk (24.973861799672044, 25.99644599572424, 26.239152546137746)，ln (30.090517421994935, 30.188493505313446, 30.71442292594118)，ln の範囲は sk より 上，中央値の比 1.161（1.1 以上）→ 伸びた True；e2e p95 sk (1.6087432035012168, 1.6209419246064498, 1.8376004574820397) / ln (1.3618535341694948, 1.4144889622926706, 1.4782291127834468)；sk の中央値は Iteration 12 の bk の範囲 24.85〜26.617 の ±5% 内 True（外なら「環境が変わった」）
+fs N=8: sk (158.1940525006917, 159.29850469566958, 159.9118714517082)，ln (171.1712935198847, 171.5197832544193, 171.67156873971146)，ln の範囲は sk より 上，中央値の比 1.077（1.1 以上）→ 伸びた False；e2e p95 sk (0.26387427167501293, 0.2667111989576367, 0.26716986077371974) / ln (0.2513780824607238, 0.2544961393577977, 0.2567413542186841)；sk の中央値は Iteration 12 の bk の範囲 138.133〜161.288 の ±5% 内 True（外なら「環境が変わった」）
+dp12 N=1: sk (54.325776186408284, 56.11755455096789, 56.32938399739298)，ln (59.37803512855732, 61.14340555711264, 62.590500875112006)，ln の範囲は sk より 上，中央値の比 1.090（1.1 以上）→ 伸びた False；e2e p95 sk (0.7554151224670931, 0.7606989176478233, 0.7818582351319486) / ln (0.6830554637592285, 0.7081999704008916, 0.7250513729406519)；sk の中央値は Iteration 12 の bk の範囲 44.376〜54.251 の ±5% 内 True（外なら「環境が変わった」）
+dp12 N=8: sk (290.194643622142, 292.3948726788923, 294.9489509148886)，ln (198.50301383220895, 305.8552314864226, 307.59551366296137)，ln の範囲は sk より 重なる，中央値の比 1.046（1.1 以上）→ 伸びた False；e2e p95 sk (0.1446583429118618, 0.1509337650611995, 0.1520189811475575) / ln (0.13969055649358766, 0.1414334153756498, 0.37412658573593943)；sk の中央値は Iteration 12 の bk の範囲 276.325〜294.681 の ±5% 内 True（外なら「環境が変わった」）
+H-P1（fs × N = 1）: True．H-P2（dp12 × N = 1）: False．H-P3（記録）: fs × N = 8 False，dp12 × N = 8 False
+
+このイテレーションの結論（規則の機械的な適用．G3 の不成立または欠け 0 件 []，fs × N = 1 の有効な実行 {'sk': 3, 'ln': 3}）: 採用
+
+## 記録（判定に使わない）
+fs N=1 sk: 1 要求あたりの質問者の CPU(ms) 中央値 1.208，req_util/proc [1.006, 1.0, 1.006]，expert_cpu_util_max [0.154, 0.151, 0.158]
+fs N=1 ln: 1 要求あたりの質問者の CPU(ms) 中央値 1.033，req_util/proc [0.999, 1.006, 1.005]，expert_cpu_util_max [0.182, 0.183, 0.181]
+fs N=1: 比 ln/sk 1.161
+fs N=1: 1 要求あたりの質問者の CPU の差 sk − ln = 0.176 ms（事前の測定 fs 0.223・dp12 0.178 ms．実機の大きさへ縮めた見込み fs 約 0.17・dp12 約 0.14 ms）
+fs N=8 sk: 1 要求あたりの質問者の CPU(ms) 中央値 1.492，req_util/proc [0.999, 0.997, 0.999]，expert_cpu_util_max [0.966, 0.995, 1.013]
+fs N=8 ln: 1 要求あたりの質問者の CPU(ms) 中央値 1.397，req_util/proc [0.996, 0.996, 0.996]，expert_cpu_util_max [1.095, 0.961, 1.009]
+fs N=8: 比 ln/sk 1.077
+fs N=8: 1 要求あたりの質問者の CPU の差 sk − ln = 0.095 ms（事前の測定 fs 0.223・dp12 0.178 ms．実機の大きさへ縮めた見込み fs 約 0.17・dp12 約 0.14 ms）
+fs: E(8) sk 0.766
+fs: E(8) ln 0.710
+dp12 N=1 sk: 1 要求あたりの質問者の CPU(ms) 中央値 1.284，req_util/proc [1.011, 1.01, 1.01]，expert_cpu_util_max [0.224, 0.225, 0.217]
+dp12 N=1 ln: 1 要求あたりの質問者の CPU(ms) 中央値 1.178，req_util/proc [1.011, 1.011, 1.011]，expert_cpu_util_max [0.244, 0.25, 0.236]
+dp12 N=1: 比 ln/sk 1.090
+dp12 N=1: 1 要求あたりの質問者の CPU の差 sk − ln = 0.107 ms（事前の測定 fs 0.223・dp12 0.178 ms．実機の大きさへ縮めた見込み fs 約 0.17・dp12 約 0.14 ms）
+dp12 N=8 sk: 1 要求あたりの質問者の CPU(ms) 中央値 1.878，req_util/proc [1.003, 1.002, 1.004]，expert_cpu_util_max [1.296, 1.282, 1.317]
+dp12 N=8 ln: 1 要求あたりの質問者の CPU(ms) 中央値 1.781，req_util/proc [0.673, 1.0, 1.001]，expert_cpu_util_max [0.91, 1.375, 1.372]
+dp12 N=8: 比 ln/sk 1.046
+dp12 N=8: 1 要求あたりの質問者の CPU の差 sk − ln = 0.097 ms（事前の測定 fs 0.223・dp12 0.178 ms．実機の大きさへ縮めた見込み fs 約 0.17・dp12 約 0.14 ms）
+dp12: E(8) sk 0.651
+dp12: E(8) ln 0.625
+
+## 記録の指標：遅れの問の数（絶対の閾値 probe_s ≥ 0.9 秒は N = 8 の実行だけ．括弧内はそのうち probe_node_s_max < 0.5 秒），相対の閾値（probe_s ≥ その実行の中央値の 5 倍．全実行），質問者の TCP の再送（run_meta の requester_tcp．区間は質問の処理の前後で N ≥ 2 は子の起動を含む），再試行の例外の型
+anchor_fs_n1_pr_pre: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 2830, 'TCPSynRetrans': 14, 'TCPTimeouts': 264}，再試行の型 {'ReadError': 2}
+fs_n1_sk_r1: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 1, 'TCPSynRetrans': 1, 'TCPTimeouts': 1}，再試行の型 {'ReadError': 2}
+fs_n1_ln_r1: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 7848, 'TCPSynRetrans': 65, 'TCPTimeouts': 979}，再試行の型 {'ReadError': 6, 'RemoteProtocolError': 1}
+fs_n8_sk_r1: 遅れの問 2（ノードの計算によらない 2），相対の遅れの問 2，TCP {'RetransSegs': 3668, 'TCPSynRetrans': 72, 'TCPTimeouts': 72}，再試行の型 {'ReadError': 3}
+fs_n8_ln_r1: 遅れの問 0（ノードの計算によらない 0），相対の遅れの問 0，TCP {'RetransSegs': 4531, 'TCPSynRetrans': 54, 'TCPTimeouts': 54}，再試行の型 {'ReadError': 2}
+dp12_n1_sk_r1: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 0, 'TCPSynRetrans': 0, 'TCPTimeouts': 0}，再試行の型 {'ReadError': 1}
+dp12_n1_ln_r1: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 0, 'TCPSynRetrans': 0, 'TCPTimeouts': 0}，再試行の型 {}
+dp12_n8_sk_r1: 遅れの問 0（ノードの計算によらない 0），相対の遅れの問 1，TCP {'RetransSegs': 517, 'TCPSynRetrans': 41, 'TCPTimeouts': 41}，再試行の型 {}
+dp12_n8_ln_r1: 遅れの問 32（ノードの計算によらない 32），相対の遅れの問 245，TCP {'RetransSegs': 4837, 'TCPSynRetrans': 213, 'TCPTimeouts': 903}，再試行の型 {}
+fs_n1_sk_r2: 遅れの問（絶対）数えない，相対の遅れの問 2，TCP {'RetransSegs': 11639, 'TCPSynRetrans': 14, 'TCPTimeouts': 815}，再試行の型 {'ReadError': 2}
+fs_n1_ln_r2: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 1134, 'TCPSynRetrans': 2, 'TCPTimeouts': 97}，再試行の型 {'ReadError': 1}
+fs_n8_sk_r2: 遅れの問 0（ノードの計算によらない 0），相対の遅れの問 0，TCP {'RetransSegs': 3670, 'TCPSynRetrans': 82, 'TCPTimeouts': 82}，再試行の型 {}
+fs_n8_ln_r2: 遅れの問 2（ノードの計算によらない 2），相対の遅れの問 2，TCP {'RetransSegs': 4226, 'TCPSynRetrans': 53, 'TCPTimeouts': 54}，再試行の型 {}
+dp12_n1_sk_r2: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 0, 'TCPSynRetrans': 0, 'TCPTimeouts': 0}，再試行の型 {}
+dp12_n1_ln_r2: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 0, 'TCPSynRetrans': 0, 'TCPTimeouts': 0}，再試行の型 {}
+dp12_n8_sk_r2: 遅れの問 0（ノードの計算によらない 0），相対の遅れの問 0，TCP {'RetransSegs': 594, 'TCPSynRetrans': 81, 'TCPTimeouts': 81}，再試行の型 {}
+dp12_n8_ln_r2: 遅れの問 0（ノードの計算によらない 0），相対の遅れの問 1，TCP {'RetransSegs': 666, 'TCPSynRetrans': 85, 'TCPTimeouts': 85}，再試行の型 {}
+fs_n1_sk_r3: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 104, 'TCPSynRetrans': 1, 'TCPTimeouts': 1}，再試行の型 {'ReadError': 2}
+fs_n1_ln_r3: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 2, 'TCPSynRetrans': 1, 'TCPTimeouts': 1}，再試行の型 {}
+fs_n8_sk_r3: 遅れの問 0（ノードの計算によらない 0），相対の遅れの問 0，TCP {'RetransSegs': 3531, 'TCPSynRetrans': 77, 'TCPTimeouts': 77}，再試行の型 {}
+fs_n8_ln_r3: 遅れの問 1（ノードの計算によらない 1），相対の遅れの問 1，TCP {'RetransSegs': 4433, 'TCPSynRetrans': 43, 'TCPTimeouts': 43}，再試行の型 {'ReadError': 1}
+dp12_n1_sk_r3: 遅れの問（絶対）数えない，相対の遅れの問 1，TCP {'RetransSegs': 56, 'TCPSynRetrans': 3, 'TCPTimeouts': 7}，再試行の型 {'ReadError': 1}
+dp12_n1_ln_r3: 遅れの問（絶対）数えない，相対の遅れの問 1，TCP {'RetransSegs': 0, 'TCPSynRetrans': 0, 'TCPTimeouts': 0}，再試行の型 {}
+dp12_n8_sk_r3: 遅れの問 0（ノードの計算によらない 0），相対の遅れの問 2，TCP {'RetransSegs': 406, 'TCPSynRetrans': 60, 'TCPTimeouts': 60}，再試行の型 {}
+dp12_n8_ln_r3: 遅れの問 0（ノードの計算によらない 0），相対の遅れの問 0，TCP {'RetransSegs': 527, 'TCPSynRetrans': 57, 'TCPTimeouts': 57}，再試行の型 {}
+anchor_fs_n1_pr_post: 遅れの問（絶対）数えない，相対の遅れの問 0，TCP {'RetransSegs': 0, 'TCPSynRetrans': 0, 'TCPTimeouts': 0}，再試行の型 {}
+
+## 追加の記録：N = 8 の遅れの無い実行（絶対の遅れの問の数が 0）だけの処理量の中央値（参考）
+fs N=8 sk: 遅れの無い実行 2 件，中央値 159.605
+fs N=8 ln: 遅れの無い実行 1 件，中央値 171.520
+dp12 N=8 sk: 遅れの無い実行 3 件，中央値 292.395
+dp12 N=8 ln: 遅れの無い実行 2 件，中央値 306.725
+
+## 律速の移りの読み（dp12 × N = 8 × ln．per_proc の中央値 < 0.9 かつ最も忙しいノードの expert_cpu_util ≥ 1.58．遅れの問が 10 問以上の実行は使わない）
+r1: 遅れの問 32 問のため読みに使わない（per_proc 0.673，expert_max 0.910）
+r2: per_proc 1.000，expert_max 1.375 → 律速が専門家ノードへ移った False
+r3: per_proc 1.001，expert_max 1.372 → 律速が専門家ノードへ移った False

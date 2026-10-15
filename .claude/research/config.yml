@@ -182,7 +182,14 @@ levers:
             記録の指標を直す：遅れの問は N = 8 だけで数えるか閾値を相対にし，TCP の再送は質問者のコンテナのネットワークの名前空間で取り，再試行の例外の型を残す（B35 (a)）．形・キー名・判定の規則は rc-researcher が事前登録で決める．
             Iteration 13 の rc-researcher が確定（backlog B36）：最大の項目は httpcore の接続の池の割り当て（_assign_requests_to_connections．py-spy で fs 24.7%・dp12 15.8%）．キーは `experiment.pool_assign`（stock〔既定〕/ lean）．
             lean は質問者のプロセスの始めに，掃除の段を同じ結果の 1 回の走査に，待機中の接続の生存の確かめを生のソケットへの直接の poll に差し替える（httpcore 1.0.9 以外では止める）．事前の測定（制御点・本物のノード 30 個と本物の atrium run）で fs 1.555 → 1.332 ms，dp12 1.657 → 1.479 ms．
-            fs・dp12 × N ∈ {1, 8} × sk・ln × 3 回（2,940 問，pre_encoded・blocked）＋前後の anchor の 26 実行．主の仮説は fs × N = 1 で比 ≥ 1.10．事前登録は journal の Iteration 13"}
+            fs・dp12 × N ∈ {1, 8} × sk・ln × 3 回（2,940 問，pre_encoded・blocked）＋前後の anchor の 26 実行．主の仮説は fs × N = 1 で比 ≥ 1.10．事前登録は journal の Iteration 13．
+            Iteration 13 は採用（処理量の中央値 sk → ln：fs N = 1 26.00 → 30.19，fs N = 8 159.3 → 171.5，dp12 N = 1 56.1 → 61.1，dp12 N = 8 292.4 → 305.9〔r1 の遅れで範囲が重なる〕．1 要求の質問者の CPU は fs N = 1 で 1.208 → 1.033 ms．律速は質問者のまま）"}
+  - {name: requester.retrieve_body, values: [pre_encoded],
+     note: "Iteration 13 の評価で追加（backlog B37 [auto-decided]）．仮称．既定は今の挙動（_retrieve がシャードごとに embedding.tolist() → RetrieveRequest.model_dump() → httpx の json= で 768 次元の埋め込みを JSON にする．1 問に m = 2 回）．
+            pre_encoded は問ごと（検索器ごと）に埋め込みの JSON を 1 回だけ作り，シャードごとに shard_id・k・query_id だけを差し替えた bytes を content= で送る．ノードが受け取る本文はバイト単位で同じにする（Iteration 11 の probe_body と同じ作り）．
+            Iteration 13 の事前の測定（lean の上）で /v1/retrieve の本文の json.dumps は dp12 10.7%・fs 5.6% で，設定キーで挙動を変えずに除ける中では最大．phase 1 で prestudy/run_ctrl.sh を lean の上で取り直して確かめ，違えば最大の除ける項目に選び直してよい．
+            比べる条件は Iteration 13 と同じ形（fs・dp12 × N ∈ {1, 8} × 3 回，2,940 問，pre_encoded・blocked・pool_assign: lean・per_node・W = 1，前後の anchor）．
+            期待効果は小さい（実機への縮小の率 dp12 約 0.6・fs 約 0.8 を掛けて dp12 約 1.06〜1.07 倍）ので，閾値と主の仮説は見込みと N = 1 の 3 回の幅から rc-researcher が事前登録で決める（B37 (a)）"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
