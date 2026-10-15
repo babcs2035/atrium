@@ -30,6 +30,9 @@ experiment:
   # probe の本文の作り方（Iteration 11）．per_request：ノードごとに作る（従来）／pre_encoded：問ごとに埋め込みの JSON を 1 回だけ作って使い回す．
   # ノードが受け取る本文はバイト単位で同じ
   probe_body: per_request
+  # sniffio の import の扱い（Iteration 12）．search：従来（httpcore が要求のたびに import を試みて失敗し，sys.path を探す）／
+  # blocked：sniffio が入っていなければ質問者のプロセスの始めに sys.modules["sniffio"] = None を置いて探索を省く．要求の内容と選択は変わらない
+  sniffio_lookup: search
   # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
   churn: null
 

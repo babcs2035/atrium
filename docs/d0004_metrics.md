@@ -27,6 +27,7 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 |---|---|
 | `requester_procs` | 質問者のプロセスの数 |
 | `probe_body` | probe の本文の作り方（`experiment.probe_body`．`per_request` / `pre_encoded`） |
+| `sniffio_lookup`・`sniffio_installed` | `experiment.sniffio_lookup`（`search` / `blocked`）と，その実行の質問者の環境に sniffio が入っていたか（`true` なら探索の費用は元から無い） |
 | `requester_cpu_s`（`_user_s`・`_sys_s`） | 問を流した区間の質問者の全プロセスの CPU 時間の合計（秒） |
 | `requester_cpu_util` | `requester_cpu_s` ÷ 区間の長さ（コアの数の単位．N 個のプロセスが全て 1 コアに張り付けば N） |
 | `requester_cpu_util_per_proc`，`requester_parallel_per_proc` | プロセスごとの CPU 使用率（そのプロセスが流していた区間で割る）と同時の問の数 |
@@ -58,6 +59,10 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | `probe_shards`，`probe_shards_per_device`，`probe_node_s_max` | probe したシャードの数（`flood_score` は全シャード，`centroid_probe` は K），デバイスごとのシャードの数の並び，ノード内の probe の時間（`ProbeResponse.duration_s`）の最大（`timings.probe_s` との差が待ち行列と通信の時間）．`centroid_probe` の `route_s` は 1 段目の採点と 2 段目の選択の合計で，probe の待ちは `probe_s` に入る |
 | `final_answer` | EnronQA の自由記述の回答（出力の最後の "Answer:" の行） |
 | `answer_overlap_lcs` | 回答文と正解のメールの最長共通部分列の比率（判定 `atrium judge` の後に付く．p0004 §6.3） |
+
+負荷試験の連続実行（`results/*_summary/iterN_chain.sh`．Iteration 12 以降）は，`run_meta.json` の外に次の記録を残す．
+- 連続実行のログの隣の `<log>.<run_id>.tcp`：問を流す `mise run start` の直前・直後の制御点の `nstat -asz TcpRetransSegs TcpExtTCPSynRetrans TcpExtTCPTimeouts`（取れなければその旨）．
+- 集計 `iter12_summary.py` が `results.jsonl` から数える遅れの問の数：`timings.probe_s` ≥ 0.9 秒の問の数と，そのうち `probe_node_s_max` < 0.5 秒（ノードの計算によらない遅れ）の数．
 
 ## 3. 指標（metrics.json）
 

@@ -24,6 +24,7 @@ from atrium.requester import (
     LiveMedcptEmbedder,
     QueryEmbedder,
     Requester,
+    apply_sniffio_lookup,
     discover_shards,
     load_rm_qrels,
     run_questions,
@@ -183,6 +184,8 @@ async def run_experiment(
         if (out_dir / RUN_META).exists()
         else {}
     )
+    # httpx の部品を作る前に置く（質問者の経路の import の探索を省く．spawn の子は requester_procs が自分で置く）
+    sniffio_installed = apply_sniffio_lookup(cfg.experiment.sniffio_lookup)
     async with build_http_client(cfg.experiment.http_pool, placement) as client:
         requester, sources, discovery_s = await build_requester(
             cfg, data_dir, placement, client, ollama_url
@@ -209,6 +212,8 @@ async def run_experiment(
             "http_pool": cfg.experiment.http_pool,
             "requester_procs": cfg.experiment.requester_procs,
             "probe_body": cfg.experiment.probe_body,
+            "sniffio_lookup": cfg.experiment.sniffio_lookup,
+            "sniffio_installed": sniffio_installed,
         }
         _write_meta(out_dir, meta)
         finished_at: float | None = None

@@ -171,7 +171,9 @@ levers:
      note: "Iteration 11 の評価で追加（backlog B33 [auto-decided]）．仮称．既定は今の挙動（質問者の環境に sniffio が無く，httpcore 1.0.9 の current_async_library が要求ごとに import sniffio を試みて失敗し，そのたびに sys.path を探す）．
             skip はこの探索を除く（sniffio を依存に足すか，質問者のプロセスで探索を省く設定キーにするか）．httpcore は sniffio が無いとき asyncio とみなすので，要求の内容と選択は変わらない見込み．
             事前の測定（制御点・偽のノード 30 個）で 1 要求の約 24%（0.63 ms）．probe_body: pre_encoded・http_pool: per_node を固定し，fs・dp12 × N ∈ {1, 8} × 3 回（2,940 問・検索だけ）で，選択が全問で一致したまま処理量が伸びるかを測る．
-            形・キー名・判定の規則は rc-researcher が事前登録で決める．依存の追加は専門家ノード・node-bench の負荷生成にも効き，同じ連続実行の中で交互に流せない点に注意（B33 (a)）．N = 8 は約 1 秒・3 秒の probe の遅れで揺れるので，遅れの問の数を記録する（B33 (b)）"}
+            形・キー名・判定の規則は rc-researcher が事前登録で決める．依存の追加は専門家ノード・node-bench の負荷生成にも効き，同じ連続実行の中で交互に流せない点に注意（B33 (a)）．N = 8 は約 1 秒・3 秒の probe の遅れで揺れるので，遅れの問の数を記録する（B33 (b)）．
+            Iteration 12 の rc-researcher が確定（backlog B34）：キーは `experiment.sniffio_lookup`（search〔既定〕/ blocked）．blocked は sniffio が入っていないときだけ質問者のプロセス（atrium run と spawn の子）の始めに sys.modules['sniffio'] = None を置く．依存は変えない．
+            事前の測定（gpu2・偽のノード 30 個）で pre の上の 1 要求 1.681 → 1.139 ms（sniffio を入れた場合 1.128 ms と同じ）．fs・dp12 × N ∈ {1, 8} × sr・bk × 3 回（2,940 問，pre_encoded）＋前後の anchor の 26 実行．主の仮説は fs × N = 1 で比 ≥ 1.10．事前登録は journal の Iteration 12"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

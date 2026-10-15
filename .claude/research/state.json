@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 11,
-  "iteration_name": "質問者の probe の本文を問ごとに 1 回だけ符号化したときの処理量",
-  "phase": "evaluate",
+  "iteration": 12,
+  "iteration_name": "質問者の要求ごとの sniffio の import の失敗を除いたときの処理量",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "experiment.probe_body: per_request -> pre_encoded",
-  "experiment_dir": "results/20261015_iter11_probe_body_summary",
-  "experiment_deadline": 1792128710,
+  "current_lever": "experiment.sniffio_lookup: search -> blocked",
+  "experiment_dir": null,
+  "experiment_deadline": null,
   "updated_at": 1792054910,
   "last_slack_ts": "1792052966.099869",
-  "iteration_thread_ts": "1792054641.372399",
+  "iteration_thread_ts": "1792063813.852539",
   "notion_toggle_created": true,
-  "last_commit": "8305691"
+  "last_commit": "4db92ec"
 }

@@ -31,7 +31,7 @@ from atrium.benchmarks import Question
 from atrium.config import AtriumConfig
 from atrium.cpu_stat import CpuSample, busy_fractions, read_device_cpu
 from atrium.manifest import Placement, read_placement
-from atrium.requester import run_questions
+from atrium.requester import apply_sniffio_lookup, run_questions
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +196,7 @@ def _worker_main(
     logging.basicConfig(
         level=logging.INFO, format=f"%(asctime)s %(levelname)s %(name)s[w{index}]: %(message)s"
     )
+    apply_sniffio_lookup(cfg.experiment.sniffio_lookup)
     result = asyncio.run(
         _run_worker(
             index,

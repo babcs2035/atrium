@@ -90,6 +90,9 @@ class ExperimentConfig(_Strict):
     # pre_encoded：問ごと（検索器ごと）に埋め込みの JSON を 1 回だけ作り，ノードごとに shard_ids だけを差し替えた bytes を送る．
     # ノードが受け取る本文はバイト単位で同じ
     probe_body: Literal["per_request", "pre_encoded"] = "per_request"
+    # sniffio の import の扱い（Iteration 12）．search：今の挙動（httpcore 1.0.9 が要求のたびに import sniffio を試み，無ければ sys.path を探す）／
+    # blocked：sniffio が入っていないときだけ質問者のプロセスの始めに sys.modules["sniffio"] = None を置いて探索を省く（httpcore は同じ ImportError の枝で asyncio とみなす）
+    sniffio_lookup: Literal["search", "blocked"] = "search"
     # EQ7b．指定すると質問を 1 問ずつ順に流し，離脱したノードがあっても返事のあった分で続ける
     churn: ChurnConfig | None = None
 

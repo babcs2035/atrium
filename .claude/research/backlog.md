@@ -17,6 +17,19 @@
 
 ---
 
+## B34 [auto-decided 2026-10-15] Iteration 12 のレバーの形：`experiment.sniffio_lookup`（依存を足さず，質問者のプロセスだけで sniffio の探索を省く）
+
+- 状況: B33 で，`requester.sniffio_lookup`（仮称）の形（`uv add sniffio` か設定キーか）・キー名・判定の規則・問の数を rc-researcher が事前の測定と事前登録で決めることになっていた．B33 (a)〜(e) を考慮する．
+- 自動選択: **config.yaml の新しいキー `experiment.sniffio_lookup`（`search`〔既定．今の挙動〕/ `blocked`）**．`blocked` は sniffio が入っていないときだけ，質問者のプロセス（`atrium run` と `requester_procs` の spawn の子）の始めに `sys.modules["sniffio"] = None` を置き，httpcore の `import sniffio` を探索なしの `ImportError` にする（返す値 `"asyncio"` は今と同じ）．`run_meta.json` に `sniffio_lookup`・`sniffio_installed` を残す．
+  比べる条件は fs・dp12 × N ∈ {1, 8} × sr・bk × 3 回（2,940 問，`probe_body: pre_encoded`・`http_pool: per_node`・`node_workers: 1` を固定．sr と bk を組ごとに交互）と前後の anchor の計 26 実行．主の仮説 H-S1 は「fs × N = 1 で bk の範囲が sr より上にあり重ならず，中央値の比 ≥ 1.10」．事前登録は journal の Iteration 12．
+  B33 (b) に従い，probe_s ≥ 0.9 秒の問の数と制御点の TCP の再送の差分（`nstat`）を記録の指標に足した．
+- 根拠: (1) 事前の測定（gpu2．偽のノード 30 個．`results/20261015_iter12_sniffio_summary/prestudy/`）で，pre の上の 1 要求は search 1.681 ms，blocked 1.139 ms，sniffio を入れた場合 1.128 ms で，blocked と依存の追加の差は 3 回の幅の内（`current_async_library` 1 回で 1.09 対 0.41 µs）．
+  (2) 設定キーなら同じイメージで交互に流せ，連続実行の間の commit・イメージの作り直しが要らない．(3) 依存の追加は専門家ノード・node-bench の負荷生成にも効いて単一レバーにならないが，設定キーは質問者のプロセスだけに効く．
+- 要レビュー: (a) **本来の解決は `uv add sniffio`（または httpcore の版の更新）かもしれない**．`sys.modules` に `None` を置くのは実験のための回避で，既定の値は `search` のまま変えない．依存を足すと専門家ノード・node-bench の負荷生成の 1 要求の CPU も下がり，Iteration 8〜12 の値と直接は比べられなくなるので，入れるかどうかと時期は人間の判断に残す．
+  (b) tavily-search による Web 検索（上流の httpcore での扱い）はこの環境の権限の判定で拒否されたので行っていない．上流の修正の有無は未確認．
+  (c) 事前の測定は Iteration 11 と違い gpu2 だけで行った（制御点では Iteration 11 の base の上の 0.63 ms がある）．手順 0 で 1 要求の質問者の CPU が下がることを粗く確かめる．
+  (d) B33 (c)〜(e) はそのまま（`node_workers` は 1，`probe_body` の既定は `per_request`，HTTP クライアントの置き換え・orjson は候補に残すだけ）．
+
 ## B33 [auto-decided 2026-10-15] Iteration 11（probe の本文を問ごとに 1 回だけ符号化）は採用．Iteration 12 は質問者の要求ごとの sniffio の import の失敗を除く構成
 
 - 状況: Iteration 11 の判定は採用（事前登録の規則の機械的な適用．G1〜G5 成立，H-B1・H-B2 成立，H-B3 は fs × N = 8 で成立・dp12 × N = 8 で不成立）．処理量の中央値（問/秒，pr → pe）は fs N = 1 で 13.387 → 17.756（1.326），fs N = 8 で 81.835 → 125.510（1.534），dp12 N = 1 で 32.181 → 41.844（1.300），dp12 N = 8 で 185.561 → 200.262（1.079．範囲が重なる）．

@@ -1,0 +1,102 @@
+search base req/s 473.1
+blocked base req/s 666.3
+installed base req/s 664.1
+search pre req/s 595.0
+blocked pre req/s 877.7
+installed pre req/s 909.4
+search base req/s 470.5
+blocked base req/s 670.5
+installed base req/s 669.5
+search pre req/s 574.0
+blocked pre req/s 878.2
+installed pre req/s 863.1
+search base req/s 465.1
+blocked base req/s 657.4
+installed base req/s 663.8
+search pre req/s 597.2
+blocked pre req/s 887.6
+Traceback (most recent call last):
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_async/connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_async/http11.py", line 136, in handle_async_request
+    raise exc
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_async/http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_async/http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_async/http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_backends/anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/results/20261015_iter12_sniffio_summary/prestudy/bench_sniffio.py", line 14, in <module>
+    runpy.run_path(BENCH, run_name="__main__")
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/results/20261015_iter11_probe_body_summary/prestudy/bench.py", line 95, in <module>
+    print(variant, "req/s", round(asyncio.run(run(variant, n, 30)), 1))
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/results/20261015_iter11_probe_body_summary/prestudy/bench.py", line 71, in run
+    await asyncio.gather(*(question(i) for i in range(n_questions)))
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/results/20261015_iter11_probe_body_summary/prestudy/bench.py", line 67, in question
+    await asyncio.gather(*(ask(f"http://127.0.0.1:{BASE_PORT + n}", emb, prefix) for n in range(N_NODES)))
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/results/20261015_iter11_probe_body_summary/prestudy/bench.py", line 53, in ask
+    r = await client.post(
+        ^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    return await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError

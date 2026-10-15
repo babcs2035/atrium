@@ -14,8 +14,10 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import json
 import logging
+import sys
 import threading
 import time
 from collections import Counter, defaultdict
@@ -64,6 +66,24 @@ RETRIEVE_TIMEOUT_S = 120.0
 # 検索は読み取りだけなので，同じ要求を送り直しても結果は変わらない
 RETRIEVE_RETRIES = 2
 JSON_CONTENT_TYPE_HEADER = {"Content-Type": "application/json"}
+
+
+def apply_sniffio_lookup(mode: str) -> bool:
+    """experiment.sniffio_lookup を質問者のプロセスに反映し，sniffio が実際に入っているかを返す．
+
+    httpcore 1.0.9 の current_async_library() は呼ばれるたびに `import sniffio` を試みる．sniffio が無い環境では
+    失敗した import が sys.modules に残らず，毎回 sys.path の探索が走る（1 要求あたり約 9.5 回）．
+    blocked かつ sniffio が入っていないときだけ sys.modules["sniffio"] = None を置くと，import は探索せずに
+    ImportError を送出し，httpcore は同じ except ImportError の枝で asyncio とみなす（返す値・例外の型は同じ）．
+    入っている環境では本物のモジュールを隠さないので何もしない．spawn の子は親の sys.modules を引き継がないので，各プロセスの始めに呼ぶ．
+    """
+    if "sniffio" in sys.modules:
+        installed = sys.modules["sniffio"] is not None
+    else:
+        installed = importlib.util.find_spec("sniffio") is not None
+    if mode == "blocked" and not installed:
+        sys.modules["sniffio"] = None  # type: ignore[assignment]  # None は「見つからない」の標準の印
+    return installed
 
 
 def encode_json_like_httpx(value: object) -> bytes:
