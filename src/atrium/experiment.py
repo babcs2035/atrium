@@ -27,6 +27,14 @@ from atrium.requester import (
     load_rm_qrels,
     run_questions,
 )
+from atrium.requester_procs import (
+    control_cpu_fractions,
+    expert_cpu_meta,
+    merge_part_files,
+    read_control_cpu,
+    read_node_cpu_seconds,
+    run_questions_in_processes,
+)
 from atrium.routing import (
     SourceProfile,
     build_source_profiles,
@@ -89,6 +97,46 @@ def _make_embedder(
     return CachedQueryEmbedder(paths.query_ids, {e: paths.query_embeddings(e) for e in encoders})
 
 
+async def build_requester(
+    cfg: AtriumConfig,
+    data_dir: Path,
+    placement: Placement,
+    client: httpx.AsyncClient,
+    ollama_url: str,
+) -> tuple[Requester, list[SourceProfile], float]:
+    """シャードを発見して質問者を組み立てる．（質問者，データ源，発見にかかった秒数）を返す．
+
+    複数の質問者のプロセス（atrium.requester_procs）では，各プロセスがこれを自分の client で呼ぶ．
+    """
+    dataset = cfg.experiment.dataset
+    paths = dataset_paths(data_dir, dataset)
+    start = time.perf_counter()
+    shards = await discover_shards(client, placement)
+    discovery_s = time.perf_counter() - start
+    expected = cfg.data.sources_of(dataset)
+    sources = build_source_profiles(shards, expected)
+    missing = sorted(set(expected) - {s.source for s in sources})
+    if missing:
+        raise RuntimeError(f"no node announced sources {missing}; check deploy")
+    if cfg.experiment.routing == "card_sim" and dataset == "medrag":
+        # MedRAG のデータ源は広告を持たないので，自己紹介文を S4 の評価と同じ埋め込みで付ける（p0003 S5）
+        from atrium.loso import embed_descriptions
+
+        sources = with_card_embeddings(sources, embed_descriptions(cfg, sources))
+    requester = Requester(
+        cfg=cfg,
+        placement=placement,
+        sources=sources,
+        router=make_router(cfg, paths.router, paths.labels),
+        embedder=_make_embedder(cfg, data_dir, sources),
+        client=client,
+        ollama_url=ollama_url,
+        reranker=CrossEncoderReranker() if cfg.retrieval.merge == "cross_encoder" else None,
+        rm_qrels=load_rm_qrels(paths.rm_qrels) if cfg.retrieval.merge == "qrels_oracle" else {},
+    )
+    return requester, sources, discovery_s
+
+
 def _write_meta(out_dir: Path, meta: dict[str, Any]) -> None:
     (out_dir / RUN_META).write_text(
         json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8"
@@ -104,6 +152,8 @@ async def run_experiment(
     placement = read_placement(placement_path)
     all_questions = load_questions(paths.questions, cfg.experiment.question_limit)
     out_dir.mkdir(parents=True, exist_ok=True)
+    # 複数のプロセスで流した前回の実行が途中で落ちていれば，プロセスごとの結果を先にまとめる
+    merge_part_files(out_dir / RESULTS)
     # 同じ run_id で再開したときは，成功済みの質問を飛ばす（失敗した質問はやり直す）
     done = (
         {r["qid"] for r in read_results(out_dir / RESULTS) if r.get("error") is None}
@@ -134,29 +184,8 @@ async def run_experiment(
         else {}
     )
     async with build_http_client(cfg.experiment.http_pool, placement) as client:
-        start = time.perf_counter()
-        shards = await discover_shards(client, placement)
-        discovery_s = time.perf_counter() - start
-        expected = cfg.data.sources_of(dataset)
-        sources = build_source_profiles(shards, expected)
-        missing = sorted(set(expected) - {s.source for s in sources})
-        if missing:
-            raise RuntimeError(f"no node announced sources {missing}; check deploy")
-        if cfg.experiment.routing == "card_sim" and dataset == "medrag":
-            # MedRAG のデータ源は広告を持たないので，自己紹介文を S4 の評価と同じ埋め込みで付ける（p0003 S5）
-            from atrium.loso import embed_descriptions
-
-            sources = with_card_embeddings(sources, embed_descriptions(cfg, sources))
-        requester = Requester(
-            cfg=cfg,
-            placement=placement,
-            sources=sources,
-            router=make_router(cfg, paths.router, paths.labels),
-            embedder=_make_embedder(cfg, data_dir, sources),
-            client=client,
-            ollama_url=ollama_url,
-            reranker=CrossEncoderReranker() if cfg.retrieval.merge == "cross_encoder" else None,
-            rm_qrels=load_rm_qrels(paths.rm_qrels) if cfg.retrieval.merge == "qrels_oracle" else {},
+        requester, sources, discovery_s = await build_requester(
+            cfg, data_dir, placement, client, ollama_url
         )
         meta: dict[str, Any] = {
             "run_id": out_dir.name,
@@ -178,19 +207,27 @@ async def run_experiment(
             "config": cfg.model_dump(mode="json"),
             "started_at": previous.get("started_at", time.time()),
             "http_pool": cfg.experiment.http_pool,
+            "requester_procs": cfg.experiment.requester_procs,
         }
         _write_meta(out_dir, meta)
+        finished_at: float | None = None
         if churn is not None:
             from atrium.churn_live import build_schedule, run_churn_questions
 
             schedule = build_schedule(cfg, churn, len(placement.nodes), len(questions))
             await run_churn_questions(requester, questions, out_dir / RESULTS, churn, schedule)
-        else:
-            # 質問の処理の区間の質問者のプロセスの CPU 時間（1 コアの飽和 = requester_cpu_util 1.0）
+        elif cfg.experiment.requester_procs == 1:
+            # 質問の処理の区間の質問者のプロセスの CPU 時間（1 コアの飽和 = requester_cpu_util 1.0）．
+            # 専門家と質問者のデバイス全体の CPU 時間は，この区間のすぐ外側で読む
+            node_before = await read_node_cpu_seconds(client, placement)
+            control_before = read_control_cpu()
             cpu_before = resource.getrusage(resource.RUSAGE_SELF)
             wall_before = time.perf_counter()
             await run_questions(requester, questions, out_dir / RESULTS, cfg.experiment.parallel)
+            wall_s = time.perf_counter() - wall_before
             cpu_after = resource.getrusage(resource.RUSAGE_SELF)
+            control_after = read_control_cpu()
+            node_after = await read_node_cpu_seconds(client, placement)
             cpu_s = (cpu_after.ru_utime - cpu_before.ru_utime) + (
                 cpu_after.ru_stime - cpu_before.ru_stime
             )
@@ -199,12 +236,54 @@ async def run_experiment(
                     "requester_cpu_user_s": cpu_after.ru_utime - cpu_before.ru_utime,
                     "requester_cpu_sys_s": cpu_after.ru_stime - cpu_before.ru_stime,
                     "requester_cpu_s": cpu_s,
-                    "requester_cpu_util": cpu_s / (time.perf_counter() - wall_before),
+                    "requester_cpu_util": cpu_s / wall_s,
+                    "requester_cpu_util_per_proc": [cpu_s / wall_s],
+                    "requester_parallel_per_proc": [cfg.experiment.parallel],
+                    **expert_cpu_meta(node_before, node_after, wall_s),
+                    **control_cpu_fractions(control_before, control_after),
+                }
+            )
+        else:
+            outcome = await run_questions_in_processes(
+                cfg,
+                data_dir,
+                placement_path,
+                placement,
+                ollama_url,
+                questions,
+                out_dir / RESULTS,
+                client,
+            )
+            # 処理量の区間は，全プロセスが一斉に流し始めてから最後のプロセスが終えるまで（準備の時間を含めない）
+            meta["started_at"] = previous.get("started_at", outcome.started_at)
+            finished_at = outcome.finished_at
+            wall_s = outcome.finished_at - outcome.started_at
+            user_s = sum(w.cpu_user_s for w in outcome.workers)
+            sys_s = sum(w.cpu_sys_s for w in outcome.workers)
+            meta.update(
+                {
+                    "requester_cpu_user_s": user_s,
+                    "requester_cpu_sys_s": sys_s,
+                    "requester_cpu_s": user_s + sys_s,
+                    # 全プロセスの合計（コアの数の単位．N 個のプロセスが全て飽和すれば N）
+                    "requester_cpu_util": (user_s + sys_s) / wall_s,
+                    "requester_cpu_util_per_proc": [
+                        (w.cpu_user_s + w.cpu_sys_s) / w.wall_s for w in outcome.workers
+                    ],
+                    "requester_parallel_per_proc": [w.parallel for w in outcome.workers],
+                    "requester_wall_s_per_proc": [w.wall_s for w in outcome.workers],
+                    **expert_cpu_meta(outcome.node_cpu_before, outcome.node_cpu_after, wall_s),
+                    **control_cpu_fractions(outcome.control_cpu_before, outcome.control_cpu_after),
                 }
             )
         # 再開した場合も含め，各質問の最後の結果で失敗を数える
         failures = sum(r.get("error") is not None for r in read_results(out_dir / RESULTS))
-        meta.update({"finished_at": time.time(), "failures": failures})
+        meta.update(
+            {
+                "finished_at": finished_at if finished_at is not None else time.time(),
+                "failures": failures,
+            }
+        )
         _write_meta(out_dir, meta)
     logger.info("finished %d questions (%d failures)", len(questions), failures)
     return failures

@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 7,
-  "iteration_name": "デバイスを単位に上位を選ぶ二段の方式の再現率と処理量",
-  "phase": "evaluate",
+  "iteration": 8,
+  "iteration_name": "複数の質問者のプロセスによる専門家の側の処理量の限界の測定",
+  "phase": "research",
   "status": "running",
-  "current_lever": "experiment.routing: centroid_probe -> device_probe (routing.probe_d.enronqa = D, max aggregation; D chosen on dev by the preregistered rule in journal Iteration 7)",
-  "experiment_dir": "results/20261015_iter7_load_summary (run_id prefix 20261015_iter7_)",
-  "experiment_deadline": 1792033110,
-  "updated_at": 1792025635,
-  "last_slack_ts": "1792017765.866209",
-  "iteration_thread_ts": "1792018605.656479",
-  "notion_toggle_created": true,
-  "last_commit": "b834d3f"
+  "current_lever": "experiment.requester_procs: 1 → 2, 4, 8（parallel は合計 30 で固定．flood_score・device_probe D=24/12，per_node，2,940 問・検索だけ）",
+  "experiment_dir": null,
+  "experiment_deadline": null,
+  "updated_at": 1792026625,
+  "last_slack_ts": "1792025711.847879",
+  "iteration_thread_ts": null,
+  "notion_toggle_created": false,
+  "last_commit": "5304827"
 }

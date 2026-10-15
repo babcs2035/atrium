@@ -8,7 +8,7 @@
 | 役割 | ホスト | すること | 主なコード |
 |---|---|---|---|
 | 操作端末 | gpu2 | mise のタスク・イメージの build・外部の資材の取得・分析・テスト | `scripts/tasks/`，`atrium.analysis` |
-| 制御点（データ中継点）・質問者 | wafl-ctrl5（RTX 3060） | registry・データ準備・各ノードの操作．質問者として，クエリ埋め込み・ルーティング・統合・断片返却型の回答も行う（`cluster.requester_llm` を省略したとき．省略しないと質問者の LLM は別の GPU PC で動く） | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router`，`atrium.requester`，`atrium.experiment` |
+| 制御点（データ中継点）・質問者 | wafl-ctrl5（RTX 3060） | registry・データ準備・各ノードの操作．質問者として，クエリ埋め込み・ルーティング・統合・断片返却型の回答も行う（`cluster.requester_llm` を省略したとき．省略しないと質問者の LLM は別の GPU PC で動く） | `scripts/remote/`，`atrium.data_*`，`atrium.labels`，`atrium.train_router`，`atrium.requester`，`atrium.experiment`，`atrium.requester_procs`（`experiment.requester_procs` で質問者を複数のプロセスに分ける） |
 | 埋め込み・採点の分担 | 192.168.15.100〜109 = wafl500〜509（RTX 3060．`cluster.gpu_workers`） | データ準備の間は MedCPT・EnronQA の埋め込みを制御点と分担し，実験の後は判定モデルでの採点を分担する．実験の間は専門家（GPU）になる（時間を分けて使う．[d0002](d0002_configuration.md)） | `scripts/remote/prepare_data.sh`，`scripts/remote/judge.sh` |
 | 質問者の LLM（省略可） | `cluster.requester_llm` に書いた GPU PC（MedRAG の `merge=cross_encoder` を流すときは wafl500） | 断片返却型の回答を生成する Ollama（llama3.1:8b）．質問者（制御点）の GPU で再ランクを動かすと VRAM を取り合うので，別の GPU に分ける | `docker/compose.requester_llm.yml` |
 | 専門家（CPU） | 192.168.13.100〜109，192.168.14.100〜109（GPU なし） | シャードの検索・宿る型の回答 | `atrium.node`，`atrium.store` |
@@ -100,7 +100,7 @@
 
 | メソッド | パス | 要求 | 応答 |
 |---|---|---|---|
-| GET | `/healthz` | － | `{"status", "node_id", "shards"}` |
+| GET | `/healthz` | － | `{"status", "node_id", "shards", "process_cpu_s"}`．`process_cpu_s` はノードのプロセスの CPU 時間の累計（秒）で，質問者が測定の区間の前後に読んで専門家の側の CPU 使用率を求める（Iteration 8） |
 | GET | `/.well-known/agent-card.json` | － | A2A の Agent Card．シャード 1 個を 1 個の skill として名乗る |
 | GET | `/v1/profile` | － | シャードごとの `source`・`n_docs`・`dim`・`encoder`・`centroid`・`description` |
 | POST | `/v1/retrieve` | `{"shard_id", "k", "embedding"?, "query_id"?}` | `{"shard_id", "docs": [{"doc_id","title","content","score"}], "duration_s"}` |

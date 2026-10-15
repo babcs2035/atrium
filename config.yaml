@@ -21,6 +21,9 @@ experiment:
   # 質問者の HTTP 接続の持ち方．shared：全ノードで 1 つの池（上限 512）／shared_unlimited：1 つの池のまま上限なし／
   # per_node：ノードの origin ごとに別の池（上限 64）．負荷の実験（Iteration 5）で切り分けるためのキーで，既定は従来の shared
   http_pool: shared
+  # 質問者のデバイスの上で問を分けて同時に流すプロセスの数（Iteration 8）．parallel は全プロセスの合計で，各プロセスへほぼ均等に割る．
+  # 1 は従来どおり 1 プロセス
+  requester_procs: 1
   # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
   churn: null
 

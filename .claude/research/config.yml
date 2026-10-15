@@ -133,7 +133,9 @@ levers:
      note: "Iteration 7 の評価で追加（backlog B25 [auto-decided]）．仮称．Iteration 4〜7 の負荷の比較は全て質問者 1 プロセス（1 コアに張り付き，R ≈ 390〜440 要求/秒）の能力の比較で，専門家の側の限界は測れていない．
             同じ制御点 wafl-ctrl5（12 コア）の上で，問を N 個の質問者のプロセスに分けて同時に流す（追加だけの設定キー．既定 1 ＝今の挙動）．flood_score と device_probe（D = 24・12）を per_node・検索だけで測り，
             N に対して処理量が比例して伸びるか，頭打ちのときに質問者と専門家のどちらの CPU が張り付くかを記録する．キー名・N・parallel の割り方・問の数・判定の規則は rc-researcher が事前登録で決める．
-            質問者を複数のデバイスに置く形（cluster.requester の形式とデバイスの役割の変更）は人間の判断に残す（B25 (a)）"}
+            質問者を複数のデバイスに置く形（cluster.requester の形式とデバイスの役割の変更）は人間の判断に残す（B25 (a)）．
+            Iteration 8 の rc-researcher が確定（backlog B26）：キーは `experiment.requester_procs`（既定 1）．N ∈ {1, 2, 4, 8}，parallel は合計 30 で固定して各プロセスへ割る．test の全 2,940 問．
+            専門家の CPU はノードの /healthz の process_cpu_s，制御点の CPU は /proc/stat で測る．判定の主は flood_score の N = 2 対 N = 1．事前登録は journal の Iteration 8"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

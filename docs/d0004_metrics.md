@@ -18,6 +18,21 @@
 
 git のコミットは，未コミットの変更があると末尾に `-dirty` が付く．
 
+### 質問者・専門家の CPU（`run_meta.json`．`churn` を指定しない実験）
+
+`started_at`〜`finished_at` は問を流した区間である．`experiment.requester_procs` が 2 以上なら，全プロセスが一斉に流し始めた時刻から最後のプロセスが終えた時刻までで，各プロセスの準備の時間を含まない．
+処理量は「成功した問の数 ÷（`finished_at` − `started_at`）」で求める．
+
+| 項目 | 意味 |
+|---|---|
+| `requester_procs` | 質問者のプロセスの数 |
+| `requester_cpu_s`（`_user_s`・`_sys_s`） | 問を流した区間の質問者の全プロセスの CPU 時間の合計（秒） |
+| `requester_cpu_util` | `requester_cpu_s` ÷ 区間の長さ（コアの数の単位．N 個のプロセスが全て 1 コアに張り付けば N） |
+| `requester_cpu_util_per_proc`，`requester_parallel_per_proc` | プロセスごとの CPU 使用率（そのプロセスが流していた区間で割る）と同時の問の数 |
+| `requester_wall_s_per_proc` | プロセスごとの流していた区間の長さ（2 プロセス以上のときだけ） |
+| `expert_cpu_util`，`expert_cpu_util_max`・`_median` | ノード（ホスト名）ごとの専門家のプロセスの CPU 使用率（`/healthz` の `process_cpu_s` の区間の前後の差 ÷ 区間の長さ．コアの数の単位）と，その最大値・中央値．読めなかったノードは含めない |
+| `control_cpu_busy`，`control_cpu_softirq` | 質問者のデバイス全体（制御点．`/proc/stat`）の，全 CPU に対する忙しい時間と softirq の時間の割合（0〜1．wafl-ctrl5 は論理 12 CPU・物理 6 コア） |
+
 ## 2. results.jsonl の各行
 
 | フィールド | 意味 |

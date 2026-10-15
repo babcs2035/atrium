@@ -3,6 +3,107 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 8: 複数の質問者のプロセスによる専門家の側の処理量の限界の測定
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B25 [auto-decided]（Iteration 7 は採用．Iteration 4〜7 の負荷の比較は全て質問者 1 プロセス（1 コアに張り付き，R ≈ 390〜440 要求/秒）の能力の比較で，専門家の側の限界は測れていない）．config.yml の levers 末尾の `experiment.requester_procs: [2, 4, 8]`（仮称）を，下のとおり **`experiment.requester_procs`（追加だけの設定キー．既定 1 ＝今の挙動）** として確定した（backlog B26）．
+質問者を複数のデバイスに置く形（B25 (a)）は扱わない．データ準備・ラベル・シャード・公開情報は作り直さない．方式の選択の挙動は変えない．
+
+**コードと既存の結果から確かめたこと**（事実）
+- 制御点 wafl-ctrl5 は Intel Core i7-8700（**物理 6 コア・論理 12 CPU**．`lscpu`），メモリ 62 GB．専門家は i5-8350U（論理 8 CPU）．質問者は制御点の docker のコンテナ（`docker/compose.requester.yml`．CPU の上限の指定なし）で，専門家のノードは uvicorn の 1 プロセス（`atrium.node.main`．`/v1/probe`・`/v1/retrieve` は同期の関数で FastAPI のスレッドプールで動く）．
+- 質問者の `run_questions` は 1 つのイベントループの上で `asyncio.Semaphore(parallel)` で問を流す．Iteration 7 の parallel 30 で `requester_cpu_util` は 0.965〜1.002 であり，処理量は「1 ÷（route_s ＋ 要求の数 ÷ R）」の予測と 0.977〜1.054 で一致した（journal の Iteration 7）．
+- 同じ時期の parallel 30 の `probe_node_s_max` の p95（ノードの中の probe の計算時間の最大）は 0.0035〜0.032 秒で，flood_score の 1 ノードあたりの要求は約 14 要求/秒（≈ 420 ÷ 30）にとどまる（`results/20261015_iter7_load_summary/iter7_summary.out`）．専門家は今の負荷では空いていると読める（推測．専門家の CPU 使用率は記録していなかった）．
+- 質問者のログは全ての HTTP 要求を INFO で 1 行ずつ書いている（`results/20261015_iter7_dp12_pn_p30_r1/requester.log` の 4,236 行のうち 4,230 行が `httpx: HTTP Request`）．これは 1 要求あたりの質問者の費用に含まれており，今回も変えない（変えると 2 つ目のレバーになる）．
+- EnronQA の test は 2,940 問（`benchmark/questions.jsonl`）で，`device-probe-eval` の test の hit@2（flood_score 0.8041，D = 24 0.7837，D = 12 0.6830）と同じ集合である（`metrics.json` の `n_test` = 2940）．`live_selected_sources` は 300 問（`question_limit: 2`）の分だけ．
+
+**調査で分かったこと**（tavily-search・tavily-extract．事実と推測を分けて書く）
+- Python の負荷生成器は 1 プロセスで 1 コアしか使えない（GIL）ので，コアの数だけ worker のプロセスを立てる．Locust の文書は「Python は 1 プロセスで 1 コアより多くを使えないので，プロセッサのコアごとに 1 つの worker を動かす必要があるかもしれない」と書き，`--processes` で 1 台の上に複数の worker を立てる形を用意している
+  （Locust documentation, "Distributed load generation"．https://docs.locust.io/en/stable/running-distributed.html ）．本研究の質問者は Iteration 4〜7 でまさにこの状態（1 コアに張り付き）にあり，同じ対処（同じデバイスの上でプロセスを分ける）が素直に当てはまる．
+- 負荷試験の結果は負荷生成器の側の設計で大きく変わり，先行研究の負荷生成器の不正確さが実証されている（Y. Zhang, D. Meisner, J. Mars, L. Tang, "Treadmill: Attributing the Source of Tail Latency through Precise Load Testing and Statistical Inference", ISCA 2016, pp. 456–468．https://research.facebook.com/publications/treadmill-attributing-the-source-of-tail-latency-through-precise-load-testing-and-statistical-inference ）．
+  Lancet は，クライアントの基盤のために遅れの分布を正しく測れない状況を統計的な検定で自動的に見つける設計をとる（M. Kogias, S. Mallon, E. Bugnion, "Lancet: A self-correcting Latency Measuring Tool", USENIX ATC 2019, pp. 881–896．https://www.usenix.org/conference/atc19/presentation/kogias-lancet ）．
+  本研究の「処理量」は，これまで負荷生成器（質問者）の側の限界を測っていたことになる．今回は質問者のプロセスごとの CPU と，専門家・制御点の CPU を同じ区間で記録し，どこが張り付いたかで律速を判定する（Lancet のような統計的な自己補正は行わない）．
+- 本研究の質問者は「前の問が終わったら次の問を出す」閉じた系（closed loop．同時の問の数 parallel を固定）である．閉じた系と開いた系（到着が完了と独立）は，同じ負荷でも応答時間などの振る舞いが大きく違いうる（B. Schroeder, A. Wierman, M. Harchol-Balter, "Open Versus Closed: A Cautionary Tale", NSDI 2006．https://www.usenix.org/legacy/event/nsdi06/tech/full_papers/schroeder/schroeder.pdf ）．
+  閉じた系では「処理量 ≤ 同時の問の数 ÷ 1 問の時間」（Little の法則）で上限が決まるので，parallel の合計を固定してプロセスを増やすと，ある所で同時の問の数そのものが律速になりうる（推測）．このため，parallel を増やした記録の系列（N = 8 で合計 240）を別に置く．今回の結論は閉じた系の処理量についてのもので，開いた系の遅れの主張には使わない．
+
+**問い**：(1) 同じ制御点の上で質問者を N 個のプロセスに分けると（parallel の合計は 30 のまま），処理量は N に比例して伸びるか．(2) 伸びが止まるとき，張り付くのは質問者のプロセス・専門家・制御点のどれか．(3) そのときの 1 ノードあたりの要求の数と専門家の CPU 使用率から，専門家の側の限界はどの程度と見積もれるか．
+
+**仮説**
+- **H-P1（主．質問者の律速を外すと処理量が伸びる）**：flood_score の parallel 30 で，N = 2 の処理量は N = 1 より高い．仕組み：Iteration 4〜7 の処理量は質問者 1 プロセスが 1 秒に扱える要求の数（R）で決まっており，プロセスを 2 個にすると R の合計が約 2 倍になる．
+- **H-P2（device_probe でも同じ）**：device_probe（D = 24・12）でも N = 2 の処理量は N = 1 より高い．
+- **H-P3（記録．伸び方と律速）**：N = 4 までは N にほぼ比例して伸び，N = 8 では制御点の物理 6 コアを超えるので伸びが鈍る．専門家の CPU 使用率は N = 8 でも 1 コアに届かない（推測）．
+
+**単一レバー**：`config.yaml` の `experiment.requester_procs` を **1（今の挙動）から 2・4・8 へ**変える．`parallel`（全プロセスの合計の同時の問の数）は 30 のまま固定し，各プロセスへほぼ均等に割る（N = 4 で 8・8・7・7，N = 8 で 4・4・4・4・4・4・3・3）．
+- **parallel を合計で固定する理由**：同時の問の数を Iteration 5〜7 と同じにすれば，変わるのは「同時の問を何個のプロセス（コア）で扱うか」だけになり，単一レバーになる．プロセスごとに 30 にすると同時の問の数も N 倍になり，2 つの要因が混ざる．後者は記録の系列（N = 8・合計 240）として別に流す．
+- **実装**（済み．下の commit）
+  - `src/atrium/config.py`：`ExperimentConfig.requester_procs`（既定 1，`parallel` ≥ `requester_procs`，`churn` とは併用しない）．`config.yaml`：`experiment.requester_procs: 1`．
+  - `src/atrium/requester_procs.py`（新規）：問を順番に配る `split_questions`（i 番目の問を i mod N 番目へ．並べ替えの種は既存の `experiment.seed`），`split_parallel`，`spawn` で起動する子のプロセス（各自で `build_http_client`・`build_requester` を作る），全員の準備が済んでから一斉に流す合図（`multiprocessing.Event`），子の異常終了の検出，プロセスごとの結果（`results.part{i}.jsonl`）を `results.jsonl` にまとめる処理（失敗時・再開時も）．
+    専門家の CPU 時間（`/healthz` の `process_cpu_s`）と制御点全体の CPU（`/proc/stat`）を測定の区間の前後で読む関数．
+  - `src/atrium/experiment.py`：質問者の組み立てを `build_requester` に切り出し（親と子で共有），`requester_procs` ≥ 2 で `run_questions_in_processes` を呼ぶ．`started_at`〜`finished_at` は「一斉に流し始めた時刻〜最後のプロセスが終えた時刻」（子の準備の時間を含めない）．
+    1 プロセスの経路は従来どおりで，区間のすぐ外側で専門家・制御点の CPU を読む処理だけを足した（区間の外の 30 件の GET が 2 回．処理量の分母には入らない）．
+  - `src/atrium/node.py`：`/healthz` に `process_cpu_s`（`time.process_time()`）を足した（追加だけ）．
+  - 新しい `run_meta.json` の項目：`requester_procs`，`requester_cpu_util`（全プロセスの合計．コアの数の単位），`requester_cpu_util_per_proc`，`requester_parallel_per_proc`，`requester_wall_s_per_proc`，`expert_cpu_util`（ホストごと）・`_max`・`_median`，`control_cpu_busy`・`control_cpu_softirq`（`docs/d0004_metrics.md`）．
+  - `tests/test_requester_procs.py`（17 件．設定の検証，parallel と問の割り方，結果のまとめ方，`/proc/stat` の読み方，ノードの CPU 時間の読み方と読めないノードの扱い）．pytest 280 件・`ruff check src tests`・`ruff format --check src tests`・`mypy src` は通過．
+    加えて，操作端末の localhost に実際の uvicorn のノードを 4 台立てた使い捨ての確認で，N = 3（spawn の子 3 個）と N = 1 の 40 問の `top_doc_ids` が全問一致し，`results.part*.jsonl` が残らないことを確かめた（スクリプトは `/tmp` に置き，commit しない）．
+  - 連続実行：`results/20261015_iter8_load_summary/iter8_chain.sh`（`iter7_chain.sh` の失敗率の打ち切りの単位に N を足したもの）と仕様の雛形 `iter8_specs.template.txt`（43 実行）．
+  - 文書：`docs/d0001_architecture.md`（`/healthz`・モジュール），`docs/d0002_configuration.md`（`requester_procs`），`docs/d0004_metrics.md`（質問者・専門家の CPU）．
+
+**固定する構成**（Iteration 7 と同じ）：`dataset: enronqa`，`answer_mode: retrieval_only`，m = 2，`merge: score`，`query_embedding.enronqa: cached`，`seed` は既存の値（問の並べ替えも同じ），**`http_pool: per_node`（全実行で明示．池はプロセスごと）**，前計算した 1 段目，`parallel: 30`（合計），質問者のログの水準（INFO．全要求を 1 行ずつ），
+配置は T4 以来の 30 台 × 5 受信箱，各回の前に `mise run deploy`，失敗した問は流し直さない，連続実行の間は制御点で他のコンテナを動かさず commit もしない．専門家 30 台・質問者（制御点）の構成は T4 と同じ（運用ルール 8 のフルスペックの実機実験）．
+問の数は主の系列で **test の全 2,940 問**（`question_limit: null`）とする．Iteration 6・7 で 300 問の高い処理量の条件は約 1 秒の一斉の待ち 1 回で 5〜30% 揺れた（B23 (b)）．N = 8 で数十問/秒を超えると 300 問は数秒で終わるので，問を 10 倍にする．
+
+### 事前登録（2026-10-15．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**手順 0：実機の動作確認**（連続実行の前に 1 回．判定に使わない）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ 1 回も流さずに止め，backlog に `[needs-human]` を記録する．
+2. `<date>_iter8_smoke_dp24_n2_p30`（`dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=2`）を deploy → start → analyze で 1 回流す．
+3. 次を全て満たすことを確かめる．満たさなければ連続実行を流さず，原因を調べて記録する：失敗 0 問，300 問の `selected_sources` が `results/20261015_iter7_device_probe_eval/metrics.json` の `live_selected_sources["24"]` と 100% 一致，`run_meta.json` の `requester_procs` = 2・`requester_parallel_per_proc` = [15, 15]・`http_pool` = per_node，`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない，`results.part*.jsonl` が残っていない，`requester.log` に `[w0]`・`[w1]` の両方の行がある．
+
+**手順 1：実機の連続実行**（`iter8_specs.template.txt` の `<date>` を実行日に置き換えた `iter8_specs.txt` を，`iter8_chain.sh` に**絶対パス**で渡す）
+1. 環境の揺れの確認（前）：flood_score × per_node × N = 1 の parallel 30 を 300 問（`question_limit=2`）で 1 回．
+2. 主の系列：flood_score（fs）・device_probe D = 24（dp24）・D = 12（dp12）の 3 方式 × N ∈ {1, 2, 4, 8} × 3 回，2,940 問・parallel 30（合計）．時間の偏りを打ち消すため，回ごとに方式を fs → dp24 → dp12 の順に回し，N は r1・r3 で昇順，r2 で降順に流す．
+3. 記録の系列（判定に使わない）：N = 8・合計 parallel 240（各プロセス 30）を fs で 3 回，dp24・dp12 で 1 回ずつ．
+4. 環境の揺れの確認（後）：1 と同じ．
+- 計 43 実行（手順 0 を除く）．所要は約 3.5〜4 時間の見込み（Iteration 7 の deploy などの 1 実行あたり約 3.8 分 × 43 と，2,940 問の流す時間の合計約 50 分）．deploy の失敗の扱い・失敗率の打ち切り（routing・D・N ごと）は Iteration 4〜7 と同じ（`iter8_chain.sh` の実装のとおり）．
+
+**指標**：処理量（成功した問の数 ÷（`finished_at` − `started_at`）），e2e_s の p50・p95，probe_s・retrieve_s・route_s の p50・p95，`probe_node_s_max` の p95，失敗率とエラーの種類，再試行の数，新しい接続の数，1 秒あたりの HTTP 要求の数（ノードの access log），1 ノードあたりの 1 秒の要求の数（平均と最大），
+`requester_cpu_util`（合計）と `requester_cpu_util_per_proc` の中央値，`expert_cpu_util_max`・`_median`，`control_cpu_busy`・`control_cpu_softirq`，2,940 問の hit@2．効率 E(N) = 処理量の中央値(N) ÷（N × 処理量の中央値(1)）．
+
+**正しさの確認**（満たさない実行は判定に使わず「欠け」とし，原因を調べて記録する）
+- G1：失敗率が 1% 以下．
+- G2：同じ方式の 2,940 問の全実行（主・記録の系列）で，失敗の無い問の `selected_sources` が問ごとに 100% 一致する（N と parallel で選択が変わらない）．一致しなければ，その方式の判定に進まない．
+- G3：`run_meta.json` の `requester_procs`・`requester_parallel_per_proc`（長さ N，合計が parallel）・`http_pool` = per_node・routing・D・`n_questions` が仕様と一致する．
+- G4（記録）：2,940 問の hit@2 が `device-probe-eval` の test の値（fs 0.8041，dp24 0.7837，dp12 0.6830）と 5e-4 以内で一致するか．外れても G2 が成り立てば判定は行い，差の原因（問の集合・hit の定義）を記録する．
+- G5（律速の分類だけに効く）：`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない．欠けた実行は律速の分類を「測定欠け」とする．
+
+**環境の揺れの規則**（記録のため）：前後 2 回の flood_score × N = 1 × 300 問の p30 の処理量が [11.127, 14.247] 問/秒，e2e p95 が [3.053, 4.067] 秒（Iteration 7 と同じ範囲）に入るかを記録する．外れたら「環境が変わった」と記録する．比べる相手は同じ時間帯の N = 1 なので，判定の基準は変えない．
+
+**判定の規則**（比べる 2 条件の 3 回の範囲が重ならないときだけ「差がある」．全て parallel 30 の主の系列）
+- **H-P1（主）**：fs の N = 2 の 3 回の処理量の範囲が N = 1 の範囲より上にあり重ならず，かつ中央値の比（N = 2 ÷ N = 1）が 1.5 以上．
+- **H-P2**：dp24・dp12 のそれぞれで，H-P1 と同じ規則が成り立つか（方式ごとに記録）．
+- **頭打ちの N**（方式ごと）：N ∈ {2, 4, 8} を小さい順に見て，「N の範囲が N/2 の範囲より上にあり重ならず，かつ中央値の比が 1.2 以上」が初めて成り立たない N を頭打ちの N とする．全て成り立てば「N = 8 まで頭打ちなし」．
+- **律速の分類**（方式ごと．主の系列の N = 8 と，記録の系列の N = 8・parallel 240 で．3 回あれば中央値）．上から順に最初に当てはまるもの：
+  1. `requester_cpu_util_per_proc` の中央値 ≥ 0.90 → **質問者のプロセスが律速**（N = 8 は物理 6 コアを超えるので，その旨を添える）．
+  2. `expert_cpu_util_max` ≥ 0.90 → **専門家の側が律速の候補**（ノードの Python の処理は 1 プロセスなので，1 コア付近を飽和の目安とする．FAISS のスレッドで 1 を超えうる点は記録する）．
+  3. `control_cpu_busy` ≥ 0.50 → **制御点の CPU が律速の候補**（論理 12 CPU の半分 ＝ 物理 6 コア相当）．
+  4. どれでもない → **未特定**（同時の問の数〔Little の法則〕・ネットワーク・ノードの待ちなど）．
+- **このイテレーションの結論**：
+  - **採用**（以後の負荷の主張は，質問者を律速から外した構成〔頭打ちの N の手前で最も処理量の高い N〕の値で行う）：H-P1 が成り立つ．
+  - **部分的に支持**：H-P1 が成り立たないが，fs の N = 2 の範囲が N = 1 より上にある（比 < 1.5），または H-P2 がどちらかの方式で成り立つ．
+  - **棄却**：3 方式とも N = 2 の範囲が N = 1 の範囲より上にない（N = 1 で既に質問者以外が律速だったことになり，Iteration 4〜7 の解釈を見直す）．
+- 記録（判定に使わない）：E(N) の曲線，N = 8・parallel 240 の処理量と律速の分類，1 ノードあたりの要求の数 ÷ `expert_cpu_util_max` による専門家 1 台の要求の処理能力の見積もり（ノードが 1 コアで飽和すると仮定した推測），方式間の処理量の比と 1 問あたりの要求の数の比，e2e p95 の N による変化．
+
+**ノイズの見積もり**：Iteration 5〜7 の parallel 30 の 3 回の処理量の幅は中央値の ±5% 以内で，flood_score × N = 1 × 300 問は 5 回で 12.28〜12.86 問/秒だった．H-P1 の倍率 1.5 と頭打ちの 1.2 は，この幅の 10 倍・4 倍に当たる．2,940 問にしたので，1 秒の一斉の待ちの影響は 300 問のときの約 1/10 になる見込みである（推測）．
+プロセスを増やすと揺れが増えうるので，範囲が重ならない規則を併用する．
+
+**期待効果**（推測．判定に使わない）：fs の処理量は N = 1 で約 12.5，N = 2 で 22〜25，N = 4 で 40〜48，N = 8 で 55〜75 問/秒（物理 6 コアで頭打ち）．N = 8 の fs で全体 1,800〜2,400 要求/秒，1 ノードあたり 60〜80 要求/秒になり，`expert_cpu_util_max` は 0.2〜0.5 程度で専門家はまだ飽和しない見込みである．
+その場合の結論は「同じ制御点の上のプロセスの分割では専門家の限界に届かず，専門家 1 台は少なくとも X 要求/秒を扱える（下限）」になり，それより上を測るには質問者を複数のデバイスに置く形（B25 (a)．人間の判断）が要る．dp12 は 1 問あたりの要求が少ないので，N = 8 で 150 問/秒を超えうる．
+
+**限界**：有線 LAN・検索だけ・閉じた系（同時の問の数を固定）の処理量である．質問者は同じ制御点の上のプロセスで，制御点の NIC・カーネル・物理コアが共通の律速になりうる（B25 (b)．その場合は「制御点 1 台の限界」と呼び，専門家の限界とは呼ばない）．専門家の CPU はノードのプロセスの CPU 時間で，docker・カーネルのネットワーク処理は含まない．
+配置は話題と無関係な 30 台 × 5 受信箱の 1 通り．
+
+**次の候補**：採用で専門家が飽和しなければ，質問者を複数のデバイスに置く構成（B25 (a)．人間の判断を要する）を backlog に上げ，それまでは「同じ制御点の上の N プロセスでの値」を負荷の主張に使う．専門家が飽和すれば，ノードの側の処理（uvicorn の worker の数など）が次の候補．棄却なら，N = 1 での律速（未特定）の切り分け．
+
 ## Iteration 7: デバイスを単位に上位を選ぶ二段の方式の再現率と処理量
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）

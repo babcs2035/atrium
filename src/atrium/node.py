@@ -7,6 +7,7 @@
 - flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．
 - 参加・離脱の再生（/v1/admin/availability．EQ7b）: experiment.churn を指定した実験でだけ有効になり，離脱中は
   /healthz 以外の要求を 503 で拒否する．
+- 生存確認（/healthz）: プロセスの CPU 時間の累計も返す（質問者が専門家の側の CPU 使用率を測る．Iteration 8）．
 
 コンテナ内では `atrium node` で起動する．ノード名・シャード・Ollama の URL・宿る型のモデルは，
 deploy が config.yaml から作る compose.yml のコマンドの引数で渡す（環境変数は使わない）．
@@ -155,7 +156,14 @@ def create_app(
 
     @app.get("/healthz")
     def healthz() -> dict[str, object]:
-        return {"status": "ok", "node_id": node_id, "shards": sorted(stores)}
+        # process_cpu_s：このプロセスの全スレッドの CPU 時間の累計（秒）．質問者が測定の区間の前後で読み，
+        # 専門家の側の CPU 使用率を求める（Iteration 8）
+        return {
+            "status": "ok",
+            "node_id": node_id,
+            "shards": sorted(stores),
+            "process_cpu_s": time.process_time(),
+        }
 
     @app.get(AGENT_CARD_PATH)
     def agent_card(request: Request) -> dict[str, object]:
