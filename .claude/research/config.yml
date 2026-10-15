@@ -128,7 +128,12 @@ levers:
             1 段目（前計算した multi_centroid の採点）の受信箱の得点をデバイスごとにまとめ，上位 D 台にだけ probe を送って上位 m = 2 個を選ぶ二段の方式．まとめ方と D は rc-researcher が事前登録で決める．
             まずオフラインで test の hit@2 と 1 問あたりの probe のデバイスの数を centroid_probe（K = 30・75）と比べ，見込みのある D を実機（per_node，300 問・検索だけ）で測る．既存の routing の値の挙動は変えない．
             Iteration 7 の rc-researcher が確定（backlog B24）：`experiment.routing: device_probe` と新しいキー `routing.probe_d.enronqa`，まとめ方は最大値．D は `atrium device-probe-eval` の dev で事前登録の規則で選ぶ．事前登録は journal の Iteration 7．
-            次の候補は複数の質問者のプロセス・デバイスの構成（専門家の側の限界の測定）"}
+            次の候補は複数の質問者のプロセス・デバイスの構成（専門家の側の限界の測定）．Iteration 7 は採用（parallel 30 の処理量 dp24 15.64 対 cp75 12.82，dp12 30.75 対 cp30 19.53 問/秒）"}
+  - {name: experiment.requester_procs, values: [2, 4, 8],
+     note: "Iteration 7 の評価で追加（backlog B25 [auto-decided]）．仮称．Iteration 4〜7 の負荷の比較は全て質問者 1 プロセス（1 コアに張り付き，R ≈ 390〜440 要求/秒）の能力の比較で，専門家の側の限界は測れていない．
+            同じ制御点 wafl-ctrl5（12 コア）の上で，問を N 個の質問者のプロセスに分けて同時に流す（追加だけの設定キー．既定 1 ＝今の挙動）．flood_score と device_probe（D = 24・12）を per_node・検索だけで測り，
+            N に対して処理量が比例して伸びるか，頭打ちのときに質問者と専門家のどちらの CPU が張り付くかを記録する．キー名・N・parallel の割り方・問の数・判定の規則は rc-researcher が事前登録で決める．
+            質問者を複数のデバイスに置く形（cluster.requester の形式とデバイスの役割の変更）は人間の判断に残す（B25 (a)）"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

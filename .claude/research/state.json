@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 6,
-  "iteration_name": "1 段目の採点の重心の前計算による二段の方式の処理量の測り直し",
+  "iteration": 7,
+  "iteration_name": "デバイスを単位に上位を選ぶ二段の方式の再現率と処理量",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "1 段目の採点の重心: 問ごとに Advert.centroids のリストから変換 -> SourceProfile.advert_centroids に読み込み時に前計算（コードの置き換え．http_pool=per_node を明示）",
-  "experiment_dir": "results/20261015_iter6_load_summary (run_id prefix 20261015_iter6_)",
-  "experiment_deadline": 1792081630,
-  "updated_at": 1791984086,
-  "last_slack_ts": "1792007293.900799",
-  "iteration_thread_ts": "1792007781.007609",
+  "current_lever": "experiment.routing: centroid_probe -> device_probe (routing.probe_d.enronqa = D, max aggregation; D chosen on dev by the preregistered rule in journal Iteration 7)",
+  "experiment_dir": "results/20261015_iter7_load_summary (run_id prefix 20261015_iter7_)",
+  "experiment_deadline": 1792033110,
+  "updated_at": 1792025635,
+  "last_slack_ts": "1792017765.866209",
+  "iteration_thread_ts": "1792018605.656479",
   "notion_toggle_created": true,
-  "last_commit": "9e55253"
+  "last_commit": "b834d3f"
 }

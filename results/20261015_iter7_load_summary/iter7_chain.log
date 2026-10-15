@@ -1,0 +1,131 @@
+[2026-10-15_08:02:39] BEGIN 20261015_iter7_anchor_fs_pn_p30_pre dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=flood_score parallel=30
+[08:05:07] 20261015_iter7_anchor_fs_pn_p30_pre deployed
+[08:06:39] 20261015_iter7_anchor_fs_pn_p30_pre start=0 inner=0
+[08:06:41] 20261015_iter7_anchor_fs_pn_p30_pre analyze=0
+[08:06:41] 20261015_iter7_anchor_fs_pn_p30_pre failure_rate=0.0
+[2026-10-15_08:06:41] BEGIN 20261015_iter7_cp75_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=75
+[08:09:01] 20261015_iter7_cp75_pn_p30_r1 deployed
+[08:10:31] 20261015_iter7_cp75_pn_p30_r1 start=0 inner=0
+[08:10:33] 20261015_iter7_cp75_pn_p30_r1 analyze=0
+[08:10:33] 20261015_iter7_cp75_pn_p30_r1 failure_rate=0.0
+[2026-10-15_08:10:33] BEGIN 20261015_iter7_dp24_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=24
+[08:12:46] 20261015_iter7_dp24_pn_p30_r1 deployed
+[08:14:20] 20261015_iter7_dp24_pn_p30_r1 start=0 inner=0
+[08:14:21] 20261015_iter7_dp24_pn_p30_r1 analyze=0
+[08:14:22] 20261015_iter7_dp24_pn_p30_r1 failure_rate=0.0
+[2026-10-15_08:14:22] BEGIN 20261015_iter7_cp75_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=75
+[08:16:44] 20261015_iter7_cp75_pn_p30_r2 deployed
+[08:18:15] 20261015_iter7_cp75_pn_p30_r2 start=0 inner=0
+[08:18:17] 20261015_iter7_cp75_pn_p30_r2 analyze=0
+[08:18:17] 20261015_iter7_cp75_pn_p30_r2 failure_rate=0.0
+[2026-10-15_08:18:17] BEGIN 20261015_iter7_dp24_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=24
+[08:20:38] 20261015_iter7_dp24_pn_p30_r2 deployed
+[08:22:08] 20261015_iter7_dp24_pn_p30_r2 start=0 inner=0
+[08:22:10] 20261015_iter7_dp24_pn_p30_r2 analyze=0
+[08:22:10] 20261015_iter7_dp24_pn_p30_r2 failure_rate=0.0
+[2026-10-15_08:22:10] BEGIN 20261015_iter7_cp75_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=75
+[08:24:36] 20261015_iter7_cp75_pn_p30_r3 deployed
+[08:26:07] 20261015_iter7_cp75_pn_p30_r3 start=0 inner=0
+[08:26:09] 20261015_iter7_cp75_pn_p30_r3 analyze=0
+[08:26:09] 20261015_iter7_cp75_pn_p30_r3 failure_rate=0.0
+[2026-10-15_08:26:09] BEGIN 20261015_iter7_dp24_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=24
+[08:28:37] 20261015_iter7_dp24_pn_p30_r3 deployed
+[08:30:08] 20261015_iter7_dp24_pn_p30_r3 start=0 inner=0
+[08:30:10] 20261015_iter7_dp24_pn_p30_r3 analyze=0
+[08:30:10] 20261015_iter7_dp24_pn_p30_r3 failure_rate=0.0
+[2026-10-15_08:30:10] BEGIN 20261015_iter7_dp24_pn_p1_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=24
+[08:32:37] 20261015_iter7_dp24_pn_p1_r1 deployed
+[08:34:08] 20261015_iter7_dp24_pn_p1_r1 start=0 inner=0
+[08:34:09] 20261015_iter7_dp24_pn_p1_r1 analyze=0
+[08:34:09] 20261015_iter7_dp24_pn_p1_r1 failure_rate=0.0
+[2026-10-15_08:34:09] BEGIN 20261015_iter7_dp24_pn_p1_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=24
+[08:36:34] 20261015_iter7_dp24_pn_p1_r2 deployed
+[08:38:05] 20261015_iter7_dp24_pn_p1_r2 start=0 inner=0
+[08:38:07] 20261015_iter7_dp24_pn_p1_r2 analyze=0
+[08:38:07] 20261015_iter7_dp24_pn_p1_r2 failure_rate=0.0
+[2026-10-15_08:38:07] BEGIN 20261015_iter7_dp24_pn_p1_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=24
+[08:40:30] 20261015_iter7_dp24_pn_p1_r3 deployed
+[08:42:01] 20261015_iter7_dp24_pn_p1_r3 start=0 inner=0
+[08:42:03] 20261015_iter7_dp24_pn_p1_r3 analyze=0
+[08:42:03] 20261015_iter7_dp24_pn_p1_r3 failure_rate=0.0
+[2026-10-15_08:42:03] BEGIN 20261015_iter7_dp24_pn_p16_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=24
+[08:44:39] 20261015_iter7_dp24_pn_p16_r1 deployed
+[08:46:14] 20261015_iter7_dp24_pn_p16_r1 start=0 inner=0
+[08:46:16] 20261015_iter7_dp24_pn_p16_r1 analyze=0
+[08:46:16] 20261015_iter7_dp24_pn_p16_r1 failure_rate=0.0
+[2026-10-15_08:46:16] BEGIN 20261015_iter7_dp24_pn_p16_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=24
+[08:48:45] 20261015_iter7_dp24_pn_p16_r2 deployed
+[08:50:16] 20261015_iter7_dp24_pn_p16_r2 start=0 inner=0
+[08:50:17] 20261015_iter7_dp24_pn_p16_r2 analyze=0
+[08:50:17] 20261015_iter7_dp24_pn_p16_r2 failure_rate=0.0
+[2026-10-15_08:50:17] BEGIN 20261015_iter7_dp24_pn_p16_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=24
+[08:52:46] 20261015_iter7_dp24_pn_p16_r3 deployed
+[08:54:18] 20261015_iter7_dp24_pn_p16_r3 start=0 inner=0
+[08:54:20] 20261015_iter7_dp24_pn_p16_r3 analyze=0
+[08:54:20] 20261015_iter7_dp24_pn_p16_r3 failure_rate=0.0
+[2026-10-15_08:54:20] BEGIN 20261015_iter7_cp30_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=30
+[08:56:47] 20261015_iter7_cp30_pn_p30_r1 deployed
+[08:58:19] 20261015_iter7_cp30_pn_p30_r1 start=0 inner=0
+[08:58:21] 20261015_iter7_cp30_pn_p30_r1 analyze=0
+[08:58:21] 20261015_iter7_cp30_pn_p30_r1 failure_rate=0.0
+[2026-10-15_08:58:21] BEGIN 20261015_iter7_dp12_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=12
+[09:00:47] 20261015_iter7_dp12_pn_p30_r1 deployed
+[09:02:18] 20261015_iter7_dp12_pn_p30_r1 start=0 inner=0
+[09:02:19] 20261015_iter7_dp12_pn_p30_r1 analyze=0
+[09:02:19] 20261015_iter7_dp12_pn_p30_r1 failure_rate=0.0
+[2026-10-15_09:02:19] BEGIN 20261015_iter7_cp30_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=30
+[09:04:58] 20261015_iter7_cp30_pn_p30_r2 deployed
+[09:06:32] 20261015_iter7_cp30_pn_p30_r2 start=0 inner=0
+[09:06:34] 20261015_iter7_cp30_pn_p30_r2 analyze=0
+[09:06:34] 20261015_iter7_cp30_pn_p30_r2 failure_rate=0.0
+[2026-10-15_09:06:34] BEGIN 20261015_iter7_dp12_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=12
+[09:09:09] 20261015_iter7_dp12_pn_p30_r2 deployed
+[09:10:42] 20261015_iter7_dp12_pn_p30_r2 start=0 inner=0
+[09:10:44] 20261015_iter7_dp12_pn_p30_r2 analyze=0
+[09:10:44] 20261015_iter7_dp12_pn_p30_r2 failure_rate=0.0
+[2026-10-15_09:10:44] BEGIN 20261015_iter7_cp30_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=30
+[09:13:14] 20261015_iter7_cp30_pn_p30_r3 deployed
+[09:14:45] 20261015_iter7_cp30_pn_p30_r3 start=0 inner=0
+[09:14:47] 20261015_iter7_cp30_pn_p30_r3 analyze=0
+[09:14:47] 20261015_iter7_cp30_pn_p30_r3 failure_rate=0.0
+[2026-10-15_09:14:47] BEGIN 20261015_iter7_dp12_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=12
+[09:17:18] 20261015_iter7_dp12_pn_p30_r3 deployed
+[09:18:50] 20261015_iter7_dp12_pn_p30_r3 start=0 inner=0
+[09:18:52] 20261015_iter7_dp12_pn_p30_r3 analyze=0
+[09:18:52] 20261015_iter7_dp12_pn_p30_r3 failure_rate=0.0
+[2026-10-15_09:18:52] BEGIN 20261015_iter7_dp12_pn_p1_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=12
+[09:21:24] 20261015_iter7_dp12_pn_p1_r1 deployed
+[09:23:03] 20261015_iter7_dp12_pn_p1_r1 start=0 inner=0
+[09:23:04] 20261015_iter7_dp12_pn_p1_r1 analyze=0
+[09:23:04] 20261015_iter7_dp12_pn_p1_r1 failure_rate=0.0
+[2026-10-15_09:23:04] BEGIN 20261015_iter7_dp12_pn_p1_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=12
+[09:25:31] 20261015_iter7_dp12_pn_p1_r2 deployed
+[09:27:02] 20261015_iter7_dp12_pn_p1_r2 start=0 inner=0
+[09:27:04] 20261015_iter7_dp12_pn_p1_r2 analyze=0
+[09:27:04] 20261015_iter7_dp12_pn_p1_r2 failure_rate=0.0
+[2026-10-15_09:27:04] BEGIN 20261015_iter7_dp12_pn_p1_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=12
+[09:29:34] 20261015_iter7_dp12_pn_p1_r3 deployed
+[09:31:07] 20261015_iter7_dp12_pn_p1_r3 start=0 inner=0
+[09:31:08] 20261015_iter7_dp12_pn_p1_r3 analyze=0
+[09:31:08] 20261015_iter7_dp12_pn_p1_r3 failure_rate=0.0
+[2026-10-15_09:31:08] BEGIN 20261015_iter7_dp12_pn_p16_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=12
+[09:33:45] 20261015_iter7_dp12_pn_p16_r1 deployed
+[09:35:16] 20261015_iter7_dp12_pn_p16_r1 start=0 inner=0
+[09:35:18] 20261015_iter7_dp12_pn_p16_r1 analyze=0
+[09:35:18] 20261015_iter7_dp12_pn_p16_r1 failure_rate=0.0
+[2026-10-15_09:35:18] BEGIN 20261015_iter7_dp12_pn_p16_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=12
+[09:37:58] 20261015_iter7_dp12_pn_p16_r2 deployed
+[09:39:29] 20261015_iter7_dp12_pn_p16_r2 start=0 inner=0
+[09:39:31] 20261015_iter7_dp12_pn_p16_r2 analyze=0
+[09:39:31] 20261015_iter7_dp12_pn_p16_r2 failure_rate=0.0
+[2026-10-15_09:39:31] BEGIN 20261015_iter7_dp12_pn_p16_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=12
+[09:42:15] 20261015_iter7_dp12_pn_p16_r3 deployed
+[09:43:47] 20261015_iter7_dp12_pn_p16_r3 start=0 inner=0
+[09:43:48] 20261015_iter7_dp12_pn_p16_r3 analyze=0
+[09:43:48] 20261015_iter7_dp12_pn_p16_r3 failure_rate=0.0
+[2026-10-15_09:43:48] BEGIN 20261015_iter7_anchor_fs_pn_p30_post dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=flood_score parallel=30
+[09:46:22] 20261015_iter7_anchor_fs_pn_p30_post deployed
+[09:47:57] 20261015_iter7_anchor_fs_pn_p30_post start=0 inner=0
+[09:47:59] 20261015_iter7_anchor_fs_pn_p30_post analyze=0
+[09:47:59] 20261015_iter7_anchor_fs_pn_p30_post failure_rate=0.0
+[2026-10-15_09:47:59] ALL DONE

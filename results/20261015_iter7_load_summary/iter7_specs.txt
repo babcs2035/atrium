@@ -1,0 +1,26 @@
+20261015_iter7_anchor_fs_pn_p30_pre dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=flood_score parallel=30
+20261015_iter7_cp75_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=75
+20261015_iter7_dp24_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=24
+20261015_iter7_cp75_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=75
+20261015_iter7_dp24_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=24
+20261015_iter7_cp75_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=75
+20261015_iter7_dp24_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=24
+20261015_iter7_dp24_pn_p1_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=24
+20261015_iter7_dp24_pn_p1_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=24
+20261015_iter7_dp24_pn_p1_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=24
+20261015_iter7_dp24_pn_p16_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=24
+20261015_iter7_dp24_pn_p16_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=24
+20261015_iter7_dp24_pn_p16_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=24
+20261015_iter7_cp30_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=30
+20261015_iter7_dp12_pn_p30_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=12
+20261015_iter7_cp30_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=30
+20261015_iter7_dp12_pn_p30_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=12
+20261015_iter7_cp30_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=centroid_probe parallel=30 routing.probe_k.enronqa=30
+20261015_iter7_dp12_pn_p30_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=30 routing.probe_d.enronqa=12
+20261015_iter7_dp12_pn_p1_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=12
+20261015_iter7_dp12_pn_p1_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=12
+20261015_iter7_dp12_pn_p1_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=1 routing.probe_d.enronqa=12
+20261015_iter7_dp12_pn_p16_r1 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=12
+20261015_iter7_dp12_pn_p16_r2 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=12
+20261015_iter7_dp12_pn_p16_r3 dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=device_probe parallel=16 routing.probe_d.enronqa=12
+20261015_iter7_anchor_fs_pn_p30_post dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node routing=flood_score parallel=30

@@ -1,0 +1,2923 @@
+{
+ "n_inboxes": 150,
+ "n_devices": 30,
+ "n_dev": 2948,
+ "n_test": 2940,
+ "m": 2,
+ "n_centroids": 32,
+ "rule": "for K in [75, 30]: smallest D in [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30] with dev max-aggregated hit@2 >= dev centroid_probe(K) hit@2; live only if D + m <= 0.9 x (dev reach(K) + m)",
+ "choices": [
+  {
+   "k": 75,
+   "dev_target_hit": 0.7649253731343284,
+   "dev_reach_mean": 29.09497964721845,
+   "chosen_d": 24,
+   "promising": true,
+   "request_ratio": 0.8361478378496313,
+   "test_centroid_probe_hit": 0.7612244897959184,
+   "test_device_probe_hit": 0.7836734693877551,
+   "test_reach_mean": 29.11938775510204,
+   "test_not_inferior": true
+  },
+  {
+   "k": 30,
+   "dev_target_hit": 0.6906377204884667,
+   "dev_reach_mean": 19.825644504748983,
+   "chosen_d": 12,
+   "promising": true,
+   "request_ratio": 0.6414472661713966,
+   "test_centroid_probe_hit": 0.6904761904761905,
+   "test_device_probe_hit": 0.6829931972789116,
+   "test_reach_mean": 19.864285714285714,
+   "test_not_inferior": true
+  }
+ ],
+ "checks": {
+  "tolerance": 0.0005,
+  "diffs": {
+   "dev_k4": 0.0,
+   "dev_k8": 0.0,
+   "dev_k15": 0.0,
+   "dev_k30": 0.0,
+   "dev_k50": 0.0,
+   "dev_k75": 0.0,
+   "test_k4": 0.0,
+   "test_k8": 0.0,
+   "test_k15": 0.0,
+   "test_k30": 0.0,
+   "test_k50": 0.0,
+   "test_k75": 0.0,
+   "test_flood": 0.0,
+   "test_d_all_vs_flood": 0.0
+  },
+  "containment_violations": {
+   "d2_k75": 0,
+   "d2_k30": 0,
+   "d4_k75": 0,
+   "d4_k30": 0,
+   "d6_k75": 0,
+   "d6_k30": 0,
+   "d8_k75": 0,
+   "d8_k30": 0,
+   "d10_k75": 0,
+   "d10_k30": 0,
+   "d12_k75": 0,
+   "d12_k30": 0,
+   "d14_k75": 0,
+   "d14_k30": 0,
+   "d16_k75": 0,
+   "d16_k30": 0,
+   "d18_k75": 0,
+   "d18_k30": 0,
+   "d20_k75": 0,
+   "d20_k30": 0,
+   "d22_k75": 0,
+   "d22_k30": 0,
+   "d24_k75": 0,
+   "d24_k30": 0,
+   "d26_k75": 0,
+   "d26_k30": 0,
+   "d28_k75": 0,
+   "d28_k30": 0,
+   "d30_k75": 0,
+   "d30_k30": 0
+  },
+  "passed": true
+ },
+ "curve": {
+  "dev": {
+   "device_probe": [
+    {
+     "d": 2,
+     "inboxes_probed_mean": 10.0,
+     "max_hit@2": 0.46302578018995927,
+     "sum_hit@2": 0.33276797829036636
+    },
+    {
+     "d": 4,
+     "inboxes_probed_mean": 20.0,
+     "max_hit@2": 0.5451153324287653,
+     "sum_hit@2": 0.44369063772048845
+    },
+    {
+     "d": 6,
+     "inboxes_probed_mean": 30.0,
+     "max_hit@2": 0.5956580732700135,
+     "sum_hit@2": 0.51797829036635
+    },
+    {
+     "d": 8,
+     "inboxes_probed_mean": 40.0,
+     "max_hit@2": 0.6346675712347354,
+     "sum_hit@2": 0.5807327001356852
+    },
+    {
+     "d": 10,
+     "inboxes_probed_mean": 50.0,
+     "max_hit@2": 0.666214382632293,
+     "sum_hit@2": 0.6177069199457259
+    },
+    {
+     "d": 12,
+     "inboxes_probed_mean": 60.0,
+     "max_hit@2": 0.6930122116689281,
+     "sum_hit@2": 0.6529850746268657
+    },
+    {
+     "d": 14,
+     "inboxes_probed_mean": 70.0,
+     "max_hit@2": 0.7096336499321574,
+     "sum_hit@2": 0.6848710990502035
+    },
+    {
+     "d": 16,
+     "inboxes_probed_mean": 80.0,
+     "max_hit@2": 0.7248982360922659,
+     "sum_hit@2": 0.7069199457259159
+    },
+    {
+     "d": 18,
+     "inboxes_probed_mean": 90.0,
+     "max_hit@2": 0.7425373134328358,
+     "sum_hit@2": 0.730325644504749
+    },
+    {
+     "d": 20,
+     "inboxes_probed_mean": 100.0,
+     "max_hit@2": 0.753731343283582,
+     "sum_hit@2": 0.7472862957937585
+    },
+    {
+     "d": 22,
+     "inboxes_probed_mean": 110.0,
+     "max_hit@2": 0.7632293080054274,
+     "sum_hit@2": 0.7601763907734057
+    },
+    {
+     "d": 24,
+     "inboxes_probed_mean": 120.0,
+     "max_hit@2": 0.7734056987788331,
+     "sum_hit@2": 0.7754409769335142
+    },
+    {
+     "d": 26,
+     "inboxes_probed_mean": 130.0,
+     "max_hit@2": 0.783921302578019,
+     "sum_hit@2": 0.7845997286295794
+    },
+    {
+     "d": 28,
+     "inboxes_probed_mean": 140.0,
+     "max_hit@2": 0.7927408412483039,
+     "sum_hit@2": 0.7937584803256446
+    },
+    {
+     "d": 30,
+     "inboxes_probed_mean": 150.0,
+     "max_hit@2": 0.7988466757123474,
+     "sum_hit@2": 0.7988466757123474
+    }
+   ],
+   "centroid_probe": [
+    {
+     "k": 4,
+     "reach_mean": 3.779850746268657,
+     "hit@2": 0.5078018995929444
+    },
+    {
+     "k": 8,
+     "reach_mean": 7.102103120759837,
+     "hit@2": 0.5705563093622795
+    },
+    {
+     "k": 15,
+     "reach_mean": 12.050203527815468,
+     "hit@2": 0.6295793758480326
+    },
+    {
+     "k": 30,
+     "reach_mean": 19.825644504748983,
+     "hit@2": 0.6906377204884667
+    },
+    {
+     "k": 50,
+     "reach_mean": 25.924355495251017,
+     "hit@2": 0.728629579375848
+    },
+    {
+     "k": 75,
+     "reach_mean": 29.09497964721845,
+     "hit@2": 0.7649253731343284
+    }
+   ],
+   "flood_score": {
+    "hit@2": 0.7988466757123474
+   }
+  },
+  "test": {
+   "device_probe": [
+    {
+     "d": 2,
+     "inboxes_probed_mean": 10.0,
+     "max_hit@2": 0.46462585034013604,
+     "sum_hit@2": 0.3238095238095238,
+     "n": 2940,
+     "hit@1": 0.4421768707482993,
+     "hit@1_ci95": [
+      0.42448979591836733,
+      0.4619132653061225
+     ],
+     "hit@2": 0.46462585034013604,
+     "hit@2_ci95": [
+      0.44693877551020406,
+      0.48401360544217686
+     ]
+    },
+    {
+     "d": 4,
+     "inboxes_probed_mean": 20.0,
+     "max_hit@2": 0.5465986394557824,
+     "sum_hit@2": 0.44081632653061226,
+     "n": 2940,
+     "hit@1": 0.5119047619047619,
+     "hit@1_ci95": [
+      0.49318877551020407,
+      0.5306207482993197
+     ],
+     "hit@2": 0.5465986394557824,
+     "hit@2_ci95": [
+      0.5282312925170068,
+      0.5642857142857143
+     ]
+    },
+    {
+     "d": 6,
+     "inboxes_probed_mean": 30.0,
+     "max_hit@2": 0.5948979591836735,
+     "sum_hit@2": 0.5139455782312925,
+     "n": 2940,
+     "hit@1": 0.5476190476190477,
+     "hit@1_ci95": [
+      0.5299319727891156,
+      0.5666666666666667
+     ],
+     "hit@2": 0.5948979591836735,
+     "hit@2_ci95": [
+      0.5782227891156463,
+      0.613265306122449
+     ]
+    },
+    {
+     "d": 8,
+     "inboxes_probed_mean": 40.0,
+     "max_hit@2": 0.6302721088435375,
+     "sum_hit@2": 0.5775510204081633,
+     "n": 2940,
+     "hit@1": 0.5785714285714286,
+     "hit@1_ci95": [
+      0.5612244897959183,
+      0.5976190476190476
+     ],
+     "hit@2": 0.6302721088435375,
+     "hit@2_ci95": [
+      0.6139455782312925,
+      0.648639455782313
+     ]
+    },
+    {
+     "d": 10,
+     "inboxes_probed_mean": 50.0,
+     "max_hit@2": 0.6527210884353741,
+     "sum_hit@2": 0.6207482993197279,
+     "n": 2940,
+     "hit@1": 0.5969387755102041,
+     "hit@1_ci95": [
+      0.5802636054421769,
+      0.6159863945578231
+     ],
+     "hit@2": 0.6527210884353741,
+     "hit@2_ci95": [
+      0.6357142857142857,
+      0.6714285714285714
+     ]
+    },
+    {
+     "d": 12,
+     "inboxes_probed_mean": 60.0,
+     "max_hit@2": 0.6829931972789116,
+     "sum_hit@2": 0.6465986394557823,
+     "n": 2940,
+     "hit@1": 0.6217687074829932,
+     "hit@1_ci95": [
+      0.6044132653061225,
+      0.639141156462585
+     ],
+     "hit@2": 0.6829931972789116,
+     "hit@2_ci95": [
+      0.6659863945578232,
+      0.700688775510204
+     ]
+    },
+    {
+     "d": 14,
+     "inboxes_probed_mean": 70.0,
+     "max_hit@2": 0.7054421768707483,
+     "sum_hit@2": 0.6799319727891157,
+     "n": 2940,
+     "hit@1": 0.6394557823129252,
+     "hit@1_ci95": [
+      0.6224404761904763,
+      0.6574829931972789
+     ],
+     "hit@2": 0.7054421768707483,
+     "hit@2_ci95": [
+      0.6894557823129251,
+      0.7224489795918367
+     ]
+    },
+    {
+     "d": 16,
+     "inboxes_probed_mean": 80.0,
+     "max_hit@2": 0.7295918367346939,
+     "sum_hit@2": 0.7112244897959183,
+     "n": 2940,
+     "hit@1": 0.6578231292517007,
+     "hit@1_ci95": [
+      0.6408163265306123,
+      0.6758503401360544
+     ],
+     "hit@2": 0.7295918367346939,
+     "hit@2_ci95": [
+      0.7135969387755102,
+      0.7466071428571428
+     ]
+    },
+    {
+     "d": 18,
+     "inboxes_probed_mean": 90.0,
+     "max_hit@2": 0.7472789115646259,
+     "sum_hit@2": 0.7353741496598639,
+     "n": 2940,
+     "hit@1": 0.6724489795918367,
+     "hit@1_ci95": [
+      0.6561224489795918,
+      0.6894642857142856
+     ],
+     "hit@2": 0.7472789115646259,
+     "hit@2_ci95": [
+      0.7323129251700681,
+      0.763265306122449
+     ]
+    },
+    {
+     "d": 20,
+     "inboxes_probed_mean": 100.0,
+     "max_hit@2": 0.7605442176870748,
+     "sum_hit@2": 0.7523809523809524,
+     "n": 2940,
+     "hit@1": 0.6806122448979591,
+     "hit@1_ci95": [
+      0.6639455782312925,
+      0.6972874149659863
+     ],
+     "hit@2": 0.7605442176870748,
+     "hit@2_ci95": [
+      0.7452380952380953,
+      0.7761989795918367
+     ]
+    },
+    {
+     "d": 22,
+     "inboxes_probed_mean": 110.0,
+     "max_hit@2": 0.773469387755102,
+     "sum_hit@2": 0.7656462585034014,
+     "n": 2940,
+     "hit@1": 0.6908163265306122,
+     "hit@1_ci95": [
+      0.6741411564625851,
+      0.7085034013605442
+     ],
+     "hit@2": 0.773469387755102,
+     "hit@2_ci95": [
+      0.758843537414966,
+      0.7891326530612245
+     ]
+    },
+    {
+     "d": 24,
+     "inboxes_probed_mean": 120.0,
+     "max_hit@2": 0.7836734693877551,
+     "sum_hit@2": 0.7755102040816326,
+     "n": 2940,
+     "hit@1": 0.7003401360544218,
+     "hit@1_ci95": [
+      0.6840051020408163,
+      0.7166666666666667
+     ],
+     "hit@2": 0.7836734693877551,
+     "hit@2_ci95": [
+      0.7700680272108843,
+      0.7986479591836734
+     ]
+    },
+    {
+     "d": 26,
+     "inboxes_probed_mean": 130.0,
+     "max_hit@2": 0.7908163265306123,
+     "sum_hit@2": 0.7891156462585034,
+     "n": 2940,
+     "hit@1": 0.7098639455782313,
+     "hit@1_ci95": [
+      0.6942176870748299,
+      0.7258503401360544
+     ],
+     "hit@2": 0.7908163265306123,
+     "hit@2_ci95": [
+      0.777202380952381,
+      0.8051020408163265
+     ]
+    },
+    {
+     "d": 28,
+     "inboxes_probed_mean": 140.0,
+     "max_hit@2": 0.7965986394557824,
+     "sum_hit@2": 0.8006802721088435,
+     "n": 2940,
+     "hit@1": 0.7156462585034014,
+     "hit@1_ci95": [
+      0.7003316326530613,
+      0.7319727891156462
+     ],
+     "hit@2": 0.7965986394557824,
+     "hit@2_ci95": [
+      0.7829931972789116,
+      0.8105442176870749
+     ]
+    },
+    {
+     "d": 30,
+     "inboxes_probed_mean": 150.0,
+     "max_hit@2": 0.8040816326530612,
+     "sum_hit@2": 0.8040816326530612,
+     "n": 2940,
+     "hit@1": 0.7224489795918367,
+     "hit@1_ci95": [
+      0.7071428571428572,
+      0.737423469387755
+     ],
+     "hit@2": 0.8040816326530612,
+     "hit@2_ci95": [
+      0.7901360544217687,
+      0.8180272108843537
+     ]
+    }
+   ],
+   "centroid_probe": [
+    {
+     "k": 4,
+     "reach_mean": 3.785374149659864,
+     "hit@2": 0.5061224489795918
+    },
+    {
+     "k": 8,
+     "reach_mean": 7.1112244897959185,
+     "hit@2": 0.5683673469387756
+    },
+    {
+     "k": 15,
+     "reach_mean": 12.052721088435375,
+     "hit@2": 0.6217687074829932
+    },
+    {
+     "k": 30,
+     "reach_mean": 19.864285714285714,
+     "hit@2": 0.6904761904761905
+    },
+    {
+     "k": 50,
+     "reach_mean": 25.968367346938777,
+     "hit@2": 0.7319727891156462
+    },
+    {
+     "k": 75,
+     "reach_mean": 29.11938775510204,
+     "hit@2": 0.7612244897959184
+    }
+   ],
+   "flood_score": {
+    "hit@2": 0.8040816326530612
+   }
+  }
+ },
+ "live_selected_sources": {
+  "24": {
+   "enronqa/test/15405-0": [
+    "allen-p",
+    "germany-c"
+   ],
+   "enronqa/test/15408-0": [
+    "allen-p",
+    "scott-s"
+   ],
+   "enronqa/test/24846-0": [
+    "arnold-j",
+    "benson-r"
+   ],
+   "enronqa/test/24870-0": [
+    "arnold-j",
+    "kean-s"
+   ],
+   "enronqa/test/2492-0": [
+    "arora-h",
+    "mcconnell-m"
+   ],
+   "enronqa/test/2517-0": [
+    "arora-h",
+    "benson-r"
+   ],
+   "enronqa/test/1494-0": [
+    "badeer-r",
+    "dasovich-j"
+   ],
+   "enronqa/test/1499-0": [
+    "badeer-r",
+    "stokley-c"
+   ],
+   "enronqa/test/1394-0": [
+    "bailey-s",
+    "parks-j"
+   ],
+   "enronqa/test/1395-0": [
+    "bailey-s",
+    "kaminski-v"
+   ],
+   "enronqa/test/26634-0": [
+    "bass-e",
+    "dasovich-j"
+   ],
+   "enronqa/test/26716-0": [
+    "bass-e",
+    "scott-s"
+   ],
+   "enronqa/test/18989-0": [
+    "baughman-d",
+    "hernandez-j"
+   ],
+   "enronqa/test/19041-0": [
+    "arnold-j",
+    "neal-s"
+   ],
+   "enronqa/test/50157-0": [
+    "beck-s",
+    "love-p"
+   ],
+   "enronqa/test/50274-0": [
+    "beck-s",
+    "taylor-m"
+   ],
+   "enronqa/test/495-0": [
+    "baughman-d",
+    "benson-r"
+   ],
+   "enronqa/test/497-0": [
+    "benson-r",
+    "kaminski-v"
+   ],
+   "enronqa/test/29272-0": [
+    "blair-l",
+    "shackleton-s"
+   ],
+   "enronqa/test/29389-0": [
+    "blair-l",
+    "kaminski-v"
+   ],
+   "enronqa/test/133-0": [
+    "brawner-s",
+    "horton-s"
+   ],
+   "enronqa/test/135-0": [
+    "brawner-s",
+    "lokey-t"
+   ],
+   "enronqa/test/22727-0": [
+    "buy-r",
+    "haedicke-m"
+   ],
+   "enronqa/test/22735-0": [
+    "buy-r",
+    "kean-s"
+   ],
+   "enronqa/test/36660-0": [
+    "campbell-l",
+    "kean-s"
+   ],
+   "enronqa/test/36705-0": [
+    "haedicke-m",
+    "shankman-j"
+   ],
+   "enronqa/test/2020-0": [
+    "carson-m",
+    "martin-t"
+   ],
+   "enronqa/test/2022-0": [
+    "carson-m",
+    "cash-m"
+   ],
+   "enronqa/test/33082-0": [
+    "baughman-d",
+    "cash-m"
+   ],
+   "enronqa/test/33104-0": [
+    "cash-m",
+    "stclair-c"
+   ],
+   "enronqa/test/7199-0": [
+    "causholli-m",
+    "mcconnell-m"
+   ],
+   "enronqa/test/7206-0": [
+    "causholli-m",
+    "kitchen-l"
+   ],
+   "enronqa/test/23724-0": [
+    "corman-s",
+    "skilling-j"
+   ],
+   "enronqa/test/23733-0": [
+    "corman-s",
+    "kaminski-v"
+   ],
+   "enronqa/test/3868-0": [
+    "crandell-s",
+    "symes-k"
+   ],
+   "enronqa/test/3874-0": [
+    "blair-l",
+    "crandell-s"
+   ],
+   "enronqa/test/3435-0": [
+    "cuilla-m",
+    "lucci-p"
+   ],
+   "enronqa/test/3443-0": [
+    "cuilla-m",
+    "dasovich-j"
+   ],
+   "enronqa/test/68446-0": [
+    "dasovich-j",
+    "whalley-g"
+   ],
+   "enronqa/test/68651-0": [
+    "dasovich-j",
+    "quigley-d"
+   ],
+   "enronqa/test/8033-0": [
+    "davis-d",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/8043-0": [
+    "davis-d",
+    "haedicke-m"
+   ],
+   "enronqa/test/6423-0": [
+    "dean-c",
+    "watson-k"
+   ],
+   "enronqa/test/6428-0": [
+    "dean-c",
+    "skilling-j"
+   ],
+   "enronqa/test/14344-0": [
+    "delainey-d",
+    "guzman-m"
+   ],
+   "enronqa/test/14371-0": [
+    "delainey-d",
+    "lavorato-j"
+   ],
+   "enronqa/test/20329-0": [
+    "horton-s",
+    "kean-s"
+   ],
+   "enronqa/test/20361-0": [
+    "derrick-j",
+    "skilling-j"
+   ],
+   "enronqa/test/177-0": [
+    "dickson-s",
+    "hodge-j"
+   ],
+   "enronqa/test/183-0": [
+    "dickson-s",
+    "perlingiere-d"
+   ],
+   "enronqa/test/4020-0": [
+    "donoho-l",
+    "dorland-c"
+   ],
+   "enronqa/test/4028-0": [
+    "allen-p",
+    "donoho-l"
+   ],
+   "enronqa/test/1103-0": [
+    "donohoe-t",
+    "heard-m"
+   ],
+   "enronqa/test/1106-0": [
+    "dasovich-j",
+    "donohoe-t"
+   ],
+   "enronqa/test/4647-0": [
+    "dorland-c",
+    "geaccone-t"
+   ],
+   "enronqa/test/4693-0": [
+    "dorland-c",
+    "lavorato-j"
+   ],
+   "enronqa/test/1691-0": [
+    "ermis-f",
+    "wolfe-j"
+   ],
+   "enronqa/test/1702-0": [
+    "ermis-f",
+    "lenhart-m"
+   ],
+   "enronqa/test/40068-0": [
+    "farmer-d",
+    "mann-k"
+   ],
+   "enronqa/test/40168-0": [
+    "farmer-d",
+    "stokley-c"
+   ],
+   "enronqa/test/9593-0": [
+    "dasovich-j",
+    "fischer-m"
+   ],
+   "enronqa/test/9598-0": [
+    "fischer-m",
+    "mckay-j"
+   ],
+   "enronqa/test/4818-0": [
+    "forney-j",
+    "guzman-m"
+   ],
+   "enronqa/test/4820-0": [
+    "kaminski-v",
+    "mcconnell-m"
+   ],
+   "enronqa/test/30697-0": [
+    "fossum-d",
+    "haedicke-m"
+   ],
+   "enronqa/test/30710-0": [
+    "fossum-d",
+    "taylor-m"
+   ],
+   "enronqa/test/924-0": [
+    "gang-l",
+    "mann-k"
+   ],
+   "enronqa/test/925-0": [
+    "gang-l",
+    "platter-p"
+   ],
+   "enronqa/test/2891-0": [
+    "gay-r",
+    "neal-s"
+   ],
+   "enronqa/test/2894-0": [
+    "gay-r",
+    "skilling-j"
+   ],
+   "enronqa/test/15814-0": [
+    "geaccone-t",
+    "watson-k"
+   ],
+   "enronqa/test/15838-0": [
+    "geaccone-t",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/41262-0": [
+    "farmer-d",
+    "germany-c"
+   ],
+   "enronqa/test/41266-0": [
+    "farmer-d",
+    "germany-c"
+   ],
+   "enronqa/test/4481-0": [
+    "gilbertsmith-d",
+    "williams-w3"
+   ],
+   "enronqa/test/4491-0": [
+    "donoho-l",
+    "taylor-m"
+   ],
+   "enronqa/test/16167-0": [
+    "giron-d",
+    "reitmeyer-j"
+   ],
+   "enronqa/test/16187-0": [
+    "giron-d",
+    "love-p"
+   ],
+   "enronqa/test/11453-0": [
+    "griffith-j",
+    "hodge-j"
+   ],
+   "enronqa/test/11457-0": [
+    "griffith-j",
+    "nemec-g"
+   ],
+   "enronqa/test/6240-0": [
+    "grigsby-m",
+    "rodrique-r"
+   ],
+   "enronqa/test/6255-0": [
+    "grigsby-m",
+    "skilling-j"
+   ],
+   "enronqa/test/12725-0": [
+    "guzman-m",
+    "wolfe-j"
+   ],
+   "enronqa/test/12750-0": [
+    "guzman-m",
+    "merriss-s"
+   ],
+   "enronqa/test/34696-0": [
+    "haedicke-m",
+    "sager-e"
+   ],
+   "enronqa/test/34750-0": [
+    "haedicke-m",
+    "mann-k"
+   ],
+   "enronqa/test/18585-0": [
+    "hain-m",
+    "scott-s"
+   ],
+   "enronqa/test/18599-0": [
+    "hain-m",
+    "hyvl-d"
+   ],
+   "enronqa/test/1293-0": [
+    "buy-r",
+    "harris-s"
+   ],
+   "enronqa/test/1306-0": [
+    "dasovich-j",
+    "harris-s"
+   ],
+   "enronqa/test/18181-0": [
+    "hayslett-r",
+    "kitchen-l"
+   ],
+   "enronqa/test/18194-0": [
+    "cash-m",
+    "hayslett-r"
+   ],
+   "enronqa/test/15089-0": [
+    "heard-m",
+    "shackleton-s"
+   ],
+   "enronqa/test/15090-0": [
+    "heard-m",
+    "taylor-m"
+   ],
+   "enronqa/test/3744-0": [
+    "hendrickson-s",
+    "taylor-m"
+   ],
+   "enronqa/test/3755-0": [
+    "cash-m",
+    "stclair-c"
+   ],
+   "enronqa/test/11174-0": [
+    "guzman-m",
+    "hernandez-j"
+   ],
+   "enronqa/test/11178-0": [
+    "hernandez-j",
+    "lokay-m"
+   ],
+   "enronqa/test/9112-0": [
+    "hodge-j",
+    "neal-s"
+   ],
+   "enronqa/test/9120-0": [
+    "hodge-j",
+    "kitchen-l"
+   ],
+   "enronqa/test/692-0": [
+    "holst-k",
+    "salisbury-h"
+   ],
+   "enronqa/test/693-0": [
+    "holst-k",
+    "scott-s"
+   ],
+   "enronqa/test/22327-0": [
+    "horton-s",
+    "perlingiere-d"
+   ],
+   "enronqa/test/22337-0": [
+    "hodge-j",
+    "horton-s"
+   ],
+   "enronqa/test/23218-0": [
+    "hyatt-k",
+    "lokay-m"
+   ],
+   "enronqa/test/23270-0": [
+    "hyatt-k",
+    "tycholiz-b"
+   ],
+   "enronqa/test/24240-0": [
+    "hyvl-d",
+    "perlingiere-d"
+   ],
+   "enronqa/test/24246-0": [
+    "hyvl-d",
+    "lay-k"
+   ],
+   "enronqa/test/53898-0": [
+    "jones-t",
+    "shackleton-s"
+   ],
+   "enronqa/test/54016-0": [
+    "jones-t",
+    "martin-t"
+   ],
+   "enronqa/test/64772-0": [
+    "cash-m",
+    "kaminski-v"
+   ],
+   "enronqa/test/64904-0": [
+    "dasovich-j",
+    "kaminski-v"
+   ],
+   "enronqa/test/51797-0": [
+    "kean-s",
+    "shankman-j"
+   ],
+   "enronqa/test/52040-0": [
+    "kean-s",
+    "lay-k"
+   ],
+   "enronqa/test/6806-0": [
+    "beck-s",
+    "scott-s"
+   ],
+   "enronqa/test/6825-0": [
+    "beck-s",
+    "heard-m"
+   ],
+   "enronqa/test/8671-0": [
+    "giron-d",
+    "keiser-k"
+   ],
+   "enronqa/test/8677-0": [
+    "hyatt-k",
+    "keiser-k"
+   ],
+   "enronqa/test/1589-0": [
+    "forney-j",
+    "king-j"
+   ],
+   "enronqa/test/1594-0": [
+    "kaminski-v",
+    "king-j"
+   ],
+   "enronqa/test/45039-0": [
+    "hodge-j",
+    "kitchen-l"
+   ],
+   "enronqa/test/45195-0": [
+    "kitchen-l",
+    "white-s"
+   ],
+   "enronqa/test/1012-0": [
+    "kitchen-l",
+    "kuykendall-t"
+   ],
+   "enronqa/test/1016-0": [
+    "kean-s",
+    "kuykendall-t"
+   ],
+   "enronqa/test/27270-0": [
+    "lavorato-j",
+    "mann-k"
+   ],
+   "enronqa/test/27272-0": [
+    "dasovich-j",
+    "hodge-j"
+   ],
+   "enronqa/test/43803-0": [
+    "bass-e",
+    "lay-k"
+   ],
+   "enronqa/test/43820-0": [
+    "cash-m",
+    "lay-k"
+   ],
+   "enronqa/test/4168-0": [
+    "keiser-k",
+    "lenhart-m"
+   ],
+   "enronqa/test/4172-0": [
+    "kuykendall-t",
+    "lenhart-m"
+   ],
+   "enronqa/test/19471-0": [
+    "jones-t",
+    "nemec-g"
+   ],
+   "enronqa/test/19504-0": [
+    "baughman-d",
+    "lewis-a"
+   ],
+   "enronqa/test/40-0": [
+    "guzman-m",
+    "linder-e"
+   ],
+   "enronqa/test/41-0": [
+    "guzman-m",
+    "linder-e"
+   ],
+   "enronqa/test/31394-0": [
+    "lokay-m",
+    "ruscitti-k"
+   ],
+   "enronqa/test/31401-0": [
+    "dasovich-j",
+    "lokay-m"
+   ],
+   "enronqa/test/12993-0": [
+    "griffith-j",
+    "lokey-t"
+   ],
+   "enronqa/test/13013-0": [
+    "lokey-t",
+    "watson-k"
+   ],
+   "enronqa/test/17788-0": [
+    "love-p",
+    "watson-k"
+   ],
+   "enronqa/test/17795-0": [
+    "love-p",
+    "nemec-g"
+   ],
+   "enronqa/test/8446-0": [
+    "lucci-p",
+    "nemec-g"
+   ],
+   "enronqa/test/8449-0": [
+    "lucci-p",
+    "shankman-j"
+   ],
+   "enronqa/test/220-0": [
+    "maggi-m",
+    "neal-s"
+   ],
+   "enronqa/test/221-0": [
+    "scott-s",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/56188-0": [
+    "kitchen-l",
+    "mann-k"
+   ],
+   "enronqa/test/56251-0": [
+    "mann-k",
+    "taylor-m"
+   ],
+   "enronqa/test/5708-0": [
+    "mann-k",
+    "martin-t"
+   ],
+   "enronqa/test/5712-0": [
+    "mann-k",
+    "sager-e"
+   ],
+   "enronqa/test/4330-0": [
+    "benson-r",
+    "may-l"
+   ],
+   "enronqa/test/4339-0": [
+    "may-l",
+    "stokley-c"
+   ],
+   "enronqa/test/4986-0": [
+    "fossum-d",
+    "mccarty-d"
+   ],
+   "enronqa/test/5001-0": [
+    "lokay-m",
+    "mccarty-d"
+   ],
+   "enronqa/test/25378-0": [
+    "mcconnell-m",
+    "nemec-g"
+   ],
+   "enronqa/test/25398-0": [
+    "hayslett-r",
+    "mcconnell-m"
+   ],
+   "enronqa/test/625-0": [
+    "lavorato-j",
+    "mckay-b"
+   ],
+   "enronqa/test/631-0": [
+    "lay-k",
+    "mckay-b"
+   ],
+   "enronqa/test/5327-0": [
+    "mckay-j",
+    "rogers-b"
+   ],
+   "enronqa/test/5337-0": [
+    "delainey-d",
+    "mckay-j"
+   ],
+   "enronqa/test/13995-0": [
+    "arnold-j",
+    "mclaughlin-e"
+   ],
+   "enronqa/test/13996-0": [
+    "giron-d",
+    "mclaughlin-e"
+   ],
+   "enronqa/test/57-0": [
+    "merriss-s",
+    "watson-k"
+   ],
+   "enronqa/test/61-0": [
+    "jones-t",
+    "merriss-s"
+   ],
+   "enronqa/test/106-0": [
+    "meyers-a",
+    "shackleton-s"
+   ],
+   "enronqa/test/107-0": [
+    "meyers-a",
+    "solberg-g"
+   ],
+   "enronqa/test/16912-0": [
+    "mims-thurston-p",
+    "perlingiere-d"
+   ],
+   "enronqa/test/16917-0": [
+    "jones-t",
+    "mims-thurston-p"
+   ],
+   "enronqa/test/2132-0": [
+    "allen-p",
+    "wolfe-j"
+   ],
+   "enronqa/test/2141-0": [
+    "gang-l",
+    "motley-m"
+   ],
+   "enronqa/test/14690-0": [
+    "neal-s",
+    "shackleton-s"
+   ],
+   "enronqa/test/14746-0": [
+    "lenhart-m",
+    "neal-s"
+   ],
+   "enronqa/test/46594-0": [
+    "geaccone-t",
+    "nemec-g"
+   ],
+   "enronqa/test/46674-0": [
+    "nemec-g",
+    "taylor-m"
+   ],
+   "enronqa/test/434-0": [
+    "heard-m",
+    "panus-s"
+   ],
+   "enronqa/test/438-0": [
+    "heard-m",
+    "panus-s"
+   ],
+   "enronqa/test/13669-0": [
+    "lavorato-j",
+    "parks-j"
+   ],
+   "enronqa/test/13681-0": [
+    "mann-k",
+    "parks-j"
+   ],
+   "enronqa/test/1801-0": [
+    "pereira-s",
+    "sager-e"
+   ],
+   "enronqa/test/1811-0": [
+    "cash-m",
+    "pereira-s"
+   ],
+   "enronqa/test/16553-0": [
+    "perlingiere-d",
+    "shackleton-s"
+   ],
+   "enronqa/test/16569-0": [
+    "jones-t",
+    "perlingiere-d"
+   ],
+   "enronqa/test/0-0": [
+    "jones-t",
+    "phanis-s"
+   ],
+   "enronqa/test/1-0": [
+    "panus-s",
+    "phanis-s"
+   ],
+   "enronqa/test/839-0": [
+    "delainey-d",
+    "pimenov-v"
+   ],
+   "enronqa/test/847-0": [
+    "hodge-j",
+    "pimenov-v"
+   ],
+   "enronqa/test/2382-0": [
+    "grigsby-m",
+    "ward-k"
+   ],
+   "enronqa/test/2389-0": [
+    "beck-s",
+    "keiser-k"
+   ],
+   "enronqa/test/21730-0": [
+    "hernandez-j",
+    "presto-k"
+   ],
+   "enronqa/test/21749-0": [
+    "presto-k",
+    "shankman-j"
+   ],
+   "enronqa/test/5-0": [
+    "allen-p",
+    "quenet-j"
+   ],
+   "enronqa/test/6-0": [
+    "quenet-j",
+    "sanders-r"
+   ],
+   "enronqa/test/10090-0": [
+    "quigley-d",
+    "scholtes-d"
+   ],
+   "enronqa/test/10093-0": [
+    "quigley-d",
+    "ring-r"
+   ],
+   "enronqa/test/2751-0": [
+    "rapp-b",
+    "watson-k"
+   ],
+   "enronqa/test/2760-0": [
+    "kaminski-v",
+    "rapp-b"
+   ],
+   "enronqa/test/560-0": [
+    "cash-m",
+    "reitmeyer-j"
+   ],
+   "enronqa/test/561-0": [
+    "corman-s",
+    "reitmeyer-j"
+   ],
+   "enronqa/test/3580-0": [
+    "nemec-g",
+    "thomas-p"
+   ],
+   "enronqa/test/3589-0": [
+    "lokay-m",
+    "richey-c"
+   ],
+   "enronqa/test/319-0": [
+    "nemec-g",
+    "ring-a"
+   ],
+   "enronqa/test/321-0": [
+    "parks-j",
+    "ring-a"
+   ],
+   "enronqa/test/10893-0": [
+    "gilbertsmith-d",
+    "ring-r"
+   ],
+   "enronqa/test/10913-0": [
+    "ring-r",
+    "steffes-j"
+   ],
+   "enronqa/test/3306-0": [
+    "haedicke-m",
+    "rodrique-r"
+   ],
+   "enronqa/test/3315-0": [
+    "parks-j",
+    "rodrique-r"
+   ],
+   "enronqa/test/30071-0": [
+    "rogers-b",
+    "taylor-m"
+   ],
+   "enronqa/test/30128-0": [
+    "horton-s",
+    "rogers-b"
+   ],
+   "enronqa/test/7000-0": [
+    "quigley-d",
+    "ruscitti-k"
+   ],
+   "enronqa/test/7007-0": [
+    "may-l",
+    "ruscitti-k"
+   ],
+   "enronqa/test/33858-0": [
+    "sager-e",
+    "stclair-c"
+   ],
+   "enronqa/test/33861-0": [
+    "jones-t",
+    "sager-e"
+   ],
+   "enronqa/test/5512-0": [
+    "saibi-e",
+    "semperger-c"
+   ],
+   "enronqa/test/5543-0": [
+    "kitchen-l",
+    "saibi-e"
+   ],
+   "enronqa/test/12367-0": [
+    "guzman-m",
+    "white-s"
+   ],
+   "enronqa/test/12389-0": [
+    "saibi-e",
+    "salisbury-h"
+   ],
+   "enronqa/test/380-0": [
+    "mann-k",
+    "sanchez-m"
+   ],
+   "enronqa/test/382-0": [
+    "sanchez-m",
+    "scott-s"
+   ],
+   "enronqa/test/48220-0": [
+    "sager-e",
+    "sanders-r"
+   ],
+   "enronqa/test/48398-0": [
+    "sanders-r",
+    "ward-k"
+   ],
+   "enronqa/test/5877-0": [
+    "dasovich-j",
+    "scholtes-d"
+   ],
+   "enronqa/test/5886-0": [
+    "scholtes-d",
+    "symes-k"
+   ],
+   "enronqa/test/12058-0": [
+    "lokay-m",
+    "schoolcraft-d"
+   ],
+   "enronqa/test/12071-0": [
+    "lokay-m",
+    "schoolcraft-d"
+   ],
+   "enronqa/test/2620-0": [
+    "jones-t",
+    "schwieger-j"
+   ],
+   "enronqa/test/2624-0": [
+    "kitchen-l",
+    "schwieger-j"
+   ],
+   "enronqa/test/42437-0": [
+    "rapp-b",
+    "scott-s"
+   ],
+   "enronqa/test/42513-0": [
+    "dasovich-j",
+    "scott-s"
+   ],
+   "enronqa/test/5165-0": [
+    "platter-p",
+    "semperger-c"
+   ],
+   "enronqa/test/5201-0": [
+    "scholtes-d",
+    "semperger-c"
+   ],
+   "enronqa/test/61722-0": [
+    "sanders-r",
+    "shackleton-s"
+   ],
+   "enronqa/test/61761-0": [
+    "hyvl-d",
+    "shackleton-s"
+   ],
+   "enronqa/test/32218-0": [
+    "beck-s",
+    "tholt-j"
+   ],
+   "enronqa/test/32220-0": [
+    "kitchen-l",
+    "shankman-j"
+   ],
+   "enronqa/test/38783-0": [
+    "sager-e",
+    "shapiro-r"
+   ],
+   "enronqa/test/38827-0": [
+    "shackleton-s",
+    "shapiro-r"
+   ],
+   "enronqa/test/6612-0": [
+    "mckay-b",
+    "shively-h"
+   ],
+   "enronqa/test/6620-0": [
+    "nemec-g",
+    "shively-h"
+   ],
+   "enronqa/test/35648-0": [
+    "haedicke-m",
+    "skilling-j"
+   ],
+   "enronqa/test/35738-0": [
+    "kaminski-v",
+    "skilling-j"
+   ],
+   "enronqa/test/79-0": [
+    "slinger-r",
+    "white-s"
+   ],
+   "enronqa/test/80-0": [
+    "meyers-a",
+    "zufferli-j"
+   ],
+   "enronqa/test/7618-0": [
+    "schwieger-j",
+    "smith-m"
+   ],
+   "enronqa/test/7643-0": [
+    "shackleton-s",
+    "smith-m"
+   ],
+   "enronqa/test/14-0": [
+    "salisbury-h",
+    "solberg-g"
+   ],
+   "enronqa/test/15-0": [
+    "solberg-g",
+    "williams-w3"
+   ],
+   "enronqa/test/27-0": [
+    "ermis-f",
+    "south-s"
+   ],
+   "enronqa/test/28-0": [
+    "dasovich-j",
+    "south-s"
+   ],
+   "enronqa/test/1909-0": [
+    "blair-l",
+    "staab-t"
+   ],
+   "enronqa/test/1913-0": [
+    "kitchen-l",
+    "staab-t"
+   ],
+   "enronqa/test/20808-0": [
+    "shackleton-s",
+    "stclair-c"
+   ],
+   "enronqa/test/20881-0": [
+    "cash-m",
+    "stclair-c"
+   ],
+   "enronqa/test/37845-0": [
+    "campbell-l",
+    "steffes-j"
+   ],
+   "enronqa/test/37899-0": [
+    "steffes-j",
+    "watson-k"
+   ],
+   "enronqa/test/7813-0": [
+    "rogers-b",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/7818-0": [
+    "lay-k",
+    "mcconnell-m"
+   ],
+   "enronqa/test/19878-0": [
+    "shively-h",
+    "stokley-c"
+   ],
+   "enronqa/test/19953-0": [
+    "mckay-j",
+    "stokley-c"
+   ],
+   "enronqa/test/3157-0": [
+    "presto-k",
+    "storey-g"
+   ],
+   "enronqa/test/3180-0": [
+    "may-l",
+    "smith-m"
+   ],
+   "enronqa/test/1199-0": [
+    "mclaughlin-e",
+    "sturm-f"
+   ],
+   "enronqa/test/1202-0": [
+    "kitchen-l",
+    "sturm-f"
+   ],
+   "enronqa/test/770-0": [
+    "kaminski-v",
+    "symes-k"
+   ],
+   "enronqa/test/775-0": [
+    "sanders-r",
+    "swerzbin-m"
+   ],
+   "enronqa/test/28634-0": [
+    "salisbury-h",
+    "symes-k"
+   ],
+   "enronqa/test/28663-0": [
+    "symes-k",
+    "williams-w3"
+   ],
+   "enronqa/test/58879-0": [
+    "taylor-m",
+    "tycholiz-b"
+   ],
+   "enronqa/test/59011-0": [
+    "shackleton-s",
+    "taylor-m"
+   ],
+   "enronqa/test/6056-0": [
+    "tholt-j",
+    "williams-w3"
+   ],
+   "enronqa/test/6058-0": [
+    "rogers-b",
+    "tholt-j"
+   ],
+   "enronqa/test/11805-0": [
+    "causholli-m",
+    "thomas-p"
+   ],
+   "enronqa/test/11871-0": [
+    "hain-m",
+    "thomas-p"
+   ],
+   "enronqa/test/266-0": [
+    "bass-e",
+    "townsend-j"
+   ],
+   "enronqa/test/273-0": [
+    "hodge-j",
+    "townsend-j"
+   ],
+   "enronqa/test/10387-0": [
+    "tholt-j",
+    "tycholiz-b"
+   ],
+   "enronqa/test/10392-0": [
+    "scholtes-d",
+    "tycholiz-b"
+   ],
+   "enronqa/test/21257-0": [
+    "shackleton-s",
+    "ward-k"
+   ],
+   "enronqa/test/21278-0": [
+    "cash-m",
+    "ward-k"
+   ],
+   "enronqa/test/27911-0": [
+    "symes-k",
+    "watson-k"
+   ],
+   "enronqa/test/27917-0": [
+    "schwieger-j",
+    "watson-k"
+   ],
+   "enronqa/test/8231-0": [
+    "baughman-d",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/8257-0": [
+    "kaminski-v",
+    "weldon-c"
+   ],
+   "enronqa/test/7395-0": [
+    "skilling-j",
+    "whalley-g"
+   ],
+   "enronqa/test/7433-0": [
+    "beck-s",
+    "whalley-g"
+   ],
+   "enronqa/test/10626-0": [
+    "love-p",
+    "whalley-l"
+   ],
+   "enronqa/test/10646-0": [
+    "watson-k",
+    "whalley-l"
+   ],
+   "enronqa/test/17309-0": [
+    "hain-m",
+    "white-s"
+   ],
+   "enronqa/test/17344-0": [
+    "stepenovitch-j",
+    "white-s"
+   ],
+   "enronqa/test/2252-0": [
+    "bass-e",
+    "whitt-m"
+   ],
+   "enronqa/test/2255-0": [
+    "taylor-m",
+    "whitt-m"
+   ],
+   "enronqa/test/9344-0": [
+    "bailey-s",
+    "williams-j"
+   ],
+   "enronqa/test/9360-0": [
+    "williams-j",
+    "wolfe-j"
+   ],
+   "enronqa/test/26012-0": [
+    "platter-p",
+    "williams-w3"
+   ],
+   "enronqa/test/26064-0": [
+    "beck-s",
+    "parks-j"
+   ],
+   "enronqa/test/9841-0": [
+    "nemec-g",
+    "wolfe-j"
+   ],
+   "enronqa/test/9859-0": [
+    "schwieger-j",
+    "wolfe-j"
+   ],
+   "enronqa/test/8883-0": [
+    "shackleton-s",
+    "ybarbo-p"
+   ],
+   "enronqa/test/8903-0": [
+    "haedicke-m",
+    "ybarbo-p"
+   ],
+   "enronqa/test/13369-0": [
+    "arnold-j",
+    "zipper-a"
+   ],
+   "enronqa/test/13372-0": [
+    "kaminski-v",
+    "zipper-a"
+   ],
+   "enronqa/test/3026-0": [
+    "shankman-j",
+    "zufferli-j"
+   ],
+   "enronqa/test/3031-0": [
+    "kaminski-v",
+    "zufferli-j"
+   ]
+  },
+  "12": {
+   "enronqa/test/15405-0": [
+    "allen-p",
+    "germany-c"
+   ],
+   "enronqa/test/15408-0": [
+    "allen-p",
+    "steffes-j"
+   ],
+   "enronqa/test/24846-0": [
+    "arnold-j",
+    "benson-r"
+   ],
+   "enronqa/test/24870-0": [
+    "arnold-j",
+    "kean-s"
+   ],
+   "enronqa/test/2492-0": [
+    "arora-h",
+    "sanders-r"
+   ],
+   "enronqa/test/2517-0": [
+    "arora-h",
+    "benson-r"
+   ],
+   "enronqa/test/1494-0": [
+    "badeer-r",
+    "shackleton-s"
+   ],
+   "enronqa/test/1499-0": [
+    "badeer-r",
+    "kitchen-l"
+   ],
+   "enronqa/test/1394-0": [
+    "bailey-s",
+    "parks-j"
+   ],
+   "enronqa/test/1395-0": [
+    "bailey-s",
+    "hayslett-r"
+   ],
+   "enronqa/test/26634-0": [
+    "bass-e",
+    "love-p"
+   ],
+   "enronqa/test/26716-0": [
+    "bass-e",
+    "mims-thurston-p"
+   ],
+   "enronqa/test/18989-0": [
+    "kitchen-l",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/19041-0": [
+    "arnold-j",
+    "neal-s"
+   ],
+   "enronqa/test/50157-0": [
+    "love-p",
+    "mims-thurston-p"
+   ],
+   "enronqa/test/50274-0": [
+    "beck-s",
+    "taylor-m"
+   ],
+   "enronqa/test/495-0": [
+    "baughman-d",
+    "benson-r"
+   ],
+   "enronqa/test/497-0": [
+    "benson-r",
+    "kaminski-v"
+   ],
+   "enronqa/test/29272-0": [
+    "shackleton-s",
+    "stclair-c"
+   ],
+   "enronqa/test/29389-0": [
+    "blair-l",
+    "mann-k"
+   ],
+   "enronqa/test/133-0": [
+    "bass-e",
+    "brawner-s"
+   ],
+   "enronqa/test/135-0": [
+    "brawner-s",
+    "lokey-t"
+   ],
+   "enronqa/test/22727-0": [
+    "haedicke-m",
+    "shackleton-s"
+   ],
+   "enronqa/test/22735-0": [
+    "buy-r",
+    "taylor-m"
+   ],
+   "enronqa/test/36660-0": [
+    "campbell-l",
+    "kean-s"
+   ],
+   "enronqa/test/36705-0": [
+    "shackleton-s",
+    "shankman-j"
+   ],
+   "enronqa/test/2020-0": [
+    "brawner-s",
+    "martin-t"
+   ],
+   "enronqa/test/2022-0": [
+    "buy-r",
+    "carson-m"
+   ],
+   "enronqa/test/33082-0": [
+    "cash-m",
+    "kaminski-v"
+   ],
+   "enronqa/test/33104-0": [
+    "cash-m",
+    "stclair-c"
+   ],
+   "enronqa/test/7199-0": [
+    "causholli-m",
+    "mcconnell-m"
+   ],
+   "enronqa/test/7206-0": [
+    "causholli-m",
+    "kitchen-l"
+   ],
+   "enronqa/test/23724-0": [
+    "corman-s",
+    "skilling-j"
+   ],
+   "enronqa/test/23733-0": [
+    "corman-s",
+    "rogers-b"
+   ],
+   "enronqa/test/3868-0": [
+    "crandell-s",
+    "symes-k"
+   ],
+   "enronqa/test/3874-0": [
+    "crandell-s",
+    "rogers-b"
+   ],
+   "enronqa/test/3435-0": [
+    "cuilla-m",
+    "lucci-p"
+   ],
+   "enronqa/test/3443-0": [
+    "cuilla-m",
+    "dasovich-j"
+   ],
+   "enronqa/test/68446-0": [
+    "dasovich-j",
+    "whalley-g"
+   ],
+   "enronqa/test/68651-0": [
+    "dasovich-j",
+    "quigley-d"
+   ],
+   "enronqa/test/8033-0": [
+    "davis-d",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/8043-0": [
+    "davis-d",
+    "haedicke-m"
+   ],
+   "enronqa/test/6423-0": [
+    "dean-c",
+    "watson-k"
+   ],
+   "enronqa/test/6428-0": [
+    "dean-c",
+    "gilbertsmith-d"
+   ],
+   "enronqa/test/14344-0": [
+    "delainey-d",
+    "kaminski-v"
+   ],
+   "enronqa/test/14371-0": [
+    "delainey-d",
+    "lavorato-j"
+   ],
+   "enronqa/test/20329-0": [
+    "derrick-j",
+    "kean-s"
+   ],
+   "enronqa/test/20361-0": [
+    "lay-k",
+    "skilling-j"
+   ],
+   "enronqa/test/177-0": [
+    "dickson-s",
+    "kitchen-l"
+   ],
+   "enronqa/test/183-0": [
+    "dickson-s",
+    "perlingiere-d"
+   ],
+   "enronqa/test/4020-0": [
+    "dorland-c",
+    "scott-s"
+   ],
+   "enronqa/test/4028-0": [
+    "donoho-l",
+    "mccarty-d"
+   ],
+   "enronqa/test/1103-0": [
+    "donohoe-t",
+    "heard-m"
+   ],
+   "enronqa/test/1106-0": [
+    "donohoe-t",
+    "taylor-m"
+   ],
+   "enronqa/test/4647-0": [
+    "dorland-c",
+    "stclair-c"
+   ],
+   "enronqa/test/4693-0": [
+    "dorland-c",
+    "lavorato-j"
+   ],
+   "enronqa/test/1691-0": [
+    "ermis-f",
+    "wolfe-j"
+   ],
+   "enronqa/test/1702-0": [
+    "ermis-f",
+    "lenhart-m"
+   ],
+   "enronqa/test/40068-0": [
+    "beck-s",
+    "mann-k"
+   ],
+   "enronqa/test/40168-0": [
+    "farmer-d",
+    "stokley-c"
+   ],
+   "enronqa/test/9593-0": [
+    "dasovich-j",
+    "fischer-m"
+   ],
+   "enronqa/test/9598-0": [
+    "fischer-m",
+    "mckay-j"
+   ],
+   "enronqa/test/4818-0": [
+    "forney-j",
+    "guzman-m"
+   ],
+   "enronqa/test/4820-0": [
+    "martin-t",
+    "mcconnell-m"
+   ],
+   "enronqa/test/30697-0": [
+    "fossum-d",
+    "wolfe-j"
+   ],
+   "enronqa/test/30710-0": [
+    "fossum-d",
+    "taylor-m"
+   ],
+   "enronqa/test/924-0": [
+    "gang-l",
+    "mann-k"
+   ],
+   "enronqa/test/925-0": [
+    "gang-l",
+    "platter-p"
+   ],
+   "enronqa/test/2891-0": [
+    "gay-r",
+    "neal-s"
+   ],
+   "enronqa/test/2894-0": [
+    "gay-r",
+    "skilling-j"
+   ],
+   "enronqa/test/15814-0": [
+    "geaccone-t",
+    "gilbertsmith-d"
+   ],
+   "enronqa/test/15838-0": [
+    "geaccone-t",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/41262-0": [
+    "fossum-d",
+    "germany-c"
+   ],
+   "enronqa/test/41266-0": [
+    "germany-c",
+    "jones-t"
+   ],
+   "enronqa/test/4481-0": [
+    "gilbertsmith-d",
+    "williams-w3"
+   ],
+   "enronqa/test/4491-0": [
+    "donoho-l",
+    "taylor-m"
+   ],
+   "enronqa/test/16167-0": [
+    "giron-d",
+    "reitmeyer-j"
+   ],
+   "enronqa/test/16187-0": [
+    "giron-d",
+    "kaminski-v"
+   ],
+   "enronqa/test/11453-0": [
+    "griffith-j",
+    "hodge-j"
+   ],
+   "enronqa/test/11457-0": [
+    "farmer-d",
+    "nemec-g"
+   ],
+   "enronqa/test/6240-0": [
+    "grigsby-m",
+    "rodrique-r"
+   ],
+   "enronqa/test/6255-0": [
+    "grigsby-m",
+    "skilling-j"
+   ],
+   "enronqa/test/12725-0": [
+    "guzman-m",
+    "williams-w3"
+   ],
+   "enronqa/test/12750-0": [
+    "merriss-s",
+    "williams-w3"
+   ],
+   "enronqa/test/34696-0": [
+    "haedicke-m",
+    "sager-e"
+   ],
+   "enronqa/test/34750-0": [
+    "haedicke-m",
+    "mann-k"
+   ],
+   "enronqa/test/18585-0": [
+    "hain-m",
+    "scott-s"
+   ],
+   "enronqa/test/18599-0": [
+    "hain-m",
+    "hyvl-d"
+   ],
+   "enronqa/test/1293-0": [
+    "buy-r",
+    "harris-s"
+   ],
+   "enronqa/test/1306-0": [
+    "donoho-l",
+    "lokay-m"
+   ],
+   "enronqa/test/18181-0": [
+    "germany-c",
+    "kitchen-l"
+   ],
+   "enronqa/test/18194-0": [
+    "cash-m",
+    "hayslett-r"
+   ],
+   "enronqa/test/15089-0": [
+    "heard-m",
+    "shackleton-s"
+   ],
+   "enronqa/test/15090-0": [
+    "heard-m",
+    "taylor-m"
+   ],
+   "enronqa/test/3744-0": [
+    "hendrickson-s",
+    "taylor-m"
+   ],
+   "enronqa/test/3755-0": [
+    "lewis-a",
+    "stclair-c"
+   ],
+   "enronqa/test/11174-0": [
+    "beck-s",
+    "hernandez-j"
+   ],
+   "enronqa/test/11178-0": [
+    "hernandez-j",
+    "lokay-m"
+   ],
+   "enronqa/test/9112-0": [
+    "hodge-j",
+    "kitchen-l"
+   ],
+   "enronqa/test/9120-0": [
+    "hodge-j",
+    "neal-s"
+   ],
+   "enronqa/test/692-0": [
+    "arnold-j",
+    "holst-k"
+   ],
+   "enronqa/test/693-0": [
+    "dasovich-j",
+    "holst-k"
+   ],
+   "enronqa/test/22327-0": [
+    "horton-s",
+    "perlingiere-d"
+   ],
+   "enronqa/test/22337-0": [
+    "hodge-j",
+    "horton-s"
+   ],
+   "enronqa/test/23218-0": [
+    "hyatt-k",
+    "lokay-m"
+   ],
+   "enronqa/test/23270-0": [
+    "hyatt-k",
+    "tycholiz-b"
+   ],
+   "enronqa/test/24240-0": [
+    "hyvl-d",
+    "perlingiere-d"
+   ],
+   "enronqa/test/24246-0": [
+    "lay-k",
+    "mann-k"
+   ],
+   "enronqa/test/53898-0": [
+    "jones-t",
+    "shackleton-s"
+   ],
+   "enronqa/test/54016-0": [
+    "jones-t",
+    "shackleton-s"
+   ],
+   "enronqa/test/64772-0": [
+    "cash-m",
+    "shackleton-s"
+   ],
+   "enronqa/test/64904-0": [
+    "kean-s",
+    "shapiro-r"
+   ],
+   "enronqa/test/51797-0": [
+    "kean-s",
+    "lay-k"
+   ],
+   "enronqa/test/52040-0": [
+    "dasovich-j",
+    "lay-k"
+   ],
+   "enronqa/test/6806-0": [
+    "beck-s",
+    "benson-r"
+   ],
+   "enronqa/test/6825-0": [
+    "heard-m",
+    "shankman-j"
+   ],
+   "enronqa/test/8671-0": [
+    "giron-d",
+    "keiser-k"
+   ],
+   "enronqa/test/8677-0": [
+    "lay-k",
+    "lokey-t"
+   ],
+   "enronqa/test/1589-0": [
+    "forney-j",
+    "white-s"
+   ],
+   "enronqa/test/1594-0": [
+    "kaminski-v",
+    "king-j"
+   ],
+   "enronqa/test/45039-0": [
+    "dasovich-j",
+    "kitchen-l"
+   ],
+   "enronqa/test/45195-0": [
+    "presto-k",
+    "white-s"
+   ],
+   "enronqa/test/1012-0": [
+    "kitchen-l",
+    "kuykendall-t"
+   ],
+   "enronqa/test/1016-0": [
+    "kean-s",
+    "kuykendall-t"
+   ],
+   "enronqa/test/27270-0": [
+    "mann-k",
+    "sanders-r"
+   ],
+   "enronqa/test/27272-0": [
+    "dasovich-j",
+    "neal-s"
+   ],
+   "enronqa/test/43803-0": [
+    "bass-e",
+    "lay-k"
+   ],
+   "enronqa/test/43820-0": [
+    "beck-s",
+    "kaminski-v"
+   ],
+   "enronqa/test/4168-0": [
+    "lenhart-m",
+    "wolfe-j"
+   ],
+   "enronqa/test/4172-0": [
+    "kuykendall-t",
+    "lenhart-m"
+   ],
+   "enronqa/test/19471-0": [
+    "dasovich-j",
+    "jones-t"
+   ],
+   "enronqa/test/19504-0": [
+    "baughman-d",
+    "lewis-a"
+   ],
+   "enronqa/test/40-0": [
+    "guzman-m",
+    "linder-e"
+   ],
+   "enronqa/test/41-0": [
+    "guzman-m",
+    "linder-e"
+   ],
+   "enronqa/test/31394-0": [
+    "kaminski-v",
+    "lokay-m"
+   ],
+   "enronqa/test/31401-0": [
+    "dasovich-j",
+    "lokay-m"
+   ],
+   "enronqa/test/12993-0": [
+    "brawner-s",
+    "lokey-t"
+   ],
+   "enronqa/test/13013-0": [
+    "heard-m",
+    "watson-k"
+   ],
+   "enronqa/test/17788-0": [
+    "love-p",
+    "watson-k"
+   ],
+   "enronqa/test/17795-0": [
+    "love-p",
+    "nemec-g"
+   ],
+   "enronqa/test/8446-0": [
+    "nemec-g",
+    "scott-s"
+   ],
+   "enronqa/test/8449-0": [
+    "lucci-p",
+    "shankman-j"
+   ],
+   "enronqa/test/220-0": [
+    "griffith-j",
+    "maggi-m"
+   ],
+   "enronqa/test/221-0": [
+    "hendrickson-s",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/56188-0": [
+    "kitchen-l",
+    "mann-k"
+   ],
+   "enronqa/test/56251-0": [
+    "jones-t",
+    "mann-k"
+   ],
+   "enronqa/test/5708-0": [
+    "dasovich-j",
+    "zufferli-j"
+   ],
+   "enronqa/test/5712-0": [
+    "mann-k",
+    "sager-e"
+   ],
+   "enronqa/test/4330-0": [
+    "benson-r",
+    "may-l"
+   ],
+   "enronqa/test/4339-0": [
+    "may-l",
+    "stokley-c"
+   ],
+   "enronqa/test/4986-0": [
+    "fossum-d",
+    "mccarty-d"
+   ],
+   "enronqa/test/5001-0": [
+    "lokay-m",
+    "mccarty-d"
+   ],
+   "enronqa/test/25378-0": [
+    "beck-s",
+    "mcconnell-m"
+   ],
+   "enronqa/test/25398-0": [
+    "hayslett-r",
+    "mcconnell-m"
+   ],
+   "enronqa/test/625-0": [
+    "farmer-d",
+    "mckay-b"
+   ],
+   "enronqa/test/631-0": [
+    "lay-k",
+    "mckay-b"
+   ],
+   "enronqa/test/5327-0": [
+    "mckay-j",
+    "rogers-b"
+   ],
+   "enronqa/test/5337-0": [
+    "delainey-d",
+    "mckay-j"
+   ],
+   "enronqa/test/13995-0": [
+    "arnold-j",
+    "shackleton-s"
+   ],
+   "enronqa/test/13996-0": [
+    "giron-d",
+    "mclaughlin-e"
+   ],
+   "enronqa/test/57-0": [
+    "merriss-s",
+    "watson-k"
+   ],
+   "enronqa/test/61-0": [
+    "jones-t",
+    "merriss-s"
+   ],
+   "enronqa/test/106-0": [
+    "meyers-a",
+    "shackleton-s"
+   ],
+   "enronqa/test/107-0": [
+    "meyers-a",
+    "solberg-g"
+   ],
+   "enronqa/test/16912-0": [
+    "perlingiere-d",
+    "ring-r"
+   ],
+   "enronqa/test/16917-0": [
+    "jones-t",
+    "perlingiere-d"
+   ],
+   "enronqa/test/2132-0": [
+    "allen-p",
+    "guzman-m"
+   ],
+   "enronqa/test/2141-0": [
+    "dean-c",
+    "gang-l"
+   ],
+   "enronqa/test/14690-0": [
+    "bass-e",
+    "beck-s"
+   ],
+   "enronqa/test/14746-0": [
+    "lenhart-m",
+    "neal-s"
+   ],
+   "enronqa/test/46594-0": [
+    "geaccone-t",
+    "nemec-g"
+   ],
+   "enronqa/test/46674-0": [
+    "nemec-g",
+    "taylor-m"
+   ],
+   "enronqa/test/434-0": [
+    "heard-m",
+    "panus-s"
+   ],
+   "enronqa/test/438-0": [
+    "heard-m",
+    "panus-s"
+   ],
+   "enronqa/test/13669-0": [
+    "lavorato-j",
+    "parks-j"
+   ],
+   "enronqa/test/13681-0": [
+    "mann-k",
+    "parks-j"
+   ],
+   "enronqa/test/1801-0": [
+    "pereira-s",
+    "sager-e"
+   ],
+   "enronqa/test/1811-0": [
+    "cash-m",
+    "pereira-s"
+   ],
+   "enronqa/test/16553-0": [
+    "perlingiere-d",
+    "shackleton-s"
+   ],
+   "enronqa/test/16569-0": [
+    "perlingiere-d",
+    "storey-g"
+   ],
+   "enronqa/test/0-0": [
+    "jones-t",
+    "phanis-s"
+   ],
+   "enronqa/test/1-0": [
+    "panus-s",
+    "phanis-s"
+   ],
+   "enronqa/test/839-0": [
+    "delainey-d",
+    "pimenov-v"
+   ],
+   "enronqa/test/847-0": [
+    "hodge-j",
+    "pimenov-v"
+   ],
+   "enronqa/test/2382-0": [
+    "grigsby-m",
+    "ward-k"
+   ],
+   "enronqa/test/2389-0": [
+    "beck-s",
+    "keiser-k"
+   ],
+   "enronqa/test/21730-0": [
+    "hernandez-j",
+    "presto-k"
+   ],
+   "enronqa/test/21749-0": [
+    "mann-k",
+    "presto-k"
+   ],
+   "enronqa/test/5-0": [
+    "allen-p",
+    "quenet-j"
+   ],
+   "enronqa/test/6-0": [
+    "presto-k",
+    "quenet-j"
+   ],
+   "enronqa/test/10090-0": [
+    "quigley-d",
+    "scholtes-d"
+   ],
+   "enronqa/test/10093-0": [
+    "quigley-d",
+    "ring-r"
+   ],
+   "enronqa/test/2751-0": [
+    "donoho-l",
+    "rapp-b"
+   ],
+   "enronqa/test/2760-0": [
+    "kaminski-v",
+    "rapp-b"
+   ],
+   "enronqa/test/560-0": [
+    "cash-m",
+    "reitmeyer-j"
+   ],
+   "enronqa/test/561-0": [
+    "corman-s",
+    "reitmeyer-j"
+   ],
+   "enronqa/test/3580-0": [
+    "bass-e",
+    "scott-s"
+   ],
+   "enronqa/test/3589-0": [
+    "mims-thurston-p",
+    "richey-c"
+   ],
+   "enronqa/test/319-0": [
+    "ring-a",
+    "taylor-m"
+   ],
+   "enronqa/test/321-0": [
+    "parks-j",
+    "ring-a"
+   ],
+   "enronqa/test/10893-0": [
+    "ring-r",
+    "swerzbin-m"
+   ],
+   "enronqa/test/10913-0": [
+    "ring-r",
+    "steffes-j"
+   ],
+   "enronqa/test/3306-0": [
+    "haedicke-m",
+    "rodrique-r"
+   ],
+   "enronqa/test/3315-0": [
+    "rodrique-r",
+    "taylor-m"
+   ],
+   "enronqa/test/30071-0": [
+    "rogers-b",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/30128-0": [
+    "horton-s",
+    "schwieger-j"
+   ],
+   "enronqa/test/7000-0": [
+    "kaminski-v",
+    "shackleton-s"
+   ],
+   "enronqa/test/7007-0": [
+    "motley-m",
+    "ruscitti-k"
+   ],
+   "enronqa/test/33858-0": [
+    "sager-e",
+    "stclair-c"
+   ],
+   "enronqa/test/33861-0": [
+    "jones-t",
+    "sager-e"
+   ],
+   "enronqa/test/5512-0": [
+    "saibi-e",
+    "semperger-c"
+   ],
+   "enronqa/test/5543-0": [
+    "geaccone-t",
+    "tycholiz-b"
+   ],
+   "enronqa/test/12367-0": [
+    "guzman-m",
+    "white-s"
+   ],
+   "enronqa/test/12389-0": [
+    "sager-e",
+    "salisbury-h"
+   ],
+   "enronqa/test/380-0": [
+    "kaminski-v",
+    "sanchez-m"
+   ],
+   "enronqa/test/382-0": [
+    "rogers-b",
+    "sanchez-m"
+   ],
+   "enronqa/test/48220-0": [
+    "mann-k",
+    "sanders-r"
+   ],
+   "enronqa/test/48398-0": [
+    "sanders-r",
+    "ward-k"
+   ],
+   "enronqa/test/5877-0": [
+    "dasovich-j",
+    "scholtes-d"
+   ],
+   "enronqa/test/5886-0": [
+    "scholtes-d",
+    "symes-k"
+   ],
+   "enronqa/test/12058-0": [
+    "lokay-m",
+    "mann-k"
+   ],
+   "enronqa/test/12071-0": [
+    "lokay-m",
+    "schoolcraft-d"
+   ],
+   "enronqa/test/2620-0": [
+    "jones-t",
+    "schwieger-j"
+   ],
+   "enronqa/test/2624-0": [
+    "kitchen-l",
+    "schwieger-j"
+   ],
+   "enronqa/test/42437-0": [
+    "rapp-b",
+    "scott-s"
+   ],
+   "enronqa/test/42513-0": [
+    "dasovich-j",
+    "scott-s"
+   ],
+   "enronqa/test/5165-0": [
+    "keiser-k",
+    "semperger-c"
+   ],
+   "enronqa/test/5201-0": [
+    "scholtes-d",
+    "semperger-c"
+   ],
+   "enronqa/test/61722-0": [
+    "sanders-r",
+    "shackleton-s"
+   ],
+   "enronqa/test/61761-0": [
+    "hyvl-d",
+    "shackleton-s"
+   ],
+   "enronqa/test/32218-0": [
+    "beck-s",
+    "zufferli-j"
+   ],
+   "enronqa/test/32220-0": [
+    "beck-s",
+    "taylor-m"
+   ],
+   "enronqa/test/38783-0": [
+    "ermis-f",
+    "sager-e"
+   ],
+   "enronqa/test/38827-0": [
+    "shackleton-s",
+    "shapiro-r"
+   ],
+   "enronqa/test/6612-0": [
+    "germany-c",
+    "shively-h"
+   ],
+   "enronqa/test/6620-0": [
+    "hyvl-d",
+    "shively-h"
+   ],
+   "enronqa/test/35648-0": [
+    "haedicke-m",
+    "skilling-j"
+   ],
+   "enronqa/test/35738-0": [
+    "lay-k",
+    "skilling-j"
+   ],
+   "enronqa/test/79-0": [
+    "hain-m",
+    "slinger-r"
+   ],
+   "enronqa/test/80-0": [
+    "meyers-a",
+    "zufferli-j"
+   ],
+   "enronqa/test/7618-0": [
+    "schwieger-j",
+    "smith-m"
+   ],
+   "enronqa/test/7643-0": [
+    "shackleton-s",
+    "smith-m"
+   ],
+   "enronqa/test/14-0": [
+    "salisbury-h",
+    "solberg-g"
+   ],
+   "enronqa/test/15-0": [
+    "solberg-g",
+    "williams-w3"
+   ],
+   "enronqa/test/27-0": [
+    "ermis-f",
+    "south-s"
+   ],
+   "enronqa/test/28-0": [
+    "dasovich-j",
+    "south-s"
+   ],
+   "enronqa/test/1909-0": [
+    "blair-l",
+    "staab-t"
+   ],
+   "enronqa/test/1913-0": [
+    "kitchen-l",
+    "staab-t"
+   ],
+   "enronqa/test/20808-0": [
+    "shackleton-s",
+    "stclair-c"
+   ],
+   "enronqa/test/20881-0": [
+    "cash-m",
+    "stclair-c"
+   ],
+   "enronqa/test/37845-0": [
+    "dasovich-j",
+    "sanders-r"
+   ],
+   "enronqa/test/37899-0": [
+    "dasovich-j",
+    "steffes-j"
+   ],
+   "enronqa/test/7813-0": [
+    "germany-c",
+    "martin-t"
+   ],
+   "enronqa/test/7818-0": [
+    "lay-k",
+    "sager-e"
+   ],
+   "enronqa/test/19878-0": [
+    "shively-h",
+    "stokley-c"
+   ],
+   "enronqa/test/19953-0": [
+    "stokley-c",
+    "ward-k"
+   ],
+   "enronqa/test/3157-0": [
+    "mims-thurston-p",
+    "storey-g"
+   ],
+   "enronqa/test/3180-0": [
+    "neal-s",
+    "smith-m"
+   ],
+   "enronqa/test/1199-0": [
+    "mclaughlin-e",
+    "sturm-f"
+   ],
+   "enronqa/test/1202-0": [
+    "shackleton-s",
+    "sturm-f"
+   ],
+   "enronqa/test/770-0": [
+    "kaminski-v",
+    "symes-k"
+   ],
+   "enronqa/test/775-0": [
+    "mann-k",
+    "swerzbin-m"
+   ],
+   "enronqa/test/28634-0": [
+    "salisbury-h",
+    "symes-k"
+   ],
+   "enronqa/test/28663-0": [
+    "symes-k",
+    "williams-w3"
+   ],
+   "enronqa/test/58879-0": [
+    "kaminski-v",
+    "taylor-m"
+   ],
+   "enronqa/test/59011-0": [
+    "shackleton-s",
+    "taylor-m"
+   ],
+   "enronqa/test/6056-0": [
+    "tholt-j",
+    "williams-w3"
+   ],
+   "enronqa/test/6058-0": [
+    "motley-m",
+    "tholt-j"
+   ],
+   "enronqa/test/11805-0": [
+    "causholli-m",
+    "shackleton-s"
+   ],
+   "enronqa/test/11871-0": [
+    "kaminski-v",
+    "thomas-p"
+   ],
+   "enronqa/test/266-0": [
+    "bass-e",
+    "townsend-j"
+   ],
+   "enronqa/test/273-0": [
+    "horton-s",
+    "townsend-j"
+   ],
+   "enronqa/test/10387-0": [
+    "richey-c",
+    "tycholiz-b"
+   ],
+   "enronqa/test/10392-0": [
+    "scholtes-d",
+    "tycholiz-b"
+   ],
+   "enronqa/test/21257-0": [
+    "shackleton-s",
+    "ward-k"
+   ],
+   "enronqa/test/21278-0": [
+    "cash-m",
+    "ward-k"
+   ],
+   "enronqa/test/27911-0": [
+    "dasovich-j",
+    "watson-k"
+   ],
+   "enronqa/test/27917-0": [
+    "guzman-m",
+    "watson-k"
+   ],
+   "enronqa/test/8231-0": [
+    "baughman-d",
+    "stepenovitch-j"
+   ],
+   "enronqa/test/8257-0": [
+    "kaminski-v",
+    "weldon-c"
+   ],
+   "enronqa/test/7395-0": [
+    "beck-s",
+    "shankman-j"
+   ],
+   "enronqa/test/7433-0": [
+    "beck-s",
+    "whalley-g"
+   ],
+   "enronqa/test/10626-0": [
+    "love-p",
+    "whalley-l"
+   ],
+   "enronqa/test/10646-0": [
+    "watson-k",
+    "whalley-l"
+   ],
+   "enronqa/test/17309-0": [
+    "hain-m",
+    "white-s"
+   ],
+   "enronqa/test/17344-0": [
+    "beck-s",
+    "white-s"
+   ],
+   "enronqa/test/2252-0": [
+    "bass-e",
+    "whitt-m"
+   ],
+   "enronqa/test/2255-0": [
+    "taylor-m",
+    "whitt-m"
+   ],
+   "enronqa/test/9344-0": [
+    "bailey-s",
+    "taylor-m"
+   ],
+   "enronqa/test/9360-0": [
+    "williams-j",
+    "wolfe-j"
+   ],
+   "enronqa/test/26012-0": [
+    "platter-p",
+    "williams-w3"
+   ],
+   "enronqa/test/26064-0": [
+    "beck-s",
+    "parks-j"
+   ],
+   "enronqa/test/9841-0": [
+    "nemec-g",
+    "wolfe-j"
+   ],
+   "enronqa/test/9859-0": [
+    "schwieger-j",
+    "wolfe-j"
+   ],
+   "enronqa/test/8883-0": [
+    "shackleton-s",
+    "ybarbo-p"
+   ],
+   "enronqa/test/8903-0": [
+    "hyvl-d",
+    "ybarbo-p"
+   ],
+   "enronqa/test/13369-0": [
+    "shively-h",
+    "zipper-a"
+   ],
+   "enronqa/test/13372-0": [
+    "kaminski-v",
+    "zipper-a"
+   ],
+   "enronqa/test/3026-0": [
+    "kaminski-v",
+    "zufferli-j"
+   ],
+   "enronqa/test/3031-0": [
+    "ward-k",
+    "zufferli-j"
+   ]
+  }
+ },
+ "live_hit@2": {
+  "24": 0.92,
+  "12": 0.79
+ },
+ "duration_s": 6.865331331267953
+}
