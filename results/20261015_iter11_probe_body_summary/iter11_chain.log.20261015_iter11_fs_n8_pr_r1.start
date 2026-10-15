@@ -1,0 +1,3 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[18:26:50] run 20261015_iter11_fs_n8_pr_r1 (kind=e1_routing dataset=enronqa routing=flood_score answer_mode=retrieval_only)
+[18:28:21] results: results/20261015_iter11_fs_n8_pr_r1 (exit 0)

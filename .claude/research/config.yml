@@ -165,7 +165,13 @@ levers:
             flood_score・device_probe（D = 12）を per_node・2,940 問・検索だけ・requester_procs N = 1・8 × 3 回で流し，選択と得点が全問で一致したまま処理量が伸びるかを測る．
             事前に py-spy 等で制御点の質問者の時間の内訳を取り，本文の符号化の割合が小さければ最も大きい項目（httpx の INFO のログ等）を 1 つだけ選び直してよい．キー名（設定キーかコードの置き換えか）・判定の規則は rc-researcher が事前登録で決める．
             Iteration 11 の rc-researcher が確定（backlog B32）：キーは `experiment.probe_body`（per_request〔既定〕/ pre_encoded．本文はバイト単位で同じ）．事前の測定（制御点・偽のノード 30 個）で本文の符号化は 1 要求の約 21%，sniffio の import の失敗は約 24%，ログは約 2%．
-            fs・dp12 × N ∈ {1, 8} × pr・pe × 3 回（2,940 問）．主の仮説は fs × N = 1 で比 ≥ 1.10．事前登録は journal の Iteration 11．次の候補は sniffio の追加（B32 (a)）"}
+            fs・dp12 × N ∈ {1, 8} × pr・pe × 3 回（2,940 問）．主の仮説は fs × N = 1 で比 ≥ 1.10．事前登録は journal の Iteration 11．次の候補は sniffio の追加（B32 (a)）．
+            Iteration 11 は採用（処理量の中央値 pr → pe：fs N = 1 13.39 → 17.76，fs N = 8 81.8 → 125.5，dp12 N = 1 32.2 → 41.8，dp12 N = 8 185.6 → 200.3〔範囲が重なる〕．1 要求の質問者の CPU は fs N = 1 で 2.335 → 1.761 ms）"}
+  - {name: requester.sniffio_lookup, values: [skip],
+     note: "Iteration 11 の評価で追加（backlog B33 [auto-decided]）．仮称．既定は今の挙動（質問者の環境に sniffio が無く，httpcore 1.0.9 の current_async_library が要求ごとに import sniffio を試みて失敗し，そのたびに sys.path を探す）．
+            skip はこの探索を除く（sniffio を依存に足すか，質問者のプロセスで探索を省く設定キーにするか）．httpcore は sniffio が無いとき asyncio とみなすので，要求の内容と選択は変わらない見込み．
+            事前の測定（制御点・偽のノード 30 個）で 1 要求の約 24%（0.63 ms）．probe_body: pre_encoded・http_pool: per_node を固定し，fs・dp12 × N ∈ {1, 8} × 3 回（2,940 問・検索だけ）で，選択が全問で一致したまま処理量が伸びるかを測る．
+            形・キー名・判定の規則は rc-researcher が事前登録で決める．依存の追加は専門家ノード・node-bench の負荷生成にも効き，同じ連続実行の中で交互に流せない点に注意（B33 (a)）．N = 8 は約 1 秒・3 秒の probe の遅れで揺れるので，遅れの問の数を記録する（B33 (b)）"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
