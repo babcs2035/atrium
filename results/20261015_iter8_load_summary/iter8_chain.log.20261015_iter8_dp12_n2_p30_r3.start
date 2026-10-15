@@ -1,0 +1,3 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[12:59:09] run 20261015_iter8_dp12_n2_p30_r3 (kind=e1_routing dataset=enronqa routing=device_probe answer_mode=retrieval_only)
+[13:00:39] results: results/20261015_iter8_dp12_n2_p30_r3 (exit 0)

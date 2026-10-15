@@ -1,0 +1,54 @@
+# Iteration 8 負荷試験の仕様の雛形（事前登録の順序．journal の Iteration 8 の事前登録と同じ）．retrieval_only，m = 2，http_pool=per_node を全実行で明示．
+# rc-executor は 20261015 を実行日（YYYYMMDD）に置き換えて iter8_specs.txt を作り，iter8_chain.sh に絶対パスで渡す．
+# 主の系列は EnronQA test 全 2,940 問（question_limit=null），parallel=30（全プロセスの合計）．N は experiment.requester_procs．
+
+# 1. 環境の揺れの確認（前）．Iteration 5〜7 と同じ 300 問・1 プロセス
+20261015_iter8_anchor_fs_n1_p30_pre dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1
+
+# 2. 主の系列：3 方式 × N ∈ {1, 2, 4, 8} × 3 回．時間の偏りを打ち消すため，r1・r3 は N を昇順，r2 は降順に流す
+20261015_iter8_fs_n1_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1
+20261015_iter8_fs_n2_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=2
+20261015_iter8_fs_n4_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=4
+20261015_iter8_fs_n8_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8
+20261015_iter8_dp24_n1_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=1
+20261015_iter8_dp24_n2_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=2
+20261015_iter8_dp24_n4_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=4
+20261015_iter8_dp24_n8_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=8
+20261015_iter8_dp12_n1_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1
+20261015_iter8_dp12_n2_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=2
+20261015_iter8_dp12_n4_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=4
+20261015_iter8_dp12_n8_p30_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8
+20261015_iter8_fs_n8_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8
+20261015_iter8_fs_n4_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=4
+20261015_iter8_fs_n2_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=2
+20261015_iter8_fs_n1_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1
+20261015_iter8_dp24_n8_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=8
+20261015_iter8_dp24_n4_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=4
+20261015_iter8_dp24_n2_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=2
+20261015_iter8_dp24_n1_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=1
+20261015_iter8_dp12_n8_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8
+20261015_iter8_dp12_n4_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=4
+20261015_iter8_dp12_n2_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=2
+20261015_iter8_dp12_n1_p30_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1
+20261015_iter8_fs_n1_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1
+20261015_iter8_fs_n2_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=2
+20261015_iter8_fs_n4_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=4
+20261015_iter8_fs_n8_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8
+20261015_iter8_dp24_n1_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=1
+20261015_iter8_dp24_n2_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=2
+20261015_iter8_dp24_n4_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=4
+20261015_iter8_dp24_n8_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=8
+20261015_iter8_dp12_n1_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1
+20261015_iter8_dp12_n2_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=2
+20261015_iter8_dp12_n4_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=4
+20261015_iter8_dp12_n8_p30_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8
+
+# 3. 記録：N = 8 で各プロセス 30 問（合計 parallel 240）．専門家の側へ同時の問を増やしたときの処理量（判定に使わない）
+20261015_iter8_fs_n8_p240_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=240 requester_procs=8
+20261015_iter8_fs_n8_p240_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=240 requester_procs=8
+20261015_iter8_fs_n8_p240_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=240 requester_procs=8
+20261015_iter8_dp24_n8_p240_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=24 parallel=240 requester_procs=8
+20261015_iter8_dp12_n8_p240_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=240 requester_procs=8
+
+# 4. 環境の揺れの確認（後）
+20261015_iter8_anchor_fs_n1_p30_post dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1

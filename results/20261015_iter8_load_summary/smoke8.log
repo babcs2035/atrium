@@ -1,0 +1,6 @@
+[2026-10-15_10:12:45] BEGIN 20261015_iter8_smoke_dp24_n2_p30 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=device_probe routing.probe_d.enronqa=24 parallel=30 requester_procs=2
+[10:15:17] 20261015_iter8_smoke_dp24_n2_p30 deployed
+[10:16:50] 20261015_iter8_smoke_dp24_n2_p30 start=0 inner=0
+[10:16:52] 20261015_iter8_smoke_dp24_n2_p30 analyze=0
+[10:16:52] 20261015_iter8_smoke_dp24_n2_p30 failure_rate=0.0
+[2026-10-15_10:16:52] ALL DONE

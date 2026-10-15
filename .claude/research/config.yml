@@ -135,7 +135,15 @@ levers:
             N に対して処理量が比例して伸びるか，頭打ちのときに質問者と専門家のどちらの CPU が張り付くかを記録する．キー名・N・parallel の割り方・問の数・判定の規則は rc-researcher が事前登録で決める．
             質問者を複数のデバイスに置く形（cluster.requester の形式とデバイスの役割の変更）は人間の判断に残す（B25 (a)）．
             Iteration 8 の rc-researcher が確定（backlog B26）：キーは `experiment.requester_procs`（既定 1）．N ∈ {1, 2, 4, 8}，parallel は合計 30 で固定して各プロセスへ割る．test の全 2,940 問．
-            専門家の CPU はノードの /healthz の process_cpu_s，制御点の CPU は /proc/stat で測る．判定の主は flood_score の N = 2 対 N = 1．事前登録は journal の Iteration 8"}
+            専門家の CPU はノードの /healthz の process_cpu_s，制御点の CPU は /proc/stat で測る．判定の主は flood_score の N = 2 対 N = 1．事前登録は journal の Iteration 8．
+            Iteration 8 は採用（N = 8 で fs 82.35・dp24 100.91・dp12 186.21 問/秒．E(8) 0.71〜0.77 ≈ 物理 6 コア ÷ 8．律速は N = 8 でも質問者のプロセスで，expert_cpu_util_max は最大 0.78）"}
+  - {name: node_bench.concurrency, values: [1, 2, 4, 8, 16, 32, 64],
+     note: "Iteration 8 の評価で追加（backlog B27 [auto-decided]）．仮称．30 台に負荷を散らすと，質問者（制御点 1 台．約 2,600 要求/秒）が先に律速になり専門家の限界に届かない．
+            少数（例えば 1〜2 台）の専門家ノードに，質問者のプロセスを複数使って /v1/probe（必要なら /v1/retrieve）の閉じた系の負荷を集め，同時の要求の数を上げたときの
+            ノード 1 台の処理量（要求/秒）・待ち時間・/healthz の process_cpu_s の飽和点を測る．要求の本文は既存の実行の問（EnronQA test，cached の埋め込み，flood_score と同じ 5 シャードの probe）を使う．
+            Iteration 8 の見積もり（最も忙しいノードの要求/秒 ÷ expert_cpu_util_max）は約 190〜210 要求/秒（1 コアで飽和すると仮定した推測），実測の下限は 157〜164 要求/秒（dp12）．
+            実装の形（新しいオフラインの CLI か，既存の質問者の経路の流用か），対象のノード・同時の要求の数・判定の規則は rc-researcher が事前登録で決める．cluster の形式とデバイスの役割，既存の routing の挙動は変えない．
+            質問者を複数のデバイスに置く形（B25 (a)）は 30 台の全体の限界を測るときにだけ要り，人間の判断に残す"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
