@@ -2,14 +2,14 @@
   "repo": "atrium",
   "iteration": 12,
   "iteration_name": "質問者の要求ごとの sniffio の import の失敗を除いたときの処理量",
-  "phase": "execute",
+  "phase": "evaluate",
   "status": "running",
   "current_lever": "experiment.sniffio_lookup: search -> blocked",
-  "experiment_dir": null,
-  "experiment_deadline": null,
-  "updated_at": 1792054910,
+  "experiment_dir": "results/20261015_iter12_sniffio_summary",
+  "experiment_deadline": 1792085733,
+  "updated_at": 1792071860,
   "last_slack_ts": "1792052966.099869",
   "iteration_thread_ts": "1792063813.852539",
   "notion_toggle_created": true,
-  "last_commit": "4db92ec"
+  "last_commit": "dc58854"
 }

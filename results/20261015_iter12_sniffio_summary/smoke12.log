@@ -1,0 +1,11 @@
+[2026-10-15_20:35:37] BEGIN 20261015_iter12_smoke_fs_bk_n1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked
+[20:38:04] 20261015_iter12_smoke_fs_bk_n1 deployed
+[20:39:38] 20261015_iter12_smoke_fs_bk_n1 start=0 inner=0
+[20:39:40] 20261015_iter12_smoke_fs_bk_n1 analyze=0
+[20:39:40] 20261015_iter12_smoke_fs_bk_n1 failure_rate=0.0
+[2026-10-15_20:39:40] BEGIN 20261015_iter12_smoke_fs_bk_n8 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked
+[20:41:54] 20261015_iter12_smoke_fs_bk_n8 deployed
+[20:43:24] 20261015_iter12_smoke_fs_bk_n8 start=0 inner=0
+[20:43:26] 20261015_iter12_smoke_fs_bk_n8 analyze=0
+[20:43:26] 20261015_iter12_smoke_fs_bk_n8 failure_rate=0.0
+[2026-10-15_20:43:26] ALL DONE

@@ -62,7 +62,9 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 
 負荷試験の連続実行（`results/*_summary/iterN_chain.sh`．Iteration 12 以降）は，`run_meta.json` の外に次の記録を残す．
 - 連続実行のログの隣の `<log>.<run_id>.tcp`：問を流す `mise run start` の直前・直後の制御点の `nstat -asz TcpRetransSegs TcpExtTCPSynRetrans TcpExtTCPTimeouts`（取れなければその旨）．
+  これは制御点の**ホストの**ネットワークの名前空間の値である．質問者のコンテナは既定のブリッジのネットワーク（`docker/compose.requester.yml` に `network_mode` の指定が無い）で動くので，質問者のソケットの再送はこの値に入らない．質問者の再送を見るには，コンテナの名前空間で取る（`docker exec` で `/proc/net/netstat` を読むか，`nsenter -n`）．
 - 集計 `iter12_summary.py` が `results.jsonl` から数える遅れの問の数：`timings.probe_s` ≥ 0.9 秒の問の数と，そのうち `probe_node_s_max` < 0.5 秒（ノードの計算によらない遅れ）の数．
+  閾値は固定の 0.9 秒なので，probe_s の中央値が 0.1 秒前後の条件（`requester_procs` = 8）でだけ遅れを数える．質問者が 1 コアに張り付く N = 1 の flood_score では probe_s の中央値が約 1 秒（CPU の待ち行列）になり，この数は遅れではなく待ち行列を数える．
 
 ## 3. 指標（metrics.json）
 

@@ -1,0 +1,35 @@
+# Iteration 12 の連続実行の仕様の雛形（事前登録の順序．journal の Iteration 12 の事前登録と同じ）．retrieval_only，m = 2，http_pool=per_node，parallel 30 を全実行で明示．
+# rc-executor は 20261015 を実行日（YYYYMMDD）に置き換えて iter12_specs.txt を作り，iter12_chain.sh に絶対パスで渡す．
+# 主の系列は EnronQA test 全 2,940 問（question_limit=null），probe_body=pre_encoded．N は experiment.requester_procs，sr = sniffio_lookup: search，bk = blocked．
+
+# 1. 環境の揺れの確認（前）：300 問・N = 1・per_request・search（Iteration 7〜11 の anchor と同じ条件）
+20261015_iter12_anchor_fs_n1_pr_pre dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 probe_body=per_request sniffio_lookup=search
+
+# 2. 主の系列：{fs，dp12} × N ∈ {1, 8} × {sr，bk} × 3 回．r1・r3 は sr → bk，r2 は bk → sr
+20261015_iter12_fs_n1_sr_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_fs_n1_bk_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_fs_n8_sr_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_fs_n8_bk_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_dp12_n1_sr_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_dp12_n1_bk_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_dp12_n8_sr_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_dp12_n8_bk_r1 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_fs_n1_bk_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_fs_n1_sr_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_fs_n8_bk_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_fs_n8_sr_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_dp12_n1_bk_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_dp12_n1_sr_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_dp12_n8_bk_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_dp12_n8_sr_r2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_fs_n1_sr_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_fs_n1_bk_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_fs_n8_sr_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_fs_n8_bk_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=flood_score parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_dp12_n1_sr_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_dp12_n1_bk_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1 probe_body=pre_encoded sniffio_lookup=blocked
+20261015_iter12_dp12_n8_sr_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=search
+20261015_iter12_dp12_n8_bk_r3 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=null routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=8 probe_body=pre_encoded sniffio_lookup=blocked
+
+# 3. 環境の揺れの確認（後）
+20261015_iter12_anchor_fs_n1_pr_post dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 probe_body=per_request sniffio_lookup=search

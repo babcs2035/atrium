@@ -17,6 +17,24 @@
 
 ---
 
+## B35 [auto-decided 2026-10-15] Iteration 12（sniffio の探索を省く）は採用．Iteration 13 は質問者の 1 要求の CPU の残りの内訳で最大の項目を除く構成
+
+- 状況: Iteration 12 の判定は採用（事前登録の規則の機械的な適用．G1〜G5 成立，H-S1・H-S2 成立，H-S3 は fs・dp12 × N = 8 とも成立）．処理量の中央値（問/秒，sr → bk）は fs N = 1 で 17.721 → 26.404（1.490），fs N = 8 で 110.977 → 145.145（1.308），dp12 N = 1 で 42.228 → 50.277（1.191．隙間 +3.0%），dp12 N = 8 で 240.912 → 291.604（1.210）．
+  fs × N = 1 の 1 要求の質問者の CPU は 1.762 → 1.189 ms（節約 0.574 ms）で，処理量の比はこの比の逆数とほぼ同じ．dp12 の節約は 0.355 ms と小さい．dp12 × N = 8 × bk でも律速は質問者のまま（最も忙しいノード 1.24〜1.30 コア）（journal の「Iteration 12 実行済み：分析・考察」）．config.yml の levers は全て試し終えている．
+- 自動選択: **Iteration 13 の単一レバーは「質問者の 1 要求の CPU（pre_encoded × blocked の上）の残りの内訳で最大の項目を 1 つ除くこと」**とし，config.yml の levers 末尾に `requester.next_cpu_item: [reduce]`（仮称）を追記した．
+  phase 1 で，Iteration 11・12 の `bench.py` に `probe_body: pre_encoded` と `sys.modules["sniffio"] = None` を入れた状態で，制御点（wafl-ctrl5 の `atrium-full`）の cProfile（と可能なら py-spy）を **fs（1 問 30 probe）と dp12（1 問約 12 probe ＋ retrieve 2）の両方の要求の形**で取り，最大の項目を選ぶ．Iteration 11 の cProfile で上位だった候補は，httpcore の接続の池の走査（`_assign_requests_to_connections`），h11 の組み立てと解析，anyio の `extra_attributes`，`ProbeResponse.model_validate_json` である．
+  比べる条件は Iteration 12 と同じ形（fs・dp12 × N ∈ {1, 8} × 3 回，2,940 問，`probe_body: pre_encoded`・`sniffio_lookup: blocked`・`http_pool: per_node`・`node_workers: 1` を固定，前後の anchor）．形（設定キーかコードの置き換えか）・キー名・判定の規則は rc-researcher が事前登録で決める．
+- iteration_name: 「質問者の 1 要求の CPU の残りで最大の項目を除いたときの処理量」（phase 1 で項目が決まったら，その項目の名前に言い換えてよい）．
+- 根拠: (1) Iteration 11・12 の 2 回続けて，N = 1 の処理量の比が 1 要求の質問者の CPU の比の逆数と一致し，事前の測定の節約が実機で再現した（fs）．質問者 1 台のまま処理量を上げる方針（B31）の続きで，ノードの API・データ・シャード・方式の選択を変えない．
+  (2) 最も忙しい専門家ノードは dp12 × N = 8 で約 1.3 コアで，W = 1 の頭打ち（約 1.86 コア）まで約 1.4 倍の余裕がある．質問者の 1 要求の CPU をさらに 3 割ほど減らすと，dp12 × N = 8 で律速が専門家ノードへ移る点に届く見込み（推測）．
+  (3) 項目を決める前に事前の測定を取るのは，Iteration 11（B31）と同じ手順で，効果の大きさを先に見積もれる．
+- 要レビュー: (a) **記録の指標を直す**．Iteration 12 の「遅れの問（probe_s ≥ 0.9 秒）」は N = 1 では質問者の CPU の待ち行列を数えてしまう（fs × N = 1 の probe_s の中央値が約 1 秒）．次の事前登録では N = 8 だけで数えるか，閾値をその実行の probe_s の中央値の倍数にする．
+  また質問者のコンテナは既定のブリッジのネットワークで動く（`docker/compose.requester.yml` に `network_mode` が無い）ので，`iter12_chain.sh` がホストで取った `nstat` には質問者のソケットの再送が入らない．TCP の再送は質問者のコンテナのネットワークの名前空間で取る（`docker exec` か `nsenter -n`）．再試行の例外の型も requester.log に残す（`post_with_retry` の warning に型名を足す．記録だけの変更）．
+  (b) 最大の項目が HTTP クライアントそのもの（h11・接続の池）だった場合，aiohttp 等への置き換えは接続の池・再試行・`per_node` の作り直しを伴う大きな変更になる．その場合は置き換えではなく，httpcore の設定や使い方の範囲（例えば per_node の池の上限，keep-alive の扱い）で減らせる項目を優先し，置き換えは候補として backlog に残す（B32 (c)・B33 (e)）．
+  (c) `sniffio_lookup` の既定は `search` のまま（既定の変更・`uv add sniffio` は B34 (a) のとおり人間の判断）．以後の負荷の実験は `probe_body: pre_encoded` と `sniffio_lookup: blocked` を明示する．
+  (d) dp12 × N = 1 の節約が fs の約 6 割だった理由（httpcore が 1 要求で `current_async_library()` を呼ぶ回数が池の状態で変わる，という推測）は，次の事前の測定で呼ぶ回数を fs と dp12 の形で数えれば確かめられる．
+  (e) tavily-search による Web 検索は Iteration 12 で権限の判定により拒否された．上流の httpcore の修正の有無など，外部の情報の確認が要る調査は，権限の設定を人間が見直すまで手元のコードと測定だけで行う．
+
 ## B34 [auto-decided 2026-10-15] Iteration 12 のレバーの形：`experiment.sniffio_lookup`（依存を足さず，質問者のプロセスだけで sniffio の探索を省く）
 
 - 状況: B33 で，`requester.sniffio_lookup`（仮称）の形（`uv add sniffio` か設定キーか）・キー名・判定の規則・問の数を rc-researcher が事前の測定と事前登録で決めることになっていた．B33 (a)〜(e) を考慮する．

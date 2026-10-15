@@ -1,0 +1,10 @@
+## before 1792067474
+#kernel
+TcpRetransSegs                  2597930            0.0
+TcpExtTCPTimeouts               4616               0.0
+TcpExtTCPSynRetrans             1836               0.0
+## after 1792067687
+#kernel
+TcpRetransSegs                  2597932            0.0
+TcpExtTCPTimeouts               4616               0.0
+TcpExtTCPSynRetrans             1836               0.0
