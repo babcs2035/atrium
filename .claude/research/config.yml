@@ -189,7 +189,10 @@ levers:
             pre_encoded は問ごと（検索器ごと）に埋め込みの JSON を 1 回だけ作り，シャードごとに shard_id・k・query_id だけを差し替えた bytes を content= で送る．ノードが受け取る本文はバイト単位で同じにする（Iteration 11 の probe_body と同じ作り）．
             Iteration 13 の事前の測定（lean の上）で /v1/retrieve の本文の json.dumps は dp12 10.7%・fs 5.6% で，設定キーで挙動を変えずに除ける中では最大．phase 1 で prestudy/run_ctrl.sh を lean の上で取り直して確かめ，違えば最大の除ける項目に選び直してよい．
             比べる条件は Iteration 13 と同じ形（fs・dp12 × N ∈ {1, 8} × 3 回，2,940 問，pre_encoded・blocked・pool_assign: lean・per_node・W = 1，前後の anchor）．
-            期待効果は小さい（実機への縮小の率 dp12 約 0.6・fs 約 0.8 を掛けて dp12 約 1.06〜1.07 倍）ので，閾値と主の仮説は見込みと N = 1 の 3 回の幅から rc-researcher が事前登録で決める（B37 (a)）"}
+            期待効果は小さい（実機への縮小の率 dp12 約 0.6・fs 約 0.8 を掛けて dp12 約 1.06〜1.07 倍）ので，閾値と主の仮説は見込みと N = 1 の 3 回の幅から rc-researcher が事前登録で決める（B37 (a)）．
+            Iteration 14 の rc-researcher が確定（backlog B38）：キーは `experiment.retrieve_body`（per_request〔既定〕/ pre_encoded．probe の pre_encoded と埋め込みの JSON を共有し，本文はバイト単位で同じ）．
+            事前の測定（制御点・本物のノード 30 個・lean の上）で dp12 1.479 → 1.398 ms（−5.5%），fs 1.325 → 1.306 ms（−1.4%）．実機の見込みは dp12 約 1.04 倍で 3 回の範囲の規則では検出できないので，
+            判定は交互に並べた組の比（N = 1 は 5 組）で行う．主の仮説 H-R1 は dp12 × N = 1 で有効な組の全てで比 > 1 かつ中央値 ≥ 1.02．計 34 実行．事前登録は journal の Iteration 14"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

@@ -96,6 +96,10 @@ class ExperimentConfig(_Strict):
     # httpcore の接続の池の割り当て（Iteration 13）．stock：今の挙動／lean：質問者のプロセスの始めに httpcore 1.0.9 の
     # AsyncConnectionPool._assign_requests_to_connections の掃除を 1 回の走査にし，待機中の接続の生存の確かめを生のソケットへ直接問う（挙動は同じ．版が違えば止まる）
     pool_assign: Literal["stock", "lean"] = "stock"
+    # /v1/retrieve の本文の作り方（Iteration 14）．per_request：シャードごとに RetrieveRequest → model_dump → httpx の json= で作る（従来）／
+    # pre_encoded：問ごと（検索器ごと）の埋め込みの JSON を 1 回だけ作り（probe_body: pre_encoded なら probe と共有），faiss のシャードの本文を
+    # bytes の連結で作って送る．ノードが受け取る本文はバイト単位で同じ
+    retrieve_body: Literal["per_request", "pre_encoded"] = "per_request"
     # EQ7b．指定すると質問を 1 問ずつ順に流し，離脱したノードがあっても返事のあった分で続ける
     churn: ChurnConfig | None = None
 

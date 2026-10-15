@@ -27,6 +27,7 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 |---|---|
 | `requester_procs` | 質問者のプロセスの数 |
 | `probe_body` | probe の本文の作り方（`experiment.probe_body`．`per_request` / `pre_encoded`） |
+| `retrieve_body` | retrieve の本文の作り方（`experiment.retrieve_body`．`per_request` / `pre_encoded`） |
 | `sniffio_lookup`・`sniffio_installed` | `experiment.sniffio_lookup`（`search` / `blocked`）と，その実行の質問者の環境に sniffio が入っていたか（`true` なら探索の費用は元から無い） |
 | `pool_assign`・`httpcore_version` | `experiment.pool_assign`（`stock` / `lean`）と，その実行の質問者の httpcore の版 |
 | `requester_tcp` | 質問の処理の前後の，質問者のコンテナのネットワークの名前空間の TCP の再送の計数の差（`RetransSegs`・`TCPSynRetrans`・`TCPTimeouts`．`/proc/net/snmp`・`/proc/net/netstat`）．N ≥ 2 では子のプロセスの起動の区間を含む．host ネットワークのコンテナではホスト全体の値になる．読めなければ `null`．記録だけで判定に使わない |

@@ -411,19 +411,56 @@ class Requester:
             return self.cfg.data.require_enronqa().k_context
         return self.cfg.local_answer.k_context
 
+    def _encode_embeddings(self, embeddings: dict[str, F32Array]) -> dict[str, bytes]:
+        """probe_body または retrieve_body が pre_encoded のとき，検索器ごとの埋め込みの JSON を問ごとに 1 回だけ作る．
+
+        probe と retrieve が同じ bytes を共有する（問ごとの埋め込みの符号化は 1 回）．どちらも per_request なら空の表を返す．
+        """
+        exp = self.cfg.experiment
+        if exp.probe_body != "pre_encoded" and exp.retrieve_body != "pre_encoded":
+            return {}
+        return {
+            encoder: encode_json_like_httpx(embeddings[encoder].tolist())
+            for encoder in {s.encoder for s in self.sources}
+            if encoder in embeddings
+        }
+
     async def _retrieve(
-        self, source: SourceProfile, shard_id: str, embedding: F32Array, question: Question
+        self,
+        source: SourceProfile,
+        shard_id: str,
+        embedding: F32Array,
+        question: Question,
+        encoded_embedding: bytes | None = None,
     ) -> tuple[list[SourcedDoc], dict[str, Any]]:
-        # 配布済みの検索結果を返すシャードは埋め込みを使わないので送らない（FeB4RAG では最大 4,096 次元になる）
-        req = RetrieveRequest(
-            shard_id=shard_id,
-            k=self._k_ret(),
-            embedding=embedding.tolist() if source.kind == "faiss" else None,
-            query_id=question.source_qid,
-        )
+        """1 シャードの検索．encoded_embedding（埋め込みの JSON）があれば，RetrieveRequest の model_dump() を json= で
+        符号化した本文とバイト単位で同じ本文を bytes の連結で作って送る（faiss のシャードだけ）．"""
+        k = self._k_ret()
+        request_body: dict[str, Any] | bytes
+        if encoded_embedding is not None and source.kind == "faiss":
+            request_body = (
+                b'{"shard_id":'
+                + encode_json_like_httpx(shard_id)
+                + b',"k":'
+                + encode_json_like_httpx(k)
+                + b',"embedding":'
+                + encoded_embedding
+                + b',"query_id":'
+                + encode_json_like_httpx(question.source_qid)
+                + b"}"
+            )
+        else:
+            # 配布済みの検索結果を返すシャードは埋め込みを使わないので送らない（FeB4RAG では最大 4,096 次元になる）
+            req = RetrieveRequest(
+                shard_id=shard_id,
+                k=k,
+                embedding=embedding.tolist() if source.kind == "faiss" else None,
+                query_id=question.source_qid,
+            )
+            request_body = req.model_dump()
         start = time.perf_counter()
         url = f"{self._url_of_shard[shard_id]}/v1/retrieve"
-        response = await post_with_retry(self.client, url, req.model_dump(), RETRIEVE_TIMEOUT_S)
+        response = await post_with_retry(self.client, url, request_body, RETRIEVE_TIMEOUT_S)
         response.raise_for_status()
         body = RetrieveResponse.model_validate_json(response.content)
         stats = {
@@ -453,13 +490,24 @@ class Requester:
         selected: list[str],
         embeddings: dict[str, F32Array],
         record: dict[str, Any],
+        encoded_embeddings: dict[str, bytes] | None = None,
     ) -> list[SourcedDoc]:
+        use_encoded = self.cfg.experiment.retrieve_body == "pre_encoded"
+        if use_encoded and encoded_embeddings is None:
+            encoded_embeddings = self._encode_embeddings(embeddings)
         tasks = []
         asked_shards: list[str] = []
         for source_name in selected:
             source = self._profile(source_name)
+            encoded = (
+                encoded_embeddings.get(source.encoder)
+                if use_encoded and encoded_embeddings
+                else None
+            )
             for shard_id in source.shard_ids:
-                tasks.append(self._retrieve(source, shard_id, embeddings[source.encoder], question))
+                tasks.append(
+                    self._retrieve(source, shard_id, embeddings[source.encoder], question, encoded)
+                )
                 asked_shards.append(shard_id)
         start = time.perf_counter()
         outcomes, failed = await self._gather_requests(tasks)
@@ -595,6 +643,7 @@ class Requester:
         embeddings: dict[str, F32Array],
         record: dict[str, Any],
         targets: Sequence[str] | None = None,
+        encoded_embeddings: dict[str, bytes] | None = None,
     ) -> dict[str, float]:
         """probe（/v1/probe）の 1 段目：クエリ埋め込みを送り，データ源ごとの最高の検索スコアを集める．
 
@@ -610,13 +659,11 @@ class Requester:
         }
 
         # pre_encoded：埋め込みの JSON は検索器ごとに 1 回だけ作り，ノードごとに shard_ids だけ差し替える
-        encoded_embeddings: dict[str, bytes] = {}
-        if self.cfg.experiment.probe_body == "pre_encoded":
-            encoded_embeddings = {
-                encoder: encode_json_like_httpx(embeddings[encoder].tolist())
-                for encoder in {s.encoder for s in self.sources}
-                if encoder in embeddings
-            }
+        # 問の処理が作った表（retrieve と共有）があればそれを使う
+        if self.cfg.experiment.probe_body != "pre_encoded":
+            encoded_embeddings = {}
+        elif encoded_embeddings is None:
+            encoded_embeddings = self._encode_embeddings(embeddings)
 
         async def ask(node: NodeAssignment) -> tuple[ProbeResponse, int]:
             shard_ids = [sid for sid in node.shard_ids if sid in source_of_shard]
@@ -691,6 +738,7 @@ class Requester:
         question: Question,
         embeddings: dict[str, F32Array],
         record: dict[str, Any],
+        encoded_embeddings: dict[str, bytes] | None = None,
     ) -> list[str]:
         """centroid_probe・device_probe：1 段目の候補を同期に求め（multi_centroid と同じくイベントループの上），候補だけへ probe を送って上位 m 個を選ぶ．
 
@@ -713,7 +761,7 @@ class Requester:
         else:
             candidates = router.candidates(query, sources)
         first_stage_s = time.perf_counter() - start
-        probe_scores = await self._probe(embeddings, record, candidates)
+        probe_scores = await self._probe(embeddings, record, candidates, encoded_embeddings)
         start = time.perf_counter()
         selected = router.select_among(candidates, probe_scores)
         record["timings"]["route_s"] = first_stage_s + (time.perf_counter() - start)
@@ -736,13 +784,14 @@ class Requester:
         start = time.perf_counter()
         try:
             embeddings = await asyncio.to_thread(self._embed, question, record)
+            encoded_embeddings = self._encode_embeddings(embeddings)
             if isinstance(self.router, (CentroidProbeRouter, DeviceProbeRouter)):
                 selected = await self._route_by_candidate_probe(
-                    self.router, question, embeddings, record
+                    self.router, question, embeddings, record, encoded_embeddings
                 )
             else:
                 probe_scores = (
-                    await self._probe(embeddings, record)
+                    await self._probe(embeddings, record, None, encoded_embeddings)
                     if getattr(self.router, "needs_probe", False)
                     else None
                 )
@@ -757,7 +806,9 @@ class Requester:
                     else None
                 )
             else:
-                docs = await self._snippets(question, selected, embeddings, record)
+                docs = await self._snippets(
+                    question, selected, embeddings, record, encoded_embeddings
+                )
                 if mode == "snippet_return":
                     choice = await self._generate(
                         question, docs, record, self.cfg.llm.requester_model

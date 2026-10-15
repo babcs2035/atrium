@@ -36,6 +36,9 @@ experiment:
   # httpcore の接続の池の割り当て（Iteration 13）．stock：従来（要求の開始と終了のたびに池の全接続を走査し，待機中の接続ごとに anyio の属性の辞書を作る）／
   # lean：質問者のプロセスの始めに掃除を 1 回の走査にし，生存の確かめを生のソケットへ直接問う．割り当ての結果は変わらない（httpcore 1.0.9・anyio 4.15.1 のみ）
   pool_assign: stock
+  # /v1/retrieve の本文の作り方（Iteration 14）．per_request：シャードごとに作る（従来）／pre_encoded：問ごとに埋め込みの JSON を 1 回だけ作り
+  # （probe_body: pre_encoded なら probe と共有），faiss のシャードの本文を bytes の連結で作る．ノードが受け取る本文はバイト単位で同じ
+  retrieve_body: per_request
   # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
   churn: null
 

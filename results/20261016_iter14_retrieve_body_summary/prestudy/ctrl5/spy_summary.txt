@@ -1,0 +1,120 @@
+== ctrl5/dp12_cur_spy_r1.spy.txt  主スレッドの標本 5998，作業スレッドの標本 311
+   33.0%  httpx の要求・応答の組み立て（_client・_models・_urls 等）
+   15.5%  anyio（ソケットの読み書き・属性）
+    9.3%  h11（HTTP/1.1 の組み立てと解析）
+    9.3%  httpcore 接続の池の割り当て（_assign_requests_to_connections）
+    8.3%  routing（atrium/routing）
+    7.6%  atrium のその他（記録・統合・JSON 行の書き出し）
+    7.6%  retrieve の本文の組み立て（RetrieveRequest・tolist・model_dump・json=）
+    3.6%  JSON の符号化（json/encoder）
+    3.1%  logging（httpx の INFO の 1 要求 1 行など）
+    1.5%  pydantic の検証（model_validate_json・model_dump 等）
+    0.8%  probe の本文の組み立て（encode_json_like_httpx・json=）
+    0.3%  asyncio.to_thread の受け渡し（主スレッド側）
+    0.1%  JSON の復号（json/decoder）
+  -- 葉の関数の上位 15
+   10.3%  iterencode (json/encoder.py:258)
+    4.9%  multi_centroid_score (atrium/routing/advert.py:58)
+    2.5%  write (asyncio/selector_events.py:1075)
+    2.4%  _run (asyncio/events.py:88)
+    2.1%  is_socket_readable (httpcore/_utils.py:37)
+    1.5%  _wrapreduction (numpy/_core/fromnumeric.py:86)
+    1.1%  validate (h11/_util.py:87)
+    1.0%  create_default_context (ssl.py:707)
+    0.9%  model_dump_json (pydantic/main.py:542)
+    0.8%  __exit__ (contextlib.py:144)
+    0.7%  current_async_library (httpcore/_synchronization.py:26)
+    0.7%  __enter__ (httpcore/_synchronization.py:101)
+    0.7%  emit (logging/__init__.py:1163)
+    0.7%  <genexpr> (httpx/_urlparse.py:223)
+    0.6%  create_cancel_scope (anyio/_backends/_asyncio.py:2598)
+== ctrl5/dp12_rshared_spy_r1.spy.txt  主スレッドの標本 5803，作業スレッドの標本 340
+   34.4%  httpx の要求・応答の組み立て（_client・_models・_urls 等）
+   16.9%  anyio（ソケットの読み書き・属性）
+   10.2%  h11（HTTP/1.1 の組み立てと解析）
+   10.1%  routing（atrium/routing）
+    8.9%  httpcore 接続の池の割り当て（_assign_requests_to_connections）
+    7.4%  atrium のその他（記録・統合・JSON 行の書き出し）
+    4.2%  JSON の符号化（json/encoder）
+    3.0%  logging（httpx の INFO の 1 要求 1 行など）
+    1.8%  pydantic の検証（model_validate_json・model_dump 等）
+    1.5%  retrieve の本文の組み立て（RetrieveRequest・tolist・model_dump・json=）
+    0.9%  probe の本文の組み立て（encode_json_like_httpx・json=）
+    0.4%  asyncio.to_thread の受け渡し（主スレッド側）
+    0.2%  JSON の復号（json/decoder）
+  -- 葉の関数の上位 15
+    6.2%  multi_centroid_score (atrium/routing/advert.py:58)
+    5.3%  iterencode (json/encoder.py:258)
+    2.8%  write (asyncio/selector_events.py:1075)
+    2.0%  _run (asyncio/events.py:88)
+    1.7%  is_socket_readable (httpcore/_utils.py:37)
+    1.5%  _wrapreduction (numpy/_core/fromnumeric.py:86)
+    1.2%  validate (h11/_util.py:87)
+    1.1%  __exit__ (contextlib.py:144)
+    1.0%  model_dump_json (pydantic/main.py:542)
+    1.0%  raw (httpx/_models.py:200)
+    0.9%  current_async_library (httpcore/_synchronization.py:26)
+    0.8%  create_default_context (ssl.py:707)
+    0.8%  model_validate_json (pydantic/main.py:782)
+    0.7%  __enter__ (httpcore/_synchronization.py:101)
+    0.7%  get (weakref.py:452)
+== ctrl5/fs_cur_spy_r1.spy.txt  主スレッドの標本 12230，作業スレッドの標本 591
+   36.5%  httpx の要求・応答の組み立て（_client・_models・_urls 等）
+   20.8%  anyio（ソケットの読み書き・属性）
+   12.3%  httpcore 接続の池の割り当て（_assign_requests_to_connections）
+   11.1%  h11（HTTP/1.1 の組み立てと解析）
+    7.7%  atrium のその他（記録・統合・JSON 行の書き出し）
+    4.3%  retrieve の本文の組み立て（RetrieveRequest・tolist・model_dump・json=）
+    3.4%  logging（httpx の INFO の 1 要求 1 行など）
+    1.8%  JSON の符号化（json/encoder）
+    0.8%  probe の本文の組み立て（encode_json_like_httpx・json=）
+    0.6%  pydantic の検証（model_validate_json・model_dump 等）
+    0.3%  routing（atrium/routing）
+    0.3%  asyncio.to_thread の受け渡し（主スレッド側）
+    0.0%  JSON の復号（json/decoder）
+  -- 葉の関数の上位 15
+    5.7%  iterencode (json/encoder.py:258)
+    3.3%  write (asyncio/selector_events.py:1075)
+    2.2%  _run (asyncio/events.py:88)
+    2.1%  is_socket_readable (httpcore/_utils.py:37)
+    1.5%  validate (h11/_util.py:87)
+    1.1%  current_async_library (httpcore/_synchronization.py:26)
+    1.0%  __exit__ (contextlib.py:144)
+    0.7%  create_cancel_scope (anyio/_backends/_asyncio.py:2598)
+    0.6%  __init__ (anyio/_backends/_asyncio.py:734)
+    0.6%  origin (httpcore/_models.py:291)
+    0.6%  _find_and_load (<frozen importlib._bootstrap>:1370)
+    0.6%  create_default_context (ssl.py:707)
+    0.6%  __getitem__ (weakref.py:415)
+    0.6%  model_validate_json (pydantic/main.py:782)
+    0.6%  __setitem__ (httpx/_models.py:304)
+== ctrl5/fs_rshared_spy_r1.spy.txt  主スレッドの標本 11964，作業スレッドの標本 580
+   37.3%  httpx の要求・応答の組み立て（_client・_models・_urls 等）
+   21.8%  anyio（ソケットの読み書き・属性）
+   13.4%  httpcore 接続の池の割り当て（_assign_requests_to_connections）
+   11.5%  h11（HTTP/1.1 の組み立てと解析）
+    8.1%  atrium のその他（記録・統合・JSON 行の書き出し）
+    3.4%  logging（httpx の INFO の 1 要求 1 行など）
+    2.0%  JSON の符号化（json/encoder）
+    0.7%  retrieve の本文の組み立て（RetrieveRequest・tolist・model_dump・json=）
+    0.7%  probe の本文の組み立て（encode_json_like_httpx・json=）
+    0.6%  pydantic の検証（model_validate_json・model_dump 等）
+    0.3%  asyncio.to_thread の受け渡し（主スレッド側）
+    0.3%  routing（atrium/routing）
+    0.1%  JSON の復号（json/decoder）
+  -- 葉の関数の上位 15
+    3.5%  write (asyncio/selector_events.py:1075)
+    2.7%  iterencode (json/encoder.py:258)
+    2.5%  is_socket_readable (httpcore/_utils.py:37)
+    2.2%  _run (asyncio/events.py:88)
+    1.3%  validate (h11/_util.py:87)
+    1.1%  current_async_library (httpcore/_synchronization.py:26)
+    1.0%  __exit__ (contextlib.py:144)
+    0.8%  __getitem__ (weakref.py:415)
+    0.6%  emit (logging/__init__.py:1163)
+    0.6%  _find_and_load (<frozen importlib._bootstrap>:1370)
+    0.6%  model_validate_json (pydantic/main.py:782)
+    0.6%  create_cancel_scope (anyio/_backends/_asyncio.py:2598)
+    0.6%  _run_once (asyncio/base_events.py:1984)
+    0.5%  __enter__ (httpcore/_synchronization.py:101)
+    0.5%  get (weakref.py:452)

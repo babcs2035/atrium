@@ -214,6 +214,7 @@ async def run_experiment(
             "http_pool": cfg.experiment.http_pool,
             "requester_procs": cfg.experiment.requester_procs,
             "probe_body": cfg.experiment.probe_body,
+            "retrieve_body": cfg.experiment.retrieve_body,
             "sniffio_lookup": cfg.experiment.sniffio_lookup,
             "sniffio_installed": sniffio_installed,
             "pool_assign": cfg.experiment.pool_assign,

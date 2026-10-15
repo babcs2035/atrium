@@ -1,0 +1,3 @@
+nodes up: 30
+{"variant": "rshared", "cfg": "cfg_dp12.yaml", "prof": false, "code": 0, "n_questions": 600, "failed": 0, "n_requests": 8400, "cpu_ms_per_req": 1.3989267857142857, "cpu_user_s": 11.111395, "cpu_sys_s": 0.63959, "cpu_util": 0.9838045170133181, "qps": 50.232615411217935, "req_per_s": 703.2566157570511, "pool_assign": "lean"}
+{"variant": "rshared", "cfg": "cfg_fs.yaml", "prof": false, "code": 0, "n_questions": 600, "failed": 0, "n_requests": 19200, "cpu_ms_per_req": 1.2913761458333335, "cpu_user_s": 23.476467, "cpu_sys_s": 1.317955, "cpu_util": 0.9791357304420625, "qps": 23.694096932981033, "req_per_s": 758.211101855393, "pool_assign": "lean"}

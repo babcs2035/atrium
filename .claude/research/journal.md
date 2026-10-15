@@ -3,6 +3,122 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 14: 質問者の検索要求の本文を問ごとに 1 回だけ符号化したときの処理量
+
+### 調査・計画（2026-10-16．research-cycle の phase 1）
+
+**レバーの由来**：backlog B37 [auto-decided]（Iteration 13 は採用）．config.yml の levers 末尾の `requester.retrieve_body: [pre_encoded]`（仮称）を，**config.yaml の新しいキー `experiment.retrieve_body`（`per_request`〔既定．今の挙動〕/ `pre_encoded`）**として確定した（backlog B38）．
+依存（uv.lock・イメージの版）・ノードの API・ノードが受け取る本文（バイト単位）・方式の選択・データ・シャード・`cluster`・`node_workers` は変えない．
+
+**事前の測定の方法**（B37 の指示．判定に使わない．スクリプトと出力は `results/20261016_iter14_retrieve_body_summary/prestudy/`）
+- Iteration 13 の `prestudy/run_ctrl.sh` と同じ手順：制御点 wafl-ctrl5 の `atrium-full:latest`（2026-10-15 23:48 の build．`apply_pool_assign` を含む）のコンテナ（`--network host`，`/data` は読み取りだけ）で，本物の `atrium node` 30 個（シャードは `/tmp/iter13_prestudy/shards` を読み取りだけで使い回した）と本物の `atrium run`（質問者 1 プロセス）を流した．
+  条件は Iteration 13 の事前の測定に **`pool_assign: lean`** を足したもの（600 問，parallel 30，`per_node`・`pre_encoded`・`blocked`，fs と dp12）．作業場所は制御点の `/tmp/iter14_prestudy/`（75 MB．データディレクトリではない）．
+- 変種（`run_one.py` の monkeypatch．本番のコードは変えていない）：**cur**（今の最良の構成），**rbody**（retrieve の本文の埋め込みの JSON を配列ごとに 1 回だけ作り，`shard_id`・`k`・`query_id` を差し替えた bytes を `content=` で送る），**rshared**（rbody に加えて probe の pre_encoded の本文と同じ埋め込みの JSON を共有する．問ごとの埋め込みの符号化は 1 回）．
+  rbody・rshared は最初の 200 本の本文を `RetrieveRequest(...).model_dump()` の json= の本文とバイト単位で比べ（違えば止める），全て一致した．600 問の `selected_sources`・`top_doc_ids` も cur と 600/600 一致した（`compare_selected.py`）．
+- 各変種 3 回（同じ回の中で cur → rbody → rshared を fs・dp12 の順に交互），その後に cur・rshared の py-spy（250 Hz，raw）を 1 回ずつ取った．項目の割り当ては Iteration 13 の `analyze_spy.py` に「retrieve の本文の組み立て」「probe の本文の組み立て」の項目を足したもの（`ctrl5/spy_summary.txt`）．
+
+**事前の測定で分かったこと**（事実）
+
+| 変種（3 回．600 問．失敗 0） | fs の 1 要求の CPU（ms） | 中央値 | fs の問/秒の中央値 | dp12 の 1 要求の CPU（ms） | 中央値 | dp12 の問/秒の中央値 |
+|---|---|---|---|---|---|---|
+| cur（lean の上の今の最良） | 1.347・1.323・1.325 | 1.325 | 23.10 | 1.490・1.479・1.478 | 1.479 | 47.65 |
+| rbody（retrieve だけ使い回す） | 1.312・1.307・1.320 | 1.312 | 23.33 | 1.491・1.437・1.442 | 1.442 | 48.82 |
+| **rshared（probe と共有）** | 1.306・1.289・1.330 | **1.306** | **23.53** | 1.398・1.446・1.393 | **1.398** | **50.29** |
+
+- rshared の節約は **dp12 で 0.081 ms（−5.5%．問/秒の比 1.055）**，fs で 0.019 ms（−1.4%．比 1.019）．同じ回の組の比（rshared ÷ cur の問/秒）は dp12 で 1.064・1.011・1.061，fs で 1.035・1.028・0.999 だった．fs の範囲は cur と重なる．rbody は rshared の約半分〜7 割の節約である（probe と共有しない分，問ごとに 1 回多く符号化する）．
+- py-spy の主スレッドの標本（cur）で，retrieve の本文の組み立て（`RetrieveRequest` の検証・`tolist`・`model_dump`・httpx の `json=`）は **dp12 7.6%・fs 4.3%**，rshared で dp12 1.5%・fs 0.7% に下がった．probe の本文の組み立ては両方とも 0.7〜0.9% で変わらない．
+- lean の上の cur の他の項目（dp12 / fs）：httpx の要求・応答の組み立て 33.0% / 36.5%（大半は `handle_async_request` の下の httpcore・h11・anyio の送受信），anyio 15.5% / 20.8%，h11 9.3% / 11.1%，割り当て（lean）9.3% / 12.3%，**routing（1 段目の `multi_centroid_score`）8.3%** / 0.3%，記録ほか 7.6% / 7.7%，logging 3.1% / 3.4%．
+  httpx の `build_request` の下の URL の解析（`_merge_url`・`urlparse`）は dp12 で約 4%．
+- **設定キーやコードの差し替えで挙動を変えずに除ける項目の中で，fs・dp12 の両方に効くのは retrieve の本文が最大**（dp12 では routing の 1 段目 8.3% と同じ程度で，routing は dp12 にしか効かない）．routing の 1 段目のベクトル化は浮動小数の和の順が変わり，選択の同一性をバイト単位では保証できない．B37 の選択を変えない．
+
+**調査で分かったこと**（tavily-search）
+- 同じ本文を複数の宛先へ送るときに符号化を 1 回にまとめる作りは，gRPC の Go の実装に `PreparedMsg`（v1.21.0 で追加，EXPERIMENTAL．「Marshalled and Compressed object」を作って複数のストリームへ送る）としてある（https://pkg.go.dev/google.golang.org/grpc ．2026-10-16 に確認）．Iteration 11 の `probe_body` と同じ考え方である．
+- orjson は json.dumps より速いが，戻り値が bytes で，浮動小数の表記（例：`1e-05` と `1e-5`）が標準の json と違いうる（https://github.com/ijl/orjson ，α-Lyrae「Beware of Performance Pitfalls in Third-Party Python JSON Libraries」https://chr.fan/en/python-json ）．**ノードが受け取る本文をバイト単位で同じに保つ条件と両立しない**ので使わない（表記の差の実例は確かめていない．推測）．
+
+**問い**：(1) retrieve の本文を問ごとに 1 回だけ（probe と共有して）符号化すると，lean の上で実機の dp12 × N = 1 の処理量は見込み（約 1.04 倍）どおり伸びるか．(2) 3 回の範囲の規則では検出できない大きさの効果を，交互に並べた組の比で検出できるか．
+
+**検出の見込み（B37 (a)）**
+- 見込み：実機への縮小の率（dp12 は 2 回続けて約 0.6，fs は約 0.8．Iteration 13 の学び）を掛けると，dp12 は 0.081 × 0.6 ≈ 0.049 ms の節約で 1 要求 約 1.18 → 1.13 ms，**処理量の比 約 1.04**．fs は 0.019 × 0.8 ≈ 0.015 ms で **比 約 1.015**．
+- Iteration 13 の 3 回の範囲は，dp12 × N = 1 で sk が中央値の −3.2%〜+0.4%，ln が −2.9%〜+2.4%（幅 4〜5%）で，**比 1.04 の差は「範囲が重ならない」規則では検出できない見込み**である．
+- 一方で，同じ回の中で隣り合う 2 実行の比（組の比）は Iteration 13 の dp12 × N = 1 で 1.090・1.111・1.093（中央値からの −0.3%〜+1.9%）と揃っていた（連続実行の中の時間の揺れが両方に掛かるため）．fs × N = 1 は 1.161・1.230・1.147（sk の r2 が低い）だった．
+- そこで **判定は組の比で行い，主の対象を dp12 × N = 1 に，N = 1 の回数を 5 回に増やす**．5 組の全てで比 > 1 となる確率は，差が無ければ 1/32（片側の符号検定 p = 0.031）．fs × N = 1 は見込みが組の比の揺れ（±1〜4%）より小さいので主にしない．
+
+**仮説**
+- **H-R1（主）**：dp12 × N = 1 で，有効な組の全てで pe ÷ pr の処理量の比が 1 を超え，かつ組の比の中央値が 1.02 以上．仕組み：N = 1 は質問者のプロセスが 1 コアに張り付いて律速（Iteration 11〜13 の事実 1）なので，1 要求の質問者の CPU の比の逆数だけ処理量が伸びる．
+- **H-R2**：fs × N = 1 で H-R1 と同じ規則が成り立つ（見込み 1.015 なので，成り立たない見込み）．
+- **H-R3（記録）**：fs・dp12 × N = 8 の組の比（3 組）．
+
+**単一レバー**：config.yaml の **`experiment.retrieve_body` を `per_request` → `pre_encoded`** と変える．それ以外（方式・D・N・parallel・問・`http_pool: per_node`・`probe_body: pre_encoded`・`sniffio_lookup: blocked`・`pool_assign: lean`・W = 1・依存）は両方の値で同じにする．
+- `per_request`（既定）は今の挙動（`_retrieve` がシャードごとに `embedding.tolist()` → `RetrieveRequest` → `model_dump()` → httpx の `json=`）．probe の pre_encoded の埋め込みの JSON の作り方も今のまま．
+- `pre_encoded` は，問ごと・検索器ごとに埋め込みの JSON を 1 回だけ作り（`probe_body: pre_encoded` のときは probe の本文と同じ bytes を共有する．事前の測定の rshared），faiss のシャードの retrieve の本文を `{"shard_id":…,"k":…,"embedding":<共有の bytes>,"query_id":…}` の連結で作って `content=` で送る．ノードが受け取る本文は `per_request` とバイト単位で同じ．faiss 以外（埋め込みを送らないシャード）は今の挙動のまま．
+- **実装**（phase 2 で行う．事前登録の commit に含める）
+  - `src/atrium/config.py`：`ExperimentConfig.retrieve_body: Literal["per_request", "pre_encoded"] = "per_request"`．`config.yaml` に `retrieve_body: per_request` とコメントを足す．
+  - `src/atrium/requester.py`：問の処理（`_routing` の前後で `embeddings` を得た直後）で，`probe_body` か `retrieve_body` が `pre_encoded` のときだけ検索器ごとの埋め込みの JSON（`encode_json_like_httpx(embeddings[encoder].tolist())`）を 1 回だけ作る小さな表を作り，`_probe`（今の `encoded_embeddings` の作成をこの表に置き換える）と `_snippets` → `_retrieve` へ渡す．
+    `retrieve_body: pre_encoded` かつ faiss のシャードなら，本文を bytes の連結で作り `post_with_retry` に bytes で渡す．`per_request` の経路は今のコードのまま（`retrieve_body: per_request` かつ `probe_body: pre_encoded` のとき，probe の埋め込みの符号化は今と同じ 1 回）．
+  - `src/atrium/experiment.py`：`run_meta.json` に `retrieve_body` を残す．
+  - テスト（`tests/test_retrieve_body.py`）：既定値が `per_request` であること．**本文のバイト単位の一致**：faiss のシャードで，`shard_id`（記号・非 ASCII を含む文字列）・`k`・`query_id`（文字列と None）・埋め込み（float32 の値，負の値，非常に小さい値〔指数表記になる値〕）を変えて，pre_encoded の bytes が `encode_json_like_httpx(RetrieveRequest(...).model_dump())` と一致すること．
+    **全体**：localhost で動かした本物のノード（`create_app` を uvicorn で 1 つ）へ per_request と pre_encoded で retrieve を送り，応答（`docs`）が一致すること．probe と共有したとき（`probe_body: pre_encoded`）にも probe の本文が今と同じ bytes であること．faiss 以外のシャードでは本文が今と同じであること．
+  - 文書：`docs/d0002_configuration.md`（`retrieve_body`），`docs/d0004_metrics.md`（`run_meta.json` の `retrieve_body`）．
+  - 連続実行：`results/20261016_iter14_retrieve_body_summary/` に `iter14_chain.sh`（`iter13_chain.sh` を写し，`retrieve_body` を `experiment` の直下のキーとして渡す）・`iter14_specs.template.txt`・`iter14_smoke_specs.template.txt`・集計 `iter14_summary.py`（下の規則を機械的に出す．合成の結果で動作を確かめる）．
+
+**固定する構成**：`dataset: enronqa`，`answer_mode: retrieval_only`，m = 2，`http_pool: per_node`，**`probe_body: pre_encoded`**，**`sniffio_lookup: blocked`**，**`pool_assign: lean`**（Iteration 11〜13 の採用の構成），parallel 30（全プロセスの合計），test の全 2,940 問（`question_limit: null`），**`node_workers: 1`**，T4 以来の 30 台 × 5 受信箱の配置，各回の前に deploy し直す．
+連続実行の間は制御点で他のコンテナ（事前の測定の `iter14-prestudy` を含む．削除済み）を動かさず commit もしない．依存は変えない．
+
+### 事前登録（2026-10-16．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**手順 0：実機の動作確認**（連続実行の前に 1 回．判定に使わない）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ 1 回も流さずに止め，backlog に `[needs-human]` を記録する．制御点に `iter14-prestudy` のコンテナが残っていないことを確かめる．
+2. `<date>_iter14_smoke_dp12_pe_n1`（`dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean retrieve_body=pre_encoded routing=device_probe routing.probe_d.enronqa=12 parallel=30 requester_procs=1`）を deploy → start → analyze で 1 回流す．続けて同じ条件で `requester_procs=8` を 1 回流す．
+3. 次を全て満たすことを確かめる．満たさなければ連続実行を流さず，原因を調べて記録する：失敗 0 問，300 問の `selected_sources` と `top_doc_ids` が Iteration 13 の `dp12_n1_ln_r1` の同じ問と全て一致，`run_meta.json` の `retrieve_body` = pre_encoded・`pool_assign` = lean・`probe_body` = pre_encoded・`sniffio_lookup` = blocked・`http_pool` = per_node・`requester_procs` が仕様どおり，`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない．
+   N = 1 の 1 要求あたりの質問者の CPU が Iteration 13 の dp12 × N = 1 × ln（中央値 1.178 ms）以下か（記録．300 問なので判定に使わない）．
+
+**手順 1：実機の連続実行**（`iter14_specs.template.txt` の `<date>` を実行日にした `iter14_specs.txt` を `iter14_chain.sh` に**絶対パス**で渡す）
+1. 環境の揺れの確認（前）：flood_score × N = 1 × parallel 30 × 300 問（`question_limit=2`）× `probe_body: per_request` × `sniffio_lookup: search` × `pool_assign: stock` × `retrieve_body: per_request` を 1 回（anchor_pre．Iteration 7〜13 の anchor と同じ条件）．
+2. 主の系列：全て `probe_body: pre_encoded`・`sniffio_lookup: blocked`・`pool_assign: lean`，2,940 問．`retrieve_body` ∈ {per_request（pr），pre_encoded（pe）}．
+   - 回 r = 1〜3：fs_n1 → fs_n8 → dp12_n1 → dp12_n8 の順に流す．
+   - 回 r = 4〜5：fs_n1 → dp12_n1 だけを流す（N = 1 の組を 5 組にするため）．
+   - 各組（同じ回・同じ方式・同じ N の pr と pe）は奇数の回で pr → pe，偶数の回で pe → pr の順にする．
+3. 環境の揺れの確認（後）：1 と同じ（anchor_post）．
+- 計 34 実行（手順 0 を除く．N = 1 が 20，N = 8 が 12，anchor が 2）．所要は約 3 時間の見込み．deploy の失敗の扱い・失敗率の打ち切りは Iteration 13 と同じ（`iter14_chain.sh`）．
+
+**指標**（Iteration 13 と同じ．`docs/d0004_metrics.md`）：処理量（成功した問の数 ÷（`finished_at` − `started_at`）），e2e_s・probe_s の p50・p95，失敗率，再試行の数（例外の型ごと），1 秒あたりの HTTP 要求の数，`requester_cpu_util`・`requester_cpu_util_per_proc` の中央値，`expert_cpu_util_max`（と最も忙しいノード），`control_cpu_busy`，2,940 問の hit@2，1 要求あたりの質問者の CPU（ms），`requester_tcp`，遅れの問の数（N = 8 だけ `probe_s` ≥ 0.9 秒，全ての実行で相対の閾値〔中央値の 5 倍〕）．
+**主の量**：各組の **組の比 q = pe の処理量 ÷ pr の処理量**．
+
+**正しさの確認**（満たさない実行は判定に使わず「欠け」とし，原因を調べて記録する）
+- G1：失敗率が 1% 以下．
+- G2（方式ごと）：その方式の全ての実行（pr・pe・N = 1・8）で，失敗の無い問の `selected_sources` と `top_doc_ids` が問ごとに 100% 一致する．成り立たなければその方式の判定に進まない（ノードが受け取る本文は同じなので変わらないはず）．
+- G3：`run_meta.json` の `retrieve_body`・`pool_assign` = lean・`httpcore_version` = 1.0.9・`sniffio_lookup` = blocked・`sniffio_installed` = false・`probe_body` = pre_encoded・`requester_procs`・`http_pool` = per_node・routing・D・`n_questions` が仕様と一致する．
+- G4（記録）：2,940 問の hit@2 が Iteration 8・11〜13 の値（fs 0.8041，dp12 0.6830）と一致するか．
+- G5（律速の読みだけに効く）：`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない．
+- **G6（N = 1 の組の有効性）**：N = 1 の組は，pr・pe の両方が G1・G3 を満たし，かつ両方の `requester_cpu_util_per_proc` の中央値が 0.95 以上のときだけ有効とする（N = 1 の比が 1 要求の CPU の比の逆数になるのは質問者が張り付いているときだけ．Iteration 13 の dp12 × N = 8 × ln の r1 は遅れで 0.673 だった）．無効な組は数えて記録する．
+
+**判定の規則**
+- **伸びた**（ある方式・N で pr → pe）：有効な組が 4 組以上あり，**有効な組の全てで q > 1.000**，かつ **q の中央値が 1.02 以上**．
+- **H-R1（主）**：dp12 × N = 1 が「伸びた」．
+- **H-R2**：fs × N = 1 が「伸びた」．
+- **H-R3（記録）**：fs × N = 8・dp12 × N = 8 の各 3 組の q（全て > 1 か，中央値）．N = 8 の組は G6 を当てず，遅れの問の数を併記する．
+- **このイテレーションの結論**：
+  - **棄却（測定不成立）**：G2 が dp12 で成り立たないか，G3 が 1 つでも不成立か，dp12 × N = 1 の有効な組が 4 組未満．原因を調べて記録する．
+  - **採用**（以後の負荷の実験は `retrieve_body: pre_encoded` を明示して流す．既定の値は `per_request` のまま）：上が当てはまらず，H-R1 が成り立つ．
+  - **部分的に支持**：H-R1 が成り立たないが，dp12 × N = 1 の有効な組の全てで q > 1.000（中央値 < 1.02），または dp12 × N = 1 の有効な組の全てで 1 要求の質問者の CPU が pe で小さい，または H-R2 が成り立つ．
+  - **棄却（伸びない）**：どれでもない．
+- 記録（判定に使わない）：**Iteration 13 と同じ範囲の規則**（3 回〔N = 1 は 5 回〕の範囲が重ならず中央値の比 ≥ 1.10．効果の大きさから成り立たない見込み）の出力，方式・N ごとの 1 要求あたりの質問者の CPU の pr と pe の差（事前の測定の dp12 0.081・fs 0.019 ms と，縮小の見込み dp12 約 0.049・fs 約 0.015 ms と比べる），組ごとの CPU の比，N = 8 の E(8)，`requester_cpu_util_per_proc`，新しい接続の数，`requester_tcp`．
+  律速の移りの読み（Iteration 12・13 と同じ）：dp12 × N = 8 × pe で `requester_cpu_util_per_proc` の中央値が 0.9 未満かつ最も忙しいノードの `expert_cpu_util` が 1.58 コア以上なら「律速が専門家ノードへ移った」と記録する．遅れの問の数が 10 問以上の実行はこの読みに使わない．
+
+**環境の揺れの規則**（記録のため）：anchor_pre・anchor_post の処理量が [11.127, 14.247] 問/秒，e2e p95 が [3.053, 4.067] 秒（Iteration 7〜13 と同じ範囲）に入るかを記録する．pr の主の系列の中央値が Iteration 13 の ln の同じ条件の範囲（fs N = 1：30.091〜30.714，fs N = 8：171.171〜171.672，dp12 N = 1：59.378〜62.591，dp12 N = 8：198.503〜307.596〔遅れの無い r2・r3 は 305.855〜307.596〕問/秒）から ±5% を超えて外れたら「環境が変わった」と記録する．比べる相手は同じ回の pr なので，判定の基準は変えない．
+
+**ノイズの見積もりと閾値の根拠**：組の比の揺れは Iteration 13 の dp12 × N = 1 で中央値から −0.3%〜+1.9%，fs × N = 1 で −1.2%〜+5.9%，事前の測定の dp12 で 1.011〜1.064 だった．閾値 1.02 は dp12 の見込み（約 1.04）の約半分で，dp12 の組の比の揺れの幅（約 2%）と同じ程度である．
+「全ての組で q > 1」は差が無いときに 5 組で 1/32，4 組で 1/16 の確率で起きる（片側の符号検定）．中央値の閾値と併せて，揺れだけで「伸びた」となる見込みは小さい．Iteration 13 までの「範囲が重ならず比 ≥ 1.10」より緩いので，**採用の判定は「質問者の CPU を削る系列の小さな効果の検出」に限った規則**として読む．
+
+**期待効果**（推測．判定に使わない）：dp12 × N = 1 は 1 要求 約 1.18 → 約 1.13 ms，処理量 約 61 → 約 63.5 問/秒（比 約 1.04）．fs × N = 1 は 約 1.03 → 約 1.02 ms，比 約 1.015．N = 8 は N = 1 の比より小さい見込み（Iteration 12・13 の事実 3）．律速は質問者のまま（dp12 × N = 8 の最も忙しいノードは 約 1.4 コアで閾値 1.58 に届かない見込み）．
+
+**記録に足さないもの**（B37 (c)）：dp12 × N = 8 の約 1 秒の遅れと SYN の再送の時刻の突き合わせ（1 秒ごとの `nstat`・専門家ノードの `ListenOverflows`）は，ノードのコードか連続実行の仕組みの変更が要り，このレバーと独立なので今回は足さない．`requester_tcp` は今のまま記録する．
+
+**限界**：有線 LAN・検索だけ・閉じた系・制御点 1 台の質問者．事前の測定はノードを同じ 12 コアで動かし，ループバックで測ったもので，縮小の率（dp12 約 0.6）も 2 回の観測からの推定である．判定の規則を組の比に変えたので，Iteration 11〜13 の判定と規則の強さが違う．
+
+**次の候補**：採用でも棄却でも，lean・pre_encoded の上の残りで挙動を変えずに除ける項目は dp12 の routing の 1 段目（約 8%．選択の同一性の確かめが要る）と httpx の URL の解析（約 4%）程度で，どれも単独では Iteration 14 と同じ程度以下の効果の見込みである．
+B37 (b) のとおり，その先は (i) HTTP クライアントの置き換え，(ii) 質問者を複数のデバイスに置く（B25 (a)．人間の判断），(iii) 負荷の系列を止めて RQ の研究へ戻る，のいずれかで，どれを選ぶかは人間の確認を求める．
+
 ## Iteration 13: 質問者の httpcore の接続の池の割り当ての走査を軽くしたときの処理量
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）
