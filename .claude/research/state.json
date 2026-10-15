@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 14,
-  "iteration_name": "質問者の検索要求の本文を問ごとに 1 回だけ符号化したときの処理量",
-  "phase": "evaluate",
-  "status": "running",
-  "current_lever": "experiment.retrieve_body: per_request -> pre_encoded",
-  "experiment_dir": "results/20261016_iter14_* (chain log: results/20261016_iter14_retrieve_body_summary/iter14_chain.log)",
-  "experiment_deadline": 1792107231,
-  "updated_at": 1792094392,
-  "last_slack_ts": "1792052966.099869",
-  "iteration_thread_ts": "1792084711.241459",
-  "notion_toggle_created": true,
-  "last_commit": "47c9b8b"
+  "iteration": 15,
+  "iteration_name": null,
+  "phase": "research",
+  "status": "blocked",
+  "current_lever": null,
+  "experiment_dir": null,
+  "experiment_deadline": null,
+  "updated_at": 1792084678,
+  "last_slack_ts": "1792094795.819769",
+  "iteration_thread_ts": null,
+  "notion_toggle_created": false,
+  "last_commit": "2d498dc"
 }
