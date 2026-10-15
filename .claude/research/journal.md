@@ -3,6 +3,138 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 13: 質問者の httpcore の接続の池の割り当ての走査を軽くしたときの処理量
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B35 [auto-decided]（Iteration 12 は採用．質問者 1 プロセスの処理量は 1 要求あたりの質問者の CPU でほぼ決まる）．config.yml の levers 末尾の `requester.next_cpu_item: [reduce]`（仮称）を，事前の測定で最大の項目と分かった
+**httpcore の接続の池の割り当て（`AsyncConnectionPool._assign_requests_to_connections`）の費用**を除く **config.yaml の新しいキー `experiment.pool_assign`（`stock`〔既定．今の挙動〕/ `lean`）**として確定した（backlog B36）．HTTP クライアントの置き換えはしない（B35 (b)）．依存（uv.lock・イメージの版）・ノードの API・要求の本文・方式の選択・データ・シャード・`cluster`・`node_workers` は変えない．
+
+**事前の測定の方法**（B35 の指示．判定に使わない．スクリプトと出力は `results/20261015_iter13_requester_cpu_summary/prestudy/`）
+- 制御点 wafl-ctrl5 の `atrium-full` のイメージ（`dc58854`）のコンテナ（`--network host`）の中で，**本物の `atrium node` を 30 個**（127.0.0.1:18100〜18129．実機の placement の 5 シャードずつ．シャードは `/home/denjo/atrium-data/enronqa/shards` の実体を `/tmp/iter13_prestudy/shards` へ写したもの．データディレクトリは読み取りだけ）と，**本物の `atrium run`（質問者 1 プロセス）**を流した．
+  Iteration 11・12 の `bench.py`（偽のノード・probe だけ）と違い，retrieve（m = 2）・to_thread・記録・routing を含む実際の経路である．条件は `dataset: enronqa`・`retrieval_only`・`question_limit: 4`（600 問）・parallel 30・`per_node`・`probe_body: pre_encoded`・`sniffio_lookup: blocked`，方式は fs と dp12（`probe_d = 12`）．
+- 内訳は py-spy 0.4.2（250 Hz，raw）と cProfile で取った．変種の効果は差し替え（`run_one.py` の monkeypatch．本番のコードは変えていない）を当てた 3 回の 1 要求あたりの質問者の CPU（`requester_cpu_s` ÷ HTTP 要求の数）で比べた．ノードが同じ 12 コアとループバックを使うので，1 要求の CPU は実機（fs 1.189・dp12 1.340 ms）より約 25〜30% 大きい．
+
+**事前の測定で分かったこと**（事実）
+- py-spy の主スレッドの標本（問の処理の区間）で，`_assign_requests_to_connections` を含む標本は **fs で 24.7%，dp12 で 15.8%** で，単一の関数（とその下）として最大である．そのうち待機中の接続の生存の確かめ（`has_expired` → `get_extra_info("is_readable")` → anyio の `extra_attributes` の辞書の組み立てと `getpeername`・`poll`）が fs 16.4%・dp12 10.9% を占める．
+  ほかの項目は，h11 の組み立てと解析（fs 9.9%・dp12 8.4%），JSON の符号化（fs 5.0%・dp12 10.4%．主に `/v1/retrieve` の `json=` の本文．pre_encoded の本文も含む），routing の 1 段目（dp12 8.6%），httpx の INFO のログ（3.1%），pydantic の検証（0.6〜2.0%），`current_async_library`（blocked の上で 0.9%）だった．
+- cProfile の 1 要求あたりの呼び出しの数（同期の関数だけ数えられる）：`has_expired` fs 31.7・dp12 18.5 回，`is_idle` fs 237・dp12 118 回（掃除の段の二重の走査による），`current_async_library`（httpcore）fs 8.6・dp12 6.5 回．
+  **B35 (d) の推測（dp12 では `current_async_library` の呼び出しが少ない）は数の上では支持される**（比 0.75．Iteration 12 の節約の比 0.62 より大きいので，それだけで説明し切れるかは分からない）．
+- 原因（コードから確かめたこと．`.venv` の httpcore 1.0.9）：`_assign_requests_to_connections` は要求の開始と終了のたびに（1 要求あたり数回）呼ばれ，池の全ての接続を走査する．待機中の接続ごとに `has_expired` がソケットの読み取り可否を確かめ，その中で anyio が属性の辞書を毎回作り `getpeername` を呼ぶ．
+  さらに掃除の段の `len([connection.is_idle() for connection in self._connections]) > self._max_keepalive_connections` は待機中の接続ごとに全接続のリストを作る（接続の数の 2 乗）．`per_node` の池には parallel 30 で 1 ノードあたり約 30 本の接続があり，fs は 1 問で全 30 台へ送るので走査が長い．
+  `per_node` は `httpx.Limits(max_connections=64)` で `max_keepalive_connections` を省くので，httpcore の中では上限が `sys.maxsize` になり，この条件は常に偽である（費用だけがかかる）．
+
+| 変種（3 回．600 問） | fs の 1 要求の CPU（ms） | 中央値 | fs の問/秒の中央値 | dp12 の 1 要求の CPU（ms） | 中央値 | dp12 の問/秒の中央値 |
+|---|---|---|---|---|---|---|
+| cur（今の最良の構成） | 1.551・1.569・1.555 | 1.555 | 19.82 | 1.664・1.657・1.629 | 1.657 | 42.66 |
+| fastread（生存の確かめを生のソケットへ直接 poll） | 1.373・1.378・1.369 | 1.373 | 22.38 | 1.522・1.531・1.507 | 1.522 | 46.35 |
+| linearonly（掃除の段を 1 回の走査に） | 1.506・1.490・1.506 | 1.506 | 20.46 | 1.627・1.618・1.631 | 1.627 | 43.39 |
+| **lean（= linear．上の 2 つを併せる）** | 1.329・1.340・1.332 | **1.332** | **23.02** | 1.478・1.479・1.484 | **1.479** | **47.59** |
+| cap8（per_node の上限 64 → 8．別の回） | 1.497・1.499・1.495 | 1.497 | 20.59 | 1.607・1.593・1.587 | 1.593 | 44.29 |
+| quiet（httpx の INFO のログを止める．別の回） | 1.476・1.518・1.511 | 1.511 | 20.42 | 1.603・1.591・1.589 | 1.591 | 44.38 |
+
+- lean の節約は fs 0.223 ms（−14.3%．問/秒の比 1.161），dp12 0.178 ms（−10.7%．比 1.116）で，測った変種のうち最大である．節約の約 8 割は fastread の部分による．3 回の幅は各変種で中央値の ±1.5% 以内で，cur と lean の範囲は fs・dp12 とも重ならない．失敗は全ての回で 0，再試行は 0〜1 回．
+- cap8・cap16（per_node の上限を下げて走査を短くする．httpx の公開の設定の範囲）は round 2 の cur（fs 1.539，dp12 1.643 ms 前後）に比べて 0〜−0.05 ms しか減らず，ログを止めるのも −0.03〜−0.05 ms だった．httpx の設定だけでは最大の項目を除けない．
+- lean を当てた後の py-spy では，置き換えた割り当ての関数（`poll` を含む）が fs 13.7%・dp12 8.7% に残り，次に大きいのは h11 の送受信，`/v1/retrieve` の本文の `json.dumps`（fs 5.6%・dp12 10.7%），dp12 の routing の 1 段目（7.6%）である．
+- `cur` の r1 は直前の動作確認の出力ディレクトリが残っていて再開扱い（0 問）になったので捨て，round 2 では同じ条件の直前の動作確認の値（fs 1.539・dp12 1.643 ms）を代わりに見た．表の cur は round 3 の 3 回（同じ回の中で cur・fastread・linearonly・lean を交互）である．
+
+**調査で分かったこと**（tavily-search・tavily-extract．今回は Web 検索が通った）
+- httpcore の上流に，同じ関数の書き直しの PR がある：VictorPrins, "Fix 2 bugs and improve performance from O(N²+NxM) to O(N+M) in _assign_requests_to_connections"（encode/httpcore PR #1035，2025-09-14 作成，**未マージ**．https://github.com/encode/httpcore/pull/1035 ）．
+  PR の説明では，(Bug 1) `len([connection.is_idle() ...])` が待機中の数ではなく全接続の数を返し `max_keepalive_connections` を守らない（PR #1000 も同じ修正で，承認済み・未マージと書かれている），(Bug 2) 待ち行列の複数の要求が同じ HTTP/1.1 の接続へ割り当てられうる，(性能) 要求の開始と終了の 2 回ずつ呼ばれる hot path で，作者のアプリでは全標本の 59% → 4%・CPU 使用率が半分になった，とある（作者の報告で，独立の確認ではない）．
+- PyPI の httpcore の最新は 1.0.9（2025-04-24）で，上の修正を含む版は出ていない（2026-10-15 に PyPI の JSON で確認）．**依存の版を上げて解決する道は今は無い**．
+- httpx の同時の要求での CPU の重さ（encode/httpx #3215 → pydantic/httpx2 #827．Iteration 11 に記録）は，今回の割り当ての走査と同じ層の話である．aiohttp への置き換えは B35 (b) のとおり扱わない．
+
+**形の判断**：httpx の `AsyncHTTPTransport` は httpcore の `network_backend` を受け取らず，公開の設定（上限・keepalive）では効かない（上の cap8・cap16）．そこで Iteration 12 の `sniffio_lookup` と同じく，**質問者のプロセスの始めに httpcore の 2 か所を差し替える設定キー**にする．
+(1) 同じイメージで stock と lean を交互に流せる．(2) 質問者のプロセスだけに効き，専門家ノード・node-bench の負荷生成は変わらない．(3) 依存の版は変えない．
+差し替えは httpcore 1.0.9・anyio 4.15.1 の内部（`AsyncConnectionPool._assign_requests_to_connections`，`httpcore._backends.anyio.AnyIOStream.get_extra_info`，anyio の `SocketStream._raw_socket`）に依存するので，版が違えば lean を拒んで止める（黙って stock に戻さない）．
+
+**差し替えの中身**（挙動を変えないことを条件にする）
+- **掃除の段を 1 回の走査に**：元の掃除の段（閉じた接続を除き，期限切れの接続を閉じ，`len(今の接続のリスト) > max_keepalive` なら待機中の接続を閉じる）を，各時点のリストの長さを数で持って 1 回の走査で同じ結果にする．**Bug 1 の挙動（全接続の数で比べる）も含めて元と同じにする**（PR #1035 の修正は取り込まない．`per_node` の下では条件は常に偽で差は出ない）．
+  割り当ての段（使える接続 → 新しい接続 → 待機中の接続を閉じて作り直す）は元と同じ順・同じ選び方にする（Bug 2 も元のまま）．
+- **生存の確かめを生のソケットへ直接**：`get_extra_info("is_readable")` だけを，anyio の属性の辞書を通らずに同じ `httpcore._utils.is_socket_readable(生のソケット)` で答える．anyio の `raw_socket` の属性は同じソケットを返すので，判定の値は同じ．他の `get_extra_info` は元のまま．
+
+**問い**：(1) 池の割り当ての走査を軽くすると，`pre_encoded`・`blocked` の上で実機の質問者 1 プロセスの処理量は事前の測定と同じ程度（fs 約 1.15 倍）伸びるか．(2) dp12 でも伸びるか．(3) N = 8 で律速が専門家ノードへ移るか．
+
+**仮説**
+- **H-P1（主）**：flood_score × N = 1 で，lean の 3 回の処理量の範囲が stock の範囲より上にあり重ならず，かつ中央値の比が 1.10 以上．仕組み：N = 1 は質問者のプロセスが 1 コアに張り付いて律速（Iteration 11・12 の事実 1）なので，1 要求の CPU の比の逆数だけ処理量が伸びる．
+- **H-P2**：device_probe（D = 12）× N = 1 で H-P1 と同じ規則が成り立つ（事前の測定の比は 1.116 で，余裕は小さい）．
+- **H-P3（記録）**：N = 8 で fs・dp12 のそれぞれ H-P1 と同じ規則が成り立つ．
+
+**単一レバー**：config.yaml の **`experiment.pool_assign` を `stock` → `lean`** と変える．それ以外（方式・D・N・parallel・問・`http_pool: per_node`・`probe_body: pre_encoded`・`sniffio_lookup: blocked`・ノードの W = 1・依存）は両方の値で同じにする．
+2 つの差し替えは同じ 1 つの項目（`_assign_requests_to_connections` とその下の生存の確かめ）の費用を除くためのもので，1 つのキーで同時に切り替える．片方ずつの効果は上の事前の測定の値を記録として使い，実機では分けない．
+- **実装**（phase 2 で行う．事前登録の commit に含める）
+  - `src/atrium/config.py`：`ExperimentConfig.pool_assign: Literal["stock", "lean"] = "stock"`．`config.yaml` に `pool_assign: stock` とコメントを足す．
+  - `src/atrium/requester.py`（`apply_sniffio_lookup` の近く）：`apply_pool_assign(mode: str) -> str`（httpcore の版を返す）．`lean` なら httpcore 1.0.9 であること・`AnyIOStream` と anyio の `SocketStream` に必要な属性があることを確かめてから 2 か所を差し替え，違えば `RuntimeError` で止める．同じプロセスで 2 回呼んでも 1 回だけ当てる．当てたら INFO のログを 1 行出す（spawn の子で当たったことを requester.log で確かめるため．Iteration 12 の事実 9）．差し替えの理由（上の事実と PR #1035）をコメントに書く．
+    `run_experiment`（`apply_sniffio_lookup` の直後，client を作る前）と `requester_procs._worker_main`（同じく `apply_sniffio_lookup` の直後）の 2 か所から呼ぶ．
+  - `src/atrium/experiment.py`：`run_meta.json` に `pool_assign` と `httpcore_version` を残す．
+  - **記録の指標の修正（B35 (a)．判定に使わない．記録だけの変更）**：(i) `post_with_retry` の warning に例外の型名を足す（`retrying %s (%d/%d): %s`）．
+    (ii) `run_experiment` が問の処理の区間の前後で**自分のネットワークの名前空間**の `/proc/net/snmp` の `Tcp: RetransSegs` と `/proc/net/netstat` の `TcpExt: TCPSynRetrans`・`TCPTimeouts` を読み，差分を `run_meta.json` の `requester_tcp`（読めなければ null）に残す（N ≥ 2 の spawn の子も同じコンテナの名前空間なので，親の前後で全体を数えられる）．`iter12_chain.sh` のホストの `nstat` は使わない．
+  - テスト（`tests/test_pool_assign.py`）：既定値が `stock` であること．`stock` では httpcore を差し替えないこと．
+    **掃除と割り当ての同値**：閉じた・期限切れ・待機中・使用中の接続と待ち行列の要求を持つ偽の接続・要求（`is_closed`・`has_expired`・`is_idle`・`is_available`・`can_handle_request` を持つ小さなクラス）を種を変えて多数作り，`max_keepalive_connections` を `sys.maxsize` と小さい値（1・3）・`max_connections` を余裕ありと上限ちょうどにして，元の関数と lean の関数が返す閉じる接続の列・残る接続の列（順を含む）・各要求の割り当て先が一致すること．
+    **生存の確かめの同値**：localhost の本物の TCP の接続で，相手が何も送っていないとき・相手が閉じた後のそれぞれで，元の `get_extra_info("is_readable")` と lean の値が一致すること．
+    **全体**：localhost で動かした本物のノード（`create_app` を uvicorn で 1 つ）へ lean で probe と retrieve を同時に複数送り，応答が stock と一致すること．版が違うときに lean が `RuntimeError` になること（`monkeypatch` で版の文字列を変える）．テストの後に差し替えを元に戻す（fixture）．
+  - 文書：`docs/d0002_configuration.md`（`pool_assign`），`docs/d0004_metrics.md`（`run_meta.json` の `pool_assign`・`httpcore_version`・`requester_tcp`，遅れの問の数え方）．
+  - 連続実行：`results/20261015_iter13_requester_cpu_summary/` に `iter13_chain.sh`（`iter12_chain.sh` を写し，`pool_assign` を `experiment` の直下のキーとして渡す．ホストの `nstat` の記録は除く）・`iter13_specs.template.txt`・`iter13_smoke_specs.template.txt`・集計 `iter13_summary.py`（下の規則を機械的に出す．合成の結果で動作を確かめる）．
+
+**固定する構成**：`dataset: enronqa`，`answer_mode: retrieval_only`，m = 2，`http_pool: per_node`，**`probe_body: pre_encoded`**，**`sniffio_lookup: blocked`**（B35 (c)．Iteration 11・12 の採用の構成），parallel 30（全プロセスの合計），test の全 2,940 問（`question_limit: null`），**`node_workers: 1`**，T4 以来の 30 台 × 5 受信箱の配置，各回の前に deploy し直す（Iteration 8・11・12 と同じ）．
+連続実行の間は制御点で他のコンテナを動かさず commit もしない．依存は変えない．
+
+### 事前登録（2026-10-15．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**手順 0：実機の動作確認**（連続実行の前に 1 回．判定に使わない）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ 1 回も流さずに止め，backlog に `[needs-human]` を記録する．制御点に事前の測定のコンテナ（`iter13-prestudy`）が残っていないことを確かめる．
+2. `<date>_iter13_smoke_fs_ln_n1`（`dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node probe_body=pre_encoded sniffio_lookup=blocked pool_assign=lean routing=flood_score parallel=30 requester_procs=1`）を deploy → start → analyze で 1 回流す．続けて同じ条件で `requester_procs=8` を 1 回流す．
+3. 次を全て満たすことを確かめる．満たさなければ連続実行を流さず，原因を調べて記録する：失敗 0 問，300 問の `selected_sources` が `results/20261015_iter8_anchor_fs_n1_p30_post/results.jsonl` と 300/300 一致，`run_meta.json` の `pool_assign` = lean・`httpcore_version` = 1.0.9・`sniffio_lookup` = blocked・`probe_body` = pre_encoded・`http_pool` = per_node・`requester_procs` が仕様どおり，`requester_tcp` が null でない，`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない，
+   N = 1 の 1 要求あたりの質問者の CPU が Iteration 12 の fs × N = 1 × bk（1.189 ms）より小さい（記録．効いていることの粗い確かめ），N = 8 の requester.log に spawn の子が lean を当てた記録（`apply_pool_assign` の INFO の 1 行を子ごとに出す）が 8 件ある．
+
+**手順 1：実機の連続実行**（`iter13_specs.template.txt` の `<date>` を実行日にした `iter13_specs.txt` を `iter13_chain.sh` に**絶対パス**で渡す）
+1. 環境の揺れの確認（前）：flood_score × N = 1 × parallel 30 × 300 問（`question_limit=2`）× `probe_body: per_request` × `sniffio_lookup: search` × `pool_assign: stock` を 1 回（anchor_pre．Iteration 7〜12 の anchor と同じ条件）．
+2. 主の系列：方式 {fs，dp12（`routing=device_probe routing.probe_d.enronqa=12`）} × N ∈ {1, 8} × `pool_assign` ∈ {stock（sk），lean（ln）} × 3 回，2,940 問，全て `probe_body: pre_encoded`・`sniffio_lookup: blocked`．
+   各回の中は fs_n1 → fs_n8 → dp12_n1 → dp12_n8 の順に流し，各組で r1・r3 は sk → ln，r2 は ln → sk の順にする（時間の揺れを両方の値に均等に掛けるため）．
+3. 環境の揺れの確認（後）：1 と同じ（anchor_post）．
+- 計 26 実行（手順 0 を除く）．所要は約 2〜2.5 時間の見込み（Iteration 11・12 と同じ形）．deploy の失敗の扱い・失敗率の打ち切りは Iteration 12 と同じ（`iter13_chain.sh`）．
+
+**指標**（Iteration 12 と同じ．`docs/d0004_metrics.md`）：処理量（成功した問の数 ÷（`finished_at` − `started_at`）），e2e_s・probe_s の p50・p95，失敗率，再試行の数，1 秒あたりの HTTP 要求の数，`requester_cpu_util`・`requester_cpu_util_per_proc` の中央値，`expert_cpu_util_max`（と最も忙しいノード），`control_cpu_busy`，2,940 問の hit@2，1 要求あたりの質問者の CPU（ms）．主の量は各条件の 3 回の処理量（最小〜中央値〜最大）．
+**記録の指標**（B35 (a)．判定に使わない）：
+- **遅れの問の数は N = 8 の実行だけで数える**：`probe_s` ≥ 0.9 秒の問の数と，そのうち `probe_node_s_max` < 0.5 秒の数．N = 1 では数えない（Iteration 12 の事実 3．質問者の CPU の待ち行列で probe_s の中央値が 0.7〜1 秒になる）．併せて全ての実行で「`probe_s` がその実行の `probe_s` の中央値の 5 倍以上の問の数」（相対の閾値）を出す．
+- **質問者の TCP の再送**：`run_meta.json` の `requester_tcp`（質問者のコンテナのネットワークの名前空間の差分）．
+- **再試行の例外の型ごとの数**：requester.log の `retrying ... : <型名>` を数える．
+- **遅れの無い実行だけの中央値**（N = 8 のみ．遅れの問の数が 0 の実行の処理量の中央値．参考値）．
+
+**正しさの確認**（満たさない実行は判定に使わず「欠け」とし，原因を調べて記録する）
+- G1：失敗率が 1% 以下．
+- G2（方式ごと）：その方式の全ての実行（sk・ln・N = 1・8）で，失敗の無い問の `selected_sources` が問ごとに 100% 一致する．成り立たなければその方式の判定に進まない（要求も本文も同じなので選択は変わらないはず）．
+- G3：`run_meta.json` の `pool_assign`・`httpcore_version` = 1.0.9・`sniffio_lookup` = blocked・`sniffio_installed` = false・`probe_body` = pre_encoded・`requester_procs`・`http_pool` = per_node・routing・D・`n_questions` が仕様と一致する．
+- G4（記録）：2,940 問の hit@2 が Iteration 8・11・12 の値（fs 0.8041，dp12 0.6830）と一致するか．
+- G5（律速の読みだけに効く）：`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない．
+
+**環境の揺れの規則**（記録のため）：anchor_pre・anchor_post の処理量が [11.127, 14.247] 問/秒，e2e p95 が [3.053, 4.067] 秒（Iteration 7〜12 と同じ範囲）に入るかを記録する．stock の主の系列の値が Iteration 12 の bk の同じ条件の範囲（fs N = 1：24.850〜26.617，fs N = 8：138.133〜161.288，dp12 N = 1：44.376〜54.251，dp12 N = 8：276.325〜294.681 問/秒）から ±5% を超えて外れたら「環境が変わった」と記録する．
+比べる相手は同じ連続実行の中の stock なので，判定の基準は変えない．
+
+**判定の規則**（比べる 2 条件の 3 回の範囲が重ならないときだけ「差がある」）
+- **伸びた**（ある方式・N で sk → ln）：ln の 3 回の処理量の範囲が sk の範囲より上にあり重ならず，かつ中央値の比 ln ÷ sk が 1.10 以上．
+- **H-P1（主）**：fs × N = 1 が「伸びた」．
+- **H-P2**：dp12 × N = 1 が「伸びた」．
+- **H-P3（記録）**：fs × N = 8・dp12 × N = 8 のそれぞれが「伸びた」（遅れの問の数を併記する）．
+- **このイテレーションの結論**：
+  - **棄却（測定不成立）**：G2 が fs で成り立たないか，G3 が 1 つでも不成立か，fs × N = 1 の sk・ln のいずれかで有効な実行が 2 回未満．原因を調べて記録する．
+  - **採用**（以後の負荷の実験は `pool_assign: lean` を明示して流す．既定の値は `stock` のまま）：上が当てはまらず，H-P1 が成り立つ．
+  - **部分的に支持**：H-P1 が成り立たないが，fs × N = 1 の ln の範囲が sk の範囲より上にある（比 < 1.10），または H-P2 が成り立つ．
+  - **棄却（伸びない）**：どれでもない（事前の測定の節約が実機では効かない．実機の質問者を py-spy で取り直す）．
+- 記録（判定に使わない）：方式・N ごとの比，1 要求あたりの質問者の CPU の sk と ln の差（事前の測定の fs 0.223・dp12 0.178 ms と，実機の大きさへ縮めた見込み fs 約 0.17・dp12 約 0.14 ms と比べる），N = 8 の E(8) の変化，`requester_cpu_util_per_proc` が 1 に張り付いたままか，e2e p95 の変化，新しい接続の数．
+  **律速の移りの読み**（Iteration 12 と同じ）：dp12 × N = 8 × ln で `requester_cpu_util_per_proc` の中央値が 0.9 未満かつ最も忙しいノードの `expert_cpu_util` が 1.58 コア以上なら「律速が専門家ノードへ移った」と記録する．遅れの問の数が 10 問以上の実行はこの読みに使わない．
+
+**ノイズの見積もり**：Iteration 12 の 3 回の処理量の幅は，N = 1 で中央値の −0.9%〜+0.3%（fs sr）・−1.0%〜+0.8%（fs bk の r1 を除く）・−11.7%〜+7.9%（dp12 bk．遅れと再試行による），N = 8 で −5.7%〜+12.1%（fs）・−5.2%〜+1.1%（dp12 bk）だった．事前の測定の 3 回の幅は ±1.5% 以内．
+閾値 1.10 は fs × N = 1 の幅の約 10 倍で，範囲が重ならない規則を併用する．dp12 × N = 1 は事前の測定の比が 1.116 と閾値に近く，Iteration 12 のような遅れが 1 回でも出れば範囲が重なりうるので，主の仮説にしない（H-P2）．
+
+**期待効果**（推測．判定に使わない）：事前の測定の節約（fs 0.223 ms，dp12 0.178 ms）を実機と事前の測定の 1 要求の CPU の比（fs 1.189 ÷ 1.555 = 0.76，dp12 1.340 ÷ 1.657 = 0.81）で縮めると，fs × N = 1 は 1.189 → 約 1.02 ms，処理量は 26.4 → 約 30.8 問/秒（比 約 1.17）．
+dp12 × N = 1 は 1.340 → 約 1.20 ms，50.3 → 約 56 問/秒（比 約 1.12）．N = 8 は Iteration 11・12 のとおり N = 1 の比からは見積もれない．dp12 × N = 8 で最も忙しいノードは約 1.3 → 1.45 コアの見込みで，閾値 1.58 には届かない見込み．
+
+**限界**：有線 LAN・検索だけ・閉じた系・制御点 1 台の質問者．lean は httpcore 1.0.9・anyio 4.15.1 の内部に依存する実験のための差し替えで，依存の版を上げれば作り直しが要る．上流の PR #1035 の Bug 1・Bug 2 の修正は取り込まない（挙動を変えないため）．待機中の接続ごとの `poll` は残る（lean の後も fs で約 14%）．
+事前の測定はノードを同じ 12 コアで動かし，ループバックで測ったものなので，実機の節約の大きさは前後しうる．
+
+**次の候補**：採用なら，lean の上の残り（h11 の送受信，`/v1/retrieve` の本文の `json.dumps`〔dp12 で約 11%〕，dp12 の routing の 1 段目〔約 8%〕）を同じ方法（本物のノード 30 個と本物の `atrium run` の事前の測定）で取り直し，最大の項目を 1 つ除く．dp12 × N = 8 で律速が専門家ノードへ移ったと読めたら，負荷の実験の `node_workers` の扱い（B31 (a)）を人間に確かめる．棄却なら，実機の質問者を py-spy で取り直す．
+
 ## Iteration 12: 質問者の要求ごとの sniffio の import の失敗を除いたときの処理量
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）

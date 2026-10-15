@@ -179,7 +179,10 @@ levers:
      note: "Iteration 12 の評価で追加（backlog B35 [auto-decided]）．仮称．probe_body: pre_encoded・sniffio_lookup: blocked の上で，質問者の 1 要求の CPU（fs N = 1 で約 1.19 ms）の残りの内訳で最大の項目を 1 つ除く．
             phase 1 で制御点の事前の測定（Iteration 11・12 の bench.py．偽のノード 30 個．cProfile・可能なら py-spy）を fs と dp12 の両方の要求の形で取り，項目を選ぶ．候補は httpcore の接続の池の走査（_assign_requests_to_connections），h11 の組み立てと解析，anyio，ProbeResponse.model_validate_json．
             比べる条件は Iteration 12 と同じ形（fs・dp12 × N ∈ {1, 8} × 3 回，2,940 問，per_node，W = 1，前後の anchor）．HTTP クライアントの置き換えは大きな変更なので，httpcore の設定・使い方の範囲で減らせる項目を優先する（B35 (b)）．
-            記録の指標を直す：遅れの問は N = 8 だけで数えるか閾値を相対にし，TCP の再送は質問者のコンテナのネットワークの名前空間で取り，再試行の例外の型を残す（B35 (a)）．形・キー名・判定の規則は rc-researcher が事前登録で決める"}
+            記録の指標を直す：遅れの問は N = 8 だけで数えるか閾値を相対にし，TCP の再送は質問者のコンテナのネットワークの名前空間で取り，再試行の例外の型を残す（B35 (a)）．形・キー名・判定の規則は rc-researcher が事前登録で決める．
+            Iteration 13 の rc-researcher が確定（backlog B36）：最大の項目は httpcore の接続の池の割り当て（_assign_requests_to_connections．py-spy で fs 24.7%・dp12 15.8%）．キーは `experiment.pool_assign`（stock〔既定〕/ lean）．
+            lean は質問者のプロセスの始めに，掃除の段を同じ結果の 1 回の走査に，待機中の接続の生存の確かめを生のソケットへの直接の poll に差し替える（httpcore 1.0.9 以外では止める）．事前の測定（制御点・本物のノード 30 個と本物の atrium run）で fs 1.555 → 1.332 ms，dp12 1.657 → 1.479 ms．
+            fs・dp12 × N ∈ {1, 8} × sk・ln × 3 回（2,940 問，pre_encoded・blocked）＋前後の anchor の 26 実行．主の仮説は fs × N = 1 で比 ≥ 1.10．事前登録は journal の Iteration 13"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

@@ -13,6 +13,14 @@ PROC_STAT = Path("/proc/stat")
 PROC_SELF_CGROUP = Path("/proc/self/cgroup")
 CGROUP_ROOT = Path("/sys/fs/cgroup")
 CGROUP_V2_PREFIX = "0::"
+PROC_NET_SNMP = Path("/proc/net/snmp")
+PROC_NET_NETSTAT = Path("/proc/net/netstat")
+# 区間の前後の差を取る TCP の再送系の計数（/proc/net/snmp の Tcp: と /proc/net/netstat の TcpExt:）
+TCP_COUNTERS: tuple[tuple[str, str], ...] = (
+    ("Tcp", "RetransSegs"),
+    ("TcpExt", "TCPSynRetrans"),
+    ("TcpExt", "TCPTimeouts"),
+)
 
 
 @dataclass(frozen=True)
@@ -85,3 +93,39 @@ def busy_fractions(before: CpuSample | None, after: CpuSample | None) -> tuple[f
         return None
     total = after.total - before.total
     return (after.busy - before.busy) / total, (after.softirq - before.softirq) / total
+
+
+def parse_proc_net_counters(text: str) -> dict[str, dict[str, int]]:
+    """/proc/net/snmp・/proc/net/netstat の書式（同じ接頭辞の「名前の行」と「値の行」の対）を，接頭辞 → 名前 → 値に読む．"""
+    lines = text.splitlines()
+    parsed: dict[str, dict[str, int]] = {}
+    for names_line, values_line in zip(lines[0::2], lines[1::2], strict=False):
+        prefix, _, names = names_line.partition(":")
+        values = values_line.partition(":")[2].split()
+        parsed[prefix] = {name: int(v) for name, v in zip(names.split(), values, strict=False)}
+    return parsed
+
+
+def read_tcp_counters() -> dict[str, int] | None:
+    """このプロセスのネットワークの名前空間の TCP の再送系の計数（TCP_COUNTERS）．読めなければ None．
+
+    コンテナの中の /proc/net/* はそのコンテナの名前空間の値なので，host ネットワークのコンテナでは
+    ホスト全体（他の通信を含む）の値になる．区間の前後の差を取って使う．
+    """
+    if not PROC_NET_SNMP.exists() or not PROC_NET_NETSTAT.exists():
+        return None
+    merged = parse_proc_net_counters(PROC_NET_SNMP.read_text(encoding="utf-8"))
+    merged.update(parse_proc_net_counters(PROC_NET_NETSTAT.read_text(encoding="utf-8")))
+    try:
+        return {name: merged[prefix][name] for prefix, name in TCP_COUNTERS}
+    except KeyError:
+        return None
+
+
+def diff_tcp_counters(
+    before: dict[str, int] | None, after: dict[str, int] | None
+) -> dict[str, int] | None:
+    """2 つの標本の各計数の差．どちらかが読めていなければ None．"""
+    if before is None or after is None:
+        return None
+    return {name: after[name] - before[name] for name in after}

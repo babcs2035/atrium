@@ -17,6 +17,21 @@
 
 ---
 
+## B36 [auto-decided 2026-10-15] Iteration 13 のレバーの形：`experiment.pool_assign`（httpcore の接続の池の割り当ての走査を，挙動を変えずに軽くする差し替え）
+
+- 状況: B35 で，質問者の 1 要求の CPU の残りで最大の項目を，制御点の事前の測定（fs と dp12）で選び，形・キー名・判定の規則を rc-researcher が事前登録で決めることになっていた．HTTP クライアントの置き換えは避ける（B35 (b)）．
+- 自動選択: **config.yaml の新しいキー `experiment.pool_assign`（`stock`〔既定．今の挙動〕/ `lean`）**．lean は質問者のプロセス（`atrium run` と spawn の子）の始めに，httpcore 1.0.9 の `AsyncConnectionPool._assign_requests_to_connections` を同じ結果を返す 1 回の走査の版に，`AnyIOStream.get_extra_info("is_readable")` を生のソケットへ直接 `poll` する版に差し替える（版が違えば止める）．
+  比べる条件は fs・dp12 × N ∈ {1, 8} × sk・ln × 3 回（2,940 問，`pre_encoded`・`blocked`・`per_node`・W = 1 を固定）と前後の anchor の計 26 実行．主の仮説 H-P1 は「fs × N = 1 で ln の範囲が sk より上で重ならず，中央値の比 ≥ 1.10」．事前登録は journal の Iteration 13．
+  B35 (a) の記録の指標の修正（遅れの問は N = 8 だけ，TCP の再送は質問者の名前空間で `run_meta.json` の `requester_tcp`，再試行の例外の型名）を同じ commit に含める．
+- 根拠: (1) 制御点で本物のノード 30 個と本物の `atrium run` を流した py-spy で，`_assign_requests_to_connections` を含む標本が fs 24.7%・dp12 15.8% で最大（次は h11 約 9%，JSON の符号化 fs 5%・dp12 10%，dp12 の routing 9%）．
+  (2) 差し替えの効果は 3 回の測定で fs 1.555 → 1.332 ms（問/秒 1.161 倍），dp12 1.657 → 1.479 ms（1.116 倍）．httpx の公開の設定（per_node の上限を 8・16 に下げる）やログを止めるのは 0.05 ms 以下の節約だった（`results/20261015_iter13_requester_cpu_summary/prestudy/`）．
+  (3) 上流に同じ関数の書き直しの PR（encode/httpcore #1035，2025-09．未マージ）があり，PyPI の最新は 1.0.9 で版を上げる解決は無い．(4) 設定キーなら同じイメージで交互に流せ，質問者だけに効く（Iteration 12 と同じ設計）．
+- 要レビュー: (a) **lean は httpcore・anyio の非公開の内部への差し替え**で，既定の値は `stock` のまま変えない．依存の版を上げたときに作り直すか，上流の修正（PR #1035・#1000）が出たら版の更新に置き換えるかは人間の判断に残す．
+  (b) 2 つの差し替え（掃除の段の 1 回の走査・生存の確かめの近道）を 1 つのキーにまとめた．同じ 1 つの関数とその下の費用であり，片方ずつの効果は事前の測定（fastread 0.18 ms・linearonly 0.05 ms．fs）で記録した．実機で分けて測るかは結果を見て決める．
+  (c) 上流の PR の Bug 1（`max_keepalive_connections` の数え方）・Bug 2（待ち行列の要求の重複の割り当て）は直さずに元の挙動のまま再現する（テストで元の関数と突き合わせる）．`per_node` の下では Bug 1 の条件は常に偽で，待ち行列は上限 64 に届かないので起きない見込み．
+  (d) 制御点の `/tmp/iter13_prestudy/`（シャードの実体の複製 374 MB を含む使い捨ての作業場所）は残してある．次の事前の測定で使い回せる．不要なら削除してよい（データディレクトリではない）．
+  (e) 事前の測定の方法を，偽のノードの `bench.py` から「本物のノード 30 個＋本物の `atrium run`」（`prestudy/run_ctrl.sh`）に変えた．retrieve・routing・記録を含むので，以後の項目の選択はこちらを使う．
+
 ## B35 [auto-decided 2026-10-15] Iteration 12（sniffio の探索を省く）は採用．Iteration 13 は質問者の 1 要求の CPU の残りの内訳で最大の項目を除く構成
 
 - 状況: Iteration 12 の判定は採用（事前登録の規則の機械的な適用．G1〜G5 成立，H-S1・H-S2 成立，H-S3 は fs・dp12 × N = 8 とも成立）．処理量の中央値（問/秒，sr → bk）は fs N = 1 で 17.721 → 26.404（1.490），fs N = 8 で 110.977 → 145.145（1.308），dp12 N = 1 で 42.228 → 50.277（1.191．隙間 +3.0%），dp12 N = 8 で 240.912 → 291.604（1.210）．

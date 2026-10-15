@@ -93,6 +93,9 @@ class ExperimentConfig(_Strict):
     # sniffio の import の扱い（Iteration 12）．search：今の挙動（httpcore 1.0.9 が要求のたびに import sniffio を試み，無ければ sys.path を探す）／
     # blocked：sniffio が入っていないときだけ質問者のプロセスの始めに sys.modules["sniffio"] = None を置いて探索を省く（httpcore は同じ ImportError の枝で asyncio とみなす）
     sniffio_lookup: Literal["search", "blocked"] = "search"
+    # httpcore の接続の池の割り当て（Iteration 13）．stock：今の挙動／lean：質問者のプロセスの始めに httpcore 1.0.9 の
+    # AsyncConnectionPool._assign_requests_to_connections の掃除を 1 回の走査にし，待機中の接続の生存の確かめを生のソケットへ直接問う（挙動は同じ．版が違えば止まる）
+    pool_assign: Literal["stock", "lean"] = "stock"
     # EQ7b．指定すると質問を 1 問ずつ順に流し，離脱したノードがあっても返事のあった分で続ける
     churn: ChurnConfig | None = None
 

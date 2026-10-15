@@ -15,7 +15,7 @@ import httpx
 from atrium.analysis import read_results
 from atrium.benchmarks import load_questions
 from atrium.config import AtriumConfig
-from atrium.cpu_stat import read_device_cpu
+from atrium.cpu_stat import diff_tcp_counters, read_device_cpu, read_tcp_counters
 from atrium.manifest import Placement, read_placement
 from atrium.paths import dataset_paths
 from atrium.requester import (
@@ -24,6 +24,7 @@ from atrium.requester import (
     LiveMedcptEmbedder,
     QueryEmbedder,
     Requester,
+    apply_pool_assign,
     apply_sniffio_lookup,
     discover_shards,
     load_rm_qrels,
@@ -186,6 +187,7 @@ async def run_experiment(
     )
     # httpx の部品を作る前に置く（質問者の経路の import の探索を省く．spawn の子は requester_procs が自分で置く）
     sniffio_installed = apply_sniffio_lookup(cfg.experiment.sniffio_lookup)
+    httpcore_version = apply_pool_assign(cfg.experiment.pool_assign)
     async with build_http_client(cfg.experiment.http_pool, placement) as client:
         requester, sources, discovery_s = await build_requester(
             cfg, data_dir, placement, client, ollama_url
@@ -214,9 +216,13 @@ async def run_experiment(
             "probe_body": cfg.experiment.probe_body,
             "sniffio_lookup": cfg.experiment.sniffio_lookup,
             "sniffio_installed": sniffio_installed,
+            "pool_assign": cfg.experiment.pool_assign,
+            "httpcore_version": httpcore_version,
         }
         _write_meta(out_dir, meta)
         finished_at: float | None = None
+        # 質問の処理（N ≥ 2 では子のプロセスの起動も含む）の前後の，質問者のネットワークの名前空間の TCP の再送の計数（記録だけ）
+        tcp_before = read_tcp_counters()
         if churn is not None:
             from atrium.churn_live import build_schedule, run_churn_questions
 
@@ -282,6 +288,7 @@ async def run_experiment(
                     **control_cpu_fractions(outcome.control_cpu_before, outcome.control_cpu_after),
                 }
             )
+        meta["requester_tcp"] = diff_tcp_counters(tcp_before, read_tcp_counters())
         # 再開した場合も含め，各質問の最後の結果で失敗を数える
         failures = sum(r.get("error") is not None for r in read_results(out_dir / RESULTS))
         meta.update(

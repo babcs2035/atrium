@@ -33,6 +33,9 @@ experiment:
   # sniffio の import の扱い（Iteration 12）．search：従来（httpcore が要求のたびに import を試みて失敗し，sys.path を探す）／
   # blocked：sniffio が入っていなければ質問者のプロセスの始めに sys.modules["sniffio"] = None を置いて探索を省く．要求の内容と選択は変わらない
   sniffio_lookup: search
+  # httpcore の接続の池の割り当て（Iteration 13）．stock：従来（要求の開始と終了のたびに池の全接続を走査し，待機中の接続ごとに anyio の属性の辞書を作る）／
+  # lean：質問者のプロセスの始めに掃除を 1 回の走査にし，生存の確かめを生のソケットへ直接問う．割り当ての結果は変わらない（httpcore 1.0.9・anyio 4.15.1 のみ）
+  pool_assign: stock
   # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
   churn: null
 

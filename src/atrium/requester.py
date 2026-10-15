@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.metadata
 import importlib.util
 import json
 import logging
@@ -26,8 +27,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+import httpcore
 import httpx
 import numpy as np
+from anyio._backends._asyncio import SocketStream as AnyioSocketStream
+from httpcore._backends.anyio import AnyIOStream
+from httpcore._utils import is_socket_readable
 
 from atrium import llm, prompts
 from atrium.arrays import F32Array
@@ -86,6 +91,99 @@ def apply_sniffio_lookup(mode: str) -> bool:
     return installed
 
 
+# lean が内部の実装に依存する版（これ以外では差し替えずに止める．黙って stock に戻すと比較が成り立たなくなる）
+LEAN_HTTPCORE_VERSION = "1.0.9"
+LEAN_ANYIO_VERSION = "4.15.1"
+_pool_assign_applied = False
+
+
+def _assign_requests_to_connections_lean(self: httpcore.AsyncConnectionPool) -> list[Any]:
+    """httpcore 1.0.9 の AsyncConnectionPool._assign_requests_to_connections と同じ結果を返す（接続の列・閉じる接続・割り当て先）．
+
+    元の掃除の段は，待機中の接続ごとに `len([c.is_idle() for c in self._connections])`（実際には全接続の数）を作り，
+    接続の数の 2 乗の費用がかかる．ここでは各時点のリストの長さを数で持ち，1 回の走査にする．
+    上流の PR #1035 の Bug 1（待機中の数ではなく全接続の数で max_keepalive と比べる）も元と同じに残す．
+    割り当ての段（使える接続 → 新しい接続 → 待機中の接続を閉じて作り直す）の順と選び方も元と同じ．
+    """
+    connections = self._connections
+    closing: list[Any] = []
+    kept: list[Any] = []
+    remaining = len(connections)  # 元の `len(self._connections)`（走査中の今の長さ）に当たる
+    for connection in connections:
+        if connection.is_closed():
+            remaining -= 1
+        elif connection.has_expired() or (
+            connection.is_idle() and remaining > self._max_keepalive_connections
+        ):
+            remaining -= 1
+            closing.append(connection)
+        else:
+            kept.append(connection)
+    connections[:] = kept
+
+    for pool_request in [r for r in self._requests if r.is_queued()]:
+        origin = pool_request.request.url.origin
+        available = next(
+            (c for c in connections if c.can_handle_request(origin) and c.is_available()),
+            None,
+        )
+        if available is not None:
+            pool_request.assign_to_connection(available)
+        elif len(connections) < self._max_connections:
+            connection = self.create_connection(origin)
+            connections.append(connection)
+            pool_request.assign_to_connection(connection)
+        else:
+            idle = next((c for c in connections if c.is_idle()), None)
+            if idle is not None:
+                connections.remove(idle)
+                closing.append(idle)
+                connection = self.create_connection(origin)
+                connections.append(connection)
+                pool_request.assign_to_connection(connection)
+    return closing
+
+
+def apply_pool_assign(mode: str) -> str:
+    """experiment.pool_assign を質問者のプロセスに反映し，httpcore の版を返す．
+
+    httpcore 1.0.9 の割り当ては要求の開始と終了のたびに池の全接続を走査し，待機中の接続ごとに生存の確かめ
+    （anyio の extra_attributes の辞書の組み立てと getpeername）と，全接続のリストの組み立てを行う（実機に近い構成で
+    質問者の主スレッドの標本の 15〜25%．上流の PR #1035 は未マージで，修正を含む版も無い）．
+    lean は掃除を 1 回の走査にし，`get_extra_info("is_readable")` だけを生のソケットへ直接問う（判定は同じ is_socket_readable）．
+    版が違えば RuntimeError で止める．1 プロセスにつき 1 回だけ当て，spawn の子は親の差し替えを引き継がないので各プロセスの始めに呼ぶ．
+    """
+    version = httpcore.__version__
+    if mode != "lean":
+        return version
+    anyio_version = importlib.metadata.version("anyio")
+    if version != LEAN_HTTPCORE_VERSION or anyio_version != LEAN_ANYIO_VERSION:
+        raise RuntimeError(
+            f"pool_assign=lean supports httpcore {LEAN_HTTPCORE_VERSION} and anyio "
+            f"{LEAN_ANYIO_VERSION} only (found {version}, {anyio_version})"
+        )
+    if not hasattr(AnyioSocketStream, "_raw_socket") or not hasattr(AnyIOStream, "get_extra_info"):
+        raise RuntimeError("pool_assign=lean: the expected httpcore/anyio internals are missing")
+    global _pool_assign_applied  # 1 プロセスに 1 回だけ当てるための印
+    if _pool_assign_applied:
+        return version
+    original_get_extra_info = AnyIOStream.get_extra_info
+
+    def get_extra_info(self: AnyIOStream, info: str) -> Any:
+        stream = self._stream
+        if info == "is_readable" and isinstance(stream, AnyioSocketStream):
+            return is_socket_readable(stream._raw_socket)
+        return original_get_extra_info(self, info)
+
+    AnyIOStream.get_extra_info = get_extra_info  # type: ignore[method-assign]
+    httpcore.AsyncConnectionPool._assign_requests_to_connections = (  # type: ignore[method-assign]
+        _assign_requests_to_connections_lean
+    )
+    _pool_assign_applied = True
+    logger.info("pool_assign=lean applied (httpcore %s, anyio %s)", version, anyio_version)
+    return version
+
+
 def encode_json_like_httpx(value: object) -> bytes:
     """httpx（0.28）の json= と同じ設定（区切り・ensure_ascii・allow_nan）で JSON の bytes を作る．
     pre_encoded の本文を json= の本文とバイト単位で一致させるため，この設定を変えてはならない．"""
@@ -108,10 +206,12 @@ async def post_with_retry(
                     url, content=body, headers=JSON_CONTENT_TYPE_HEADER, timeout=timeout
                 )
             return await client.post(url, json=body, timeout=timeout)
-        except (httpx.ReadError, httpx.RemoteProtocolError, httpx.ConnectError):
+        except (httpx.ReadError, httpx.RemoteProtocolError, httpx.ConnectError) as exc:
             if attempt == RETRIEVE_RETRIES:
                 raise
-            logger.warning("retrying %s (%d/%d)", url, attempt + 1, RETRIEVE_RETRIES)
+            logger.warning(
+                "retrying %s (%d/%d): %s", url, attempt + 1, RETRIEVE_RETRIES, type(exc).__name__
+            )
     raise AssertionError("unreachable")
 
 

@@ -28,6 +28,8 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | `requester_procs` | 質問者のプロセスの数 |
 | `probe_body` | probe の本文の作り方（`experiment.probe_body`．`per_request` / `pre_encoded`） |
 | `sniffio_lookup`・`sniffio_installed` | `experiment.sniffio_lookup`（`search` / `blocked`）と，その実行の質問者の環境に sniffio が入っていたか（`true` なら探索の費用は元から無い） |
+| `pool_assign`・`httpcore_version` | `experiment.pool_assign`（`stock` / `lean`）と，その実行の質問者の httpcore の版 |
+| `requester_tcp` | 質問の処理の前後の，質問者のコンテナのネットワークの名前空間の TCP の再送の計数の差（`RetransSegs`・`TCPSynRetrans`・`TCPTimeouts`．`/proc/net/snmp`・`/proc/net/netstat`）．N ≥ 2 では子のプロセスの起動の区間を含む．host ネットワークのコンテナではホスト全体の値になる．読めなければ `null`．記録だけで判定に使わない |
 | `requester_cpu_s`（`_user_s`・`_sys_s`） | 問を流した区間の質問者の全プロセスの CPU 時間の合計（秒） |
 | `requester_cpu_util` | `requester_cpu_s` ÷ 区間の長さ（コアの数の単位．N 個のプロセスが全て 1 コアに張り付けば N） |
 | `requester_cpu_util_per_proc`，`requester_parallel_per_proc` | プロセスごとの CPU 使用率（そのプロセスが流していた区間で割る）と同時の問の数 |
@@ -65,6 +67,7 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
   これは制御点の**ホストの**ネットワークの名前空間の値である．質問者のコンテナは既定のブリッジのネットワーク（`docker/compose.requester.yml` に `network_mode` の指定が無い）で動くので，質問者のソケットの再送はこの値に入らない．質問者の再送を見るには，コンテナの名前空間で取る（`docker exec` で `/proc/net/netstat` を読むか，`nsenter -n`）．
 - 集計 `iter12_summary.py` が `results.jsonl` から数える遅れの問の数：`timings.probe_s` ≥ 0.9 秒の問の数と，そのうち `probe_node_s_max` < 0.5 秒（ノードの計算によらない遅れ）の数．
   閾値は固定の 0.9 秒なので，probe_s の中央値が 0.1 秒前後の条件（`requester_procs` = 8）でだけ遅れを数える．質問者が 1 コアに張り付く N = 1 の flood_score では probe_s の中央値が約 1 秒（CPU の待ち行列）になり，この数は遅れではなく待ち行列を数える．
+- Iteration 13 の `iter13_summary.py` は上の絶対の閾値を N = 8 の実行だけで数え，全実行で「`probe_s` がその実行の中央値の 5 倍以上の問の数」（相対の閾値）も出す．再試行の例外の型ごとの数は requester.log の `retrying <url> (i/n): <型名>` から数える．
 
 ## 3. 指標（metrics.json）
 
