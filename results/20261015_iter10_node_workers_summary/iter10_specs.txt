@@ -1,0 +1,38 @@
+# Iteration 10 の負荷試験の仕様の雛形（事前登録の順序．journal の Iteration 10 の事前登録と同じ）．
+# rc-executor は 20261015 を実行日（YYYYMMDD）に置き換えて iter10_specs.txt を作り，iter10_chain.sh に絶対パスで渡す．
+# anchor の行は iter8_chain.sh の仕様（config.yaml を変えて deploy → start → analyze）で，node_workers=W の deploy で全ノードが W 個のプロセスで起動する．
+# bench の行は <run_id> <placement_run> <target_host> <concurrency> <max_procs>．負荷生成のプロセスの数の上限は全て 8．
+# 主の対象は 192.168.13.102（t13102．i5-8350U），記録の対象は 192.168.15.103（t15103．i7-8700）．
+# 各 W で r1 は C を昇順，r2 は降順，r3 は別の順（2,8,32,1,64,4,16）に流し，対象を交互にする（B29 (c)：実行の中の位置による揺れを C に乗せない）．
+# W は 1 → 2 → 4 の順に deploy し，最後に W = 1 へ戻して時間による変化を記録する（r4 は判定に使わない）．
+
+# ── W = 1（今の挙動．Iteration 9 と同じ構成を max_procs 8 で測り直す） ──
+anchor 20261015_iter10_anchor_w1_pre dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=1
+bench 20261015_iter10_nb_w1_t13102_r1 20261015_iter10_anchor_w1_pre 192.168.13.102 1,2,4,8,16,32,64 8
+bench 20261015_iter10_nb_w1_t15103_r1 20261015_iter10_anchor_w1_pre 192.168.15.103 1,2,4,8,16,32,64 8
+bench 20261015_iter10_nb_w1_t13102_r2 20261015_iter10_anchor_w1_pre 192.168.13.102 64,32,16,8,4,2,1 8
+bench 20261015_iter10_nb_w1_t15103_r2 20261015_iter10_anchor_w1_pre 192.168.15.103 64,32,16,8,4,2,1 8
+bench 20261015_iter10_nb_w1_t13102_r3 20261015_iter10_anchor_w1_pre 192.168.13.102 2,8,32,1,64,4,16 8
+bench 20261015_iter10_nb_w1_t15103_r3 20261015_iter10_anchor_w1_pre 192.168.15.103 2,8,32,1,64,4,16 8
+
+# ── W = 2 ──
+anchor 20261015_iter10_anchor_w2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=2
+bench 20261015_iter10_nb_w2_t13102_r1 20261015_iter10_anchor_w2 192.168.13.102 1,2,4,8,16,32,64 8
+bench 20261015_iter10_nb_w2_t15103_r1 20261015_iter10_anchor_w2 192.168.15.103 1,2,4,8,16,32,64 8
+bench 20261015_iter10_nb_w2_t13102_r2 20261015_iter10_anchor_w2 192.168.13.102 64,32,16,8,4,2,1 8
+bench 20261015_iter10_nb_w2_t15103_r2 20261015_iter10_anchor_w2 192.168.15.103 64,32,16,8,4,2,1 8
+bench 20261015_iter10_nb_w2_t13102_r3 20261015_iter10_anchor_w2 192.168.13.102 2,8,32,1,64,4,16 8
+bench 20261015_iter10_nb_w2_t15103_r3 20261015_iter10_anchor_w2 192.168.15.103 2,8,32,1,64,4,16 8
+
+# ── W = 4 ──
+anchor 20261015_iter10_anchor_w4 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=4
+bench 20261015_iter10_nb_w4_t13102_r1 20261015_iter10_anchor_w4 192.168.13.102 1,2,4,8,16,32,64 8
+bench 20261015_iter10_nb_w4_t15103_r1 20261015_iter10_anchor_w4 192.168.15.103 1,2,4,8,16,32,64 8
+bench 20261015_iter10_nb_w4_t13102_r2 20261015_iter10_anchor_w4 192.168.13.102 64,32,16,8,4,2,1 8
+bench 20261015_iter10_nb_w4_t15103_r2 20261015_iter10_anchor_w4 192.168.15.103 64,32,16,8,4,2,1 8
+bench 20261015_iter10_nb_w4_t13102_r3 20261015_iter10_anchor_w4 192.168.13.102 2,8,32,1,64,4,16 8
+bench 20261015_iter10_nb_w4_t15103_r3 20261015_iter10_anchor_w4 192.168.15.103 2,8,32,1,64,4,16 8
+
+# ── W = 1 へ戻す（環境の揺れの確認．判定に使わない） ──
+anchor 20261015_iter10_anchor_w1_post dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=1
+bench 20261015_iter10_nb_w1_t13102_r4 20261015_iter10_anchor_w1_post 192.168.13.102 1,2,4,8,16,32,64 8

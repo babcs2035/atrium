@@ -1,0 +1,373 @@
+{
+ "kind": "node_bench",
+ "git_head": "5ca205f0492d-dirty",
+ "dataset": "enronqa",
+ "target": {
+  "host": "192.168.13.102",
+  "url": "http://192.168.13.102:8100",
+  "node_id": "192.168.13.102",
+  "shard_ids": [
+   "brawner-s",
+   "dickson-s",
+   "maggi-m",
+   "shackleton-s",
+   "townsend-j"
+  ],
+  "encoder": "Snowflake/snowflake-arctic-embed-m-v1.5"
+ },
+ "concurrency_order": [
+  1,
+  2,
+  4,
+  8,
+  16,
+  32,
+  64
+ ],
+ "seed": 12,
+ "n_questions": 2940,
+ "max_procs": 8,
+ "warmup_s": 5.0,
+ "measure_s": 30.0,
+ "request_timeout_s": 30.0,
+ "cross_level_score_mismatches": 0,
+ "levels": [
+  {
+   "concurrency": 1,
+   "procs": 1,
+   "concurrency_per_proc": [
+    1
+   ],
+   "measure_s": 30.0,
+   "n_ok": 5615,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 187.16666666666666,
+   "latency_s": {
+    "p50": 0.0052852630615234375,
+    "p95": 0.005927562713623047,
+    "p99": 0.006298480033874511
+   },
+   "latency_mean_s": 0.005337590228630195,
+   "node_s": {
+    "p50": 0.0024829390458762646,
+    "p95": 0.0027120751794427636,
+    "p99": 0.002851655902341008
+   },
+   "little_ratio": 0.9990189711252848,
+   "node_proc_util": null,
+   "node_cgroup_util": 0.7795471000000002,
+   "node_workers": 4,
+   "node_host_busy": 0.1069010471424366,
+   "node_host_softirq": 0.005761386096976324,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.005178706720471382,
+    0.004885043948888779
+   ],
+   "generator_cpu_util_per_proc": [
+    0.1832216
+   ],
+   "control_cpu_busy": 0.018654952876087743,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 2,
+   "procs": 2,
+   "concurrency_per_proc": [
+    1,
+    1
+   ],
+   "measure_s": 30.0,
+   "n_ok": 10896,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 363.2,
+   "latency_s": {
+    "p50": 0.005413055419921875,
+    "p95": 0.006292104721069336,
+    "p99": 0.00676729679107666
+   },
+   "latency_mean_s": 0.005500345831400497,
+   "node_s": {
+    "p50": 0.002488913480192423,
+    "p95": 0.0032861150102689862,
+    "p99": 0.0036685077240690583
+   },
+   "little_ratio": 0.9988628029823303,
+   "node_proc_util": null,
+   "node_cgroup_util": 1.6986866333333333,
+   "node_workers": 4,
+   "node_host_busy": 0.22612852730888014,
+   "node_host_softirq": 0.008292084443880358,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.0034862952306866646,
+    0.004957197234034538
+   ],
+   "generator_cpu_util_per_proc": [
+    0.18707673333333336,
+    0.18552269999999998
+   ],
+   "control_cpu_busy": 0.03439926525841196,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 4,
+   "procs": 4,
+   "concurrency_per_proc": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "measure_s": 30.0,
+   "n_ok": 17650,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 588.3333333333334,
+   "latency_s": {
+    "p50": 0.0066225528717041016,
+    "p95": 0.008519196510314941,
+    "p99": 0.009529666900634753
+   },
+   "latency_mean_s": 0.006792998124789921,
+   "node_s": {
+    "p50": 0.003358525922521949,
+    "p95": 0.004985488508827984,
+    "p99": 0.00568982039578259
+   },
+   "little_ratio": 0.9991368075211843,
+   "node_proc_util": null,
+   "node_cgroup_util": 3.2022136333333333,
+   "node_workers": 4,
+   "node_host_busy": 0.4177710843373494,
+   "node_host_softirq": 0.014931153184165233,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.003895202185958624,
+    0.004757897928357124
+   ],
+   "generator_cpu_util_per_proc": [
+    0.17158553333333335,
+    0.1348024333333333,
+    0.17072973333333333,
+    0.1354617
+   ],
+   "control_cpu_busy": 0.055360623781676416,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 8,
+   "procs": 8,
+   "concurrency_per_proc": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "measure_s": 30.0,
+   "n_ok": 17182,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 572.7333333333333,
+   "latency_s": {
+    "p50": 0.013457059860229492,
+    "p95": 0.02013633251190185,
+    "p99": 0.022509965896606428
+   },
+   "latency_mean_s": 0.013960733997601178,
+   "node_s": {
+    "p50": 0.007826746674254537,
+    "p95": 0.013000820204615593,
+    "p99": 0.014934100992977619
+   },
+   "little_ratio": 0.9994722147782644,
+   "node_proc_util": null,
+   "node_cgroup_util": 3.6025474,
+   "node_workers": 4,
+   "node_host_busy": 0.4703208208858293,
+   "node_host_softirq": 0.01541325713296099,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.004380729980766773,
+    0.0043662781827151775
+   ],
+   "generator_cpu_util_per_proc": [
+    0.10227956666666667,
+    0.10256666666666664,
+    0.06655583333333334,
+    0.0676729,
+    0.06718106666666665,
+    0.065035,
+    0.06694873333333334,
+    0.10332880000000001
+   ],
+   "control_cpu_busy": 0.058286477759839674,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 16,
+   "procs": 8,
+   "concurrency_per_proc": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "measure_s": 30.0,
+   "n_ok": 17615,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 587.1666666666666,
+   "latency_s": {
+    "p50": 0.018857717514038086,
+    "p95": 0.03087358474731445,
+    "p99": 0.3099479150772095
+   },
+   "latency_mean_s": 0.027239831049537713,
+   "node_s": {
+    "p50": 0.011366209015250206,
+    "p95": 0.018943398026749488,
+    "p99": 0.022245029462501408
+   },
+   "little_ratio": 0.9996450498700141,
+   "node_proc_util": null,
+   "node_cgroup_util": 4.542050633333332,
+   "node_workers": 4,
+   "node_host_busy": 0.5908703435342255,
+   "node_host_softirq": 0.02830108260165374,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.010483552236109972,
+    0.0046249921433627605
+   ],
+   "generator_cpu_util_per_proc": [
+    0.09624689999999998,
+    0.07962353333333333,
+    0.0751417,
+    0.08753953333333331,
+    0.08986233333333332,
+    0.09193586666666667,
+    0.08994159999999998,
+    0.09448893333333334
+   ],
+   "control_cpu_busy": 0.06654591054758255,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 32,
+   "procs": 8,
+   "concurrency_per_proc": [
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+   ],
+   "measure_s": 30.0,
+   "n_ok": 19578,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 652.6,
+   "latency_s": {
+    "p50": 0.04460263252258301,
+    "p95": 0.08379398584365841,
+    "p99": 0.2541082167625425
+   },
+   "latency_mean_s": 0.04905873096833155,
+   "node_s": {
+    "p50": 0.027490389766171575,
+    "p95": 0.05850435150787234,
+    "p99": 0.06744151628110558
+   },
+   "little_ratio": 1.0004914946854115,
+   "node_proc_util": 1.5784849792999998,
+   "node_cgroup_util": 6.051325833333332,
+   "node_workers": 4,
+   "node_host_busy": 0.7919802751103037,
+   "node_host_softirq": 0.02621334025434726,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.23223939491435885,
+    0.004309465177357197
+   ],
+   "generator_cpu_util_per_proc": [
+    0.11780609999999998,
+    0.08608383333333336,
+    0.08214600000000001,
+    0.1246741,
+    0.08797633333333335,
+    0.07262503333333334,
+    0.0979376,
+    0.10609213333333332
+   ],
+   "control_cpu_busy": 0.07242463885100342,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 64,
+   "procs": 8,
+   "concurrency_per_proc": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ],
+   "measure_s": 30.0,
+   "n_ok": 19989,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 666.3,
+   "latency_s": {
+    "p50": 0.09590029716491699,
+    "p95": 0.12555069923400877,
+    "p99": 0.13909589767456051
+   },
+   "latency_mean_s": 0.09605437520446197,
+   "node_s": {
+    "p50": 0.06891606375575066,
+    "p95": 0.09922794736921788,
+    "p99": 0.11114952035248275
+   },
+   "little_ratio": 1.0000160968552032,
+   "node_proc_util": null,
+   "node_cgroup_util": 6.5003342333333345,
+   "node_workers": 4,
+   "node_host_busy": 0.8437270726338958,
+   "node_host_softirq": 0.02421129860601614,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.04012788459658623,
+    0.007450287230312824
+   ],
+   "generator_cpu_util_per_proc": [
+    0.10092543333333334,
+    0.09997566666666668,
+    0.0986306666666667,
+    0.09422700000000003,
+    0.10017729999999997,
+    0.09506479999999999,
+    0.10050049999999998,
+    0.09171996666666667
+   ],
+   "control_cpu_busy": 0.07049034340735794,
+   "score_mismatches": 0
+  }
+ ]
+}

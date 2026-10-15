@@ -1,0 +1,63 @@
+[2026-10-15_15:33:45] BEGIN 20261015_iter10_anchor_w1_pre dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=1
+[15:36:07] 20261015_iter10_anchor_w1_pre deployed
+[15:37:38] 20261015_iter10_anchor_w1_pre start=0 inner=0
+[15:37:39] 20261015_iter10_anchor_w1_pre analyze=0
+[15:37:39] 20261015_iter10_anchor_w1_pre failure_rate=0.0
+[2026-10-15_15:37:40] ALL DONE
+[2026-10-15_15:37:40] BEGIN 20261015_iter10_nb_w1_t13102_r1 target=192.168.13.102 order=1,2,4,8,16,32,64 max_procs=8 placement=20261015_iter10_anchor_w1_pre
+[15:42:30] 20261015_iter10_nb_w1_t13102_r1 bench=0
+[2026-10-15_15:42:30] BEGIN 20261015_iter10_nb_w1_t15103_r1 target=192.168.15.103 order=1,2,4,8,16,32,64 max_procs=8 placement=20261015_iter10_anchor_w1_pre
+[15:47:21] 20261015_iter10_nb_w1_t15103_r1 bench=0
+[2026-10-15_15:47:21] BEGIN 20261015_iter10_nb_w1_t13102_r2 target=192.168.13.102 order=64,32,16,8,4,2,1 max_procs=8 placement=20261015_iter10_anchor_w1_pre
+[15:52:11] 20261015_iter10_nb_w1_t13102_r2 bench=0
+[2026-10-15_15:52:11] BEGIN 20261015_iter10_nb_w1_t15103_r2 target=192.168.15.103 order=64,32,16,8,4,2,1 max_procs=8 placement=20261015_iter10_anchor_w1_pre
+[15:57:01] 20261015_iter10_nb_w1_t15103_r2 bench=0
+[2026-10-15_15:57:01] BEGIN 20261015_iter10_nb_w1_t13102_r3 target=192.168.13.102 order=2,8,32,1,64,4,16 max_procs=8 placement=20261015_iter10_anchor_w1_pre
+[16:01:52] 20261015_iter10_nb_w1_t13102_r3 bench=0
+[2026-10-15_16:01:52] BEGIN 20261015_iter10_nb_w1_t15103_r3 target=192.168.15.103 order=2,8,32,1,64,4,16 max_procs=8 placement=20261015_iter10_anchor_w1_pre
+[16:06:42] 20261015_iter10_nb_w1_t15103_r3 bench=0
+[2026-10-15_16:06:42] BEGIN 20261015_iter10_anchor_w2 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=2
+[16:09:03] 20261015_iter10_anchor_w2 deployed
+[16:10:33] 20261015_iter10_anchor_w2 start=0 inner=0
+[16:10:35] 20261015_iter10_anchor_w2 analyze=0
+[16:10:35] 20261015_iter10_anchor_w2 failure_rate=0.0
+[2026-10-15_16:10:35] ALL DONE
+[2026-10-15_16:10:35] BEGIN 20261015_iter10_nb_w2_t13102_r1 target=192.168.13.102 order=1,2,4,8,16,32,64 max_procs=8 placement=20261015_iter10_anchor_w2
+[16:15:26] 20261015_iter10_nb_w2_t13102_r1 bench=0
+[2026-10-15_16:15:26] BEGIN 20261015_iter10_nb_w2_t15103_r1 target=192.168.15.103 order=1,2,4,8,16,32,64 max_procs=8 placement=20261015_iter10_anchor_w2
+[16:20:16] 20261015_iter10_nb_w2_t15103_r1 bench=0
+[2026-10-15_16:20:16] BEGIN 20261015_iter10_nb_w2_t13102_r2 target=192.168.13.102 order=64,32,16,8,4,2,1 max_procs=8 placement=20261015_iter10_anchor_w2
+[16:25:07] 20261015_iter10_nb_w2_t13102_r2 bench=0
+[2026-10-15_16:25:07] BEGIN 20261015_iter10_nb_w2_t15103_r2 target=192.168.15.103 order=64,32,16,8,4,2,1 max_procs=8 placement=20261015_iter10_anchor_w2
+[16:29:57] 20261015_iter10_nb_w2_t15103_r2 bench=0
+[2026-10-15_16:29:57] BEGIN 20261015_iter10_nb_w2_t13102_r3 target=192.168.13.102 order=2,8,32,1,64,4,16 max_procs=8 placement=20261015_iter10_anchor_w2
+[16:34:47] 20261015_iter10_nb_w2_t13102_r3 bench=0
+[2026-10-15_16:34:47] BEGIN 20261015_iter10_nb_w2_t15103_r3 target=192.168.15.103 order=2,8,32,1,64,4,16 max_procs=8 placement=20261015_iter10_anchor_w2
+[16:39:37] 20261015_iter10_nb_w2_t15103_r3 bench=0
+[2026-10-15_16:39:37] BEGIN 20261015_iter10_anchor_w4 dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=4
+[16:42:01] 20261015_iter10_anchor_w4 deployed
+[16:43:37] 20261015_iter10_anchor_w4 start=0 inner=0
+[16:43:38] 20261015_iter10_anchor_w4 analyze=0
+[16:43:38] 20261015_iter10_anchor_w4 failure_rate=0.0
+[2026-10-15_16:43:38] ALL DONE
+[2026-10-15_16:43:38] BEGIN 20261015_iter10_nb_w4_t13102_r1 target=192.168.13.102 order=1,2,4,8,16,32,64 max_procs=8 placement=20261015_iter10_anchor_w4
+[16:48:29] 20261015_iter10_nb_w4_t13102_r1 bench=0
+[2026-10-15_16:48:29] BEGIN 20261015_iter10_nb_w4_t15103_r1 target=192.168.15.103 order=1,2,4,8,16,32,64 max_procs=8 placement=20261015_iter10_anchor_w4
+[16:53:19] 20261015_iter10_nb_w4_t15103_r1 bench=0
+[2026-10-15_16:53:19] BEGIN 20261015_iter10_nb_w4_t13102_r2 target=192.168.13.102 order=64,32,16,8,4,2,1 max_procs=8 placement=20261015_iter10_anchor_w4
+[16:58:10] 20261015_iter10_nb_w4_t13102_r2 bench=0
+[2026-10-15_16:58:10] BEGIN 20261015_iter10_nb_w4_t15103_r2 target=192.168.15.103 order=64,32,16,8,4,2,1 max_procs=8 placement=20261015_iter10_anchor_w4
+[17:03:01] 20261015_iter10_nb_w4_t15103_r2 bench=0
+[2026-10-15_17:03:01] BEGIN 20261015_iter10_nb_w4_t13102_r3 target=192.168.13.102 order=2,8,32,1,64,4,16 max_procs=8 placement=20261015_iter10_anchor_w4
+[17:07:52] 20261015_iter10_nb_w4_t13102_r3 bench=0
+[2026-10-15_17:07:52] BEGIN 20261015_iter10_nb_w4_t15103_r3 target=192.168.15.103 order=2,8,32,1,64,4,16 max_procs=8 placement=20261015_iter10_anchor_w4
+[17:12:42] 20261015_iter10_nb_w4_t15103_r3 bench=0
+[2026-10-15_17:12:42] BEGIN 20261015_iter10_anchor_w1_post dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1 node_workers=1
+[17:15:09] 20261015_iter10_anchor_w1_post deployed
+[17:16:40] 20261015_iter10_anchor_w1_post start=0 inner=0
+[17:16:42] 20261015_iter10_anchor_w1_post analyze=0
+[17:16:42] 20261015_iter10_anchor_w1_post failure_rate=0.0
+[2026-10-15_17:16:42] ALL DONE
+[2026-10-15_17:16:42] BEGIN 20261015_iter10_nb_w1_t13102_r4 target=192.168.13.102 order=1,2,4,8,16,32,64 max_procs=8 placement=20261015_iter10_anchor_w1_post
+[17:21:34] 20261015_iter10_nb_w1_t13102_r4 bench=0
+[2026-10-15_17:21:34] ALL DONE

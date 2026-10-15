@@ -1,0 +1,37 @@
+2026-10-15 06:52:17,273 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-10-15 06:52:17,273 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-10-15 06:52:17,273 INFO faiss.loader: Loading faiss.
+2026-10-15 06:52:17,290 INFO faiss.loader: Successfully loaded faiss.
+2026-10-15 06:52:17,382 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/v1/profile "HTTP/1.1 200 OK"
+2026-10-15 06:52:17,419 INFO atrium.node_bench: target 192.168.15.103 (192.168.15.103): shards ['heard-m', 'hyatt-k', 'lokay-m', 'mccarty-d', 'wolfe-j']
+2026-10-15 06:52:25,595 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:52:55,578 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:52:55,773 INFO atrium.node_bench: C=64: 437.1 req/s, p95 0.1628 s, node CPU 1.874079715133333 (cgroup 1.8740964666666666), errors 0
+2026-10-15 06:53:06,018 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:53:36,012 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:53:36,181 INFO atrium.node_bench: C=32: 449.4 req/s, p95 0.0844 s, node CPU 1.8818401077000013 (cgroup 1.8812361666666655), errors 0
+2026-10-15 06:53:46,268 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:54:16,269 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:54:16,434 INFO atrium.node_bench: C=16: 456.2 req/s, p95 0.0444 s, node CPU 1.8769030935999997 (cgroup 1.8765058666666656), errors 0
+2026-10-15 06:54:26,511 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:54:56,530 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:54:56,699 INFO atrium.node_bench: C=8: 458.5 req/s, p95 0.0222 s, node CPU 1.871435737533333 (cgroup 1.8712932999999983), errors 0
+2026-10-15 06:55:06,642 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:55:36,661 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:55:36,773 INFO atrium.node_bench: C=4: 475.8 req/s, p95 0.0102 s, node CPU 1.857977049333336 (cgroup 1.8578565999999985), errors 0
+2026-10-15 06:55:47,069 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:56:17,069 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:56:17,155 INFO atrium.node_bench: C=2: 414.4 req/s, p95 0.0056 s, node CPU 1.4855024794000011 (cgroup 1.4854500333333325), errors 0
+2026-10-15 06:56:28,256 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:56:58,279 INFO httpx: HTTP Request: GET http://192.168.15.103:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 06:56:58,342 INFO atrium.node_bench: C=1: 282.1 req/s, p95 0.0038 s, node CPU 0.9124903827333355 (cgroup 0.9124738666666644), errors 0
+| C | procs | req/s | p50 s | p95 s | node p95 s | node proc CPU | node cgroup CPU | node host busy | errors | Little |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 64 | 8 | 437.1 | 0.1464 | 0.1628 | 0.0881 | 1.8741 | 1.8741 | 0.1715 | 0 | 0.9997 |
+| 32 | 8 | 449.4 | 0.0712 | 0.0844 | 0.0626 | 1.8818 | 1.8812 | 0.1602 | 0 | 1.0001 |
+| 16 | 8 | 456.2 | 0.0349 | 0.0444 | 0.0289 | 1.8769 | 1.8765 | 0.1584 | 0 | 0.9995 |
+| 8 | 8 | 458.5 | 0.0173 | 0.0222 | 0.0137 | 1.8714 | 1.8713 | 0.1562 | 0 | 0.9995 |
+| 4 | 4 | 475.8 | 0.0083 | 0.0102 | 0.0058 | 1.8580 | 1.8579 | 0.1552 | 0 | 0.9992 |
+| 2 | 2 | 414.4 | 0.0048 | 0.0056 | 0.0024 | 1.4855 | 1.4855 | 0.1335 | 0 | 0.9988 |
+| 1 | 1 | 282.1 | 0.0035 | 0.0038 | 0.0015 | 0.9125 | 0.9125 | 0.0810 | 0 | 0.9985 |

@@ -1,0 +1,3 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[16:42:02] run 20261015_iter10_anchor_w4 (kind=e1_routing dataset=enronqa routing=flood_score answer_mode=retrieval_only)
+[16:43:37] results: results/20261015_iter10_anchor_w4 (exit 0)

@@ -156,7 +156,14 @@ levers:
             node.py の main は uvicorn.run にアプリの実体を渡しているので，複数のプロセスには工場関数か import の文字列が要る．cluster の形式とデバイスの役割，既存の routing の挙動は変えない．
             質問者を複数のデバイスに置く形（B25 (a)）は人間の判断に残す．
             Iteration 10 の rc-researcher が確定（backlog B30）：キーは `experiment.node_workers`（既定 1）．W ≥ 2 は spawn の W 個のプロセスが SO_REUSEPORT で同じポートを開く．
-            ノードの全体の CPU は /healthz の cgroup_cpu_s（コンテナの cgroup v2）．負荷生成のプロセスの上限は 8．主の量は実行ごとの頂点の処理量 P，主の仮説は 13.102 で W = 1 → 2 の P の比 ≥ 1.5．事前登録は journal の Iteration 10"}
+            ノードの全体の CPU は /healthz の cgroup_cpu_s（コンテナの cgroup v2）．負荷生成のプロセスの上限は 8．主の量は実行ごとの頂点の処理量 P，主の仮説は 13.102 で W = 1 → 2 の P の比 ≥ 1.5．事前登録は journal の Iteration 10．
+            Iteration 10 は採用（P の中央値 W = 1 → 2 → 4：13.102 は 352.0 → 594.6 → 764.5，15.103 は 475.8 → 792.8 → 1246.5 要求/秒．1 要求の CPU は W とともに増える）．deploy の既定は 1 のまま（B31 (a)）"}
+  - {name: requester.probe_body, values: [pre_encoded],
+     note: "Iteration 10 の評価で追加（backlog B31 [auto-decided]）．仮称．既定は今の挙動（per_request：ノードごとに ProbeRequest → model_dump → httpx の json= で 768 次元の埋め込みを JSON にする）．
+            pre_encoded は問ごと（検索器ごと）に埋め込みの JSON を 1 回だけ作り，ノードごとに shard_ids だけを差し替えた bytes を content= で送る．ノードの API と本文の意味は変えない．
+            システム全体の律速は質問者（制御点 1 台．約 2,600 要求/秒）で，専門家ノードには W = 1 で約 3.8 倍の余裕がある．操作端末の測定で本文を作る費用は 1 要求あたり約 0.39 ms（質問者 1 プロセスの 1 要求の時間 約 2.3 ms の約 17%）．
+            flood_score・device_probe（D = 12）を per_node・2,940 問・検索だけ・requester_procs N = 1・8 × 3 回で流し，選択と得点が全問で一致したまま処理量が伸びるかを測る．
+            事前に py-spy 等で制御点の質問者の時間の内訳を取り，本文の符号化の割合が小さければ最も大きい項目（httpx の INFO のログ等）を 1 つだけ選び直してよい．キー名（設定キーかコードの置き換えか）・判定の規則は rc-researcher が事前登録で決める"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
