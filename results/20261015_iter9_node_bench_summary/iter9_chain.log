@@ -1,0 +1,25 @@
+[2026-10-15_14:18:26] BEGIN 20261015_iter9_anchor_fs_n1_p30_pre dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1
+[14:20:47] 20261015_iter9_anchor_fs_n1_p30_pre deployed
+[14:22:23] 20261015_iter9_anchor_fs_n1_p30_pre start=0 inner=0
+[14:22:24] 20261015_iter9_anchor_fs_n1_p30_pre analyze=0
+[14:22:24] 20261015_iter9_anchor_fs_n1_p30_pre failure_rate=0.0
+[2026-10-15_14:22:24] ALL DONE
+[2026-10-15_14:22:24] BEGIN 20261015_iter9_nb_t13102_r1 target=192.168.13.102 order=1,2,4,8,16,32,64 placement=20261015_iter9_anchor_fs_n1_p30_pre
+[14:27:14] 20261015_iter9_nb_t13102_r1 bench=0
+[2026-10-15_14:27:14] BEGIN 20261015_iter9_nb_t15103_r1 target=192.168.15.103 order=1,2,4,8,16,32,64 placement=20261015_iter9_anchor_fs_n1_p30_pre
+[14:32:04] 20261015_iter9_nb_t15103_r1 bench=0
+[2026-10-15_14:32:04] BEGIN 20261015_iter9_nb_t13102_r2 target=192.168.13.102 order=64,32,16,8,4,2,1 placement=20261015_iter9_anchor_fs_n1_p30_pre
+[14:36:54] 20261015_iter9_nb_t13102_r2 bench=0
+[2026-10-15_14:36:54] BEGIN 20261015_iter9_nb_t15103_r2 target=192.168.15.103 order=64,32,16,8,4,2,1 placement=20261015_iter9_anchor_fs_n1_p30_pre
+[14:41:43] 20261015_iter9_nb_t15103_r2 bench=0
+[2026-10-15_14:41:43] BEGIN 20261015_iter9_nb_t13102_r3 target=192.168.13.102 order=1,2,4,8,16,32,64 placement=20261015_iter9_anchor_fs_n1_p30_pre
+[14:46:33] 20261015_iter9_nb_t13102_r3 bench=0
+[2026-10-15_14:46:33] BEGIN 20261015_iter9_nb_t15103_r3 target=192.168.15.103 order=1,2,4,8,16,32,64 placement=20261015_iter9_anchor_fs_n1_p30_pre
+[14:51:22] 20261015_iter9_nb_t15103_r3 bench=0
+[2026-10-15_14:51:22] BEGIN 20261015_iter9_anchor_fs_n1_p30_post dataset=enronqa answer_mode=retrieval_only http_pool=per_node question_limit=2 routing=flood_score parallel=30 requester_procs=1
+[14:53:41] 20261015_iter9_anchor_fs_n1_p30_post deployed
+[14:55:11] 20261015_iter9_anchor_fs_n1_p30_post start=0 inner=0
+[14:55:12] 20261015_iter9_anchor_fs_n1_p30_post analyze=0
+[14:55:13] 20261015_iter9_anchor_fs_n1_p30_post failure_rate=0.0
+[2026-10-15_14:55:13] ALL DONE
+[2026-10-15_14:55:13] ALL DONE

@@ -147,7 +147,14 @@ levers:
             Iteration 9 の rc-researcher が確定（backlog B28）：設定キーではなく新しい CLI `atrium node-bench`（src/atrium/node_bench.py．scripts/remote/node_bench.sh）の同時の要求の数 C．
             要求は flood_score と同じ probe（対象のノードの全 5 シャード，EnronQA の 2,940 問の cached の埋め込み），閉じた系，慣らし 5 秒・区間 30 秒，負荷生成は min(C, 4) プロセス．
             主の対象は 192.168.13.102（i5-8350U．Iteration 8 の dp12 で最も忙しかったノード），記録は 192.168.15.103（i7-8700）．各 3 回．飽和の C は「C を倍にして範囲が重ならず 1.10 倍以上」が初めて成り立たない C．
-            /healthz に host_cpu を足し，/healthz の GET に再試行 1 回を足した（B27 (d)）．事前登録は journal の Iteration 9"}
+            /healthz に host_cpu を足し，/healthz の GET に再試行 1 回を足した（B27 (d)）．事前登録は journal の Iteration 9．
+            Iteration 9 は採用（X_sat：13.102 は 354.3 要求/秒，15.103 は 473.3．膝は C = 4．両対象ともノードのプロセスの CPU 約 1.9 コアで頭打ちで，デバイスの CPU は 2〜3 割しか使っていない）"}
+  - {name: node.workers, values: [1, 2, 4],
+     note: "Iteration 9 の評価で追加（backlog B29 [auto-decided]）．仮称．専門家ノードを W 個のプロセス（uvicorn の worker 等）で動かす（既定 1 ＝今の挙動）．
+            Iteration 9 と同じ atrium node-bench（主 192.168.13.102，C ∈ {1, 2, 4, 8, 16, 32, 64}，各 3 回）で，X_sat が W にほぼ比例して伸びるか，頭打ちのときの CPU（プロセスの合計と host busy）を測る．
+            約 1.9 コアの頭打ちがプロセスの中の直列（GIL の取り合い．推測）によるかを確かめる．キー名・W・プロセスの分け方・CPU の合計の測り方・判定の規則は rc-researcher が事前登録で決める．
+            node.py の main は uvicorn.run にアプリの実体を渡しているので，複数のプロセスには工場関数か import の文字列が要る．cluster の形式とデバイスの役割，既存の routing の挙動は変えない．
+            質問者を複数のデバイスに置く形（B25 (a)）は人間の判断に残す"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

@@ -1,0 +1,111 @@
+{
+ "kind": "node_bench",
+ "git_head": "34b033340935-dirty",
+ "dataset": "enronqa",
+ "target": {
+  "host": "192.168.13.102",
+  "url": "http://192.168.13.102:8100",
+  "node_id": "192.168.13.102",
+  "shard_ids": [
+   "brawner-s",
+   "dickson-s",
+   "maggi-m",
+   "shackleton-s",
+   "townsend-j"
+  ],
+  "encoder": "Snowflake/snowflake-arctic-embed-m-v1.5"
+ },
+ "concurrency_order": [
+  1,
+  8
+ ],
+ "seed": 12,
+ "n_questions": 2940,
+ "max_procs": 4,
+ "warmup_s": 5.0,
+ "measure_s": 30.0,
+ "request_timeout_s": 30.0,
+ "cross_level_score_mismatches": 0,
+ "levels": [
+  {
+   "concurrency": 1,
+   "procs": 1,
+   "concurrency_per_proc": [
+    1
+   ],
+   "measure_s": 30.0,
+   "n_ok": 3067,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 102.23333333333333,
+   "latency_s": {
+    "p50": 0.00548243522644043,
+    "p95": 0.006732130050659179,
+    "p99": 0.23501149654388495
+   },
+   "latency_mean_s": 0.009753484076073009,
+   "node_s": {
+    "p50": 0.002539023756980896,
+    "p95": 0.002993638813495635,
+    "p99": 0.004157799147069457
+   },
+   "little_ratio": 0.9971311887105306,
+   "node_proc_util": 0.4663398420333333,
+   "node_host_busy": 0.08502832918925529,
+   "node_host_softirq": 0.013043655484449516,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.3026940687559545,
+    1.033901510760188
+   ],
+   "generator_cpu_util_per_proc": [
+    0.10385073333333336
+   ],
+   "control_cpu_busy": 0.015448851774530271,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 8,
+   "procs": 4,
+   "concurrency_per_proc": [
+    2,
+    2,
+    2,
+    2
+   ],
+   "measure_s": 30.0,
+   "n_ok": 10375,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 345.8333333333333,
+   "latency_s": {
+    "p50": 0.02280592918395996,
+    "p95": 0.0289757490158081,
+    "p99": 0.03259954929351809
+   },
+   "latency_mean_s": 0.023126680075404155,
+   "node_s": {
+    "p50": 0.01424007723107934,
+    "p95": 0.01967692710459232,
+    "p99": 0.022338145170360806
+   },
+   "little_ratio": 0.9997471074263254,
+   "node_proc_util": 1.9162295207,
+   "node_host_busy": 0.24770563513165794,
+   "node_host_softirq": 0.008448408954455785,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.00841258792206645,
+    0.0039107706397771835
+   ],
+   "generator_cpu_util_per_proc": [
+    0.09125476666666667,
+    0.09082876666666667,
+    0.09128923333333333,
+    0.0913987
+   ],
+   "control_cpu_busy": 0.03427935447968837,
+   "score_mismatches": 0
+  }
+ ]
+}

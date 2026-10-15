@@ -1,3 +1,177 @@
+## Iteration 6: 1 段目の採点の重心の前計算による二段の方式の処理量の測り直し
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B21 [auto-decided]（Iteration 5 は採用．per_node の下で multi_centroid・centroid_probe の処理量は 1 段目の採点 route_s 約 0.111 秒で決まっている）．config.yml の levers 末尾の `requester.advert_scoring: [precomputed]`（仮称）を，下の B22 のとおり**設定キーではなくコードの置き換え**として確定した．
+データ準備・ラベル・シャード・公開情報は作り直さない．
+
+**コードと既存の結果から確かめたこと**（事実）
+- `MultiCentroidRouter.score`（`src/atrium/routing/advert.py`）は，問ごと・データ源ごとに `np.asarray(advert.centroids, np.float32)` で Python のリスト（`Advert.centroids: list[list[float]]`．pydantic のモデル）から行列を作っていた．質問者は 1 問で 150 受信箱を採点するので，1 問あたり 150 回の変換になる．
+  `CentroidProbeRouter` の 1 段目（`candidates`）は内部の `MultiCentroidRouter(K)` を使うので，同じ費用を持つ．`SourceProfile` は質問者の起動時に `build_source_profiles` で 1 回だけ作られ，以後は変わらない．
+- 質問者の `_route`・`_route_by_candidate_probe`（`src/atrium/requester.py`）は採点をイベントループの上で同期に行い，その時間を `timings.route_s` に記録する．Iteration 5 の per_node の p30 で route_s の p50 は multi_centroid 0.1113〜0.1119 秒，K = 75 は 0.113 秒で，parallel 1〜30 を通して変わらない．
+- Iteration 5 の per_node の基準値（3 回の範囲．`results/20261015_iter5_load_summary/iter5_summary.out`）：multi_centroid の p30 は処理量 8.519〜8.566 問/秒，e2e p95 4.865〜5.234 秒．K = 75 の p30 は処理量 5.34〜5.39 問/秒，e2e p95 8.49〜8.52 秒．flood_score の p30 は処理量 12.534〜12.785 問/秒，e2e p95 3.392〜3.626 秒．
+  per_node の multi_centroid は p30 しか測っておらず，K = 30 は per_node で測っていない．
+- 実装の後の操作端末での測定（150 個の乱数の公開情報，C = 32，768 次元．実データ・制御点ではない）：1 段目の 1 問あたりの時間は，リストから変換する形で 0.105 秒，前計算した行列では m = 2・K = 75 とも 0.0010 秒だった．150 個の `SourceProfile` を作る時間（前計算込み）は 0.29 秒で，起動時に 1 回だけかかる．
+
+**調査で分かったこと**（tavily-search・tavily-extract．事実と推測を分けて書く）
+- 分散の selective search では，資源選択（どのシャードに問い合わせるかの採点）の計算の費用が処理量に効く．Kim, Callan, Culpepper, Moffat は，Rank-S（標本の索引を引く資源選択）が Taily（統計だけを見る資源選択）より正確だが，資源選択の計算の費用のために待ち時間が長く処理量が低くなりやすく，資源選択を複数の機械に複製して偏りを直す必要があったと報告している
+  （Y. Kim, J. Callan, J. S. Culpepper, A. Moffat, "Efficient distributed selective search", Information Retrieval Journal 20, 221–252, 2017．https://link.springer.com/article/10.1007/s10791-016-9290-6 ，本文 https://people.eng.unimelb.edu.au/ammoffat/abstracts/kccm17irj.pdf ）．
+  本研究の 1 段目（multi_centroid の採点）は資源選択に当たり，その費用が質問者 1 プロセスで直列になって処理量を決めている点は同じ構図である（対応づけは推測）．
+- asyncio のイベントループの上の CPU を使う処理は，その間ループ全体を止める（Python documentation, "Event loop", "Executing code in thread or process pools"．https://docs.python.org/3/library/asyncio-eventloop.html ）．route_s が parallel によらず一定で，処理量が約 1 / route_s で頭打ちになる Iteration 4・5 の観測と合う．
+  executor へ移す案もあるが，numpy の行列積は GIL を外すものの，リストからの変換（Python のオブジェクトを 1 要素ずつ読む）は GIL を持ったまま動くので，移しても 1 コアの CPU の取り合いは残る（推測．測っていない）．そこで費用そのものを除く前計算を選ぶ．
+- Python のリストから numpy の配列を作るときの 1 要素ごとの費用についての一次の資料は，今回の検索では見つからなかった（検索の結果は一般の解説だけだった）．費用の大きさは上の操作端末の測定（0.105 秒 → 0.001 秒）だけを根拠にする．
+
+**問い**：(1) route_s の 0.111 秒は重心の変換でほぼ全部が説明できるか（前計算で 0.01 秒未満になるか）．(2) 1 段目の費用を除くと，multi_centroid と centroid_probe の処理量は何で決まるか（Iteration 5 の「1 問の時間 = route_s ＋ 要求の数 ÷ R」，R ≈ 400 要求/秒の式がそのまま当てはまるか）．
+(3) 1 段目の費用を除いた状態で，K = 30・75 の二段の方式は flood_score（全員に聞く方式）より処理量で上回るか（要求の数は K = 75 で約 31，K = 30 で約 22，flood_score は 32）．
+
+**B21 の要レビューへの対応**
+- (a) **1 段目の採点の費用の除去を，デバイスを単位に上位を選ぶ方式より先にする**（B21 の順序のとおり）．デバイスを単位に選ぶ方式も同じ 1 段目の採点を持つので，この費用を残すと比較が「変換の費用」の比較になる．デバイスを単位に選ぶ方式は Iteration 7 の候補として残す．
+- (b) **`experiment.http_pool` の既定値は `shared` のまま変えず，全 38 実行の仕様（`iter6_specs.txt`）に `http_pool=per_node` を明示する**．既定値の変更は人間の判断に残す．
+- (c) 複数の質問者のプロセス・デバイスの構成は，この比較の後の候補として残す．このイテレーションの結果で `requester_cpu_util` が 1.0 に張り付いたまま処理量が R ≈ 400 要求/秒の式で決まるなら，その時点で次の候補になる．
+- (d) d0006 §6.3 の T4 の訂正は Iteration 5 で済んでいる．このイテレーションの結果で，外部レビュー R4 (b)（multi_centroid が 1 問ずつで flood_score より遅い理由）の答えを d0006 §6.3 に足す（phase 3）．
+
+**仮説**
+- **H-S1（機構）**：前計算で，multi_centroid・K = 75・K = 30 の全実行の route_s の p50 が 0.010 秒未満になる（Iteration 5 は 0.111〜0.113 秒）．
+- **H-S2（multi_centroid の処理量）**：multi_centroid × per_node の parallel 30 の処理量は Iteration 5（8.519〜8.566 問/秒）より上がる．
+- **H-S3（K = 75 の処理量）**：K = 75 × per_node の parallel 30 の処理量は Iteration 5（5.34〜5.39 問/秒）より上がる．
+- **H-S4（待ち時間）**：multi_centroid と K = 75 の parallel 30 の e2e p95 は Iteration 5（multi_centroid 4.865〜5.234 秒，K = 75 8.49〜8.52 秒）より下がる．
+- **H-S5（記録．方式の順序）**：1 段目の費用を除いた parallel 30 で，処理量の順は multi_centroid ＞ K = 30 ＞ K = 75 ≈ flood_score になる（要求の数の順．推測）．K = 30・75 と flood_score（Iteration 5 の per_node の値）の比較を「範囲が重ならない」の規則で記録する．
+
+**単一レバー**：1 段目の採点の重心の持ち方．`MultiCentroidRouter.score` が問ごと・データ源ごとに `Advert.centroids` のリストから行列へ変換していたのを，**`SourceProfile` を作るときに 1 回だけ (C, 次元) の fp32 の行列（`SourceProfile.advert_centroids`）にして，採点はそれを使う**形に変える．他は全て Iteration 5 の per_node の構成に固定する．
+- **形（事前登録）：設定キーにせず，コードを置き換える**（理由は backlog B22）．比べる相手は Iteration 5 の per_node の値（`cd42b41` のイメージ）とし，環境の揺れは採点を持たない flood_score × per_node の p30 で前後に確かめる．
+- **実装**（済み．下の commit）
+  - `src/atrium/routing/__init__.py`：`SourceProfile` に `advert_centroids: F32Array | None = field(init=False, repr=False, compare=False)` を足し，`__post_init__` で `np.asarray(advert.centroids, np.float32)`（advert が無ければ None）を入れる（frozen なので `object.__setattr__`）．`dataclasses.replace`（`with_card_embeddings` が使う）でも作り直される．
+  - `src/atrium/routing/advert.py`：`MultiCentroidRouter.score` は `source.advert_centroids` を使う（advert が無いときの `ValueError` は今と同じ）．`CentroidProbeRouter` の 1 段目はこれを通るので自動で速くなる．`CardSimRouter` の `card_embedding` の変換（1 本 768 要素）はこのレバーの外とし，変えない．
+  - `tests/test_advert_routing.py`：前計算の行列が fp32 で中心と一致すること，advert の無いデータ源は None であること，`replace` で作り直されること，採点の値がリストから変換したときと一致すること（選択を変えないことの単体の確認）の 4 件を足した．pytest 246 件・`ruff check src tests`・`ruff format --check`・`mypy src` は通過．
+  - 連続実行：`results/20261015_iter5_load_summary/iter5_chain.sh` をそのまま使い（`setcfg` は `http_pool`・`routing`・`parallel`・`routing.probe_k.enronqa` を扱える），仕様は `results/20261015_iter6_load_summary/iter6_specs.txt`（38 実行．この commit に含める）．
+    集計は `iter5_summary.py` を元に `iter6_summary.py` を rc-executor が作る（指標は同じ．基準値の読み込み先に Iteration 5 の per_node の実行と Iteration 4 の K = 30 の p1 r1 を足す）．
+
+**固定する構成**（Iteration 5 の per_node と同じ）：`dataset: enronqa`，`answer_mode: retrieval_only`，`question_limit: 2`（300 問．T4 と同じ集合），m = 2，`merge: score`，`query_embedding.enronqa: cached`，`seed` は既存の値，**`http_pool: per_node`（全実行で明示）**，`MAX_CONNECTIONS_PER_NODE` = 64，
+`keepalive_expiry` 5.0 秒，`RETRIEVE_RETRIES` = 2，`RETRIEVE_TIMEOUT_S` = 120，ノードの uvicorn の設定（既定），1 段目の採点はイベントループの上で同期（executor へ移さない），公開情報はシャードにある既存のヘッダー込みの multi_centroid（C = 32），各回の前に `mise run deploy`，失敗した問は流し直さない，
+連続実行の間は制御点で他のコンテナを動かさず commit もしない．専門家 30 台・質問者（制御点）の構成は T4 と同じ（運用ルール 8 のフルスペックの実機実験）．
+
+### 事前登録（2026-10-15．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**実行の順序と回数**（計 38 実行．1 回 2〜5 分，全体で約 2.5〜3 時間の見込み．run_id の接頭辞は `20261015_iter6_`．仕様は `iter6_specs.txt` の並びのとおり）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ実行を 1 回も始めずに止め，backlog に `[needs-human]` を記録する．
+2. **環境の揺れの確認（前）**：flood_score × per_node の parallel 30 を 1 回（`anchor_fs_pn_p30_pre`）．flood_score は 1 段目の採点を持たないので，このレバーで変わらないはずである．
+3. **multi_centroid × per_node**：parallel 1・4・16・30 × 3 回（`mc_pn_p<parallel>_r<1|2|3>`．12 実行）．
+4. **centroid_probe（K = 75．判定の主）× per_node**：parallel 1・4・16・30 × 3 回（`cp75_pn_p<parallel>_r<n>`．12 実行）．
+5. **centroid_probe（K = 30．記録）× per_node**：parallel 1・4・16・30 × 3 回（`cp30_pn_p<parallel>_r<n>`．12 実行）．
+6. **環境の揺れの確認（後）**：2 と同じ条件を 1 回（`anchor_fs_pn_p30_post`）．
+- deploy の失敗の扱い（5 分おきに 3 回まで再試行，それでも失敗した回は飛ばして後で同じ run_id で流す．失敗率に数えない）と，失敗率の打ち切り（同じ条件の 3 回とも失敗率が 10% を超えたら，その系列のより大きい parallel は飛ばして記録する）は Iteration 4・5 と同じ（`iter5_chain.sh` の実装のとおり）．
+
+**指標**（Iteration 5 と同じ定義）：処理量（成功した問の数 ÷ `run_meta.json` の finished_at − started_at），e2e_s の p50・p95，probe_s・retrieve_s の p50・p95，**route_s の p50・p95**，`probe_node_s_max` の p50・p95，失敗率とエラーの種類，`requester_cpu_util`，再試行の数（`requester.log` の `retrying` の行の数），
+新しい接続の数（access log の送信元ポートの数），1 秒あたりに扱った HTTP 要求の数（処理量 × 1 問あたりの要求の数），1 問あたりに probe を受けたデバイスの数（K = 30・75），300 問の hit@2（参考）．
+加えて，Iteration 5 の式の当てはまりとして，parallel 30 の各方式で R = 1 問あたりの要求の数 ÷（1 / 処理量 − route_s の p50）を出す（記録．判定に使わない）．
+
+**正しさの確認**（満たさなければ判定に進まず，原因を調べて記録する）
+- 全ての実行で，失敗の無い問の `selected_sources` が，同じ方式・同じ K の基準の選択と **100%** 一致する（前計算は同じ fp32 の値を同じ行列積に渡すので，選択はビット単位で同じになるはずである．Iteration 5 の 99% より厳しくする）．
+  基準は multi_centroid が T4 の `20261014_t4_multi_centroid_p1_r1`，K = 75 が `20261014_iter4_cp75_p1_r1`，K = 30 が `20261014_iter4_cp30_p1_r1`（multi_centroid と K = 75 は，Iteration 5 の per_node の全実行がこの基準と 100% 一致した系列である．K = 30 は per_node で流していない）．
+- `run_meta.json` の `http_pool` が全実行で `per_node`，routing と K が仕様と一致する．
+- 単体テストで，採点の値がリストから変換したときと一致する（上の 4 件）．
+
+**環境の揺れの規則**：前後 2 回の flood_score × per_node の p30 の処理量と e2e p95 が，どちらも Iteration 5 の `fs_pn_p30` の 3 回の [最小 × 0.9, 最大 × 1.1]（処理量 11.281〜14.064 問/秒，e2e p95 3.053〜3.989 秒）に入れば，比べる相手は Iteration 5 の per_node の 3 回の値とする．
+1 つでも外れたら「環境が変わった」と記録し，下の採用の基準の倍率 1.5 を，1.5 × max(1, Iteration 5 の fs_pn_p30 の処理量の中央値 12.721 ÷ 前後 2 回の処理量の小さい方) に引き上げる（環境が遅くなった分を差の側に有利に数えない）．範囲の規則（重ならないこと）はそのまま使う．
+
+**判定の規則**（比べる 2 条件の回ごとの値の範囲が重ならないときだけ「差がある」．比べる相手は Iteration 5 の per_node の parallel 30 の 3 回）
+- **H-S1**：multi_centroid・K = 75・K = 30 の全 36 実行で route_s の p50 が 0.010 秒未満．
+- **H-S2**：multi_centroid の p30 の 3 回の処理量の範囲が 8.519〜8.566 より上にあり，重ならない．
+- **H-S3**：K = 75 の p30 の 3 回の処理量の範囲が 5.34〜5.39 より上にあり，重ならない．
+- **H-S4**：multi_centroid の p30 の e2e p95 の範囲が 4.865〜5.234 秒より下，かつ K = 75 の p30 の e2e p95 の範囲が 8.49〜8.52 秒より下にあり，どちらも重ならない．
+- **このイテレーションの結論**：
+  - **採用**（1 段目の採点の費用は重心の変換であり，以後の負荷の実験はこの実装で行う）：H-S1〜H-S4 が全て成り立ち，かつ parallel 30 の処理量の 3 回の中央値が，multi_centroid で 8.551 の 1.5 倍以上（12.83 問/秒以上），K = 75 で 5.372 の 1.5 倍以上（8.06 問/秒以上）．
+    1.5 倍は Iteration 4・5 と同じ基準である（Iteration 5 の per_node の p30 の 3 回の幅は multi_centroid で中央値の −0.4%〜+0.2%，K = 75 で −0.6%〜+0.3%，flood_score で −1.5%〜+0.5% であり，1.5 倍はこの揺れの 30 倍以上）．
+  - **部分的に支持**：H-S1 が成り立ち，H-S2 か H-S3 の少なくとも一方が成り立つが，採用の条件を満たさない．
+  - **棄却**：H-S2 と H-S3 がどちらも成り立たない，または H-S1 が成り立たない（重心の変換が route_s の主因ではなかった）．
+- **H-S5**（記録）：parallel 30 で，K = 30・K = 75・multi_centroid の各 3 回の処理量と e2e p95 を，Iteration 5 の flood_score × per_node の 3 回（12.534〜12.785 問/秒，3.392〜3.626 秒）と「範囲が重ならない」の規則で比べ，上・下・重なるのどれかを記録する．parallel 1〜30 の曲線を 4 方式で並べた表で残す．
+- parallel 1・4・16 の multi_centroid と全 parallel の K = 30 は Iteration 5 の per_node の値が無いので，判定に使わず曲線として記録する（K = 30 は Iteration 4 の shared の値を参考に並べる）．
+
+**ノイズの見積もり**：上の採用の基準の項のとおり，Iteration 5 の per_node の p30 の 3 回の幅は中央値の ±1.5% 以内（e2e p95 は multi_centroid で 4.865〜5.234 秒の ±4% 程度）．parallel 1 の幅は大きい（flood_score の p1 は 13.08〜17.35 問/秒）ので，parallel 1 は判定に使わない．
+
+**期待効果**（推測．判定に使わない）：route_s の p50 は約 0.001〜0.003 秒（制御点の CPU と実データで操作端末と少し違う）．parallel 30 の処理量は，Iteration 5 の式（R ≈ 400 要求/秒）を当てはめると K = 75 は約 31 要求で 12〜13 問/秒（flood_score と同じ程度），K = 30 は約 22 要求で 17〜19 問/秒（flood_score の約 1.4 倍），
+multi_centroid は 2 要求で式の上では約 200 問/秒だが，1 問あたりの要求に依らない質問者の費用（結果の書き出し，本照会の応答の JSON の解釈など）と，2 台に集まる本照会のノードの側の時間で，数十問/秒で頭打ちになる見込み．
+したがって H-S5 は「multi_centroid ＞ K = 30 ＞ K = 75 ≈ flood_score」になる見込みである．`requester_cpu_util` は全実行で 1.0 に張り付いたままの見込み．
+
+**限界**：有線 LAN・300 問・検索だけ．質問者は 1 プロセスのまま．比べる相手は Iteration 5（`cd42b41` のイメージ）で，同時性は前後 2 回の揺れの確認でしか担保しない（新旧を同じイメージで流す形にはしない．B22）．
+`CardSimRouter` の `card_embedding` の変換は残る（このレバーの外）．K = 30 と parallel 1〜16 の multi_centroid は per_node の旧い値が無く，「変化」ではなく「水準」だけを記録する．CPU 使用率はプロセス全体の値で，内訳は分けない．
+
+**次の候補**：採用か部分的に支持なら，per_node と前計算の下で「デバイスを単位に上位を選ぶ方式」（Iteration 7．Iteration 4 からの候補）に進む．全方式で `requester_cpu_util` が 1.0 に張り付き，処理量が R ≈ 400 要求/秒の式で決まるなら，複数の質問者のプロセスの構成をその次の候補にする．
+棄却（H-S1 が成り立たない）なら，route_s の残りの内訳（py-spy のプロファイル）を取ってから次を決める．
+
+### 実装・実験（2026-10-15．research-cycle の phase 2）
+
+実装は `d510a21` のまま（コード変更なし）．事前登録どおり 38 実行を完了した（失敗率は全て 0．`cp75_pn_p4_r2` の deploy が 1 回失敗し，5 分後の再試行で成功．飛ばした実行なし）．実験中の commit なし．
+所在: `results/20261015_iter6_*/`，ログ `results/20261015_iter6_load_summary/iter6_chain.log`，集計 `iter6_summary.py`・`iter6_summary.out`．
+
+**正しさの確認**：全 36 実行で `selected_sources` が基準と 100% 一致（不一致 0）．`http_pool` は全実行で `per_node`．環境の揺れ：前 12.363 問/秒・p95 3.697 秒，後 12.952 問/秒・p95 3.609 秒．ともに範囲内（採用の倍率は 1.5 のまま）．
+
+**事前登録の規則の機械的な出力**（解釈はフェーズ 3）
+- H-S1 True：route_s p50 の最大 0.00157 秒（Iteration 5 は 0.111〜0.113 秒）．
+- H-S2 True：multi_centroid の p30 処理量 116.97・169.51・174.31 問/秒（中央値 169.508．Iteration 5 は 8.519〜8.566）．
+- H-S3 True：K = 75 の p30 処理量 13.099・13.413・13.444 問/秒（中央値 13.413．Iteration 5 は 5.340〜5.394）．
+- H-S4 True：p30 の e2e p95 は multi_centroid 0.229〜0.735 秒，K = 75 3.436〜3.558 秒．
+- 採用の倍率：中央値が閾値（multi_centroid 12.83，K = 75 8.06）以上．規則の結論は採用．
+- H-S5（記録）：p30 の処理量は K = 30 が 18.709〜19.698（中央値 19.681．p95 2.311〜2.741 秒）．3 方式とも Iteration 5 の flood_score（12.534〜12.785）より上で範囲は重ならない．e2e p95 は K = 75 だけ flood_score（3.392〜3.626）と重なる．
+- R（要求/秒，p30）：K = 75 は 415.2〜426.4，K = 30 は 421.2〜444.2，multi_centroid は 279.8・442.6・458.7．`requester_cpu_util` ≥ 0.9 は 28/36 実行．hit@2（300 問）：multi_centroid 0.4833，K = 75 0.87，K = 30 0.78．
+
+**未達・注意**：事前登録の基準で未達なし．multi_centroid の 2 実行は処理量が低い（`mc_pn_p4_r2` 59.875 問/秒・cpu_util 0.369，`mc_pn_p30_r1` 116.966 問/秒・cpu_util 0.674．他は 169〜181）．原因は未調査．
+失敗の無い問での再試行：`cp75_pn_p16_r1` 2，`cp75_pn_p16_r2` 5，`cp75_pn_p30_r2` 2，`cp30_pn_p30_r3` 1．
+
+### Iteration 6 実行済み（2026-10-15．research-cycle の phase 3．判定：採用）
+
+**変更**：1 段目の採点の重心の持ち方を，問ごとに `Advert.centroids` のリストから変換する形から，`SourceProfile.advert_centroids` に読み込み時に 1 回だけ前計算した fp32 の行列を使う形へ置き換えた（`d510a21`．38 実行は全て同じ HEAD）．`http_pool: per_node` を全実行で明示した．
+事前登録の規則・基準は結果を見て変えていない．
+
+**正しさの確認と環境の揺れ**：選択の一致（全 36 実行で基準と 100%）・`http_pool` の一致・単体テスト 4 件は通過．前後の flood_score × per_node の p30（12.363 問/秒・p95 3.697 秒，12.952 問/秒・3.609 秒）は Iteration 5 の [最小 × 0.9, 最大 × 1.1] の内 → 比べる相手は Iteration 5 の per_node の 3 回，採用の倍率は 1.5 のまま．
+
+**結果と判定**（parallel 30．3 回の範囲．規則は「範囲が重ならないときだけ差」）
+- **H-S1（機構）：成立**．全 36 実行で route_s の p50 は 0.00133〜0.00157 秒（Iteration 5 は 0.111〜0.113 秒．約 1/75）．
+- **H-S2：成立**．multi_centroid の処理量 116.97〜174.31 問/秒は Iteration 5 の 8.519〜8.566 より上で重ならない．中央値の比 169.51 / 8.551 = **19.8 倍**（最も低い r1 でも 13.7 倍）．
+- **H-S3：成立**．K = 75 の処理量 13.10〜13.44 問/秒は 5.34〜5.39 より上で重ならない．中央値の比 13.413 / 5.372 = **2.50 倍**．
+- **H-S4：成立**．e2e p95 は multi_centroid 0.229〜0.735 秒（Iteration 5 は 4.865〜5.234 秒），K = 75 は 3.436〜3.558 秒（8.49〜8.52 秒）．
+- **このイテレーションの結論：採用**（中央値は閾値 multi_centroid 12.83・K = 75 8.06 を大きく超える）．1 段目の採点の費用は重心の変換であり，以後の負荷の実験はこの実装で行う．
+- **ノイズか信号か**：Iteration 5 の p30 の 3 回の幅は中央値の ±1.5% 以内，今回は K = 75 で −2.3%〜+0.2%，K = 30 で −4.9%〜+0.1% である．K = 75 の 2.5 倍・multi_centroid の 19.8 倍は，この揺れより 2 桁大きい（信号）．multi_centroid の幅（−31%〜+2.8%）は下の 2 実行の停止によるもので，判定には効かない（最も低い回でも閾値の 9 倍）．
+- **H-S5（記録）**：parallel 30 の処理量の中央値は multi_centroid 169.5 ＞ K = 30 19.68 ＞ K = 75 13.41 ＞ flood_score（Iteration 5）12.72 の順．規則の出力は 3 方式とも flood_score より「上」で，e2e p95 は multi_centroid と K = 30 が「下」，K = 75 が「重なる」．
+  ただし K = 75 と flood_score の差は，同じ日の前後の flood_score（12.36・12.95）と比べると 1.04〜1.08 倍で，前後の 2 回の間の揺れ（4.8%）と同じ大きさである．**K = 75 は処理量で flood_score とほぼ同じ**と読む（事前の推測「K = 75 ≈ flood_score」と一致）．K = 30 は flood_score の 1.55 倍・e2e p95 2.31〜2.74 秒（3.39〜3.63 秒より下）．
+
+**分析**
+
+事実（記録から計算したもの）
+1. **R4 (b) の答え：1 問ずつで multi_centroid が flood_score より遅かったのは，重心の変換が全てだった**．parallel 1 の multi_centroid は e2e p50 0.0080〜0.0083 秒・処理量 113.6〜120.6 問/秒で，flood_score × per_node（Iteration 5 の p1．e2e p50 0.056〜0.057 秒，13.1〜17.3 問/秒）より速い．
+   T4 の multi_centroid の p1（e2e p50 0.120 秒）のうち 0.111 秒が採点で，変換を除いた採点は 0.0013 秒になった（操作端末の見積もり 0.001 秒と同じ桁．制御点・実データの route_s で確かめた）．
+2. **「1 問の時間 = route_s ＋ 要求の数 ÷ R」の式は，前計算の後も 4 方式に当てはまる**．parallel 30 の R は K = 75 で 415〜426，K = 30 で 421〜444，multi_centroid（停止の無い r2・r3）で 443〜459，flood_score の前後の確認で 396・414 要求/秒（Iteration 5 は 401〜409）．4 方式が 396〜459（±8%）に揃う．
+   multi_centroid の 1 問 5.8 ms のうち採点は 1.4 ms，残り 4.4 ms が 2 要求（1 要求約 2.2 ms）で，1 要求あたりの費用は全員に聞く方式（1 / 420 ≈ 2.4 ms）と同じである．事前の推測「multi_centroid は 1 問あたりの固定の費用で数十問/秒で頭打ち」は外れた（要求の数に依らない大きな固定の費用は無い）．
+   parallel 1・4 の R は約 520〜570 要求/秒で，同時の要求が増えると 1 要求あたりの費用が少し増える形は Iteration 5 と同じである．
+3. **質問者の CPU は今も 1 コアに張り付いている**．parallel 4 以上で停止の無い実行の `requester_cpu_util` は 0.92〜1.01（大半は 1.00）である．36 実行のうち 0.9 未満は 8 実行で，parallel 1 の multi_centroid の 3 回（0.63〜0.65．1 問 8 ms のうち応答の待ちの割合が大きい）と，下の事実 5 の停止のある 5 回（`cp75_pn_p1_r3` の 0.88 を含む）である．
+   したがって今回の処理量も「質問者 1 プロセスが 1 秒に約 420 の要求を扱える」ことの表れであり，方式の差は 1 問あたりの要求の数の差（2・21.9・31.1・32）でほぼ決まる．専門家の側の限界はまだ測れていない．
+4. **再試行は遅さの症状という Iteration 5 の読みと合う**．multi_centroid の p30 の再試行は Iteration 5 の 15〜19 回から 0 回になった（イベントループが 0.11 秒ずつ止まらなくなった）．K = 75・30 の p16・30 の再試行（0〜5 回）は Iteration 5 の K = 75（7〜9 回）より少ない．
+5. **低い 2 実行は，質問者の外での約 1 秒の一斉の待ちによる**．`mc_pn_p4_r2` は経過 5.01 秒（他の 2 回は約 1.68 秒）で，e2e が 0.5 秒を超えた問が 9 問（最大 1.04 秒．他の回は最大 0.08 秒），`mc_pn_p30_r1` は経過 2.56 秒（他は 1.72〜1.77 秒）で 33 問（最大 1.39 秒．他は 0.31 秒）．
+   遅い問の本照会の宛先は 14 台・23 台に散らばり，1 台のノードに偏らない．その間の `requester_cpu_util` は 0.37・0.67 と低く，質問者は CPU を使わずに待っている．同じ形（0.5〜1.4 秒の待ち，cpu_util 0.68〜0.88）は `cp30_pn_p1_r2`・`cp30_pn_p4_r3`・`cp75_pn_p1_r3` と Iteration 5 の `fs_pn_p1_r3` にもある．
+   multi_centroid の 300 問は 1.7 秒で終わるので，1 回の約 1 秒の待ちで処理量が 30〜65% 下がる．16〜25 秒かかる K = 30・75 では同じ待ちが数 % にしかならない．事前登録どおり除外せずに中央値で判定した（結論は変わらない）．
+
+推測（上の事実と矛盾しないが，未確認のもの）
+- 一斉の約 1 秒の待ちの原因は，TCP の接続の確立の再送（Linux の SYN の初期の再送の時間は 1 秒）か，ノードの側の一時的な停止（docker のネットワーク，GC）のどちらかと考えられるが，ノードの側の記録を突き合わせていないので確かめていない．待ちの長さが 0.7〜1.4 秒に集まることは前者と合う．
+- 1 要求あたり約 2.4 ms の質問者の費用の内訳（JSON の組み立て・解釈，池ごとの管理，イベントループ）は分けていない（プロファイルなし）．
+
+**期待との一致・不一致**：route_s（推測 0.001〜0.003 秒 → 0.0013〜0.0016 秒），K = 75 の処理量（推測 12〜13 → 13.4），K = 30（推測 17〜19 → 19.7），H-S5 の順序，cpu_util の張り付きは当たった．multi_centroid の頭打ち（推測 数十問/秒）は外れ，170 問/秒に達した．
+
+**想定外の挙動**：上の事実 5 の一斉の待ち（言語崩れ・発散・OOM は該当なし．失敗は全実行で 0）．`cp75_pn_p4_r2` の deploy の 1 回の失敗は再試行で解消した．
+
+**学び**
+- 「1 問ずつ流して遅い」方式は，まず段ごとの時間（route_s など）で質問者の側の同期の計算を疑う．今回は Python のリストから numpy への変換（150 × 32 × 768 要素）だけで 1 問 0.11 秒を使い，方式の比較（T4 の「multi_centroid は 1 問ずつで flood_score より遅い」）を逆転させていた．公開情報のように起動時に決まる値は読み込み時に行列にしておく．
+- 質問者 1 プロセスが律速の間は，方式の処理量は「1 問あたりの要求の数」でほぼ決まる（R ≈ 420 要求/秒，±8%）．二段の方式の利点を処理量で出すには，受信箱の数ではなく**要求の数（＝ probe を受けるデバイスの数）**を減らす必要がある．K = 75 は受信箱を半分にしても 29.1 台に probe が届き，flood_score と同じ処理量にしかならない．
+- 300 問が 2 秒未満で終わる条件では，約 1 秒の一斉の待ち 1 回で処理量が大きく揺れる．処理量の高い方式の比較では，問の数を増やすか，経過時間の短い実行の揺れを前提に中央値と最小値の両方を見る．
+
+**限界**
+- 質問者は 1 プロセス・1 コアのままで，比べたのは「質問者が扱える要求の数」である．専門家の側の限界は測っていない．有線 LAN・300 問・検索だけ・単一の質問者．
+- route_s は制御点・実データで確かめた（操作端末の見積もりだけではない）．ただし採点の時間の内訳（行列積と上位の選択）は分けていない．
+- 比べる相手は Iteration 5（`cd42b41`）で，同時性は前後 2 回の揺れの確認でしか担保していない（B22）．K = 30 と parallel 1〜16 の multi_centroid は旧い per_node の値が無く，水準だけの記録である．
+- 一斉の約 1 秒の待ちの原因は未確認．hit@2 は 300 問の値（multi_centroid 0.483，K = 30 0.78，K = 75 0.87，flood_score 0.92）で，test 2,940 問の値ではない．
+
+**次の一手**（backlog B23 [auto-decided]）：事前登録の「次の候補」どおり，Iteration 7 は**デバイスを単位に上位を選ぶ二段の方式**（multi_centroid の採点をデバイスごとにまとめ，上位 D 台にだけ probe を送る）を，まずオフラインで hit@2 と probe を受けるデバイスの数を K = 30・75 と比べ，見込みのある D を実機の per_node で測る．
+上の学びのとおり，質問者が律速の間は要求の数が処理量を決めるので，probe のデバイスの数を直接減らす方式がこの式の上で最も効く．複数の質問者のプロセスの構成はその次の候補とする．
+
 ## Iteration 5: 質問者の HTTP 接続の持ち方を変えた負荷の律速の切り分け
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）

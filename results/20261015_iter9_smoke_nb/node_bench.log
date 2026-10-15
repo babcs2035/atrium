@@ -1,0 +1,17 @@
+2026-10-15 05:15:31,108 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-10-15 05:15:31,108 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-10-15 05:15:31,108 INFO faiss.loader: Loading faiss.
+2026-10-15 05:15:31,125 INFO faiss.loader: Successfully loaded faiss.
+2026-10-15 05:15:31,219 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/v1/profile "HTTP/1.1 200 OK"
+2026-10-15 05:15:31,258 INFO atrium.node_bench: target 192.168.13.102 (192.168.13.102): shards ['brawner-s', 'dickson-s', 'maggi-m', 'shackleton-s', 'townsend-j']
+2026-10-15 05:15:40,696 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:16:11,451 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:16:11,507 INFO atrium.node_bench: C=1: 102.2 req/s, p95 0.0067 s, node CPU 0.4663398420333333, errors 0
+2026-10-15 05:16:21,473 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:16:51,492 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:16:51,594 INFO atrium.node_bench: C=8: 345.8 req/s, p95 0.0290 s, node CPU 1.9162295207, errors 0
+| C | procs | req/s | p50 s | p95 s | node p95 s | node proc CPU | node host busy | errors | Little |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 1 | 102.2 | 0.0055 | 0.0067 | 0.0030 | 0.4663 | 0.0850 | 0 | 0.9971 |
+| 8 | 4 | 345.8 | 0.0228 | 0.0290 | 0.0197 | 1.9162 | 0.2477 | 0 | 0.9997 |

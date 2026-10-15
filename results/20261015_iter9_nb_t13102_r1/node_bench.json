@@ -1,0 +1,327 @@
+{
+ "kind": "node_bench",
+ "git_head": "34b033340935-dirty",
+ "dataset": "enronqa",
+ "target": {
+  "host": "192.168.13.102",
+  "url": "http://192.168.13.102:8100",
+  "node_id": "192.168.13.102",
+  "shard_ids": [
+   "brawner-s",
+   "dickson-s",
+   "maggi-m",
+   "shackleton-s",
+   "townsend-j"
+  ],
+  "encoder": "Snowflake/snowflake-arctic-embed-m-v1.5"
+ },
+ "concurrency_order": [
+  1,
+  2,
+  4,
+  8,
+  16,
+  32,
+  64
+ ],
+ "seed": 12,
+ "n_questions": 2940,
+ "max_procs": 4,
+ "warmup_s": 5.0,
+ "measure_s": 30.0,
+ "request_timeout_s": 30.0,
+ "cross_level_score_mismatches": 0,
+ "levels": [
+  {
+   "concurrency": 1,
+   "procs": 1,
+   "concurrency_per_proc": [
+    1
+   ],
+   "measure_s": 30.0,
+   "n_ok": 5431,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 181.03333333333333,
+   "latency_s": {
+    "p50": 0.005506038665771484,
+    "p95": 0.005969405174255371,
+    "p99": 0.006352138519287108
+   },
+   "latency_mean_s": 0.005518608474310009,
+   "node_s": {
+    "p50": 0.0025896653532981873,
+    "p95": 0.002867378294467926,
+    "p99": 0.0030671763699501747
+   },
+   "little_ratio": 0.999052087465922,
+   "node_proc_util": 0.8160748754333332,
+   "node_host_busy": 0.137980264539156,
+   "node_host_softirq": 0.007264329204283015,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.004903843626379967,
+    0.004103219136595726
+   ],
+   "generator_cpu_util_per_proc": [
+    0.1777973
+   ],
+   "control_cpu_busy": 0.018261159597531825,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 2,
+   "procs": 2,
+   "concurrency_per_proc": [
+    1,
+    1
+   ],
+   "measure_s": 30.0,
+   "n_ok": 8829,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 294.3,
+   "latency_s": {
+    "p50": 0.006746053695678711,
+    "p95": 0.00778646469116211,
+    "p99": 0.008316879272460935
+   },
+   "latency_mean_s": 0.006789301081467409,
+   "node_s": {
+    "p50": 0.0036076889373362064,
+    "p95": 0.004411823302507401,
+    "p99": 0.004778265245258804
+   },
+   "little_ratio": 0.9990456541379293,
+   "node_proc_util": 1.4094291847,
+   "node_host_busy": 0.19791445890381926,
+   "node_host_softirq": 0.00779958458734263,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.004989765118807554,
+    0.004564822651445866
+   ],
+   "generator_cpu_util_per_proc": [
+    0.14786339999999998,
+    0.1476091666666667
+   ],
+   "control_cpu_busy": 0.028151774785801713,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 4,
+   "procs": 4,
+   "concurrency_per_proc": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "measure_s": 30.0,
+   "n_ok": 10692,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 356.4,
+   "latency_s": {
+    "p50": 0.011133432388305664,
+    "p95": 0.013763988018035888,
+    "p99": 0.015199847221374513
+   },
+   "latency_mean_s": 0.01121684629017166,
+   "node_s": {
+    "p50": 0.006631824420765042,
+    "p95": 0.008786456659436224,
+    "p99": 0.009990561087615788
+   },
+   "little_ratio": 0.9994210044542948,
+   "node_proc_util": 1.8692009853333331,
+   "node_host_busy": 0.2448072484827763,
+   "node_host_softirq": 0.009402513035302162,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.006598407868295908,
+    0.004521260969340801
+   ],
+   "generator_cpu_util_per_proc": [
+    0.0928902,
+    0.0913845,
+    0.09313529999999999,
+    0.09294246666666668
+   ],
+   "control_cpu_busy": 0.034483718341219036,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 8,
+   "procs": 4,
+   "concurrency_per_proc": [
+    2,
+    2,
+    2,
+    2
+   ],
+   "measure_s": 30.0,
+   "n_ok": 10411,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 347.03333333333336,
+   "latency_s": {
+    "p50": 0.022870302200317383,
+    "p95": 0.02887749671936035,
+    "p99": 0.032134914398193354
+   },
+   "latency_mean_s": 0.023044344213462083,
+   "node_s": {
+    "p50": 0.014204486273229122,
+    "p95": 0.01973194954916835,
+    "p99": 0.02228569234721361
+   },
+   "little_ratio": 0.9996444483598074,
+   "node_proc_util": 1.9215845167333336,
+   "node_host_busy": 0.2532842654799093,
+   "node_host_softirq": 0.008729513457999915,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.014009324833750725,
+    0.0037953010760247707
+   ],
+   "generator_cpu_util_per_proc": [
+    0.09197413333333332,
+    0.09190953333333335,
+    0.09218419999999998,
+    0.09257666666666668
+   ],
+   "control_cpu_busy": 0.03406813627254509,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 16,
+   "procs": 4,
+   "concurrency_per_proc": [
+    4,
+    4,
+    4,
+    4
+   ],
+   "measure_s": 30.0,
+   "n_ok": 8406,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 280.2,
+   "latency_s": {
+    "p50": 0.04669034481048584,
+    "p95": 0.07613086700439453,
+    "p99": 0.32137531042099005
+   },
+   "latency_mean_s": 0.05710163628121884,
+   "node_s": {
+    "p50": 0.032926986226812005,
+    "p95": 0.04255124588962644,
+    "p99": 0.047497537592425976
+   },
+   "little_ratio": 0.9999924053748448,
+   "node_proc_util": 1.5612939942666666,
+   "node_host_busy": 0.20780990503768684,
+   "node_host_softirq": 0.01362687901886471,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.017787273041903973,
+    0.010535100009292364
+   ],
+   "generator_cpu_util_per_proc": [
+    0.076831,
+    0.07579453333333333,
+    0.0759819,
+    0.07619630000000001
+   ],
+   "control_cpu_busy": 0.031177732579198127,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 32,
+   "procs": 4,
+   "concurrency_per_proc": [
+    8,
+    8,
+    8,
+    8
+   ],
+   "measure_s": 30.0,
+   "n_ok": 10261,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 342.03333333333336,
+   "latency_s": {
+    "p50": 0.09326863288879395,
+    "p95": 0.10321664810180664,
+    "p99": 0.10831971168518066
+   },
+   "latency_mean_s": 0.09356198807160486,
+   "node_s": {
+    "p50": 0.07967578759416938,
+    "p95": 0.08881553122773767,
+    "p99": 0.09378506373614072
+   },
+   "little_ratio": 1.0000412079195182,
+   "node_proc_util": 1.8911750209999998,
+   "node_host_busy": 0.24511902723069018,
+   "node_host_softirq": 0.008862818975852029,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.013243082910776138,
+    0.0046808840706944466
+   ],
+   "generator_cpu_util_per_proc": [
+    0.09526150000000004,
+    0.09324779999999998,
+    0.09349973333333333,
+    0.09275006666666667
+   ],
+   "control_cpu_busy": 0.034955887673596614,
+   "score_mismatches": 0
+  },
+  {
+   "concurrency": 64,
+   "procs": 4,
+   "concurrency_per_proc": [
+    16,
+    16,
+    16,
+    16
+   ],
+   "measure_s": 30.0,
+   "n_ok": 10044,
+   "n_errors": 0,
+   "error_kinds": {},
+   "throughput_rps": 334.8,
+   "latency_s": {
+    "p50": 0.19092786312103271,
+    "p95": 0.2030237317085266,
+    "p99": 0.21060455322265625
+   },
+   "latency_mean_s": 0.19124160829838033,
+   "node_s": {
+    "p50": 0.10916169174015522,
+    "p95": 0.11870367813389748,
+    "p99": 0.12390537122730165
+   },
+   "little_ratio": 1.0004326634109022,
+   "node_proc_util": 1.864291682999999,
+   "node_host_busy": 0.2424035215180136,
+   "node_host_softirq": 0.008632847557587931,
+   "node_n_cpu": 8,
+   "healthz_rtt_s": [
+    0.06457397574558854,
+    0.02359199384227395
+   ],
+   "generator_cpu_util_per_proc": [
+    0.09349486666666666,
+    0.09368083333333335,
+    0.09284266666666667,
+    0.09351956666666669
+   ],
+   "control_cpu_busy": 0.03491348133311078,
+   "score_mismatches": 0
+  }
+ ]
+}

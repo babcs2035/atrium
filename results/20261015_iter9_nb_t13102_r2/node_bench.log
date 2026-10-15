@@ -1,0 +1,37 @@
+2026-10-15 05:32:10,188 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-10-15 05:32:10,189 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-10-15 05:32:10,189 INFO faiss.loader: Loading faiss.
+2026-10-15 05:32:10,206 INFO faiss.loader: Successfully loaded faiss.
+2026-10-15 05:32:10,307 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/v1/profile "HTTP/1.1 200 OK"
+2026-10-15 05:32:10,345 INFO atrium.node_bench: target 192.168.13.102 (192.168.13.102): shards ['brawner-s', 'dickson-s', 'maggi-m', 'shackleton-s', 'townsend-j']
+2026-10-15 05:32:18,353 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:32:48,334 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:32:48,471 INFO atrium.node_bench: C=64: 334.4 req/s, p95 0.2031 s, node CPU 1.8638923732999995, errors 0
+2026-10-15 05:32:58,389 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:33:28,389 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:33:28,514 INFO atrium.node_bench: C=32: 341.1 req/s, p95 0.1035 s, node CPU 1.8899578512666664, errors 0
+2026-10-15 05:33:38,482 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:34:08,496 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:34:08,605 INFO atrium.node_bench: C=16: 344.4 req/s, p95 0.0555 s, node CPU 1.8996682874666666, errors 0
+2026-10-15 05:34:18,552 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:34:48,548 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:34:48,659 INFO atrium.node_bench: C=8: 346.4 req/s, p95 0.0288 s, node CPU 1.9171260645, errors 0
+2026-10-15 05:34:58,590 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:35:28,616 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:35:28,720 INFO atrium.node_bench: C=4: 299.3 req/s, p95 0.0143 s, node CPU 1.5828615936999995, errors 0
+2026-10-15 05:35:39,044 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:36:09,066 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:36:09,145 INFO atrium.node_bench: C=2: 297.5 req/s, p95 0.0076 s, node CPU 1.4020197309666667, errors 0
+2026-10-15 05:36:20,226 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:36:50,252 INFO httpx: HTTP Request: GET http://192.168.13.102:8100/healthz "HTTP/1.1 200 OK"
+2026-10-15 05:36:50,314 INFO atrium.node_bench: C=1: 187.1 req/s, p95 0.0058 s, node CPU 0.7815086011333354, errors 0
+| C | procs | req/s | p50 s | p95 s | node p95 s | node proc CPU | node host busy | errors | Little |
+|---|---|---|---|---|---|---|---|---|---|
+| 64 | 4 | 334.4 | 0.1912 | 0.2031 | 0.1187 | 1.8639 | 0.2433 | 0 | 0.9999 |
+| 32 | 4 | 341.1 | 0.0936 | 0.1035 | 0.0890 | 1.8900 | 0.2449 | 0 | 0.9999 |
+| 16 | 4 | 344.4 | 0.0463 | 0.0555 | 0.0416 | 1.8997 | 0.2458 | 0 | 0.9999 |
+| 8 | 4 | 346.4 | 0.0229 | 0.0288 | 0.0195 | 1.9171 | 0.2482 | 0 | 0.9996 |
+| 4 | 4 | 299.3 | 0.0112 | 0.0143 | 0.0090 | 1.5829 | 0.2120 | 0 | 0.9995 |
+| 2 | 2 | 297.5 | 0.0067 | 0.0076 | 0.0043 | 1.4020 | 0.1867 | 0 | 0.9992 |
+| 1 | 1 | 187.1 | 0.0053 | 0.0058 | 0.0027 | 0.7815 | 0.1058 | 0 | 0.9989 |
