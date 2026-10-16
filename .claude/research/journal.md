@@ -91,6 +91,46 @@ rsync -az wafl-ctrl5:<REMOTE_DIR>/results/20261016_iter16_churn_join_eval/ resul
 - `tests/test_churn_join_eval.py` と `tests/test_churn_cascade_eval.py` の 41 件が通過した．全体の pytest は 400 件が全て通過した（今回は `tests/test_node_workers.py` も通過した）．`ruff check src tests`・`ruff format --check src tests`・`mypy` は通過した．リポジトリ全体の `ruff check` の 34 件のエラーは，全て `results/` の下の前からあるスクリプトのものである．
 - 合成のデータ（ノード 30 台，1,200 刻み，乱数の得点）で，集計・ゲート・報告の流れを最後まで通した．実行 3,200 件，G1 は 640 件，G2 は 960 件，G3 は 80 件を照合し，遷移表は 200 個で，G1〜G4 は全て通過した．
 
+### 実装・実験（2026-10-16．research-cycle の phase 2．数値の規則の機械的な出力のみ．解釈・判定は phase 3）
+
+- 実装：commit `b2911be`（`src/atrium/churn_join_eval.py`，`tests/test_churn_join_eval.py`，`scripts/remote/churn_join_eval.sh`，`cli.py` の `churn-join-eval`，README・d0001・d0003・d0004）．事前登録：commit `bbb2cc4`．結果：この節と同じ commit（`results/20261016_iter16_churn_join_eval/`．`metrics.json`・`analysis_report.md`・`run.log`）．
+- 検査：事前登録の「実装の検査」のとおり（pytest 400 件が全て通過，`ruff check src tests`・`ruff format --check src tests`・`mypy` が通過）．
+- 実行：制御点で連続実行が動いていないこと（`NO_CHAIN`）を確かめてから publish した（238 秒．イメージの版は `bbb2cc43b2ba-dirty`．dirty は `.claude/` の未コミットの変更と未追跡のファイルによる）．`remote.sh churn_join_eval` は 1 回だけ流し，終了コード 0，pull を含めて 279 秒，評価の本体（`duration_s`）は 39.6 秒である．実行は 3,200 件で，失敗は 0 件．
+- `run.log` の WARNING は 128 行で，全て faiss の k-means の「学習点が少ない」の警告である（Iteration 15 の `run.log` も 128 行）．`ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")` は faiss の loader の INFO の行で，AVX2 なしの版の読み込みに成功している（Iteration 15 の `run.log` にも 1 行ある）．
+- `metrics_cmd`（`uv run atrium metrics --json`）は終了コード 0 だが，`run_meta.json` のある最新の実行（`20261016_iter14_smoke_dp12_pe_n8`）を読んだ．今回のオフラインの評価は `run_meta.json` を作らないので，この命令の対象外である．数値は `metrics.json` から取った．
+- 退行ゲート：全て通過した．
+  - G1：640 件を照合し，こちらの欠け 0 件，基準の欠け 0 件，None の不一致 0 件，差の最大 0.0（許容 1/2940）．
+  - G2：960 件 / 期待 960 件を照合し，不一致 0 件．
+  - G3：80 件を照合し，不一致 0 件．
+  - G4：違反 0 件．
+- H-J1（`device_probe_d12`，a = 0.7，R = 1000，L = 100）：機械的な判定は「支持」．
+
+| 種 | hit（R = 1） | hit（R = 1000，L = ∞） | hit（R = 1000，L = 100） | ρ |
+|---|---|---|---|---|
+| 0 | 0.5310 | 0.3731 | 0.4752 | 0.6466 |
+| 1 | 0.5245 | 0.3694 | 0.4772 | 0.6952 |
+| 2 | 0.5279 | 0.3980 | 0.4789 | 0.6230 |
+| 3 | 0.5364 | 0.4105 | 0.4837 | 0.5811 |
+| 4 | 0.5228 | 0.3837 | 0.4663 | 0.5941 |
+
+- 記録：全ての構成の a = 0.7・R = 1000 の ρ（種の最小〜最大）と contacted・wasted（種の平均．L = ∞ / 0 / 1 / 10 / 100 の順）．`centroid_probe_k150`・`device_probe_d30` は全ての値が flood_score と同じ．
+
+| 構成 | ρ（L = 0） | ρ（L = 1） | ρ（L = 10） | ρ（L = 100） | contacted | wasted |
+|---|---|---|---|---|---|---|
+| multi_centroid | 0.725〜0.811 | 0.725〜0.811 | 0.721〜0.792 | 0.625〜0.691 | 1.94 / 1.96 / 1.96 / 1.96 / 1.96 | 0.55 / 0.55 / 0.55 / 0.55 / 0.56 |
+| flood_score | 1.000〜1.000 | 0.998〜1.000 | 0.977〜0.988 | 0.870〜0.883 | 20.84 / 29.17 / 29.16 / 29.08 / 28.24 | 5.77 / 8.10 / 8.10 / 8.09 / 7.92 |
+| centroid_probe_k75 | 0.879〜0.924 | 0.879〜0.924 | 0.858〜0.914 | 0.762〜0.802 | 20.77 / 28.40 / 28.39 / 28.31 / 27.55 | 5.75 / 7.88 / 7.88 / 7.88 / 7.72 |
+| centroid_probe_k30 | 0.824〜0.898 | 0.824〜0.898 | 0.807〜0.875 | 0.702〜0.761 | 16.90 / 19.62 / 19.62 / 19.59 / 19.31 | 4.68 / 5.45 / 5.45 / 5.45 / 5.41 |
+| device_probe_d24 | 0.897〜0.943 | 0.897〜0.943 | 0.881〜0.930 | 0.784〜0.816 | 20.63 / 23.91 / 23.91 / 23.88 / 23.57 | 5.70 / 6.61 / 6.61 / 6.61 / 6.58 |
+| device_probe_d12 | 0.681〜0.794 | 0.681〜0.794 | 0.670〜0.789 | 0.581〜0.695 | 12.00 / 12.00 / 12.00 / 12.00 / 12.00 | 3.33 / 3.32 / 3.32 / 3.33 / 3.35 |
+
+- E-2（`device_probe_d12`，a = 0.7，R = 1 → 1000，L = 0．種 0〜4）：残る低下は 111・94・113・118・120 問，回復は 353・362・269・252・289 問．件数の増分は (iii) が残る低下と同じ値で，そのうち候補外が +173・+147・+170・+176・+185，上位 m 外が −62・−53・−57・−58・−65．(i)・(ii)・(iv) の増分は全ての種で 0．
+- 遷移表（a = 0.7，種の和，各 14,700 問．行は R = 1・L = ∞ の区分，列は R = 1000 の区分．R = 1 の (ii)・(iv) は 0 件．(i) → (i) は全てで 4,398 件）：
+  - `device_probe_d12`：L = ∞ は hit → hit 5,462・→ (ii) 2,184・→ (iii) 123，(iii) → hit 226・→ (ii) 733・→ (iii) 1,574．L = 0 は hit → hit 7,140・→ (iii) 629，(iii) → hit 73・→ (iii) 2,460．L = 100 は hit → hit 6,911・→ (ii) 281・→ (iii) 577，(iii) → hit 90・→ (ii) 95・→ (iii) 2,348．
+  - flood_score：L = ∞ は hit → hit 6,126・→ (ii) 2,403，(iii) → hit 158・→ (ii) 514・→ (iii) 1,101．L = 0 は hit → hit 8,529，(iii) → (iii) 1,773．L = 100 は hit → hit 8,225・→ (ii) 304，(iii) → hit 19・→ (ii) 72・→ (iii) 1,682．
+  - multi_centroid：L = ∞ は hit → hit 3,360・→ (ii) 1,392・→ (iv) 159，(iii) → hit 145・→ (ii) 1,525・→ (iii) 3,635・→ (iv) 86．L = 0 は hit → hit 4,572・→ (iv) 339，(iii) → (iii) 5,391．L = 100 は hit → hit 4,410・→ (ii) 186・→ (iv) 315，(iii) → hit 25・→ (ii) 190・→ (iii) 5,169・→ (iv) 7．
+- 計画からの逸脱：無し（backlog への新しい記録は無い）．
+
 ## Iteration 15: 二段の方式の参加・離脱への頑健さのオフライン評価
 
 ### 調査・計画（2026-10-16．research-cycle の phase 1）
