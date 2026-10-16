@@ -14,6 +14,7 @@
     cascade-eval              二段ルーティング centroid_probe のオフラインの評価（EnronQA．制御点のコンテナ）
     probe-reach               centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA．Iteration 4．制御点のコンテナ）
     device-probe-eval         device_probe の D ごとの hit@m と D の選択（EnronQA．Iteration 7．制御点のコンテナ）
+    frontier-eval             汎用のルーティング方式のフロンティア評価（EnronQA．p0006 P2．制御点のコンテナ）
     node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     churn-cascade-eval        二段の方式の参加・離脱への頑健さのオフラインの評価（EnronQA．Iteration 15．制御点のコンテナ）
@@ -284,6 +285,26 @@ def cmd_device_probe_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     device_probe_eval.write_outputs(Path(args.out_dir), metrics)
     print(device_probe_eval.render_report(metrics))
+    return 0
+
+
+def cmd_frontier_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """汎用のルーティング方式のフロンティア評価（p0006 P2）を行い，frontier.json・metrics.json・analysis_report.md を書く．"""
+    from atrium import frontier_eval
+    from atrium.frontier_methods import BUILDERS
+    from atrium.manifest import read_placement
+
+    names = list(BUILDERS) if args.methods == "all" else args.methods.split(",")
+    result = frontier_eval.evaluate(
+        cfg,
+        dataset_paths(Path(args.data_dir), args.dataset),
+        read_placement(Path(args.placement)),
+        names,
+        Path(args.work_dir) if args.work_dir else None,
+        not args.skip_n150,
+    )
+    frontier_eval.write_outputs(Path(args.out_dir), result)
+    print(frontier_eval.render_report(result))
     return 0
 
 
@@ -775,6 +796,27 @@ def build_parser() -> argparse.ArgumentParser:
         "--placement", required=True, help="受信箱の配置（results/<run>/placement.json）"
     )
     p.set_defaults(func=cmd_probe_reach)
+
+    p = sub.add_parser(
+        "frontier-eval",
+        help="汎用のルーティング方式のフロンティア評価（p0006 P2．要求数・往復・見つけやすさ・露出）",
+    )
+    p.add_argument("--dataset", default="enronqa", choices=["enronqa"])
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument("--placement", required=True, help="n30 の配置（results/<run>/placement.json）")
+    p.add_argument(
+        "--methods",
+        default="all",
+        help="方式の名前（カンマ区切り．atrium.frontier_methods.BUILDERS）",
+    )
+    p.add_argument(
+        "--work-dir",
+        default=None,
+        help="本文の埋め込みの保存先（書き込める場所．省略すると保存しない）",
+    )
+    p.add_argument("--skip-n150", action="store_true", help="1 受信箱 = 1 デバイスの模擬を流さない")
+    p.set_defaults(func=cmd_frontier_eval)
 
     p = sub.add_parser(
         "device-probe-eval",
