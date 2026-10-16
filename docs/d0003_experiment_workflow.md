@@ -202,6 +202,7 @@ bash scripts/tasks/remote.sh node_bench    <out_name> <placement_run> <target_ho
 bash scripts/tasks/remote.sh owner_eval    <out_name> <reference_run>              # 持ち主推定の入力を揃える（p0005 T2）
 bash scripts/tasks/remote.sh header_eval   <out_name> <reference_run> [t2_run] [cascade_run]  # T2 の入力からヘッダーを除く（Iteration 2 の R1・R2）
 bash scripts/tasks/remote.sh newcomer_eval <out_name> <reference_run> [n_newcomers]  # 150 人での新参者（p0005 T3）
+bash scripts/tasks/remote.sh central_eval <out_name> <c1_run> [<name>=<run> ...]  # 中央集約ベースライン（p0006 P1．c1_run は routing=all・snippet_return の実行）
 # 3. 結果を操作端末へ取得する
 rsync -az wafl-ctrl5:<remote_dir>/results/<out_name>/ results/<out_name>/
 ```
