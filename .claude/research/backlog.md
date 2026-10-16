@@ -17,6 +17,23 @@
 
 ---
 
+## B46 [auto-decided 2026-10-16] Iteration 16 は採用．Iteration 17 のレバーは離脱の通知の遅れ（`churn_eval.leave_notice_delay`）
+
+- 状況: Iteration 16 は採用である（G1〜G4 通過，H-J1 支持．device_probe_d12 の ρ は 0.581〜0.695）．L = 0 でも device_probe_d12 の低下の 27%（556 問）が残る．その原因は，構造上，離脱済みのデバイスが表に残り，D = 12 の枠のうち 3.32 枠を取ることにある（journal の「Iteration 16 実行済み：分析・考察」）．config.yml の levers は使い切っている．
+- 選択肢:
+  - A1 (Recommended): 離脱の通知の遅れ L_leave ∈ {0, 10, 100} と通知なし（∞）を振る．参加の通知は L = 100 に固定する．メリット: 残る損失の原因を直接動かす．全ての方式の無駄な問い合わせ（flood_score で 1 問あたり 8.10 台）も減らせる．SWIM の「故障の検出と更新の伝播を分ける」構成に合う．Iteration 16 の関数を再利用でき，オフラインで分単位で終わる．デメリット: 離脱の検出の時間（probe の周期と suspicion の時間切れ）の仮定が要る．
+  - A2: 返事の無いデバイスの分を，次の順位のデバイスで補う変種（B40 (b)）．メリット: メンバーシップのプロトコルに依らない．デメリット: 1 往復が増える．選び方の変更で，Iteration 15・16 の「見え方を変える」の系列から外れる．
+  - A3: 二段の方式の離脱下の実機での再生（B43 A2）．メリット: B40 (a) の `_tolerant` の効き方を確かめられる．デメリット: 実機が要る．オフラインの効果の形が分かってからの方が，測る条件を絞れる．
+- 自動選択: A1．iteration_name は「離脱の通知の遅れごとの無駄な問い合わせと hit の回復」とした．config.yml の levers の末尾に `churn_eval.leave_notice_delay` を追記する．判定の規則は次の rc-researcher が事前登録で決める．
+- 根拠: Iteration 16 の乗法の分解で，残る因子 ρ(0) は方式ごとの「離脱済みなのに見える」ことの効果だった．これを動かすのが単一レバーとして最も直接的である．
+- 要レビュー:
+  - (a) 参加の通知の基準を L = 100（現実的な値）にするか，L = 0（参加の効果を完全に除く）にするか．
+  - (b) L_leave の値と，秒への換算（SWIM の検出の時間）は推測である．
+  - (c) L_join = L_leave = 0 は構造上 R = 1 と同じになる．このため退行ゲートには使えるが，主の判定は現実的な L_leave で行う必要がある．
+  - (d) A2・A3 は次の候補に残す．
+  - (e) 未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`）に触れず，削除・課金・`mise run clean --full` を伴わない．
+  - (f) rc-evaluator は途中で `Unknown tool: Bash` により書き込めず，journal・backlog・config.yml の記述と commit はオーケストレータが戻り値から書き写して行った．分析は終わっていたので B41 (b) の blocked にはしなかった．
+
 ## B45 [auto-decided 2026-10-16] Iteration 16 のレバーの形：参加の通知の遅れ L（`churn_eval.join_notice_delay`．新しい CLI `atrium churn-join-eval`）
 
 - 状況: B43 で，Iteration 16 は「参加を通知する形のメンバー表の変種をオフラインで評価する」に決まり，レバーの名前・遅れ L の値・判定の規則を rc-researcher が決めることになった．config.yml の levers は使い切っている．要レビューは (a) L の値の選び方，(b) 実機の再生（A2）を先にすべきか，(c) R = 1 の hit に限った問ごとの遷移を出力に足すか，の 3 点である．

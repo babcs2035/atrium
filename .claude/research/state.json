@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 15,
-  "iteration_name": "二段の方式の参加・離脱への頑健さのオフライン評価",
+  "iteration": 16,
+  "iteration_name": "参加の通知の遅れ L ごとのメンバー表の見え方と hit の回復",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "churn_eval.methods: [centroid_probe, device_probe]（atrium churn-cascade-eval）",
-  "experiment_dir": "results/20261016_iter15_churn_cascade_eval",
-  "experiment_deadline": 1792184495,
-  "updated_at": 1792084678,
-  "last_slack_ts": "1792112662.465609",
-  "iteration_thread_ts": "1792110037.408039",
+  "current_lever": "churn_eval.join_notice_delay: [0, 1, 10, 100]（atrium churn-join-eval．通知なし L = ∞ が基準）",
+  "experiment_dir": "results/20261016_iter16_churn_join_eval",
+  "experiment_deadline": 1792189653,
+  "updated_at": 1792117956,
+  "last_slack_ts": "1792117894.366439",
+  "iteration_thread_ts": "1792116104.048879",
   "notion_toggle_created": true,
-  "last_commit": "2d498dc"
+  "last_commit": "ab11464"
 }

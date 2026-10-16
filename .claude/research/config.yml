@@ -199,6 +199,15 @@ levers:
      note: "Iteration 15 で追加（backlog B40 [auto-decided]）．B39 で負荷の系列を閉じ，RQ の研究へ戻った．新しいオフライン評価 CLI atrium churn-cascade-eval（src/atrium/churn_cascade_eval.py）．
             EQ7a の時刻表（a・R・種）のまま，centroid_probe（K = 75・30）と device_probe（D = 24・12）を，返事のあったデバイスの候補から上位 m 個を選ぶ規則で評価する．
             hit を失った問を（正解のノードの離脱・見えない・選ばれない・枠を取られた）に分ける．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 15"}
+  - {name: churn_eval.join_notice_delay, values: [0, 1, 10, 100],
+     note: "Iteration 16 で追加（backlog B43・B45 [auto-decided]）．新しいオフライン評価 CLI atrium churn-join-eval（src/atrium/churn_join_eval.py）．
+            EQ7a・Iteration 15 の時刻表（a・R・種）のまま，メンバー表に「参加の通知」を足す．ノードが最後の更新の後に参加すると，L 刻み（問）の後にメンバー表へ加わる．
+            離脱は通知しない（更新のときにだけ表から消える）．通知なし（L = ∞）は EQ7a・Iteration 15 と同じになる．L ≥ R では次の更新の方が先に来るので通知の効果は無い．
+            方式は Iteration 15 の 6 構成（multi_centroid・flood_score・centroid_probe K = 75・30・device_probe D = 24・12）と G3 用の全数の構成．
+            主の仮説 H-J1 は device_probe（D = 12）の a = 0.7・R = 1000・L = 100．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 16"}
+  - {name: churn_eval.leave_notice_delay, values: [0, 10, 100],
+     note: "Iteration 16 の評価で追加（backlog B46 [auto-decided]）．仮称．Iteration 16（参加の通知）の上で，離脱したノードを L_leave 刻みの後にメンバー表から消す（通知なし ∞ が基準．参加の通知は L = 100 に固定）．
+            Iteration 16 で，L = 0 でも残る device_probe_d12 の低下（556 問）は離脱済みのデバイスが D の枠を取ることによると分かった．キー名・基準の L・判定の規則は rc-researcher が事前登録で決める．config.yaml・データ・シャードは変えない"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
