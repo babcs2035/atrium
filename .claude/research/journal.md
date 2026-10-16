@@ -3,6 +3,16 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0006 P0：片付けと退行ゲート（2026-10-16）
+
+- 計画：`plans/p0006_generic_routing_and_central_baseline.md`（ユーザーの指示で P0〜P5 を実行．B55）．`git tag pre-p0006`（8670895）を push した．
+- 凍結：`churn_eval.*` の 6 レバーを `frozen_levers:`（config.yml のトップレベルの新キー）へ移した．skill のスクリプトは `slack.*` しか読まないため，コメント化の代替案は使っていない．B54 の Iteration 20（`device_probe_cutoff`）は凍結の対象なので実行せず，同じ考えは P2-2 の `routing.adaptive_cutoff` で行う．state.json の iteration_name を P1 に差し替えた．
+- 退行ゲート（イメージは bf912a2 から build）：
+  - R1（`results/p0006_r1_med_all_ret`）：MedRAG，routing=all，retrieval_only，question_limit=2（5 問題集 × 2 = 10 問）．s3 と `top_doc_ids` が 10/10 一致．
+  - R2（`results/p0006_r2_feb_ragroute`）：FeB4RAG，routing=ragroute，question_limit=2．s2 と `selected_sources` が 2/2 一致．
+  - R3（`results/p0006_r3_advert_eval`）：flood_score hit@1 0.7224・hit@2 0.8041，multi_centroid hit@1 0.3486・hit@2 0.4401 が計画の値と一致（許容 5e-4）．centroid_probe（K = 75）は `advert-eval` の出力に無く（`cascade-eval` の値），P2-0 の R4 で確かめる．
+- 副次的な観察：`advert-eval` の dev の MRR は flood_bm25_shared_idf 0.904，flood_score 0.781，flood_bm25_local_idf 0.681．全体で統計を共有した BM25 による持ち主の特定が最も高い．P1 の C1′ の見込みの材料になる（未検証．test の値は P1 の事前登録の後に読む）．
+
 ## Iteration 19: 返事の無い枠を補う方式と最初から多めに送る方式の，同じ問い合わせの数での hit の比較
 
 ### 調査・計画（2026-10-16．research-cycle の phase 1）
