@@ -211,10 +211,12 @@ levers:
             参加の通知は L_join = 0 に固定する（L_join = 100 のままでは，L_leave を短くすると再び参加したノードが見えなくなり，2 つの効果が混ざる．B47）．L_join = 100 は記録だけの感度の格子として流す．(L_join, L_leave) = (0, 0) は R = 1 と同じになるので，退行ゲートだけに使う．
             方式は Iteration 16 の 8 構成．主の仮説 H-L1 は device_probe（D = 12）の a = 0.7・R = 1000・L_leave = 10 で，5 個の種の全てで ρ_leave ≥ 0.75．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 17．
             Iteration 17 は採用（ρ_leave 0.839〜0.883）．L_join = 100 の感度の格子では，離脱の通知は hit を通知なしより下げる（(ii) の割合 0.036 → 0.381）"}
-  - {name: churn_eval.probe_refill, values: [next_ranked],
-     note: "Iteration 17 の評価で追加（backlog B49 [auto-decided]）．仮称．既定は今の挙動（補わない）．二段の方式（centroid_probe・device_probe）で，probe に返事の無かったデバイス（受信箱）の枠を，1 段目の次の順位で補う変種（B40 (b)・B46 A2）．
-            メンバー表は Iteration 16 の形（参加の通知 L_join だけ．離脱は通知しない）．Iteration 17 で，参加の通知が遅いと離脱の通知は hit を通知なしより下げると分かったので，離脱済みの枠はメンバー表ではなく probe の返事で扱う．
-            主の候補は device_probe（D = 12）の a = 0.7・R = 1000・L_join = 100．キー名・補う回数・判定の規則は rc-researcher が事前登録で決める．config.yaml・データ・シャードは変えない"}
+  - {name: churn_eval.probe_refill, values: [once, until_full],
+     note: "Iteration 17 の評価で追加（backlog B49 [auto-decided]）．Iteration 18 の rc-researcher が確定（backlog B50）．既定は none（今の挙動．補わない）．
+            once は，1 段目の上位 D 台（centroid_probe は上位 K 個の受信箱）のうち返事の無かった f 個の枠を，1 段目の順位の D + 1〜D + f 番目で 1 回だけ補う（最大 2 往復）．
+            until_full は，返事のある候補が D 個に揃うか，見えている候補が尽きるまで補う（記録と退行ゲート G5 用）．新しいオフライン評価 CLI atrium churn-refill-eval（src/atrium/churn_refill_eval.py）．
+            メンバー表は Iteration 16 の形（参加の通知 L_join だけ．離脱は通知しない）で，L_join は ∞・0・100．主の仮説 H-P1 は device_probe（D = 12）の a = 0.7・R = 1000・L_join = 100・once で，
+            5 個の種の全てで ρ_refill ≥ 0.20．同じ程度の問い合わせの数の 1 往復の対照として，device_probe_d15（補わない）を記録に足す．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 18"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

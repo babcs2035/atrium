@@ -3,6 +3,109 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 18: 返事の無いデバイスの枠を次の順位で補ったときの hit と問い合わせの費用
+
+### 調査・計画（2026-10-16．research-cycle の phase 1）
+
+**直近の判定**：Iteration 17 は採用である（G1〜G5 を通過し，H-L1 を支持した．`device_probe_d12` の ρ_leave は 0.839〜0.883．commit `96c4516`）．config.yml の levers は使い切っている．B49 [auto-decided] で，次のレバーを「probe に返事の無かったデバイスの枠を，1 段目の次の順位で補う変種」に決めた．キー名・補う回数・主の条件・判定の規則は，今回に決めた（B50 [auto-decided]）．
+
+**調べて分かったこと**
+- コードから確かめた事実は，次のとおりである（`churn_cascade_eval.py` の 120〜213 行，`churn_join_eval.py` の 95〜117 行，`churn_eval.py` の 54〜126 行，`device_probe_eval.py` の 64〜96 行を Read で確かめた）．
+  - `visible_top_devices` は，見えていない受信箱を −inf にしてから，デバイスごとの最大値（`device_scores`）でまとめる．その後，`argsort(kind="stable")` で上位 d 台を取る．
+  - 同点は，デバイスの番号の小さい方を先にする．デバイスの番号は，受信箱の名前の初出順である（`device_index_of_inbox`）．
+  - `visible_top_k` も，−inf にした stable な並べ替えで，同点は受信箱の番号の小さい方を先にする．
+  - `route_cascade_under_churn` は，返事のあった候補（候補 ∧ 稼働中）の中で，2 段目の上位 m 個を選ぶ．contacted は probe を送ったノードの数，wasted はそのうち離脱していたノードの数である．
+- G5 は構造上成り立つ．
+  - L_join = 0 の `join_notified_view` は，時刻 t に稼働中の全ノードを含む．t に稼働中のノードは，u(t) に稼働中だったか，区間 (u(t), t] に参加したかのどちらかだからである．
+  - このため，「見えていて稼働中」は「稼働中」と同じ集合になり，R = 1 の表と一致する．
+  - −inf で隠しても，残る候補の間の前後は変わらない（stable な並べ替え）．よって，until_full で返事のある候補は，R = 1 の上位 D 台（または上位 K 個）と一致する．
+  - 正解が稼働中なら，正解は見えている．このため，hit と (i)〜(iv)・候補外・上位 m 外の件数は一致する．contacted と wasted は一致しないので，G5 の照合から外す．
+- G6 も構造上成り立つ．once で返事のある候補は，見えている順位の 1〜D + f 番目のうち稼働中のものである．その数は D 以下で，順位の上から取っている．よって，until_full の「稼働中の上位 D 個」に含まれる．
+- 先行研究は，記憶によるもので，Web の検索では確かめていない．
+  - Dean & Barroso, "The Tail at Scale", CACM 56(2), 2013 は，複製へ重ねて送る hedged request を述べる．
+  - atrium の受信箱は複製を持たない．このため，補う変種は「次の順位の別のデータ源を選び直す」ことになり，hedge とは異なる．
+  - Kulkarni & Callan, "Selective Search", ACM TOIS 33(4), 2015 は，資源選択による分散検索の研究である．返事の無いシャードの扱いは，確かめていない．
+
+**単一レバー**：`churn_eval.probe_refill` を，none（今の挙動）から {once, until_full} へ変える．新しい CLI `atrium churn-refill-eval`（`src/atrium/churn_refill_eval.py`）で実行する．
+- once は，1 段目の上位 D 台（centroid_probe では上位 K 個の受信箱）のうち，返事の無かった f 個の枠を補う．補う相手は，見えている順位の D + 1〜D + f 番目で，補うのは 1 回だけである（最大 2 往復）．
+- until_full は，返事のある候補が D 個（または K 個）に揃うか，見えている候補が尽きるまで補う．実装は，「見えていて稼働中の受信箱」での `visible_top_*` と同じ集合にする．
+- contacted は 2 往復の probe の先の和集合，wasted はそのうち稼働していないノードの数とする．
+- 返事の無いことは，probe を送った時点で分かるとする（接続の拒否に当たる．時間切れの待ちは模さない）．2 段目と，hit・(i)〜(iv) の規則は変えない．
+- 1 段目だけの方式（multi_centroid），flood_score，全数の構成（`centroid_probe_k150`・`device_probe_d30`）には補う相手が無いので，none と同じ値になる（G2）．
+- 1 刻みは 1 問である．秒への換算と往復の待ち時間の換算は行わない．
+
+**固定する構成**
+- 変えないもの：config.yaml，データ，シャード，配置，m = 2，C = 32，`AVAILABILITIES`・`REFRESH_STEPS`・`MEAN_UP_STEPS`・`N_SCHEDULE_SEEDS`・`experiment.seed` = 12，採点・質問の順番．
+- メンバー表は Iteration 16 の `join_notified_view(online, R, L_join)` とし，離脱は通知しない．
+- 構成は Iteration 16 と同じ 8 個とする（multi_centroid，flood_score，`centroid_probe_k75`，`centroid_probe_k30`，`device_probe_d24`，`device_probe_d12`，全数の `centroid_probe_k150`・`device_probe_d30`）．
+- 条件は a ∈ {1.0, 0.9, 0.7, 0.5}，R ∈ {1, 10, 100, 1000}，L_join ∈ {∞, 0, 100}，refill ∈ {none, once, until_full}，種 5 個である．
+- 記録だけの対照として，`device_probe_d15`（none のみ）を足す．once と同じ程度の問い合わせの数で 1 往復にした場合に当たる．
+- 実行の数は，8 × 4 × 4 × 3 × 3 × 5 = 5,760 件と対照の 4 × 4 × 3 × 5 = 240 件で，計 6,000 件である．
+
+**仮説 H-P1**：L_join = 100 の表の上で once にすると，`device_probe_d12` の a = 0.7・R = 1000 で，hit の低下の 20% 以上が 5 個の種の全てで戻る．
+- ρ_refill = (n_hit(once) − n_hit(none)) / (n_hit(R=1) − n_hit(none)) とする．分子と分母の n_hit(once)・n_hit(none) は，R = 1000・L_join = 100 の値である．
+- n_hit(R = 1) には，none・L_join = ∞ の R = 1 の実行を使う（R = 1 では表が稼働中の集合そのものになり，どの条件でも同じになる）．
+- 分母は，種ごとに 164・139・144・155・166 問になる見込みである（G1 で確かめる）．
+
+**期待効果（推測）**
+- ρ_refill(once) ≈ 0.72 × 392 / 768 ≈ 0.37 と見込む．until_full の上限は約 392 / 768 ≈ 0.51 である．(ii)（稼働中なのに見えない）の 376 問は，補っても戻らない．
+- L_join = 0 では，ρ_refill(once) ≈ 0.72，ρ_refill(until_full) = 1 と見込む．後者は構造上そうなる（G5）．
+- contacted は 12.00 から約 15.35 に，wasted は 3.35 から約 4.29 に増える見込みである．
+- 2 往復目が要る問の割合は，枠ごとに独立と仮定すると 1 − 0.72^12 ≈ 0.98 と見込む．この値は時刻表の試算で確かめていない．
+- 対照の `device_probe_d15`（1 往復）は，返事のある候補が約 10.8 台の見込みで，once との hit の差は小さい可能性がある．
+- 枠の取り合いと上位 m の入れ替わりは線形でないので，見込みは外れうる．
+
+**退行ゲート**（1 つでも通らなければ H-P1 を判定しない）
+- G1：none の L_join ∈ {∞, 0, 100} の 1,920 件が，`results/20261016_iter16_churn_join_eval/metrics.json` の `runs` の delay = ∞・0・100 の実行と，hit・hit_given_gold_online・gold_online_rate・contacted・wasted と全ての件数（n_test で割った差）で 1/2940 以内に一致する．どちらにも欠けが無く，件数の None の有無も一致する．m と n_test も一致する．
+- G2：補う相手の無い 4 構成（multi_centroid・flood_score・`centroid_probe_k150`・`device_probe_d30`）の none 以外の 1,920 件が，同じ条件の none と全ての項目で完全に一致する．
+- G3：a = 1.0 または R = 1 の none 以外の 1,680 件（8 構成）が，同じ条件の none と全ての項目で完全に一致する．
+- G4：全ての実行（6,000 件）で，`n_hit` と (i)〜(iv) の件数の和が問の数に等しい（`churn_cascade_eval.gate_g4`）．
+- G5：L_join = 0・until_full の二段の 4 構成の 320 件が，同じ（構成，a，種）の R = 1 の実行と，`n_hit`・(i)〜(iv)・候補外・上位 m 外の件数で完全に一致する．主の判定には使わない．
+- G6：二段の構成の全ての実行の全ての問で，返事のある候補の集合について「none ⊆ once ⊆ until_full」が成り立つ（違反 0 問）．
+
+**判定の規則と成功条件**
+- G1〜G6 を全て通過し，かつ `device_probe_d12` の a = 0.7・R = 1000・L_join = 100・once の ρ_refill が 5 個の種の全てで 0.20 以上なら，H-P1 を支持し，採用とする．分母が 0 以下の種は不成立とする．問の数は実行によらず等しいので，件数の比は hit の比に等しい．
+- 閾値の 0.20 は，見込みの 0.37 から，種の間の標準偏差の推定（約 0.07）の約 2.4 倍を引いた値である．標準偏差の推定は，Iteration 16 の 0.045 を分母の大きさの比 √(400/150) で広げたものである．
+
+**記録**（判定に使わない）
+- 二段の 4 構成の a = 0.7・R = 1000・L_join ∈ {∞, 0, 100} の ρ_refill（once・until_full．種ごと），hit（種ごと），contacted・wasted（種の平均）．
+- 往復の情報：second_round_rate，1 問あたりの往復の数の平均と最大，1 問あたりの probe の要求の数．
+- 対照：`device_probe_d15`（none）と `device_probe_d12`（once）の hit の種ごとの差と contacted，回復した問の数 / 増えた問い合わせの数．
+- E-2 相当：主の条件の once で，(iii) の候補外・上位 m 外の件数の増分（種ごと）．
+- a = 0.9・0.5 の `device_probe_d12` の ρ_refill（R = 1000，L_join = 100）．
+- 遷移表：a = 0.7・R = 1000・L_join = 100 の（二段の 4 構成，refill，種）ごとに，R = 1 の区分（hit・(i)〜(iv)）から R = 1000 の区分への 5 × 5 の件数（60 個）．
+
+**実機**：使わない．制御点のコンテナで実行するオフライン評価である．2 往復目の待ち時間の費用はオフラインでは測れないので，実機の再生（B49 A3）は次の候補に残す．
+
+**記録の注記**：phase 1 では，1 度目に `Read`，再開した 2 度目に `Bash` と `Write` が `Unknown tool` で失敗した．そのため，tavily の検索，`/tmp` での試算，ファイルへの書き込みは行えていない．この節と backlog の B50・config.yml の note は，オーケストレータが戻り値から書き写した．コードの確認は `Read` で行った．文献の書誌と，見込みの数値（約 28%・約 0.98）は未確認である．state.json は指示により触れていない．
+
+### 事前登録（2026-10-16．実装の後，実行の前に commit・push する．結果を見て変えない．実装は commit `a65e41b`）
+
+調査・計画の節の規則（単一レバー，固定する構成，H-P1，退行ゲート G1〜G6，判定の規則，記録の項目）を，実行の前にそのまま固定する．計画と実装の間に規則の食い違いは無い（backlog への新しい記録は無い）．
+
+**評価**：`atrium churn-refill-eval`（`src/atrium/churn_refill_eval.py`）を制御点のコンテナで 1 回だけ流す．出力は `results/20261016_iter18_churn_refill_eval/`（`metrics.json`・`analysis_report.md`・`run.log`）．実機のノードは使わない．失敗しても規則を変えて再実行しない．評価の前のインフラの失敗（制御点の `docker pull` の `crc32 mismatch` 等）は B48 と同じ扱いとし，registry の blob の健全性を確かめたうえで同じコマンドを 1 回だけ流し直す．
+
+```bash
+ssh wafl-ctrl5 'pgrep -af "[c]hain.sh" || echo NO_CHAIN'   # 連続実行が動いていないことを確かめる
+bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'
+bash scripts/tasks/remote.sh churn_refill_eval 20261016_iter18_churn_refill_eval 20261009_eq5_b1 20261016_iter16_churn_join_eval
+rsync -az wafl-ctrl5:<REMOTE_DIR>/results/20261016_iter18_churn_refill_eval/ results/20261016_iter18_churn_refill_eval/
+```
+
+**照合の件数**：実行 6,000 件（8 構成 5,760 件 + 対照 240 件），G1 1,920 件（L_join = ∞・0・100 の各 640 件），G2 1,920 件，G3 1,680 件，G4 6,000 件，G5 320 件，G6 1,440 実行（二段の 6 構成．全数の 2 構成を含む），遷移表 60 個．
+
+**実装の細部**（規則の読み方を固定するもの）
+- ρ_refill の分母の n_hit(R=1) は，L_join に依らず none・L_join = ∞ の R = 1 の実行を使う．G5 の基準・E-2 相当の R = 1・遷移表の基準も同じ実行である．
+- G1 は L_join ごとに Iteration 16 の同じ `delay` の `runs` だけと照合する（`churn_join_eval.gate_g1` を L_join ごとに呼ぶ）．G2・G3 の「全ての項目」は，STAT_FIELDS・COUNT_FIELDS・`n_contacted`・往復の情報（`second_round_rate`・`rounds_mean`・`rounds_max`・`probe_requests`・`n_probe_requests`）である．G3 は対照を除く．G5 は COUNT_FIELDS（`n`・`n_hit`・(i)〜(iv)・候補外・上位 m 外）を照合し，contacted・wasted は照合しない．
+- 補う相手は見えている順位だけで決め，前の往復で返事の無かったノードに載る受信箱も飛ばさない（centroid_probe だけで起きる）．probe の要求の数は，往復ごとに新たに候補に入った単位の載るノードの数の和とする．
+- 対照の「回復した問の数 / 増えた問い合わせの数」は，`device_probe_d12` の none に対する `n_hit` の増分 / `n_contacted`（問の和）の増分で，分母が 0 以下なら `null` とする．E-2 相当は，(iii) の候補外・上位 m 外に加えて，(i)〜(iv) の件数の増分を R = 1 と同じ条件の none の両方に対して記録する．
+- `analysis_report.md` の表では，G2・G3 で none と同じことを確かめる行（補う相手の無い構成，a = 1.0，R = 1 の none 以外）を省く．`metrics.json` には全ての実行を残す．構成の対照の名前は `metrics.json` の `control_cascade`，対照の記録は `control` に置く．
+
+**実装の検査**（commit `a65e41b`）
+- `tests/test_churn_refill_eval.py` の 48 件が通過した．全体の pytest は 489 件が全て通過した．`ruff check src tests`・`ruff format --check src tests`・`mypy` は通過した．
+- テストで，none が `route_cascade_under_churn` と一致すること（G1），until_full が「見えていて稼働中」の上位と一致すること，L_join = 0・until_full が R = 1 と件数で一致すること（G5），none ⊆ once ⊆ until_full（G6），離脱が無ければ補い方に依らず同じこと（G3），手で作った返事の有無での往復の境目，ゲートと判定が不通過を拾うことを確かめた．
+- 合成のデータ（16 ノード・16 デバイス・32 受信箱，300 刻み，乱数の得点）で，集計・ゲート・報告の流れを最後まで通した．実行 6,000 件，G1 1,920 件，G2 1,920 件，G3 1,680 件，G5 320 件，G6 1,440 実行，遷移表 60 個で，G1〜G6 は全て通過した．
+
 ## Iteration 17: 離脱の通知の遅れごとの無駄な問い合わせと hit の回復
 
 ### 調査・計画（2026-10-16．research-cycle の phase 1）

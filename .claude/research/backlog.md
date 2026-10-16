@@ -17,6 +17,29 @@
 
 ---
 
+## B50 [auto-decided 2026-10-16] Iteration 18 のレバーの形：返事の無い枠を 1 回だけ次の順位で補う（`churn_eval.probe_refill: once`．主は L_join = 100．新しい CLI `atrium churn-refill-eval`）
+
+- 状況: B49 で，Iteration 18 のレバーを「返事の無いデバイスの枠を 1 段目の次の順位で補う変種」に決めた．キー名・補う回数・主の条件・判定の規則は，rc-researcher が決めることになっていた．要レビューには，(b)（主の条件を L_join = 100 にするか 0 にするか）と (c)（対称の通知の L = 10 を足すか）が残っていた．
+- 選択肢:
+  - 補う回数: A1 (Recommended) once（1 回だけ．最大 2 往復）を主にし，until_full（返事が D 個に揃うまで）は記録とゲート G5 だけに使う．メリット: 往復の数に上限があり，実機の待ち時間の費用が読みやすい．until_full は L_join = 0 で R = 1 と同じになるので，実装の正しさを全件で確かめられる．デメリット: 補った枠の約 28% も離脱済みで，取り戻しきれない．／A2 until_full を主にする．メリット: 補う変種の上限が分かる．デメリット: 往復の数に上限が無く，費用が条件に依る．／A3 once だけを流す．デメリット: 構造上の上限と退行ゲートを失う．
+  - 主の条件: B1 (Recommended) L_join = 100．メリット: 現実的な参加の通知の下で，メンバー表の離脱の通知に代わるかを測れる．Iteration 16 の主の条件と同じなので，分母（種ごとに 164・139・144・155・166 問）を Iteration 16 から照合できる．デメリット: (ii) の 376 問は補っても戻らないので，回復の割合の上限が約 0.51 と小さい．／B2 L_join = 0．メリット: 枠の分だけを切り出せ，回復の割合の上限が 1 になる．デメリット: 参加の通知が理想的な場合で，Iteration 17 で問題になった組み合わせに答えない．／B3 L_join = ∞．デメリット: (ii) が大きく，枠の効果が隠れる．
+  - 閾値: C1 (Recommended) 5 個の種の全てで ρ_refill ≥ 0.20．メリット: 見込み 0.37 から，種の間の標準偏差の推定（約 0.07）の約 2.4 倍を引いた値である．デメリット: 標準偏差は推定である．／C2 0.30．デメリット: 見込みとの差が小さく，揺れで落ちうる．／C3 0.5（Iteration 15・16 の形）．デメリット: 上限の見込み（約 0.51）とほぼ同じで，検定にならない．
+  - 同じ費用の対照: D1 (Recommended) `device_probe_d15`（補わない．1 往復）を記録だけに足す．メリット: 「2 往復で補う」と「最初から多めに送る」を，同じ程度の問い合わせの数で比べられる．次の一手を決める材料になる．デメリット: 実行が 240 件増え，G1 の対象外の構成ができる．／D2 足さない．
+  - 対称の通知（B49 (c)）: E1 (Recommended) 今回は足さない．メリット: メンバー表を Iteration 16 の形に固定でき，G1 の参照が Iteration 16 だけで済む．デメリット: 補う変種と離脱の通知の組み合わせは分からない．／E2 (L_join, L_leave) = (10, 10) を記録に足す．デメリット: 離脱の通知の表を持ち込むことになり，固定する構成が増える．
+  - CLI の形: F1 (Recommended) 新しい CLI `atrium churn-refill-eval`（`src/atrium/churn_refill_eval.py`）．メリット: Iteration 15〜17 の CLI と結果の再現に触れない．Iteration 15〜17 と同じく，イテレーションごとに CLI を分ける形になる．デメリット: 集計と報告の一部が重複する．／F2 `churn-join-eval` に `--refill` を足す．デメリット: 既存の CLI と metrics.json の形が変わる．
+- 自動選択: A1・B1・C1・D1・E1・F1．config.yml の `churn_eval.probe_refill` の values を [once, until_full] にし，note を更新した．事前登録は journal の Iteration 18．
+- 根拠:
+  - 補う変種は，(iii) の増分（392 問）の枠の分だけを動かす．現実的な L_join = 100 で効くかどうかで，Iteration 17 の「離脱の通知は L_join が遅いと逆効果」への代わりになるかが決まる．
+  - Dean & Barroso（CACM 2013）の hedged request は，複製に重ねて送る方式である．atrium は受信箱が複製を持たないので，補う変種は次の順位のデータ源を選び直すことになる．hedge のように少数の問だけに追加の要求を送る形にはならず，主の条件では約 98% の問で 2 往復目が要る見込みである（推測）．このため，同じ費用の 1 往復の対照（D1）が要る．
+- 要レビュー:
+  - (a) phase 1 では，ツールの失敗（`Unknown tool: Read`）で tavily の Web 検索を行えなかった．Dean & Barroso（2013）と Kulkarni & Callan（2015）の内容は，事前登録の前に確かめる．phase 1 の再開でも `Bash` が失敗し，検索できなかった．
+  - (b) 確認済み：G5 と G6 は構造上成り立つ（journal の「調べて分かったこと」を参照）．実装では，until_full の候補を「見えていて稼働中の受信箱」での `visible_top_k` または `visible_top_devices` と同じ集合にする．
+  - (c) 返事の無さは probe を送った時点で分かる（接続の拒否）と仮定した．時間切れを待つ場合，2 往復目の費用はさらに大きい．実機の待ち時間は B49 A3 で測る．
+  - (d) 見込み（ρ_refill ≈ 0.37，contacted 約 15.35，second_round_rate 約 0.98）と閾値の根拠の標準偏差（約 0.07）は，B49 と Iteration 16・17 の記録から計算した推測である．`/tmp` での時刻表の試算は行っていない．再開でも試算は行えなかった．
+  - (e) state.json は rc-researcher が触れていない．`current_lever` は `churn_eval.probe_refill: once` にする（オーケストレータが更新する）．
+  - (f) 未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`，`/tmp` のファイル）に触れず，削除・課金・`mise run clean --full` を伴わない．
+  - (g) rc-researcher は 2 度とも `Write`・`Bash` が使えず，この B50・journal の Iteration 18 の節・config.yml の note は，オーケストレータが戻り値から書き写した．
+
 ## B49 [auto-decided 2026-10-16] Iteration 17 は採用．Iteration 18 のレバーは，返事の無いデバイスの枠を次の順位のデバイスで補う変種（`churn_eval.probe_refill`．仮称）
 
 - 状況: Iteration 17 は採用である（G1〜G5 通過，H-L1 支持．device_probe_d12 の ρ_leave は 0.839〜0.883）．config.yml の levers は使い切っている．感度の格子（L_join = 100）で，参加の通知が遅いと，離脱の通知は hit を通知なしより下げると分かった（(ii) の割合は 0.036 → 0.381）．参加と離脱の遅れが対称な (100, 100) では，device_probe_d12 の hit は (100, ∞) より 960 問少ない．故障による離脱の伝播（数百問以上の見込み）では，L_leave = 100 でも ρ_leave は 0.26 にとどまる（journal の「Iteration 17 実行済み：分析・考察」）．

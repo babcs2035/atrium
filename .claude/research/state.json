@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 17,
-  "iteration_name": "離脱の通知の遅れごとの無駄な問い合わせと hit の回復",
-  "phase": "evaluate",
-  "status": "running",
-  "current_lever": "churn_eval.leave_notice_delay: [0, 10, 100]（atrium churn-leave-eval．L_join = 0 に固定．通知なし L_leave = ∞ が基準）",
-  "experiment_dir": "results/20261016_iter17_churn_leave_eval",
-  "experiment_deadline": 1792193769,
-  "updated_at": 1792118461,
-  "last_slack_ts": "1792122608.577639",
-  "iteration_thread_ts": "1792120012.613159",
+  "iteration": 18,
+  "iteration_name": "返事の無いデバイスの枠を次の順位で補ったときの hit と問い合わせの費用",
+  "phase": "execute",
+  "status": "waiting_experiment",
+  "current_lever": "churn_eval.probe_refill: [once, until_full]（atrium churn-refill-eval．L_join ∈ {∞, 0, 100}．離脱は通知しない．補わない none が基準）",
+  "experiment_dir": "results/20261016_iter18_churn_refill_eval",
+  "experiment_deadline": 1792199045,
+  "updated_at": 1792126445,
+  "last_slack_ts": "1792124800.860209",
+  "iteration_thread_ts": "1792124772.342079",
   "notion_toggle_created": true,
-  "last_commit": "1cfe75d"
+  "last_commit": "96c4516"
 }
