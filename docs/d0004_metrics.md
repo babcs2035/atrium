@@ -328,6 +328,26 @@ L_leave ≥ R では次の更新の方が先に来るので，離脱の通知は
 | `e2` | 記録．device_probe（D = 12）の `availability` = 0.7・L_join = 0 で，R = 1 → 1000・L_leave = 10 にしても残る hit の低下（問）と，(i)〜(iv)・候補外・上位 m 外の件数の増分（種ごと） |
 | `transitions` | 記録．`availability` = 0.7・L_join = 0 の（方式，L_leave，種）ごとに，R = 1 の区分から R = 1000 の区分への 5 × 5 の件数 |
 
+### 返事の無い probe の枠を補う変種の評価（`atrium churn-refill-eval`．Iteration 18）
+
+Iteration 16 と同じ採点・時刻表・質問の順番・構成・メンバー表（`join_notified_view`，L_join ∈ {∞, 0, 100}．離脱は通知しない）で，二段の方式の probe の補い方 `refill` を変える．
+見えている単位（centroid_probe は受信箱，device_probe はデバイス）を 1 段目の得点で並べ，先頭 S 個（S は K または D）に probe を送る．返事の無いことは送った時点で分かるとする．
+none は補わない（Iteration 15・16 と同じ）．once は 1 往復目で返事の無かった f 個の枠を見えている順位の S + 1〜S + f 番目で 1 回だけ補う（最大 2 往復）．until_full は返事のある単位が S 個に揃うか見えている単位が尽きるまで補う．
+2 段目の上位 m 個の選び方と hit・(i)〜(iv) の分け方は変えない．`contacted` は全ての往復の probe の先のノードの和集合，`wasted` はそのうち離脱していたノードの数である．
+1 段だけの方式と全数の構成には補う相手が無いので，none と同じ値になる．記録だけの対照 `device_probe_d15`（none のみ）を足す．
+`runs` は Iteration 15 の項目に `join_delay`・`refill`・`n_contacted` と往復の情報（`second_round_rate`：2 往復目の要る問の割合，`rounds_mean`・`rounds_max`：1 問あたりの往復の数，`probe_requests`・`n_probe_requests`：1 問あたりの probe の要求の数とその和．往復ごとに新たに候補に入った単位の載るノードの数の和．1 段だけの方式は `null`）を足したもので，`summary`・`losses` は（方式，`availability`，`refresh`，`join_delay`，`refill`）ごとにまとめる．
+
+| 指標 | 定義 |
+|---|---|
+| `gates` | G1：none の全ての実行（対照を除く）が Iteration 16 の同じ `delay` の `runs` と 1/n_test 以内（churn-join-eval の G1 と同じ照合）で一致し，どちらにも欠けが無い．G2：補う相手の無い構成の none 以外が同じ条件の none と全ての項目で完全に一致．G3：a = 1.0 または R = 1 の none 以外（対照を除く）が同じ条件の none と完全に一致．G4：Iteration 15 と同じ．G5：L_join = 0・until_full の二段の 4 構成が同じ（構成，a，種）の R = 1 と全ての件数で完全に一致．G6：二段の構成の全ての問で返事のある候補が none ⊆ once ⊆ until_full．1 つでも通らなければ `hp1` は判定しない |
+| `recovery` | `availability` = 0.7・R = 1000 で，二段の 4 構成・L_join ごとの ρ_refill = (hit(L_join, refill) − hit(L_join, none)) / (hit(R=1) − hit(L_join, none))（種ごと．hit(R=1) は none・L_join = ∞ の R = 1．分母が 0 以下の種は `null`）と，補い方ごとの `hit`（種ごと）・`contacted`・`wasted`・`probe_requests`・`second_round_rate`・`rounds_mean`（種の平均）・`rounds_max`（種の最大）．`recovery_other_availabilities` は device_probe（D = 12）の a = 0.9・0.5 の同じ値 |
+| `hp1` | 事前登録の判定．device_probe（D = 12）の L_join = 100・once の ρ_refill が全ての種で 0.20 以上なら `supported` |
+| `control` | 記録．同じ条件で device_probe（D = 12）の once と `device_probe_d15` の none の hit の差・`contacted`・`wasted`・`probe_requests` と，none に対する回復した問の数 / 増えた問い合わせの数（種ごと） |
+| `e2` | 記録．device_probe（D = 12）の同じ条件の once で残る hit の低下と，R = 1 および同じ条件の none に対する (i)〜(iv)・候補外・上位 m 外の件数の増分（種ごと） |
+| `transitions` | 記録．`availability` = 0.7・L_join = 100 の（二段の 4 構成，`refill`，種）ごとに，R = 1（none・L_join = ∞）の区分から R = 1000 の区分への 5 × 5 の件数 |
+
+1 刻みは 1 問である．2 往復目の待ち時間はオフラインでは測らない．
+
 ### EnronQA の参加・離脱の実機の再生（`atrium churn-live-report`．p0004 EQ7b）
 
 `experiment.churn` を指定した実行（[d0002](d0002_configuration.md)）の `results.jsonl` は，問ごとに `churn: {step, up, n_visible}`
