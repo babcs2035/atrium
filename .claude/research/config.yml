@@ -216,7 +216,12 @@ levers:
             once は，1 段目の上位 D 台（centroid_probe は上位 K 個の受信箱）のうち返事の無かった f 個の枠を，1 段目の順位の D + 1〜D + f 番目で 1 回だけ補う（最大 2 往復）．
             until_full は，返事のある候補が D 個に揃うか，見えている候補が尽きるまで補う（記録と退行ゲート G5 用）．新しいオフライン評価 CLI atrium churn-refill-eval（src/atrium/churn_refill_eval.py）．
             メンバー表は Iteration 16 の形（参加の通知 L_join だけ．離脱は通知しない）で，L_join は ∞・0・100．主の仮説 H-P1 は device_probe（D = 12）の a = 0.7・R = 1000・L_join = 100・once で，
-            5 個の種の全てで ρ_refill ≥ 0.20．同じ程度の問い合わせの数の 1 往復の対照として，device_probe_d15（補わない）を記録に足す．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 18"}
+            5 個の種の全てで ρ_refill ≥ 0.20．同じ程度の問い合わせの数の 1 往復の対照として，device_probe_d15（補わない）を記録に足す．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 18．
+            Iteration 18 は採用（ρ_refill 0.514〜0.584）．ただし同じ程度の問い合わせの数の対照 device_probe_d15 との n_hit の差は 0〜+22 問で，種の間の揺れの中にある"}
+  - {name: churn_eval.device_probe_budget, values: [13, 14, 16, 17, 18],
+     note: "Iteration 18 の評価で追加（backlog B51 [auto-decided]）．仮称．device_probe の none で D を振り，D ∈ {9, 10, 12} の once と，
+            a = 0.7・R = 1000・L_join = 100 で hit と contacted の組を比べる．補う変種が同じ問い合わせの数で 1 往復の構成より hit が高いかを決める．
+            オフラインの評価で，config.yaml・データ・シャードは変えない．D の格子と判定の規則は，次の rc-researcher が事前登録で決める"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

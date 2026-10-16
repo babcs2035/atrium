@@ -17,6 +17,21 @@
 
 ---
 
+## B51 [auto-decided 2026-10-16] Iteration 18 は採用．Iteration 19 のレバーは，同じ問い合わせの数での補う変種と多めに送る構成の比較（`churn_eval.device_probe_budget`．仮称）
+
+- 状況: Iteration 18 は採用である（G1〜G6 通過，H-P1 支持．ρ_refill 0.514〜0.584，平均 0.541）．ただし，同じ程度の問い合わせの数の 1 往復の対照 `device_probe_d15` との n_hit の差は，種ごとに 0〜+22 問（種の和 +33 問 / 14,700 問）で，種の間の揺れの中にある．補う変種は 2 往復目の費用を払うので，利点があるかどうかが次の評価の要点になる．
+- 選択肢:
+  - A1 (Recommended): device_probe の none で D ∈ {13, 14, 16, 17, 18} を足し，D ∈ {9, 10, 12} の once と，主の条件（a = 0.7・R = 1000・L_join = 100）で hit と contacted の組を並べる．オフラインで分単位で終わる．メリット: 補う変種が同じ問い合わせの数で 1 往復の構成より hit が高いかを，曲線で決められる．デメリット: 待ち時間の費用は測れない．
+  - A2: 補う変種の実機の再生（B49 A3）．メリット: 2 往復目の待ち時間を測れる．デメリット: A1 で利点が無ければ，測る理由が弱い．
+  - A3: centroid_probe で返事の無かったノードに載る受信箱を飛ばす変種．メリット: probe の要求の数を contacted に近づけられる見込みがある．デメリット: device_probe の主の結論には効かない．
+- 自動選択: A1．config.yml の levers の末尾に `churn_eval.device_probe_budget`（仮称）を追記した．iteration_name は「返事の無い枠を補う方式と最初から多めに送る方式の，同じ問い合わせの数での hit の比較」とした．D の格子・主の比較の規則（同じ contacted での hit の差など）は，次の rc-researcher が事前登録で決める．
+- 根拠: once で返事のある候補は，平均では上位 12 + 3.35 台のうち稼働中のもので，d15 の候補とほぼ同じになる．hit の差がこの程度なら，1 往復の構成で D を大きくする方が待ち時間の点で有利である．実機の再生（A2）の要否は A1 の結果で決まる．
+- 要レビュー:
+  - (a) phase 3 では rc-evaluator の `Bash` が `Unknown tool` で失敗し，`metrics.json` を直接読む照合を行えていない．数値は `analysis_report.md` から取り，主な値（損失の分解・上限・対照の差・E-2 の和）はオーケストレータが遷移表と報告の値から検算した．
+  - (b) この B51・journal の分析・考察の節・config.yml の追記・ローテーション・commit は，オーケストレータが rc-evaluator の戻り値から書き写して行った．
+  - (c) 論文で「補う変種が有効」と書くかどうかは，Iteration 19 の比較を待つ．
+  - (d) 未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`）に触れず，削除・課金・`mise run clean --full` を伴わない．
+
 ## B50 [auto-decided 2026-10-16] Iteration 18 のレバーの形：返事の無い枠を 1 回だけ次の順位で補う（`churn_eval.probe_refill: once`．主は L_join = 100．新しい CLI `atrium churn-refill-eval`）
 
 - 状況: B49 で，Iteration 18 のレバーを「返事の無いデバイスの枠を 1 段目の次の順位で補う変種」に決めた．キー名・補う回数・主の条件・判定の規則は，rc-researcher が決めることになっていた．要レビューには，(b)（主の条件を L_join = 100 にするか 0 にするか）と (c)（対称の通知の L = 10 を足すか）が残っていた．
