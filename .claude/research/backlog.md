@@ -17,6 +17,25 @@
 
 ---
 
+## B47 [auto-decided 2026-10-16] Iteration 17 のレバーの形：離脱の通知の遅れ L_leave（`churn_eval.leave_notice_delay`．L_join = 0 に固定．新しい CLI `atrium churn-leave-eval`）
+
+- 状況: B46 で，Iteration 17 のレバーを離脱の通知の遅れ L_leave ∈ {0, 10, 100} と通知なし（∞）にし，参加の通知を L_join = 100 に固定する案にした（要レビュー (a) で，基準を L = 100 にするか L = 0 にするかを残していた）．計画のための時刻表の試算（churn-eval と同じ種）で，L_join = 100 のまま L_leave を短くすると，a = 0.7・R = 1000 の「稼働中なのに見えない」割合が 0.036（L_leave = ∞）→ 0.234（100）→ 0.378（10）に増え，通知なし（0.285）より大きくなると分かった．稼働中の平均 200 問・停止中の平均 85.7 問なので，離脱の通知の後に 100 問以内に再び参加するノードが多く，参加の通知が届くまで見えないためである．このままでは，離脱の通知の効果と見えなさの増加が混ざる．
+- 選択肢:
+  - 参加の通知の基準: A1 (Recommended) L_join = 0．メリット: 稼働中なのに見えないノードが全ての L_leave で 0 になり，Iteration 16 の E-2 で残った低下（離脱済みのデバイスが枠を取る分）だけを動かせる．L_leave = ∞ が Iteration 16 の L = 0 の実行と同じになるので，基準の照合が全件でできる．デメリット: 参加の通知が理想的な場合で，現実の値ではない．／A2 L_join = 100（B46 の案）．メリット: Iteration 16 の判定の条件と同じ．デメリット: L_leave < L_join では見えなさが増え，2 つの効果が混ざる．離脱の方が参加より早く伝わる設定は，同じ gossip で伝える構成（SWIM・memberlist）に合わない．／A3 L_join = L_leave（対称）．メリット: 同じ gossip で伝わるという仮定に合う．デメリット: 2 つのキーを同時に動かすので，単一レバーにならない．
+  - 主の判定の L_leave: B1 (Recommended) L_leave = 10．メリット: 自明でない値の中で，時刻表の試算の効果が大きい（見えているのに離脱済みの数が ∞ の 0.125 倍）．デメリット: 秒への換算は問の頻度の仮定に依る．／B2 L_leave = 100．メリット: Iteration 16 の換算（数十問/秒）で，意図的な離脱の伝播の数秒に近い．デメリット: 見込みの回復は約 0.27 と小さく，閾値を決めにくい．／B3 L_leave = 0．デメリット: (0, 0) は構造上 R = 1 と同じになる（B46 要レビュー (c)）．
+  - 閾値: C1 (Recommended) 5 個の種の全てで ρ_leave ≥ 0.75．メリット: 構造上 ρ_leave(0) = 1 なので，0.5 では試算（線形の見積もり 0.875）よりずっと小さい回復でも支持になる．0.75 は，見積もりから Iteration 16 の ρ の種の間の標準偏差（0.045）の約 2.8 倍を引いた値である．デメリット: Iteration 15・16 の 0.5 と揃わない．／C2 0.5．メリット: Iteration 15・16 と揃う．デメリット: 検定として弱い．
+  - CLI の形: D1 (Recommended) 新しい CLI `atrium churn-leave-eval`（`src/atrium/churn_leave_eval.py`）．メリット: `churn-join-eval` の挙動と Iteration 16 の結果の再現に触れない．Iteration 15・16 と同じく，イテレーションごとに CLI を分ける形になる．デメリット: 集計と報告の一部が重複する．／D2 `churn-join-eval` に `--leave-delays` を足す．デメリット: 既存の CLI と metrics.json の形が変わる．
+  - 感度の格子: E1 (Recommended) L_join = 100 でも同じ L_leave を流し，記録だけにする．メリット: B46 (a) に数値で答えられる．オフラインで実行の数が 2 倍になるだけである．デメリット: 出力が大きくなる．／E2 流さない．
+- 自動選択: A1・B1・C1・D1・E1．config.yml の `churn_eval.leave_notice_delay` の note を更新した（values は [0, 10, 100] のまま．∞ は基準）．事前登録は journal の Iteration 17．
+- 根拠: Iteration 16 の分解で，L = 0 でも残る低下は，構造上，離脱済みのデバイスが表に残ることだけによる．L_join = 0 に固定すると，L_leave はこの因子だけを動かす単一レバーになる．SWIM（Das ら，DSN 2002）と memberlist は，参加と意図的な離脱を同じ gossip で伝え，故障は suspicion の時間切れの後に伝える．したがって，現実には L_leave ≥ L_join であり，L_join = 0 の格子はこの順序を満たす．
+- 要レビュー:
+  - (a) L_join = 0 は参加の通知が理想的な場合である．現実的な組み合わせ（意図的な離脱なら L_join ≈ L_leave，故障なら L_leave > L_join）は，感度の格子（L_join = 100）と次の候補に残す．
+  - (b) 秒と問の換算は推測である．memberlist の LAN の既定値で n = 30 なら，故障の suspicion の時間切れは約 5.9 秒（上限は約 35 秒）で，これに検出の約 1.6 周期が加わる．L_leave = 10 は，1 問/秒なら故障の検出に，数十問/秒なら 1 秒未満の意図的な離脱（`Leave()`）に当たる．Iteration 16 の換算（数十問/秒で L = 100 が数秒）では，故障の L_leave は数百問になり，見込みの回復は L_leave = 100 の約 0.27 より小さい．
+  - (c) 閾値 0.75 と期待値 0.875 は，時刻表の試算（線形の見積もり）から，結果を見る前に決めた．試算は `/tmp/iter17_estimate.py`・`/tmp/iter17_estimate2.py`（リポジトリの外）を手元で `uv run` して得た（churn-eval と同じ種，ノード 30 台，2,940 刻み，5 個の種）．検算で Iteration 16 の値（見えているのに離脱済みの割合 0.276・0.281，flood_score の wasted 5.77・7.92・8.10）が再現した．枠を取られる損失と上位 m 外が入れ替わる分は線形でないので，見積もりは外れうる．
+  - (d) 離脱の通知の後に再び参加したノードは，参加の事象の方が新しいので，参加の通知が届いた時点から見えるとする．SWIM の incarnation 番号による反駁は模していない．
+  - (e) phase 1 の途中で 2 度，ツールが `Unknown tool` で失敗した（1 度目は Bash・Read，最後は Edit・Bash）．backlog と config.yml の note は rc-researcher が書き込んだ．journal の Iteration 17 の節は，挿入が失敗したので，オーケストレータが戻り値から書き写した．config.yml の YAML の構文は，オーケストレータが `yaml.safe_load` で確かめた．state.json は指示により触れていない（`current_lever` の更新はオーケストレータが行う）．
+  - (f) 未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`）に触れず，削除・課金・`mise run clean --full` を伴わない．
+
 ## B46 [auto-decided 2026-10-16] Iteration 16 は採用．Iteration 17 のレバーは離脱の通知の遅れ（`churn_eval.leave_notice_delay`）
 
 - 状況: Iteration 16 は採用である（G1〜G4 通過，H-J1 支持．device_probe_d12 の ρ は 0.581〜0.695）．L = 0 でも device_probe_d12 の低下の 27%（556 問）が残る．その原因は，構造上，離脱済みのデバイスが表に残り，D = 12 の枠のうち 3.32 枠を取ることにある（journal の「Iteration 16 実行済み：分析・考察」）．config.yml の levers は使い切っている．

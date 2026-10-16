@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 16,
-  "iteration_name": "参加の通知の遅れ L ごとのメンバー表の見え方と hit の回復",
-  "phase": "evaluate",
-  "status": "running",
-  "current_lever": "churn_eval.join_notice_delay: [0, 1, 10, 100]（atrium churn-join-eval．通知なし L = ∞ が基準）",
-  "experiment_dir": "results/20261016_iter16_churn_join_eval",
-  "experiment_deadline": 1792189653,
-  "updated_at": 1792117956,
-  "last_slack_ts": "1792117894.366439",
-  "iteration_thread_ts": "1792116104.048879",
+  "iteration": 17,
+  "iteration_name": "離脱の通知の遅れごとの無駄な問い合わせと hit の回復",
+  "phase": "execute",
+  "status": "waiting_experiment",
+  "current_lever": "churn_eval.leave_notice_delay: [0, 10, 100]（atrium churn-leave-eval．L_join = 0 に固定．通知なし L_leave = ∞ が基準）",
+  "experiment_dir": "results/20261016_iter17_churn_leave_eval",
+  "experiment_deadline": 1792193769,
+  "updated_at": 1792121169,
+  "last_slack_ts": "1792120054.113089",
+  "iteration_thread_ts": "1792120012.613159",
   "notion_toggle_created": true,
-  "last_commit": "ab11464"
+  "last_commit": "1cfe75d"
 }

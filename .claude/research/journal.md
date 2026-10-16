@@ -3,6 +3,95 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 17: 離脱の通知の遅れごとの無駄な問い合わせと hit の回復
+
+### 調査・計画（2026-10-16．research-cycle の phase 1）
+
+**直近の判定**：Iteration 16 は採用（G1〜G4 通過，H-J1 支持．device_probe_d12 の ρ は 0.581〜0.695）．L = 0 でも device_probe_d12 の低下の 27%（種の和で 556 問．種ごとに 111・94・113・118・120 問）が残り，全て (iii) の増分だった．原因は，構造上，離脱済みのデバイスが表に残り，12 枠のうち 3.32 枠を取ることである．config.yml の levers は使い切っており，B46 [auto-decided] でレバーを離脱の通知の遅れ L_leave に決めた．レバーの形は B47 [auto-decided] に記録した．
+
+**調べて分かったこと**
+- SWIM（Das, Gupta, Motivala, DSN 2002, doi:10.1109/DSN.2002.1028914．一次資料）は，周期 T' ごとに無作為な 1 台へ ping を送り，返事が無ければ k 台を介して ping-req を送る．故障の最初の検出までの時間の期待値は e/(e − 1) ≈ 1.58 周期である．suspicion の機構では，疑われたノードは時間切れの後に故障と宣言され，本人は incarnation 番号を上げて反駁できる．
+- Lifeguard（Dadgar, Phillips, Currey, arXiv:1707.00788, 2017．一次資料）は，SWIM の誤検出を減らすために，自ノードの健康度に応じて probe の時間切れを延ばし，suspicion の時間切れを独立な確認の数に応じて最大値から最小値へ縮める．
+- HashiCorp memberlist の `DefaultLANConfig`（`config.go`．一次資料のコード）は，ProbeInterval 1 秒，ProbeTimeout 500 ms，SuspicionMult 4，SuspicionMaxTimeoutMult 6，GossipInterval 200 ms である．suspicion の時間切れの最小値は SuspicionMult × log10(n) × ProbeInterval で，n = 30 なら約 5.9 秒，最大値はその 6 倍の約 35 秒になる．意図的な離脱（`Leave()`）は自分の dead の通知を gossip で流すので，故障より速く伝わる．
+- 収束の時間は，Consul の講演で約 2 秒（Iteration 16．条件は未確認），gossip で O(log n) 回の round とされる（二次資料）．
+- 以上から，故障による離脱の伝播は「検出の約 1.6 周期 ＋ suspicion の時間切れ 6〜35 秒 ＋ gossip の伝播」で，参加や意図的な離脱の伝播（gossip だけ）より遅い．現実には L_leave ≥ L_join である（推測を含む）．1 刻み ＝ 1 問なので，秒への換算は処理量の仮定に依る．1 問/秒なら L_leave = 10 は故障の検出に当たる．数十問/秒なら L_leave = 10 は意図的な離脱に当たり，L_leave = 100 でも故障の検出より短い．
+- 時刻表だけの試算（計画のための試算で，コードにはしていない）．`/tmp/iter17_estimate.py`・`/tmp/iter17_estimate2.py` を手元で `uv run` した．条件は，`churn_eval.simulate_availability` と同じ種（`default_rng([12, s, round(a·100)])`），ノード 30 台，2,940 刻み，5 個の種である．
+  - 検算：R = 1000・a = 0.7 の「見えているのに離脱済み」の割合は，L_join = ∞ で 0.276，L_join = 100 で 0.281 で，Iteration 16 の概算と一致した．1 刻みあたりの見えているのに離脱済みのノードの数は，L_join = ∞・100・0 で 5.77・7.92・8.10 で，Iteration 16 の flood_score の wasted（5.77・7.92・8.10）と小数 2 桁まで一致した．
+  - L_join = 0 に固定したときの，見えているのに離脱済みのノードの数（L_leave = ∞ に対する比，5 個の種の最小〜最大）と，D = 12 の枠の換算（12 × 表の中の割合）は次のとおりである．稼働中なのに見えないノードは全ての L_leave で 0 である．
+
+| a | R | L_leave = ∞ | L_leave = 100 | L_leave = 30 | L_leave = 10 | L_leave = 1 |
+|---|---|---|---|---|---|---|
+| 0.7 | 1000 | 8.10（3.33 枠） | 5.93（0.733，0.692〜0.762．2.64 枠） | 2.64（0.327） | 1.01（0.125，0.118〜0.133．0.55 枠） | 0.11（0.013） |
+| 0.7 | 100 | 3.66（1.78 枠） | 効果なし（L ≥ R） | 2.28（0.623） | 0.95（0.261） | 0.11（0.029） |
+| 0.9 | 1000 | 2.90（1.16 枠） | 2.86（0.988） | 2.14（0.740） | 1.06（0.367） | 0.13（0.045） |
+| 0.5 | 1000 | 11.99（5.31 枠） | 5.59（0.466） | 2.03（0.170） | 0.72（0.060） | 0.07（0.006） |
+
+  - B46 の案（L_join = 100 に固定）では，a = 0.7・R = 1000 の稼働中なのに見えない割合が，L_leave = ∞・100・30・10 で 0.036・0.234・0.364・0.378 に増え，通知なし（0.285）より大きくなる．稼働中の平均は 200 問，停止中の平均は 85.7 問なので，離脱の通知の後に 100 問以内に再び参加するノードが多く，参加の通知が届くまで見えないためである．L_join = 10 なら，L_leave = 10 で 0.047 である．
+
+**単一レバー**：`churn_eval.leave_notice_delay` を，通知なし（L_leave = ∞．Iteration 16 と同じ）から {0, 10, 100} へ変える．参加の通知は L_join = 0 に固定する（B47 の A1．B46 の L_join = 100 から変えた理由は上の試算）．新しい CLI `atrium churn-leave-eval`（`src/atrium/churn_leave_eval.py`）で実行する．`churn-join-eval` の挙動と Iteration 16 の結果の再現には触れない．
+- メンバー表は，直前の更新 u(t) = ⌊t/R⌋·R の時点の状態に，区間 (u(t), t] の事象のうち通知の届いたものを重ねる．参加は刻み j ≤ t − L_join のときに届き，離脱は刻み j ≤ t − L_leave のときに届く．届いた事象のうち最も新しいものに従う（参加なら表に入れ，離脱なら表から消す）．届いた事象が無ければ u(t) の時点の状態のままである．
+- 参加は `online[j]` かつ ¬`online[j−1]`，離脱は ¬`online[j]` かつ `online[j−1]` とする（刻み 0 は事象として数えない）．
+- L_leave = ∞ は Iteration 16 の `join_notified_view(online, R, L_join)` と同じになる．L_leave ≥ R では区間 (u(t), t − L_leave] が空になるので，離脱の通知は効かない．
+- 離脱の通知の後に再び参加したノードは，参加の事象の方が新しいので，参加の通知が届いた時点から見える．参加の通知の後に離脱し，その離脱がまだ届いていないノードは，見えているのに離脱済みとして表に残る．SWIM の incarnation 番号による反駁は模さない．
+- 感度の格子として，L_join = 100 でも同じ L_leave を流す（記録だけ．B47 の E1）．
+- 1 刻みは 1 問である．秒への換算は行わない．
+
+**固定する構成**：config.yaml，データ，シャード，配置，m = 2，C = 32，`AVAILABILITIES`・`REFRESH_STEPS`・`MEAN_UP_STEPS`・`N_SCHEDULE_SEEDS`・`experiment.seed` = 12，採点・質問の順番・経路の選択（`churn_cascade_eval` の関数をそのまま呼ぶ）．構成は Iteration 16 と同じ 8 個（multi_centroid，flood_score，`centroid_probe_k75`，`centroid_probe_k30`，`device_probe_d24`，`device_probe_d12`，全数の `centroid_probe_k150`・`device_probe_d30`）である．条件は a ∈ {1.0, 0.9, 0.7, 0.5}，R ∈ {1, 10, 100, 1000}，L_join ∈ {0, 100}，L_leave ∈ {∞, 0, 10, 100}，種 5 個で，実行の数は 8 × 4 × 4 × 2 × 4 × 5 = 5,120 件である．
+
+**仮説 H-L1**：参加を L_join = 0 で通知した上で，離脱を L_leave = 10 で通知すると，device_probe（D = 12）の a = 0.7・R = 1000 で，L_join = 0 でも残る低下の 75% 以上が，5 個の種の全てで戻る．種ごとの回復の割合は ρ_leave = (n_hit(R=1000, L_join=0, L_leave=10) − n_hit(R=1000, L_join=0, L_leave=∞)) / (n_hit(R=1) − n_hit(R=1000, L_join=0, L_leave=∞)) とする．分母は Iteration 16 の E-2 の残る低下（種ごとに 111・94・113・118・120 問）と同じ値になる．
+
+**期待効果（推測）**
+- 回復の割合を，見えているのに離脱済みの数に比例すると見て，ρ_leave(L) ≈ 1 − (L の数)/(∞ の数) と見積もる．device_probe_d12 の a = 0.7・R = 1000 では，ρ_leave(10) ≈ 0.875（種の間で 0.867〜0.882），ρ_leave(100) ≈ 0.267（0.238〜0.308）である．ρ_leave(0) は構造上 1 である．
+- 閾値は 0.75 にする（B47 の C1）．ρ_leave(0) = 1 が構造上決まるので，Iteration 15・16 の 0.5 では，見積もりよりずっと小さい回復でも支持になる．0.75 は，見積もり 0.875 から，Iteration 16 の ρ の種の間の標準偏差（0.045）の約 2.8 倍を引いた値である．今回は分母が 94〜120 問で，Iteration 16（約 400 問）より小さいので，種の間の揺れは大きくなりうる．Iteration 16 の E-2 では候補外が +851，上位 m 外が −295 で，枠と上位 m の入れ替わりは線形でないので，見積もりは外れうる．
+- flood_score は L_join = 0 で既に hit が R = 1 と同じなので（Iteration 16 の G3），ρ_leave の分母が 0 になり，hit は変わらない．contacted は 29.17 から，約 22.1（L_leave = 10）と約 27.0（L_leave = 100）に減ると見込む．wasted は 8.10 から，約 1.01 と約 5.93 に減ると見込む．device_probe_d12 は contacted が 12.00 のまま，wasted が 3.32 から約 0.55（L_leave = 10）に減ると見込む．
+- 感度の格子（L_join = 100）では，L_leave を短くすると見えなさが増える．このため，device_probe_d12 の hit は，L_leave = 10 で Iteration 16 の L = 100 より下がると見込む．
+
+**退行ゲート**（1 つでも通らなければ H-L1 を判定しない）
+- G1：L_join = 0・L_leave = ∞ の 640 件が，`results/20261016_iter16_churn_join_eval/metrics.json` の `runs` の delay = 0 の実行と，hit・hit_given_gold_online・gold_online_rate・contacted・wasted と全ての件数（n_test で割った差）で 1/2940 以内に一致する．どちらにも欠けが無く，件数の None の有無も一致する．m と n_test も一致する．
+- G2：L_join = 100・L_leave = ∞ の 640 件が，同じ `metrics.json` の delay = 100 の実行と，G1 と同じ項目・同じ許容で全件一致する．
+- G3：L_leave ≥ R の実行（構成・a・種・L_join ごとに 5 個．計 1,600 件）が，同じ（構成，a，R，種，L_join）の L_leave = ∞ と，全ての項目で完全に一致する．
+- G4：全ての実行で，`n_hit` と (i)〜(iv) の件数の和が問の数に等しい（`churn_cascade_eval.gate_g4`）．
+- G5：(L_join, L_leave) = (0, 0) の実行が，全ての構成・a・R・種で，同じ（構成，a，種）の R = 1 の実行と，`n_hit` と全ての件数で完全に一致する（640 件）．このとき表は稼働中の集合そのものになるので，構造上そうなる．主の判定には使わない（B46 の要レビュー (c)）．
+
+**判定の規則と成功条件**
+- G1〜G5 を全て通過し，`device_probe_d12` の a = 0.7・R = 1000・L_join = 0・L_leave = 10 の ρ_leave が 5 個の種の全てで 0.75 以上なら，H-L1 を支持し，採用とする．分母が 0 以下の種は不成立とする．問の数は実行によらず等しいので，件数の比は hit の比に等しい．
+- 判定は Iteration 15・16 と同じく，5 個の種の全てで閾値を超える形にする．ρ_leave は種ごとに対で計算する．
+
+**記録**（判定に使わない）
+- 全ての構成の a = 0.7 の L_join・L_leave ごとの ρ_leave（種ごと．分母が 0 の構成は「定義できない」と書く），R = 1000 の hit（種ごと）・contacted・wasted（種の平均）．
+- a = 0.9・0.5 の `device_probe_d12` の ρ_leave（試算の見積もりは，L_leave = 10 で約 0.63・約 0.94）．
+- E-2 相当：`device_probe_d12` の a = 0.7・R = 1000・L_join = 0 の L_leave = 10 で残る低下（問）と，(i)・(ii)・(iii)・候補外・上位 m 外・(iv) の件数の増分（種ごと）．
+- 感度の格子：L_join = 100 の L_leave ごとの hit・(ii) の件数・contacted・wasted（B46 の要レビュー (a) への答え）．
+- 遷移表：a = 0.7・L_join = 0 の（構成，L_leave，種）ごとに，R = 1 の区分（hit・(i)〜(iv)）から R = 1000 の区分への 5 × 5 の件数（160 個）．
+
+**実機**：使わない．制御点のコンテナで実行するオフライン評価である（B46）．実機の再生は次の候補に残す（B43 の A2・B46 の A3）．
+
+**記録の注記**：phase 1 の途中で 2 度，ツールが `Unknown tool` で失敗した（1 度目は Bash・Read，最後は Edit・Bash）．backlog の B47 と config.yml の note は rc-researcher が書き込んだ．この節は，journal への書き込みが失敗したので，オーケストレータが戻り値から書き写した．config.yml の YAML の構文は，オーケストレータが `yaml.safe_load` で確かめた．state.json は指示により触れていない．
+
+### 事前登録（2026-10-16．実装の後，実行の前に commit・push する．結果を見て変えない．実装は commit `f4ffac5`）
+
+調査・計画の節の規則（単一レバー，固定する構成，H-L1，退行ゲート G1〜G5，判定の規則，記録の項目）を，実行の前にそのまま固定する．計画と実装の間に規則の食い違いは無い（backlog への新しい記録は無い）．
+
+**評価**：`atrium churn-leave-eval`（`src/atrium/churn_leave_eval.py`）を制御点のコンテナで 1 回だけ流す．出力は `results/20261016_iter17_churn_leave_eval/`（`metrics.json`・`analysis_report.md`・`run.log`）．実機のノードは使わない．失敗しても規則を変えて再実行しない．
+
+```bash
+ssh wafl-ctrl5 'pgrep -af "[c]hain.sh" || echo NO_CHAIN'   # 連続実行が動いていないことを確かめる
+bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'
+bash scripts/tasks/remote.sh churn_leave_eval 20261016_iter17_churn_leave_eval 20261009_eq5_b1 20261016_iter16_churn_join_eval
+rsync -az wafl-ctrl5:<REMOTE_DIR>/results/20261016_iter17_churn_leave_eval/ results/20261016_iter17_churn_leave_eval/
+```
+
+**照合の件数**：実行 5,120 件，G1 640 件，G2 640 件，G3 1,600 件，G5 640 件，遷移表 160 個．
+
+**実装の細部**（規則の読み方を固定するもの）
+- ρ_leave の分母の n_hit(R=1) は，L_join に依らず L_join = 0・L_leave = ∞ の R = 1 の実行を使う（R = 1 では通知の窓が常に空なので，どの遅れでも表は同じになる）．G5 の基準も同じ実行である．
+- `analysis_report.md` の表では L_leave ≥ R の行を省く（Iteration 16 で L ≥ R の行を省いたのと同じ扱い）．`metrics.json` には全ての実行を残す．
+
+**実装の検査**（commit `f4ffac5`）
+- `tests/test_churn_leave_eval.py` の 41 件が通過した．全体の pytest は 441 件が全て通過した．`ruff check src tests`・`ruff format --check src tests`・`mypy` は通過した．
+- テストで G1・G2（L_leave = ∞ の表が `join_notified_view` と一致），G3（L_leave ≥ R の表が L_leave = ∞ と一致），G5（(0, 0) の表が稼働中の集合と一致），B47 (d)（手で作った時刻表で，再び参加したノードが参加の通知の届いた刻みから見える）の構造上の性質を確かめた．
+- 合成のデータ（4 構成，ノード 4 台，300 刻み，乱数の得点）で，集計・ゲート・報告の流れを最後まで通した．実行 2,560 件，G1・G2 は各 320 件，G3 は 800 件，G5 は 320 件を照合し，遷移表は 80 個で，G1〜G5 は全て通過した（8 構成の件数のちょうど半分）．
+
 ## Iteration 16: 参加の通知の遅れ L ごとのメンバー表の見え方と hit の回復
 
 ### 調査・計画（2026-10-16．research-cycle の phase 1）
