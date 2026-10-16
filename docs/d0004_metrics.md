@@ -311,6 +311,23 @@ L ≥ R では次の更新の方が先に来るので，通知は効かない．
 
 1 刻みは 1 問である．L を秒へ換算するには処理量の仮定が要る．
 
+### 離脱の通知の遅れ L_leave ごとの評価（`atrium churn-leave-eval`．Iteration 17）
+
+Iteration 16（上の節）と同じ採点・時刻表・質問の順番・構成で，メンバー表に「離脱の通知」も足す．
+直前の更新 u(t) = ⌊t/R⌋·R の時点の表に，区間 (u(t), t] の事象のうち届いたもの（参加は j ≤ t − L_join，離脱（`¬online[j]` かつ `online[j−1]`）は j ≤ t − L_leave）を重ね，最も新しい事象に従う（参加なら表に入れ，離脱なら消す）．
+届いた事象が無いノードは u(t) の時点の状態のままである．離脱の通知の後に再び参加したノードは，参加の通知が届いた時点から見える．
+L_join ∈ {0, 100} × L_leave ∈ {0, 10, 100} と離脱の通知なし（`leave_delay` = `null`．Iteration 16 の同じ L の表）を流す．L_join = 0 が判定の条件で，L_join = 100 は記録だけの感度の格子である．
+L_leave ≥ R では次の更新の方が先に来るので，離脱の通知は効かない．(L_join, L_leave) = (0, 0) では表が稼働中の集合そのものになる．
+`runs` は Iteration 15 の項目に `join_delay`・`leave_delay` を足したもので，`summary`・`losses` は（方式，`availability`，`refresh`，`join_delay`，`leave_delay`）ごとにまとめる．
+
+| 指標 | 定義 |
+|---|---|
+| `gates` | G1：L_join = 0・`leave_delay` = `null` の全ての実行が Iteration 16 の `delay` = 0 の `runs` と 1/n_test 以内（churn-join-eval の G1 と同じ照合）で一致し，どちらにも欠けが無い．G2：L_join = 100 で同じ照合．G3：L_leave ≥ R の実行が同じ（方式，a，R，種，L_join）の離脱の通知なしと全ての項目で完全に一致．G4：Iteration 15 と同じ．G5：(0, 0) の実行が同じ（方式，a，種）の R = 1 と `n_hit` と全ての件数で完全に一致．1 つでも通らなければ `hl1` は判定しない |
+| `recovery` | `availability` = 0.7 で，方式・L_join・L_leave ごとの ρ_leave = (hit(R=1000, L_join, L_leave) − hit(R=1000, L_join, 通知なし)) / (hit(R=1) − hit(R=1000, L_join, 通知なし))（種ごと．分母が 0 以下の種は `null`）と，R = 1000 の `hit`・`n_gold_invisible`（種ごと）・`contacted`・`wasted`（種の平均）．`recovery_other_availabilities` は device_probe（D = 12）の a = 0.9・0.5 の同じ値 |
+| `hl1` | 事前登録の判定．device_probe（D = 12）の L_join = 0・L_leave = 10 の ρ_leave が全ての種で 0.75 以上なら `supported` |
+| `e2` | 記録．device_probe（D = 12）の `availability` = 0.7・L_join = 0 で，R = 1 → 1000・L_leave = 10 にしても残る hit の低下（問）と，(i)〜(iv)・候補外・上位 m 外の件数の増分（種ごと） |
+| `transitions` | 記録．`availability` = 0.7・L_join = 0 の（方式，L_leave，種）ごとに，R = 1 の区分から R = 1000 の区分への 5 × 5 の件数 |
+
 ### EnronQA の参加・離脱の実機の再生（`atrium churn-live-report`．p0004 EQ7b）
 
 `experiment.churn` を指定した実行（[d0002](d0002_configuration.md)）の `results.jsonl` は，問ごとに `churn: {step, up, n_visible}`
