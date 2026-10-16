@@ -293,6 +293,24 @@ EQ7a（上の節）と同じ時刻表・メンバー表・質問の順番で，c
 
 二段の方式の値は，実機の質問者が probe の失敗を許して返事のあった分で続けると仮定した値である．今の `experiment.churn` は二段の方式に使えない（[d0002](d0002_configuration.md)）．
 
+### 参加の通知の遅れ L ごとの評価（`atrium churn-join-eval`．Iteration 16）
+
+Iteration 15（上の節）と同じ採点・時刻表・質問の順番・構成で，メンバー表に「参加の通知」を足す．
+直前の更新 u(t) = ⌊t/R⌋·R より後の刻み j（u(t) < j ≤ t − L）に参加した（`online[j]` かつ `¬online[j−1]`）ノードを表に足す．
+離脱は通知せず，更新のときにだけ表から消える．通知の遅れ L ∈ {0, 1, 10, 100} と通知なし（`delay` = `null`．EQ7a・Iteration 15 と同じ表）を流す．
+L ≥ R では次の更新の方が先に来るので，通知は効かない．
+`runs` は Iteration 15 の項目に `delay` を足したもので，`summary`・`losses` は（方式，`availability`，`refresh`，`delay`）ごとにまとめる．
+
+| 指標 | 定義 |
+|---|---|
+| `gates` | G1：`delay` = `null` の全ての実行が Iteration 15 の `runs` と 1/n_test 以内（件数は n_test で割った差）で一致し，どちらにも欠けが無い．G2：L ≥ R の実行が同じ（方式，a，R，種）の通知なしと全ての項目で完全に一致．G3：flood_score の L = 0 の `n_hit` が同じ（a，種）の R = 1 と全ての R で完全に一致．G4：Iteration 15 と同じ．1 つでも通らなければ `hj1` は判定しない |
+| `recovery` | `availability` = 0.7 で，方式・L ごとの回復の割合 ρ = (hit(R=1000, L) − hit(R=1000, 通知なし)) / (hit(R=1) − hit(R=1000, 通知なし))（種ごと．分母が 0 以下の種は `null`）と，R = 1000 の `hit`（種ごと）・`contacted`・`wasted`（種の平均） |
+| `hj1` | 事前登録の判定．device_probe（D = 12）の L = 100 の ρ が全ての種で 0.5 以上なら `supported` |
+| `e2` | 記録．device_probe（D = 12）の `availability` = 0.7 で，R = 1 → 1000・L = 0 にしても残る hit の低下（問）と，(i)〜(iv)・候補外・上位 m 外の件数の増分（種ごと） |
+| `transitions` | 記録．`availability` = 0.7 の（方式，L，種）ごとに，R = 1 の区分（`loss_classes` の順：hit・(i)〜(iv)）から R = 1000 の区分への 5 × 5 の件数 |
+
+1 刻みは 1 問である．L を秒へ換算するには処理量の仮定が要る．
+
 ### EnronQA の参加・離脱の実機の再生（`atrium churn-live-report`．p0004 EQ7b）
 
 `experiment.churn` を指定した実行（[d0002](d0002_configuration.md)）の `results.jsonl` は，問ごとに `churn: {step, up, n_visible}`

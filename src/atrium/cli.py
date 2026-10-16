@@ -17,6 +17,7 @@
     node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     churn-cascade-eval        二段の方式の参加・離脱への頑健さのオフラインの評価（EnronQA．Iteration 15．制御点のコンテナ）
+    churn-join-eval           参加の通知の遅れ L ごとのメンバー表の見え方と hit の回復（EnronQA．Iteration 16．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
     owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
@@ -342,6 +343,23 @@ def cmd_churn_cascade_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     churn_cascade_eval.write_outputs(Path(args.out_dir), metrics)
     print(churn_cascade_eval.render_report(metrics))
+    return 0
+
+
+def cmd_churn_join_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """参加の通知の遅れ L ごとの評価（Iteration 16）を行い，metrics.json と analysis_report.md を書く．"""
+    from atrium import churn_join_eval
+    from atrium.manifest import read_placement
+
+    cascade_reference = json.loads(Path(args.cascade_metrics).read_text(encoding="utf-8"))
+    metrics = churn_join_eval.evaluate(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        read_placement(Path(args.placement)),
+        cascade_reference,
+    )
+    churn_join_eval.write_outputs(Path(args.out_dir), metrics)
+    print(churn_join_eval.render_report(metrics))
     return 0
 
 
@@ -811,6 +829,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--churn-metrics", required=True, help="G2 の基準（EQ7a の churn-eval の metrics.json）"
     )
     p.set_defaults(func=cmd_churn_cascade_eval)
+
+    p = sub.add_parser(
+        "churn-join-eval",
+        help="参加の通知の遅れ L ごとのメンバー表の見え方と hit の回復（EnronQA．Iteration 16）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--placement", required=True, help="受信箱の配置（results/<run>/placement.json）"
+    )
+    p.add_argument(
+        "--cascade-metrics",
+        required=True,
+        help="G1 の基準（Iteration 15 の churn-cascade-eval の metrics.json）",
+    )
+    p.set_defaults(func=cmd_churn_join_eval)
 
     p = sub.add_parser("loso", help="E2 の leave-one-source-out の評価（p0003．操作端末）")
     p.add_argument("dataset", choices=["medrag", "feb4rag"])
