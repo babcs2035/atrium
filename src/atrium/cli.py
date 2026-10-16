@@ -22,6 +22,7 @@
     churn-refill-eval         返事の無い probe の枠を次の順位で補ったときの hit と問い合わせの費用（EnronQA．Iteration 18．制御点のコンテナ）
     churn-budget-eval         device_probe の D を変え，補う変種と補わない構成を同じ問い合わせの数で比べる（EnronQA．Iteration 19．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
+    central-eval              中央集約ベースラインの検索の精度と C1 の実機との一致（EnronQA．p0006 P1．制御点のコンテナ）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
     owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
     header-eval               持ち主推定の入力からヘッダーを除いた測り直しと質問の人名の集計（EnronQA．Iteration 2．制御点のコンテナ）
@@ -466,6 +467,22 @@ def cmd_body_advert_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_central_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """中央集約ベースライン（p0006 P1）の検索の精度と C1 の実機との一致を求め，metrics.json と analysis_report.md を書く．"""
+    from atrium import central_eval
+
+    compare = dict(spec.split("=", 1) for spec in args.compare_run)
+    metrics = central_eval.evaluate(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        Path(args.c1_run),
+        {name: Path(path) for name, path in compare.items()},
+    )
+    central_eval.write_outputs(Path(args.out_dir), metrics)
+    print(central_eval.render_report(metrics))
+    return 0
+
+
 def cmd_newcomer_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """150 人での新参者の評価（p0005 T3）を行い，metrics.json と analysis_report.md を書く．"""
     from atrium import newcomer_eval
@@ -845,6 +862,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--n-newcomers", type=int, default=30)
     p.set_defaults(func=cmd_newcomer_eval)
+
+    p = sub.add_parser(
+        "central-eval", help="中央集約ベースラインの検索の精度と C1 との一致（EnronQA．p0006 P1）"
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument("--c1-run", required=True, help="C1（routing=all）の実行のディレクトリ")
+    p.add_argument(
+        "--compare-run",
+        action="append",
+        default=[],
+        metavar="NAME=DIR",
+        help="Recall と露出を並べる実行（繰り返せる）",
+    )
+    p.set_defaults(func=cmd_central_eval)
 
     p = sub.add_parser("churn-live-report", help="EQ7b の実機の実行を集めて EQ7a と比べる")
     p.add_argument(
