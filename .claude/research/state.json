@@ -3,7 +3,7 @@
   "iteration": 18,
   "iteration_name": "返事の無いデバイスの枠を次の順位で補ったときの hit と問い合わせの費用",
   "phase": "execute",
-  "status": "waiting_experiment",
+  "status": "running",
   "current_lever": "churn_eval.probe_refill: [once, until_full]（atrium churn-refill-eval．L_join ∈ {∞, 0, 100}．離脱は通知しない．補わない none が基準）",
   "experiment_dir": "results/20261016_iter18_churn_refill_eval",
   "experiment_deadline": 1792199045,
