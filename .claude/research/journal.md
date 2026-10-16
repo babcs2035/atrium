@@ -3,6 +3,109 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 15: 二段の方式の参加・離脱への頑健さのオフライン評価
+
+### 調査・計画（2026-10-16．research-cycle の phase 1）
+
+- 注記: rc-researcher は計画を確定したが，最後の段でツールの呼び出しが失敗し，ファイルへ書き込めなかった．この節は，オーケストレータが rc-researcher の戻り値を書き写したものである（内容は変えていない）．
+- 経緯: backlog B39 で人間が選択肢 1（負荷の系列〔Iteration 4〜14〕を閉じて RQ の研究へ戻る）を選んだ．config.yml の levers は使い切っているので，新しいレバーを levers の末尾に足した（backlog B40 [auto-decided]）．
+
+**調査で分かったこと**（出典は検索結果の抜粋で確かめた範囲．年と書誌は一部が未確認）
+
+- 選択的検索の頑健さ: Kim, Y.「Robust Selective Search」（CMU の博士論文，2019．Hendriksen ら「Efficient Session Retrieval Using Topical Index Shards」の参考文献から確認）．
+- 分散した選択的検索の負荷の偏り: Kulkarni・Callan「Efficient distributed selective search」．
+- 離脱したノードへの要求: Rhea ら「Handling Churn in a DHT」（USENIX）．離脱下では要求が抜けたノードへ頻繁に送られることと，迂回できる経路の価値を論じている．
+- P2P の離脱の実測: Stutzbach・Rejaie「Understanding Churn in Peer-to-Peer Networks」．
+- 分散したベクトル検索の低ファンアウトのルーティング:「Semord: Learned Semantic-Preserving Placement and Low-Fanout Routing for Distributed Vector Search」（arXiv）．問い合わせる peer の数を 60% 以上減らし，再現率を 15% 以上上げたと報告している．
+- 連合 RAG の総説（ACL Anthology「Federated Retrieval-Augmented Generation: A Systematic ...」）と RAGRoute: 検索結果の範囲では，データ源の離脱下でのルーティングの評価は見当たらなかった（網羅的には確かめていない）．
+- 本リポジトリの空白: RQ-A で中心になった二段の方式（centroid_probe・device_probe）は，RQ-C（EQ7a・EQ7b）で評価していない．EQ7a で「表の更新の後に参加したノードが見えないことが原因」とした推測も未検証である．
+
+**仮説**: 二段の方式は，2 段目で返事のあった受信箱の中から選ぶので，最後の m 個の枠を離脱済みの受信箱に取られない．このため，メンバー表が古くなったときの hit の相対的な低下は multi_centroid より小さい．
+
+**単一レバー**: 新しいオフライン評価の CLI `atrium churn-cascade-eval`（`src/atrium/churn_cascade_eval.py`）を 1 つ足す（levers の `churn_eval.methods`）．config.yaml・データ・シャード・既存の routing の挙動は変えない．
+
+- `src/atrium/churn_cascade_eval.py`: `churn_eval` の `simulate_availability`・`stale_view`・`summarize_runs`，`device_probe_eval` の `device_index_of_inbox`・`device_scores`，`cascade_eval` の採点を再利用する．
+- `src/atrium/cli.py`: `cmd_churn_cascade_eval` を `cmd_churn_eval` と同じ形で足す．
+- `scripts/tasks/remote.sh`: `churn_cascade_eval` のサブコマンドを足す．
+- `tests/test_churn_cascade_eval.py` を足す．
+
+**二段の方式の離脱下の規則**（事前登録）
+
+1. 1 段目は multi_centroid（C = 32）の得点で，見えている受信箱だけを採点する．centroid_probe は見えている受信箱の上位 K 個を候補にする．device_probe は見えている受信箱の得点をデバイスごとに最大値でまとめ，上位 D 台に載る全ての受信箱を候補にする．
+2. 候補の載るデバイスへ probe を送る．
+3. 返事のあった（実際に稼働中の）デバイスの候補の中から，2 段目の密ベクトルの得点で上位 m = 2 個を選ぶ．
+4. 返事の無かったデバイスの分は補わない（実機の churn の「返事のあった分で続ける」に合わせる）．
+5. 問い合わせたノードは probe したデバイスとし，そのうち離脱していたノードを無駄な問い合わせとして数える．
+6. 同点の扱いは `device_probe_eval` と同じ規則にする．
+
+**条件**: EQ7a と同じ．稼働率 a ∈ {1.0, 0.9, 0.7, 0.5}，更新間隔 R ∈ {1, 10, 100, 1000}，時刻表の種 5 個，`experiment.seed` = 12，配置は `results/20261009_eq5_b1/placement.json`，問は test の 2,940 問．評価する構成は centroid_probe の K = 75・30 と device_probe の D = 24・12 で，対照として flood_score と multi_centroid を同じ表に出す．
+
+**追加の集計**: hit を失った問を (i) 正解のノードが離脱している，(ii) 正解のノードは稼働中だがメンバー表で見えていない，(iii) 見えていて稼働中だが選ばれない，(iv) 1 段の方式で離脱済みの受信箱が枠を占めた，の 4 つに分ける．
+
+**退行ゲート**（1 つでも通らなければ判定に進まず，原因を調べて記録する）
+
+- G1: a = 1 の hit@2 が，4 構成とも `results/20261015_iter7_device_probe_eval/metrics.json` の test の値と 5e-4 以内で一致する．
+- G2: flood_score・multi_centroid の (a, R, 種) ごとの hit・contacted・wasted が，`results/20261012_eq7a_churn/metrics.json` の `runs` と 1/2940 以内で一致する．
+- G3: device_probe の D = 30（全台）と centroid_probe の K = 150 が，全ての実行で flood_score と同じ値になる．
+- G4: 分解の (i)〜(iv) と hit の和が，全ての実行で問の数に等しい．
+
+**判定**
+
+- H-C2（主）: a = 0.7 で R = 1 → 1000 としたときの hit@2 の相対的な低下（1 − hit(R=1000) / hit(R=1)）が，device_probe（D = 12）で multi_centroid より 5 個の種のすべてで小さければ「支持」，そうでなければ「支持されない」．
+- H-C3（記録）: D = 24，K = 75・30 の相対的な低下と flood_score との差を種ごとに出す．1 問あたりの問い合わせたノードの数と，無駄な問い合わせの数も出す．
+- E-1（EQ7a の推測の検証）: flood_score の a = 0.7 で，正解が稼働中の問に限った hit@2 の R = 1 → 1000 の低下のうち，(ii) の増分で説明される割合が 0.8 以上なら「表の更新の後に参加したノードの見えなさが主因」と確かめたとする．
+
+**成功条件**: G1〜G4 を通過し，H-C2 と E-1 を機械的に判定して記録すること．評価のためのレバーなので，支持・不支持のどちらでも成果物として採用する．計算は決定的で，揺れは時刻表の種の間だけにある．EQ7a の種の間の相対的な低下の幅（約 ±0.05）より小さい差は，差として読まない．
+
+**手順と所要時間**: 実装とテストに約 2〜3 時間．事前登録（この節）を実行の前に push し，制御点のコンテナで 1 回だけ実行する（10 分未満の見込み．EQ7a は 50 秒）．出力は `results/<日付>_iter15_churn_cascade/`（`metrics.json`，`analysis_report.md`）．実機は使わない（EQ7b で flood_score・multi_centroid のオフラインの規則と実機の hit@2 が全 22 回で小数 4 桁まで一致したため）．
+
+**限界**
+
+- 実機の質問者の部分的な失敗を許す処理（`src/atrium/requester.py` の `_tolerant`．357 行付近）が，centroid_probe・device_probe の probe の失敗にも効くかは確かめていない．効かない場合，H-C2 の結果は「返事のあった分で続ける」と仮定した上限になる．
+- オフラインと実機の一致を確かめたのは flood_score・multi_centroid だけで，二段の方式の離脱下の実機での再生は行わない（次の候補）．
+- EQ7a と同じく，メールの時間的な到着・削除は再現しない．回答の正答率と待ち時間は測らない．
+- 要レビューは backlog B40．
+
+### 事前登録（2026-10-16．実装の後，実行の前に commit・push する．結果を見て変えない．実装は commit `01774a2`）
+
+調査・計画の節の規則を，実行の前にそのまま固定する．計画からの変更と補足は backlog B41・B42 の決定に基づく．
+
+**評価**: `atrium churn-cascade-eval`（`src/atrium/churn_cascade_eval.py`）を制御点のコンテナで 1 回だけ流す．出力名は `20261016_iter15_churn_cascade_eval` とする（計画の `<日付>_iter15_churn_cascade` から変更．B42）．
+
+```bash
+ssh wafl-ctrl5 'pgrep -af chain.sh || echo NO_CHAIN'   # 連続実行が動いていないことを確かめる
+bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'
+bash scripts/tasks/remote.sh churn_cascade_eval 20261016_iter15_churn_cascade_eval 20261009_eq5_b1 20261015_iter7_device_probe_eval 20261012_eq7a_churn
+rsync -az wafl-ctrl5:<REMOTE_DIR>/results/20261016_iter15_churn_cascade_eval/ results/20261016_iter15_churn_cascade_eval/
+```
+
+**条件**: 調査・計画の「条件」のとおり（a ∈ {1.0, 0.9, 0.7, 0.5}，R ∈ {1, 10, 100, 1000}，種 5 個，`experiment.seed` = 12，m = 2，C = 32，test 2,940 問）．評価する構成は `centroid_probe_k75`・`centroid_probe_k30`・`device_probe_d24`・`device_probe_d12` で，対照は `multi_centroid`・`flood_score` である．G3 のために `centroid_probe_k150`・`device_probe_d30` も流す（K と D は配置の受信箱の数とデバイスの数から決める）．
+
+**規則の実装上の補足**（調査・計画の 1〜6 を具体化したもの）
+- 同点の扱い: centroid_probe は受信箱の番号の小さい方を先にする（stable な並べ替え．`cascade_eval` と同じ）．device_probe はデバイスの番号の小さい方を先にする．デバイスの番号は受信箱の名前の中で初めて現れた順で，実機の `top_devices` と同じ規則である．2 段目の順位は，正解と同点の受信箱を正解より上に数える（`route_under_churn` と同じ）．
+- デバイスの番号（初出順）とノードの番号（`placement.nodes` の順）は対応表で結ぶ．
+- `contacted` は probe を送ったノードの数，`wasted` はそのうち離脱していたノードの数とする．本照会は数えない．
+
+**退行ゲート**（1 つでも通らなければ H-C2・E-1 を判定せず，原因を調べて記録する）
+- G1: a = 1 の 4 構成の hit@2 が，全ての (R, 種) で Iteration 7 の test の値（`device_probe_d24` 0.783673，`device_probe_d12` 0.682993，`centroid_probe_k75` 0.761224，`centroid_probe_k30` 0.690476）と 5e-4 以内で一致する．
+- G2: multi_centroid・flood_score の (a, R, 種) ごとの hit・contacted・wasted の**すべて**が，EQ7a の `runs` と 1/2940 以内で一致する．160 件のすべてを照合する（B42）．
+- G3: `centroid_probe_k150`・`device_probe_d30` が，全ての実行で flood_score と `n_hit`・`contacted`・`wasted` において完全に一致する．
+- G4: 全ての実行で，`n_hit` と (i)〜(iv) の件数の和が問の数に等しい．また，二段の方式の (iii) の内訳 2 区分の和が (iii) に等しい．
+
+**判定**
+- H-C2: 調査・計画の規則のとおりとする．相対的な低下は `churn_eval.judge_hc1` と同じ式（1 − hit(R=1000) / hit(R=1)）で求める．
+- E-1: 件数で求める．種ごとの割合は「(ii) の件数の R = 1 → 1000 の増加 ÷ hit の件数の R = 1 → 1000 の減少」とする．時刻表は R に依らないので，正解が稼働中の問の数は R で変わらない．このため，この比は計画の「正解が稼働中の問に限った hit@2 の低下のうち (ii) の増分で説明される割合」に等しい（出力の `gold_online_same` で確かめる）．5 個の種の**すべて**で 0.8 以上なら「確かめた」とする．減少が 0 以下の種は不成立とする．種の和の比（Σ 増加 ÷ Σ 減少）は記録として出すだけで，判定には使わない（B41）．
+- 記録（判定に使わない）: 二段の方式の (iii) を「候補に入らない」と「候補に入ったが上位 m 個に入らない」に分けた件数（B41），H-C3 の値．
+
+**実装の検査**（commit `01774a2`）
+- `tests/test_churn_cascade_eval.py` の 19 件は通った．全体の pytest は 377 件が通り，1 件が失敗した．ruff と mypy は通った．
+- 失敗した `tests/test_node_workers.py::test_serve_workers_answers_from_every_process_and_stops_on_sigterm` は，プロセスの起動と SIGTERM を扱うテストで，今回の変更の対象外である．全体と単独の実行を合わせると 6 回中 2 回失敗しており，結果が不安定である．`4608ca5` でも同じかは確かめていない．
+
+**限界の補足**（B40 (a) を読んだ結果．実装は変えていない）
+- `config.py` の `CHURN_ROUTINGS` には centroid_probe・device_probe が入っていない．このため，今の `experiment.churn` では二段の方式を実機で再生できない．
+- `requester.py` の `_probe` は `_gather_requests` を通るので，churn の設定を二段の方式に許せば，probe の失敗は構造上許される．
+- 返事のあった候補が m 個より少ない問では，`select_among` が離脱した候補にも本照会を送る．hit には影響しない．
+
 ## Iteration 14: 質問者の検索要求の本文を問ごとに 1 回だけ符号化したときの処理量
 
 ### 調査・計画（2026-10-16．research-cycle の phase 1）

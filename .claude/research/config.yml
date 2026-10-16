@@ -195,6 +195,10 @@ levers:
             判定は交互に並べた組の比（N = 1 は 5 組）で行う．主の仮説 H-R1 は dp12 × N = 1 で有効な組の全てで比 > 1 かつ中央値 ≥ 1.02．計 34 実行．事前登録は journal の Iteration 14．
             Iteration 14 は採用（組の比 q の中央値：dp12 N = 1 1.080〔5 組 1.032〜1.118〕，fs N = 1 1.043〔1.022〜1.071〕．1 要求の質問者の CPU は dp12 N = 1 で 1.168 → 1.074 ms．遅れの無い dp12 N = 8 × pe は 323〜326 問/秒で律速は質問者のまま）．
             これで設定キーで除ける大きな項目は残らない．次の方向（負荷の系列を続けるか RQ の研究へ戻るか）は人間の判断を待つ（backlog B39 [needs-human]）"}
+  - {name: churn_eval.methods, values: [centroid_probe, device_probe],
+     note: "Iteration 15 で追加（backlog B40 [auto-decided]）．B39 で負荷の系列を閉じ，RQ の研究へ戻った．新しいオフライン評価 CLI atrium churn-cascade-eval（src/atrium/churn_cascade_eval.py）．
+            EQ7a の時刻表（a・R・種）のまま，centroid_probe（K = 75・30）と device_probe（D = 24・12）を，返事のあったデバイスの候補から上位 m 個を選ぶ規則で評価する．
+            hit を失った問を（正解のノードの離脱・見えない・選ばれない・枠を取られた）に分ける．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 15"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
