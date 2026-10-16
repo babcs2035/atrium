@@ -1,3 +1,188 @@
+## Iteration 12: 質問者の要求ごとの sniffio の import の失敗を除いたときの処理量
+
+### 調査・計画（2026-10-15．research-cycle の phase 1）
+
+**レバーの由来**：backlog B33 [auto-decided]（Iteration 11 は採用．質問者 1 プロセスの処理量は 1 要求あたりの質問者の CPU でほぼ決まり，事前の測定の節約が実機で再現した）．
+config.yml の levers 末尾の `requester.sniffio_lookup: [skip]`（仮称）を，**config.yaml の新しいキー `experiment.sniffio_lookup`（`search`〔既定．今の挙動〕/ `blocked`）**として確定した（backlog B34）．依存（uv.lock・イメージ）は変えない．ノードの API・要求の本文・方式の選択・データ・シャード・`cluster`・`node_workers` は変えない．
+
+**コードから確かめたこと**（事実．`.venv` の httpcore 1.0.9）
+- `httpcore/_synchronization.py` の `current_async_library()` は，呼ばれるたびに `try: import sniffio except ImportError: environment = "asyncio"` を行う．質問者の環境（uv.lock，制御点の `atrium-full` のイメージ）には sniffio が無いので，失敗した import は `sys.modules` に残らず，毎回 `sys.path` の探索が走る（Iteration 11 の cProfile で 1 要求あたり約 9.5 回）．
+- Python の import は，`sys.modules[name]` が `None` のとき探索をせずに `ModuleNotFoundError`（`ImportError` の子）を送出する．したがって質問者のプロセスの始めに `sys.modules["sniffio"] = None` を置けば，httpcore は同じ `except ImportError` の枝に入って `"asyncio"` を返し，挙動（返す値・例外の型）は今と同じで探索だけが省かれる．sniffio が実際に入っている環境では置かない（本物のモジュールを隠さない）．
+- 質問者のプロセスは 2 通りの入口で動く：N = 1 は `atrium run` のプロセス（`src/atrium/experiment.py` の `run_experiment`），N ≥ 2 は spawn の子（`src/atrium/requester_procs.py` の `_worker_main`）．spawn の子は親の `sys.modules` を引き継がないので，両方の入口で置く必要がある．
+
+**事前の測定**（gpu2．Iteration 11 の `bench.py`〔localhost の偽のノード 30 個，per_node の httpx，parallel 30，1 問 30 probe〕を 300 問 × 3 回．偽のノードは同じ CPU を使う．スクリプトと出力は `results/20261015_iter12_sniffio_summary/prestudy/`．判定に使わない）
+
+| `current_async_library()` 1 回（20 万回の平均） | µs |
+|---|---|
+| 今の挙動（search．`sys.path` の探索） | 44.03 |
+| `sys.modules["sniffio"] = None`（blocked） | 1.09 |
+| sniffio を入れる（installed．uv のキャッシュの sniffio 1.3.1） | 0.41 |
+
+| 質問者 1 プロセスの変種 | probe の要求/秒（3 回） | 中央値 | 1 要求の時間（ms） | search との比 |
+|---|---|---|---|---|
+| base（本文は per_request）× search | 473.1・470.5・465.1 | 470.5 | 2.125 | 1.00 |
+| base × blocked | 666.3・670.5・657.4 | 666.3 | 1.501 | 1.42 |
+| base × installed | 664.1・669.5・663.8 | 664.1 | 1.506 | 1.41 |
+| pre（pre_encoded）× search | 595.0・574.0・597.2 | 595.0 | 1.681 | 1.00 |
+| pre × blocked | 877.7・878.2・887.6 | 878.2 | 1.139 | 1.48 |
+| pre × installed | 909.4・863.1（3 回目は httpx.ReadError で中断） | 886.3 | 1.128 | 1.49 |
+
+- blocked と installed の差は 1 要求あたり 0.01 ms 以下（`current_async_library` 1 回の差 0.7 µs × 約 9.5 回）で，3 回の幅の内である．**探索を省く設定キー（blocked）で，依存を足すのと同じ節約が得られる**．
+- pre の上での節約は gpu2 で 0.54 ms（1.681 → 1.139）．Iteration 11 の制御点の事前の測定（base の上で 0.63 ms）と同じ程度である．
+- pre × installed の 3 回目で `httpx.ReadError` が 1 回出た（`bench.py` の pre の経路は再試行をしない）．Iteration 11 の制御点の事前の測定でも 1 回出ており，偽のノード（同じ CPU の 30 個の uvicorn）の側の接続の切断と読める（推測．sniffio の扱いとの関係を示す根拠は無い）．
+
+**調査で分かったこと**
+- tavily-search による Web 検索（httpcore の上流でこの費用が報告・修正されているか）は，この環境の権限の判定で拒否されたので行っていない．以下は手元のコードと測定だけによる．上流の httpcore の新しい版で `current_async_library` の結果をキャッシュする等の修正があるかは未確認である．
+- Iteration 11 の journal に記録した外部の知見（httpx の同時の要求での CPU の重さ．encode/httpx #3215，現在は pydantic/httpx2 #827．T. Christie のコメント 2024-06-06）は，今回の費用（httpcore の同期の部品の生成ごとの非同期の環境の判定）と同じ層の話である．
+
+**形の判断（B33 (a)）**：`uv add sniffio` ではなく設定キーにする．根拠：(1) 節約の大きさは同じ（上の表）．(2) 同じイメージで search と blocked を交互に流せ，Iteration 11 と同じ設計（組ごとの交互・前後の anchor）で時間の揺れを打ち消せる．依存の追加は前後の 2 つのかたまりの比較になり，連続実行の間に commit・イメージの作り直しが要る．
+(3) 依存の追加は専門家ノード・node-bench の負荷生成（同じ httpx・httpcore）にも効き，質問者だけを変える単一レバーにならない．設定キーは質問者のプロセスだけに効く．`uv add sniffio` を既定の解決にするか（専門家ノードにも効く）は人間の判断に残す（B34 (a)）．
+
+**問い**：(1) sniffio の探索を省くと，`pre_encoded` の上で実機の質問者 1 プロセスの処理量は事前の測定と同じ程度（約 1.4〜1.5 倍）伸びるか．(2) device_probe（D = 12）でも伸びるか．(3) N = 8 で律速が質問者から専門家ノード（W = 1）へ移るか，約 1 秒・3 秒の probe の遅れがどれだけ出るか．
+
+**仮説**
+- **H-S1（主）**：flood_score × N = 1 で，blocked の 3 回の処理量の範囲が search の範囲より上にあり重ならず，かつ中央値の比が 1.10 以上．仕組み：N = 1 は質問者のプロセスが 1 コアに張り付いて律速（Iteration 11 の per_proc 1.00）なので，1 要求あたりの CPU を約 0.55〜0.63 ms 減らせば，その分だけ処理量が伸びる．
+- **H-S2**：device_probe（D = 12）× N = 1 で H-S1 と同じ規則が成り立つ．
+- **H-S3（記録）**：N = 8 で fs・dp12 のそれぞれ H-S1 と同じ規則が成り立つ．
+
+**単一レバー**：config.yaml の **`experiment.sniffio_lookup` を `search` → `blocked`** と変える．それ以外（方式・D・N・parallel・問・`http_pool: per_node`・`probe_body: pre_encoded`・ノードの W = 1・依存）は両方の値で同じにする．
+- **実装**（phase 2 で行う．事前登録の commit に含める）
+  - `src/atrium/config.py`：`ExperimentConfig.sniffio_lookup: Literal["search", "blocked"] = "search"`．`config.yaml` に `sniffio_lookup: search` を足す．
+  - `src/atrium/requester.py`（または近い場所）に，`blocked` のとき `importlib.util.find_spec("sniffio") is None` かつ `"sniffio" not in sys.modules` の場合だけ `sys.modules["sniffio"] = None` を置く関数を 1 つ置き，`run_experiment` の質問者の client を作る前と，`requester_procs._worker_main` の始め（`asyncio.run` の前）で呼ぶ．理由のコメント（httpcore 1.0.9 の `current_async_library` が要求ごとに import を試みること）を付ける．
+  - `src/atrium/experiment.py`：`run_meta.json` に `sniffio_lookup` と `sniffio_installed`（置く前の `find_spec` の結果．真なら探索の費用は元から無い）を残す．
+  - テスト（`tests/test_sniffio_lookup.py` 等．`monkeypatch` で `sys.modules` を戻す）：既定値が `search` であること，`search` では `sys.modules` を変えないこと，`blocked` で sniffio が無いとき `current_async_library()` が `"asyncio"` を返し `sys.meta_path` の探索器が `sniffio` について呼ばれないこと（数える探索器を `sys.meta_path` の先頭に置いて確かめる），sniffio が `sys.modules` に既にあるときは置き換えないこと，実際のノードの ASGI アプリへ blocked で送った probe の応答が search と一致すること．
+  - 文書：`docs/d0002_configuration.md`（`sniffio_lookup`），`docs/d0004_metrics.md`（`run_meta.json` の `sniffio_lookup`・`sniffio_installed`，下の遅れの指標・TCP の再送の差分）．
+  - 連続実行：`results/20261015_iter12_sniffio_summary/` に `iter12_chain.sh`（`iter11_chain.sh` を写し，`sniffio_lookup` を `experiment` の直下のキーとして渡す．各実行の start の前後で制御点のホストの `nstat -asz TcpRetransSegs TcpExtTCPSynRetrans TcpExtTCPTimeouts` を記録する）・`iter12_specs.template.txt`・`iter12_smoke_specs.template.txt`・集計 `iter12_summary.py`（下の規則を機械的に出す．合成の結果で動作を確かめる）．
+
+**固定する構成**：`dataset: enronqa`，`answer_mode: retrieval_only`，m = 2，`http_pool: per_node`，**`probe_body: pre_encoded`**（B33 (d)．Iteration 11 の採用の構成），parallel 30（全プロセスの合計），test の全 2,940 問（`question_limit: null`），**`node_workers: 1`**（B33 (c)．W を変えると単一レバーが崩れる），T4 以来の 30 台 × 5 受信箱の配置，各回の前に deploy し直す（Iteration 8・11 と同じ）．
+連続実行の間は制御点で他のコンテナを動かさず commit もしない．依存は変えない（sniffio は入れない）．
+
+### 事前登録（2026-10-15．実装の後，実行の前に commit・push する．結果を見て変えない）
+
+**手順 0：実機の動作確認**（連続実行の前に 1 回．判定に使わない）
+1. docker の権限の確認：`docker info > /dev/null 2>&1 && echo ok`．ok でなければ 1 回も流さずに止め，backlog に `[needs-human]` を記録する．
+2. `<date>_iter12_smoke_fs_bk`（`dataset=enronqa answer_mode=retrieval_only question_limit=2 http_pool=per_node probe_body=pre_encoded routing=flood_score parallel=30 requester_procs=1 sniffio_lookup=blocked`）を deploy → start → analyze で 1 回流す．続けて同じ条件で `requester_procs=8` を 1 回流す（spawn の子で置かれることの確認）．
+3. 次を全て満たすことを確かめる．満たさなければ連続実行を流さず，原因を調べて記録する：失敗 0 問，300 問の `selected_sources` が `results/20261015_iter8_anchor_fs_n1_p30_post/results.jsonl` と 300/300 一致，`run_meta.json` の `sniffio_lookup` = blocked・`sniffio_installed` = false・`probe_body` = pre_encoded・`http_pool` = per_node・`requester_procs` が仕様どおり，`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない，1 要求あたりの質問者の CPU が Iteration 11 の fs × N = 1 × pe（1.761 ms）より小さい（記録．効いていることの粗い確認）．
+
+**手順 1：実機の連続実行**（`iter12_specs.template.txt` の `<date>` を実行日にした `iter12_specs.txt` を `iter12_chain.sh` に**絶対パス**で渡す）
+1. 環境の揺れの確認（前）：flood_score × N = 1 × parallel 30 × 300 問（`question_limit=2`）× `probe_body: per_request` × `sniffio_lookup: search` を 1 回（anchor_pre．Iteration 7〜11 の anchor と同じ条件）．
+2. 主の系列：方式 {fs，dp12（`routing=device_probe routing.probe_d.enronqa=12`）} × N ∈ {1, 8} × `sniffio_lookup` ∈ {search（sr），blocked（bk）} × 3 回，2,940 問，全て `probe_body: pre_encoded`．
+   各回の中は fs_n1 → fs_n8 → dp12_n1 → dp12_n8 の順に流し，各組で r1・r3 は sr → bk，r2 は bk → sr の順にする（時間の揺れを両方の値に均等に掛けるため）．
+3. 環境の揺れの確認（後）：1 と同じ（anchor_post）．
+- 計 26 実行（手順 0 を除く）．所要は約 2〜2.5 時間の見込み（Iteration 11 と同じ形）．deploy の失敗の扱い・失敗率の打ち切りは Iteration 11 と同じ（`iter12_chain.sh`）．
+
+**指標**（Iteration 11 と同じ．`docs/d0004_metrics.md`）：処理量（成功した問の数 ÷（`finished_at` − `started_at`）），e2e_s・probe_s の p50・p95，失敗率，再試行の数，1 秒あたりの HTTP 要求の数，`requester_cpu_util`・`requester_cpu_util_per_proc` の中央値，`expert_cpu_util_max`（と最も忙しいノード），`control_cpu_busy`，2,940 問の hit@2，1 要求あたりの質問者の CPU（ms）．主の量は各条件の 3 回の処理量（最小〜中央値〜最大）．
+**追加する記録の指標**（B33 (b)．判定に使わない）：
+- **遅れの問の数**：`probe_s` ≥ 0.9 秒の問の数（全ての実行．Iteration 11 の約 1 秒・約 3 秒の遅れに当たる），そのうち `probe_node_s_max` < 0.5 秒の数（ノードの計算によらない遅れ）．
+- **制御点の TCP の再送の差分**：start の前後の `TcpRetransSegs`・`TcpExtTCPSynRetrans`・`TcpExtTCPTimeouts`（ホストの名前空間で取れなければ「取れない」と記録し，判定には影響させない）．deploy の通信を含まないよう start の直前・直後に取る．
+- **遅れの無い実行だけの中央値**（N = 8 のみ．遅れの問の数が 0 の実行の処理量の中央値．参考値）．
+
+**正しさの確認**（満たさない実行は判定に使わず「欠け」とし，原因を調べて記録する）
+- G1：失敗率が 1% 以下．
+- G2（方式ごと）：その方式の全ての実行（sr・bk・N = 1・8）で，失敗の無い問の `selected_sources` が問ごとに 100% 一致する．成り立たなければその方式の判定に進まない（本文も要求も同じなので選択は変わらないはず）．
+- G3：`run_meta.json` の `sniffio_lookup`・`probe_body` = pre_encoded・`requester_procs`・`http_pool` = per_node・routing・D・`n_questions` が仕様と一致し，`sniffio_installed` が全ての実行で false である（true なら search でも探索の費用が無く比較が成立しない）．
+- G4（記録）：2,940 問の hit@2 が Iteration 8・11 の値（fs 0.8041，dp12 0.6830）と一致するか．
+- G5（律速の読みだけに効く）：`expert_cpu_util` に 30 台が揃い，`control_cpu_busy` が null でない．
+
+**環境の揺れの規則**（記録のため）：anchor_pre・anchor_post の処理量が [11.127, 14.247] 問/秒，e2e p95 が [3.053, 4.067] 秒（Iteration 7〜11 と同じ範囲）に入るかを記録する．search の主の系列の値が Iteration 11 の pe の同じ条件の範囲（fs N = 1：17.689〜17.846，fs N = 8：124.220〜126.608，dp12 N = 1：37.752〜42.559，dp12 N = 8：172.702〜242.558 問/秒）から ±5% を超えて外れたら「環境が変わった」と記録する．
+比べる相手は同じ連続実行の中の search なので，判定の基準は変えない．
+
+**判定の規則**（比べる 2 条件の 3 回の範囲が重ならないときだけ「差がある」）
+- **伸びた**（ある方式・N で sr → bk）：bk の 3 回の処理量の範囲が sr の範囲より上にあり重ならず，かつ中央値の比 bk ÷ sr が 1.10 以上．
+- **H-S1（主）**：fs × N = 1 が「伸びた」．
+- **H-S2**：dp12 × N = 1 が「伸びた」．
+- **H-S3（記録）**：fs × N = 8・dp12 × N = 8 のそれぞれが「伸びた」（遅れの問の数を併記する）．
+- **このイテレーションの結論**：
+  - **棄却（測定不成立）**：G2 が fs で成り立たないか，G3 が 1 つでも不成立か，fs × N = 1 の sr・bk のいずれかで有効な実行が 2 回未満．原因を調べて記録する．
+  - **採用**（以後の負荷の実験は `sniffio_lookup: blocked` を明示して流す．既定の値は変えない）：上が当てはまらず，H-S1 が成り立つ．
+  - **部分的に支持**：H-S1 が成り立たないが，fs × N = 1 の bk の範囲が sr の範囲より上にある（比 < 1.10），または H-S2 が成り立つ．
+  - **棄却（伸びない）**：どれでもない（事前の測定の節約が実機では効かない．実機の質問者の 1 要求の時間の内訳を py-spy で取り直す）．
+- 記録（判定に使わない）：方式・N ごとの比，1 要求あたりの質問者の CPU の sr と bk の差（事前の測定の 0.54〜0.63 ms と比べる），N = 8 の E(8) の変化，`requester_cpu_util_per_proc` が 1 に張り付いたままか，e2e p95 の変化．
+  **律速の移りの読み**（B33 (c)）：dp12 × N = 8 × bk で `requester_cpu_util_per_proc` の中央値が 0.9 未満かつ最も忙しいノードの `expert_cpu_util` が 1.58 コア（W = 1 の頭打ち約 1.86 コアの 0.85 倍）以上なら「律速が専門家ノードへ移った」と記録する．遅れの問の数が多い実行（≥ 10 問）は per_proc が下がる別の理由があるので，この読みに使わない．
+
+**ノイズの見積もり**：Iteration 11 の pe の 3 回の処理量の幅は，N = 1 で中央値の −0.4%〜+0.5%（fs）・−9.8%〜+1.7%（dp12．37.75 の低い回を含む），N = 8 で −1.0%〜+0.9%（fs）・−13.8%〜+21.1%（dp12．遅れを含む）だった．閾値 1.10 は fs × N = 1 の幅の 10 倍以上で，dp12 × N = 1 の幅にも範囲が重ならない規則を併用すれば取り違えにくい．dp12 × N = 8 は遅れで大きく揺れるので記録だけにする（H-S3）．
+
+**期待効果**（推測．判定に使わない）：1 要求あたりの節約が 0.54〜0.63 ms なら，fs × N = 1 は 1.761 → 1.13〜1.22 ms，処理量は約 17.8 → 25.5〜27.5 問/秒（比 1.44〜1.56）．dp12 × N = 1 は 1.711 → 1.08〜1.17 ms，約 41.8 → 61〜66 問/秒．
+N = 8 は Iteration 11 で節約が N = 1 より大きく効いた（事実 3）ので，fs は 125.5 → 180〜200 問/秒の見込み．dp12 × N = 8 は最も忙しいノード（13.102）が約 1.5〜1.6 コアに達し，W = 1 の頭打ちに近づいて比が小さくなる見込み．事前の測定は gpu2 と制御点の偽のノードによるもので，実機の節約の大きさは前後しうる．
+
+**限界**：有線 LAN・検索だけ・閉じた系・制御点 1 台の質問者．設定キーは探索を省くだけで，sniffio を入れたときの `sniffio.current_async_library()` の費用（1 回 0.4 µs）とは 1 要求あたり 0.01 ms 以下の差がある．依存の追加は扱わない（専門家ノード・node-bench の負荷生成の側の同じ費用は残る）．上流の httpcore の新しい版での扱いは調べられていない（Web 検索が拒否された）．
+
+**次の候補**：採用なら，質問者の 1 要求の CPU の次の内訳（httpcore の接続の池の走査・h11 の組み立てと解析・`ProbeResponse.model_validate_json`）を cProfile で取り直し，最大の項目を単一レバーにする．dp12 × N = 8 で律速が専門家ノードへ移ったと読めたら，負荷の実験の `node_workers` の扱い（B31 (a)）を人間に確かめる．棄却なら，実機の質問者を py-spy で取り直して内訳を確かめる．
+
+### 実装・実験（2026-10-15．research-cycle の phase 2）
+
+- 実装 commit `dc58854`（push 済み．実験中の commit なし）：`experiment.sniffio_lookup`（`search`〔既定〕/ `blocked`）．`requester.apply_sniffio_lookup` を `run_experiment` と `requester_procs._worker_main` の 2 か所から呼ぶ．`run_meta.json` に `sniffio_lookup`・`sniffio_installed`．テスト 7 件を追加（pytest 321 件通過）．リポジトリ全体の ruff・mypy には今回と無関係の既存のエラーが残る．
+- 手順 0（smoke．fs × blocked × 300 問，N = 1・8）：失敗 0，`selected_sources` が iter8 の anchor と 300/300 一致，`run_meta` は仕様どおり．N = 1 の 1 要求の質問者 CPU は 1.304 ms（iter11 の 1.761 ms より小）．N = 8 の spawn の子で実際に置かれたかは直接は確かめていない．
+- 連続実行：26 実行を完走（20:44〜22:42）．deploy の失敗・打ち切り・スキップなし．結果は `results/20261015_iter12_*`，集計は `results/20261015_iter12_sniffio_summary/iter12_summary.out`．
+- 正しさの確認：G1（失敗率 0）・G2（fs・dp12 とも 12 実行で `selected_sources` が 100% 一致）・G3（`sniffio_installed` は全て false）・G4（hit@2 は fs 0.8041・dp12 0.6830）・G5 が成立．anchor は前 13.342・後 12.141 問/秒で範囲内．search の中央値と Iteration 11 の pe の範囲 ±5% の比較では，fs × N = 8 だけが外れた（110.977 問/秒．範囲 124.22〜126.608）．
+- 処理量（問/秒．search の中央値 → blocked の中央値，比．blocked の範囲はいずれも search より上で重ならない）：fs × N = 1 は 17.721 → 26.404（1.490），fs × N = 8 は 110.977 → 145.145（1.308），dp12 × N = 1 は 42.228 → 50.277（1.191），dp12 × N = 8 は 240.912 → 291.604（1.210）．
+- 規則の機械的な出力：H-S1・H-S2 成立，H-S3（記録）は両方の N = 8 で成立．結論は「採用」．
+- 記録：1 要求の質問者 CPU の差（search − blocked，ms）は fs N = 1 が 0.574，fs N = 8 が 0.413，dp12 N = 1 が 0.355，dp12 N = 8 が 0.386（事前の測定は 0.54〜0.63）．fs N = 1 の質問者 CPU は 1.762 → 1.189 ms．dp12 × N = 8 × blocked は 3 回とも「律速は専門家ノードへ移っていない」（per_proc 0.941〜1.002，`expert_cpu_util_max` 1.238〜1.301）．
+- 遅れの問（probe_s ≥ 0.9 秒．ほぼ全て `probe_node_s_max` < 0.5 秒）：fs × N = 1 の search は 1759〜1833 問，blocked は 438〜561 問と多い．dp12 × N = 1 の blocked は 104・2・227．N = 8 は fs の search 30・1・16，blocked 0・34・11．遅れの無い N = 8 の実行だけの中央値は fs の blocked が 161.288（1 件），dp12 の blocked が 291.604（3 件）．TCP 再送は小さい（dp12 × N = 8 × blocked の `TcpRetransSegs` 4〜14，`TcpExtTCPTimeouts` 2〜5）．再試行は多くの実行で 0〜6，dp12 × N = 1 × blocked の r1 は 22・r3 は 15．
+- 注意：上流の httpcore の扱いは未確認（Web 検索が拒否された）．未追跡の `iter7_chain.log` には触れていない．結果と `iter12_*` の成果物は未 commit（フェーズ 3 で行う）．解釈は評価フェーズ．
+
+### Iteration 12 実行済み：分析・考察（2026-10-15．research-cycle の phase 3．判定：採用）
+
+**変更**：config.yaml の `experiment.sniffio_lookup` を `search`（sr）→ `blocked`（bk）と変え，`probe_body: pre_encoded` を固定して fs・dp12 × N ∈ {1, 8} × 3 回（2,940 問，per_node，parallel 30，W = 1，検索だけ）を sr と bk を組ごとに交互に並べて流した（前後の anchor を含めて 26 実行．欠け 0）．事前登録の規則・閾値は結果を見て変えていない．
+
+**正しさの確認と環境の揺れ**：G1（26 実行とも失敗 0）・G2（fs・dp12 とも 12 実行の `selected_sources` が全問一致）・G3（`sniffio_installed` は全て false）・G5 は成立し，G4（hit@2）は fs 0.8041・dp12 0.6830 で Iteration 8・11 と同じ．
+前後の anchor は 13.342・12.141 問/秒（e2e p95 3.617・3.772 秒）で事前登録の範囲の内．sr の中央値は fs × N = 8 だけが Iteration 11 の pe の範囲の ±5% から外れた（110.977．下の事実 5 で扱う）．
+
+**結果と判定**（処理量．問/秒．3 回の最小〜中央値〜最大）
+
+| 条件 | sr | bk | 比（中央値） | bk の最小 ÷ sr の最大 | 1 要求の質問者の CPU（ms．sr → bk） | 遅れの問（sr / bk．probe_s ≥ 0.9 秒） |
+|---|---|---|---|---|---|---|
+| fs N = 1 | 17.554〜17.721〜17.780 | 24.850〜26.404〜26.617 | 1.490 | 1.398 | 1.762 → 1.189 | 1759・1833・1797 / 478・561・438（待ち行列．事実 3） |
+| fs N = 8 | 104.700〜110.977〜124.356 | 138.133〜145.145〜161.288 | 1.308 | 1.111 | 1.900 → 1.487 | 30・1・16 / 0・34・11 |
+| dp12 N = 1 | 42.068〜42.228〜43.072 | 44.376〜50.277〜54.251 | 1.191 | 1.030 | 1.695 → 1.340 | 13・20・13 / 104・2・227 |
+| dp12 N = 8 | 205.206〜240.912〜247.831 | 276.325〜291.604〜294.681 | 1.210 | 1.115 | 2.268 → 1.882 | 2・1・1 / 0・0・0 |
+
+- 規則の機械的な出力：H-S1（fs × N = 1）成立，H-S2（dp12 × N = 1）成立，H-S3（記録）は fs・dp12 × N = 8 とも成立．
+- **このイテレーションの結論：採用**（G2・G3 成立，fs × N = 1 の有効な実行は sr・bk とも 3 回，H-S1 成立）．以後の負荷の実験は `sniffio_lookup: blocked` を `probe_body: pre_encoded` と併せて明示して流す．既定の値は `search` のまま．
+- **ノイズか信号か**：fs × N = 1 の sr の 3 回の幅は中央値の −0.9%〜+0.3%（Iteration 11 の pe の −0.4%〜+0.5% と同じ程度）で，bk の最小と sr の最大の隙間は +39.8% ある．幅の 30 倍以上で，ノイズでは説明できない．
+  dp12 × N = 1 は規則を満たすが，隙間は +3.0% しかなく，bk の幅（−11.7%〜+7.9%）は下の事実 4 の遅れによる．H-S2 の成立は「規則の上では成立，余裕は小さい」と読む．
+
+**分析**
+
+事実（記録から計算したもの）
+1. **N = 1 の処理量の比は，1 要求あたりの質問者の CPU の比の逆数とほぼ一致する**（Iteration 11 の事実 1 と同じ）．fs × N = 1 は 1.762 ÷ 1.189 = 1.482 に対して処理量の比 1.490．`requester_cpu_util_per_proc` は sr・bk とも 0.99〜1.01 で，律速は質問者のプロセスのままである．dp12 × N = 1 の遅れの少ない r2（遅れ 2 問）だけで比べると，CPU の比 1.695 ÷ 1.328 = 1.276 に対して処理量の比 54.251 ÷ 42.228 = 1.285 で同じく一致する．
+2. **実機の節約の大きさは fs では事前の測定と合い，dp12 では小さい**．fs × N = 1 の 1 要求あたりの節約は 0.574 ms（事前の測定：gpu2 の pre の上で 0.54 ms，Iteration 11 の制御点の base の上で 0.63 ms）．dp12 × N = 1 は 0.355 ms（r2 だけで 0.367 ms）で約 6 割である．
+   sniffio の探索は probe・retrieve のどちらの要求でも起きるので，Iteration 11 のように「変えたのは probe だけ」という説明は使えない．節約の差の理由は未確認である（推測は下）．
+3. **fs × N = 1 の「遅れの問」の数（sr 約 1,800 問，bk 約 500 問）は，TCP の遅れではなく質問者の CPU の待ち行列による**．fs × N = 1 の probe_s の中央値は sr 0.998〜1.037 秒，bk 0.667〜0.698 秒，p95 は sr 1.64〜1.68 秒・bk 1.04〜1.17 秒で，0.9 秒の閾値は分布の本体にかかっている（anchor も 300 問のうち 254・255 問）．
+   質問者が 1 コアに張り付いた N = 1 で 30 問を同時に流すと，1 問の probe の 30 要求が他の 29 問の要求と CPU を取り合うので，probe_s は 1 問の CPU の約 30 倍になる．bk で数が減ったのは，1 要求の CPU が減って待ち行列が短くなったためで，遅れの原因が減ったのではない．
+   **この指標（probe_s ≥ 0.9 秒）は probe_s の中央値が 0.1 秒前後の N = 8 でだけ意味がある**．N = 1 の値は判定・解釈に使わない（事前登録はこの区別をしていなかった）．
+4. **dp12 × N = 1 × bk の r1・r3 は，本当の遅れと再試行で処理量が下がった**．probe_s の中央値が 0.28〜0.33 秒の中で 0.9 秒以上の問が 104・227 問あり，再試行が 22・15 回（他の N = 1 の実行は 0〜6 回），新しい接続の数が 652・736（r2 は 453，sr は 460〜507）と多く，`requester_cpu_util_per_proc` が 0.946・0.894 に下がった．再試行は `httpx.ReadError`・`RemoteProtocolError`・`ConnectError` のどれかで起きる（`post_with_retry`）が，requester.log に例外の型が残らないので区別できない．
+   同じ bk でも fs × N = 1 の再試行は 1〜3 回（sr 4〜6 回）で，bk に結び付ける根拠は無い．
+5. **fs × N = 8 の sr が「環境が変わった」と出たのは，遅れの問を含む回による**．sr の 3 回のうち遅れが 1 問だけの r2（124.356，per_proc 1.000）は Iteration 11 の pe の範囲（124.22〜126.608）の内にあり，遅れの 30・16 問の r1・r3（104.7・111.0，per_proc 0.819・0.908）が中央値を下げた．基準の水準そのものが変わった根拠は無い．
+   遅れの少ない回どうし（sr r2 124.356 対 bk r1 161.288．bk r1 は遅れ 0 問）で比べると比は 1.297 で，CPU の比 1.900 ÷ 1.487 = 1.278 と合う．
+6. **N = 8 の節約は N = 1 より小さく，E(8) は fs で下がった**（Iteration 11 と逆）．1 要求の CPU の N = 1 → 8 の増え方は，fs で sr +7.8%（1.762 → 1.900）・bk +25%（1.189 → 1.487），dp12 で sr +34%・bk +40%．遅れの少ない回で計算した fs の E(8) は sr 0.877 → bk 0.764 で，bk の N = 8 の伸びは N = 1 の伸び（1.490）より小さい（1.30）．
+7. **dp12 × N = 8 × bk でも律速は専門家ノードへ移っていない**．bk の 3 回は遅れ 0 問・per_proc 0.941〜1.002・最も忙しいノードの `expert_cpu_util` 1.238〜1.301 コア（閾値 1.58 未満．W = 1 の頭打ち約 1.86 コアの約 7 割）．処理量 291.6 問/秒は Iteration 8 の N = 8（186.2）の 1.57 倍，Iteration 11 の pe の遅れの無い回（242.6）の 1.20 倍で，全体で約 4,080 要求/秒になった．
+8. **期待効果との比較**：fs × N = 1 は 25.5〜27.5 の見込みに対して 26.40（内），dp12 × N = 1 は 61〜66 に対して 50.28（下．事実 2・4），fs × N = 8 は 180〜200 に対して 145.1（遅れの無い回で 161.3．下．事実 6），dp12 × N = 8 は「律速が専門家ノードへ移って比が小さくなる」見込みに対して，移らずに 1.21（事実 7）．
+9. **N = 8 の spawn の子で `sys.modules["sniffio"] = None` が置かれたことは，間接にだけ確かめた**．N = 8 の要求は全て spawn の子が送り，bk の 1 要求の CPU は fs で 0.413 ms，dp12 で 0.386 ms 低く，処理量の範囲も sr と重ならない．子で置かれていなければ sr と bk は同じ経路になり，この差は出ない．子の中で直接確かめた記録（ログ等）は無い．
+10. **制御点の TCP の再送の差分は，質問者の通信を測れていない可能性が高い**．`docker/compose.requester.yml` に `network_mode` の指定が無く，質問者のコンテナは既定のブリッジのネットワーク（ホストと別のネットワークの名前空間）で動く．Linux の TCP の統計（`nstat` が読む `/proc/net/snmp`・`netstat`）はネットワークの名前空間ごとなので，`iter12_chain.sh` がホストで取った値には質問者のソケットの再送が入らない．
+    実際に，遅れの問の数と再送の数は対応しない（dp12 × N = 8 × bk は遅れ 0 問で `TcpExtTCPTimeouts` 2〜5，fs_n8_bk_r2 は遅れ 34 問で 1，fs_n1_sr_r1 は遅れ 1,759 問〔待ち行列〕で 0）．B33 (b) の「TCP の再送」の仮説はこの記録では確かめも否定もできていない．
+
+推測（上の事実と矛盾しないが，未確認のもの）
+- 事実 2（dp12 の節約が fs の約 6 割）は，httpcore が 1 要求のうちに `current_async_library()` を呼ぶ回数（同期の部品〔Lock・Event・Semaphore〕を作る回数）が，接続の池の状態によって変わるためと読める．fs は 1 問で全 30 台へ一斉に送るので池の待ちが起きやすく，dp12 は宛先が分散して待ちの部品を作る回数が少ない，という形である．回数は数えていない．
+- 事実 6 は，N = 8（物理 6 コアを超える）で処理量が上がるほど，同じ物理コアの取り合いやカーネルの通信処理（制御点の `control_cpu_busy` は bk で 0.59〜0.69）の割合が増え，1 要求の CPU が増えると読める．sniffio の探索（`stat` のシステムコール）を除いた残りが物理コアの取り合いに敏感な処理で占められる，という読みもありうるが区別していない．
+- 事実 4 の再試行は，ノードが keep-alive の接続を閉じた直後に質問者が同じ接続で送った競合（`RemoteProtocolError`・`ReadError`）と読める（新しい接続の数が多いことと合う）．bk で 1 要求が速くなり，接続の再利用の間隔が変わったことが関わるかは分からない．
+
+**想定外の挙動**：上の事実 3（N = 1 で遅れの指標が待ち行列を数えていた）と事実 10（TCP の再送の記録が質問者の名前空間を見ていない）は，事前登録の記録の指標の設計の誤りで，判定には影響しない．言語崩れ・発散・OOM は該当なし．
+
+**学び**
+- 質問者の 1 要求の CPU を減らすレバーは，N = 1 では「処理量の比 ≈ 1 要求の CPU の比の逆数」が 2 回続けて成り立った（Iteration 11・12）．以後も N = 1 の効果は事前の測定（偽のノード 30 個）で見積もれる．ただし同じ費用でも方式によって 1 要求あたりの節約が違いうる（fs 0.574 対 dp12 0.355 ms）ので，事前の測定は fs と dp12 の両方の要求の形で取る．
+- N = 8 の効果は N = 1 の比からは見積もれない．Iteration 11 は N = 8 の方が大きく効き（1.53 対 1.33），今回は小さく効いた（1.31 対 1.49）．N = 8 の値は実機で測るしかない．
+- 「遅れの問」の指標は probe_s の中央値に比べて閾値が十分に大きい条件（N = 8）でだけ使う．N = 1 では待ち行列で probe_s が 1 秒前後になるので，閾値を相対（例えばその実行の probe_s の中央値の 5 倍）にするか，N = 8 だけで数える．
+- 質問者は既定のブリッジのネットワークで動くので，TCP の再送はホストではなく質問者のコンテナのネットワークの名前空間（`docker exec <requester> cat /proc/net/netstat` 等，または `nsenter -t <pid> -n nstat`）で取る必要がある．
+- 制御点 1 台の質問者（N = 8）の処理量は Iteration 8 → 11 → 12 で dp12 186.2 → 242.6（遅れの無い回）→ 291.6 問/秒，fs 82.4 → 125.5 → 161.3（遅れの無い回）問/秒になった．最も忙しい専門家ノードは dp12 で約 1.3 コアで，W = 1 の頭打ち（約 1.86 コア）までまだ約 1.4 倍の余裕がある．
+
+**限界**
+- 設定キーは質問者のプロセスの探索を省くだけで，専門家ノード・node-bench の負荷生成の側の同じ費用は残る．`uv add sniffio` を既定にするか（B34 (a)）は人間の判断に残したまま．上流の httpcore の新しい版での扱いは，Web 検索が権限で拒否されたので確かめていない．
+- 再試行の例外の型・遅れの原因は記録が無く，dp12 × N = 1 × bk の幅の理由は推測である．
+- 有線 LAN・検索だけ・閉じた系・制御点 1 台の質問者である．
+
+**次の一手**（backlog B35 [auto-decided]）：Iteration 11 の cProfile で sniffio の次に上位だった費用（httpcore の接続の池の走査 `_assign_requests_to_connections`，h11 の組み立てと解析，anyio，`ProbeResponse.model_validate_json`）を，pre_encoded × blocked の上で制御点の事前の測定（fs と dp12 の両方の要求の形）で取り直し，最大の項目を 1 つ除く単一レバーにする．同時に，遅れの指標を N = 8 だけに限り，TCP の再送を質問者のコンテナの名前空間で取るよう記録の指標を直す．
+
 ## Iteration 11: 質問者の probe の本文を問ごとに 1 回だけ符号化したときの処理量
 
 ### 調査・計画（2026-10-15．research-cycle の phase 1）

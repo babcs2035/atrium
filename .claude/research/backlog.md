@@ -17,7 +17,75 @@
 
 ---
 
-## B39 [needs-human 2026-10-16] Iteration 14（retrieve の本文を問ごとに 1 回だけ符号化する）は採用．Iteration 15 の方向（負荷の系列を続けるか，RQ の研究へ戻るか）の判断を求める
+## B44 [auto-decided 2026-10-16] `tests/test_node_workers.py` の不安定なテストを別件として扱う
+
+- 状況: Iteration 15 の実装の検査（commit `01774a2`）で，`test_serve_workers_answers_from_every_process_and_stops_on_sigterm` が 6 回中 2 回失敗した（B42 (b)）．このテストはプロセスの起動と SIGTERM を扱うもので，今回の変更（オフラインの評価の CLI）とは関係がない．
+- 自動選択: Iteration 15 の判定には含めず，修正もしない．
+- 根拠: 変更の対象外であり，単一レバー原則に従って，別のイテレーションか人間の判断に回す．
+- 要レビュー: `4608ca5` 以前でも失敗するかを再現する（例: 20 回の繰り返し）．失敗の原因（起動待ちの時間切れ，ポートの競合など）を調べる．
+
+## B43 [auto-decided 2026-10-16] Iteration 15 は採用．Iteration 16 の方向は，参加を通知する形のメンバー表の変種のオフライン評価（B40 の A5）
+
+- 状況: Iteration 15 の判定は採用である（G1〜G4 通過，H-C2 支持，E-1 確かめた）．ただし，H-C2 の差（0.012〜0.025）は種の間の揺れ（0.06〜0.10）より小さい．hit の低下（0.26〜0.29）の大部分は，どの方式でも「稼働中の正解がメンバー表で見えない確率」（0.283）で決まっていた（journal の「Iteration 15 実行済み：分析・考察」）．config.yml の levers は使い切っている．
+- 選択肢:
+  - A1 (Recommended): 参加を通知する形のメンバー表の変種を，オフラインで評価する．メリット: E-1 で主因とした見えなさを直接減らす．EQ7a・Iteration 15 の関数を再利用でき，オフラインで分単位で終わる．デメリット: 通知の遅れ L などの新しい仮定の値を決める必要がある．
+  - A2: 二段の方式の離脱下を実機で再生する（`CHURN_ROUTINGS` に centroid_probe・device_probe を足す）．メリット: B40 (a) の `_tolerant` の効き方を確かめられる．デメリット: 実機が要る．Iteration 15 の差が種の揺れより小さいので，得られる知見が少ない．
+  - A3: RQ-B で，device_probe（D = 12）の上で B1 を流す（B40 の A2）．
+- 自動選択: A1．レバーの名前・遅れ L の値・判定の規則は，次のセッションの rc-researcher が決めて，config.yml の levers に追記する．state.json の `iteration_name` は null のままにした．
+- 根拠: 学びの「頑健さを上げるには，選び方よりも見え方を変える」に直接つながる．オフラインで判定でき，データ準備・削除・課金を伴わない．
+- 要レビュー:
+  - (a) 遅れ L の値の選び方（例: 参加を即時に通知する上限と，R と同じ程度の遅れ）．
+  - (b) A2（実機の再生）を先にすべきか．
+  - (c) R = 1 の hit に限った問ごとの遷移を，出力に足すか（Iteration 15 の E-1 では，件数の連立から範囲で求めた）．
+
+## B42 [auto-decided 2026-10-16] Iteration 15 の G2 の照合の範囲：hit に加えて contacted・wasted も EQ7a と照合する
+
+- 状況: 実装（commit `01774a2`）は G2 で hit だけでなく contacted・wasted も 1/2940 の許容で EQ7a と照合している．計画の文言は「hit が EQ7a と 1/2940 以内」だけで，実装の方が厳しい．rc-executor が事前登録の前の判断を求めた．
+- 選択肢: B1 (Recommended) このまま事前登録に書く．／B2 hit だけを照合するように実装を直す．
+- 自動選択: B1．
+- 根拠: contacted・wasted はノード数の平均で，EQ7a と同じ規則で計算していれば完全に一致するはずの値である．hit が偶然合っても再現に誤りがあれば検出できる．事前登録の前にゲートを厳しくする変更なので，結果に合わせた変更にはならない．
+- 要レビュー:
+  - (a) G2 が contacted・wasted だけで落ちた場合，それが計算の規則の違い（例: 見えている受信箱の数え方）によるのか，実装の誤りなのかを rc-evaluator が切り分ける．
+  - (b) commit `01774a2` で `tests/test_node_workers.py::test_serve_workers_answers_from_every_process_and_stops_on_sigterm` が 6 回中 2 回失敗した．今回の変更の対象外で，元から不安定なテストと見るが，`4608ca5` での再現は未確認．別件としてフェーズ 3 に引き継ぐ．
+  - (c) commit `01774a2` のメッセージが `:sparkles:` の文字列で，履歴の絵文字（✨）と揃っていない．force push は禁止なので書き直さない．
+
+## B41 [auto-decided 2026-10-16] Iteration 15 の事前登録の前に決める 3 点（E-1 の種の間の集約，(iii) の内訳，experiment_deadline）
+
+- 状況: phase 2 の 1 回目の rc-executor が，近接コードと参照ファイルを読んだ段階で `Unknown tool: Bash` で止まった．実装・事前登録の commit・実行はどれも無い（git で確認．HEAD は `4608ca5` のまま，コードの変更なし）．戻り値で，事前登録の前に決める点を 3 つ挙げた．
+- 選択肢:
+  - E-1 の種の間の集約: B1 (Recommended) 5 個の種のすべてで割合が 0.8 以上なら確かめたとする．低下が 0 以下の種は不成立とする．／B2 5 個の種の和の比（Σ(ii) の増分 ÷ Σ 低下）で判定する．
+  - (iii) の内訳: C1 (Recommended) 二段の方式で (iii) を「候補に入らない」と「候補に入ったが上位 m に入らない」に分けて記録として足す（判定には使わない）．／C2 計画のとおり 4 区分だけにする．
+  - experiment_deadline: 規則どおり（現在時刻 ＋ 1200 分 × 60 ＋ マージン）にする．
+- 自動選択: B1，C1，experiment_deadline は規則どおり．B2 の値は判定に使わず，記録として出す．
+- 根拠: B1 は H-C2 の判定の形（5 個の種のすべて）と揃い，種ごとの揺れを隠さない．C1 は判定を変えずに，1 段目と 2 段目のどちらで hit を失ったかをフェーズ 3 が区別できる．experiment_deadline はオフラインの実行には過大だが，早く終われば影響が無く，規則を変える理由が無い．
+- 要レビュー:
+  - (a) B1 は B2 より厳しい．低下が小さい種があると比が不安定になり，不成立になりうる．フェーズ 3 で B2 の記録の値と食い違うときは，その旨を明記する．
+  - (b) rc-researcher・rc-executor とも，定義の `tools:` に Bash があるのに使えなかった．subagent を動かす側の環境の問題とみる．再委託では冒頭で Bash の動作を確かめさせ，再び失敗したら status="blocked" にして Slack で判断を仰ぐ．
+- 記録の注記: B40 (c) は rc-executor が確かめた．G1 の参照は `results/20261015_iter7_device_probe_eval/metrics.json` の `curve.test.device_probe[].max_hit@2`（d = 12: 0.682993，d = 24: 0.783673，d = 30: 0.804082）と `curve.test.centroid_probe[].hit@2`（k = 75: 0.761224，k = 30: 0.690476）．flood_score は `curve.test.flood_score.hit@2` = 0.804082．
+
+## B40 [auto-decided 2026-10-16] Iteration 15 のレバー：二段の方式の参加・離脱への頑健さをオフラインで評価する新しい CLI
+
+- 状況: B39 で人間が選択肢 1（負荷の系列を閉じて RQ の研究へ戻る）を選んだ．config.yml の levers は使い切っているので，d0006・p0004 の未着手の項目から新しいレバーを考えた．RQ-A で中心になった二段の方式（centroid_probe・device_probe）は，RQ-C（EQ7a・EQ7b）で評価していない．EQ7a の「表の更新の後に参加したノードが見えない」という推測も未検証である．
+- 選択肢:
+  - A1 (Recommended): 二段の方式の離脱下のオフライン評価（新しい CLI `atrium churn-cascade-eval`）．メリット: RQ-C の空白を埋め，EQ7a の推測も同時に確かめられる．オフラインで分単位で終わり，既存の関数をほぼ再利用できる．デメリット: 実機の二段の方式の離脱下の挙動とは照合しない．
+  - A2: RQ-B で device_probe（D = 12）の上で B1 を 1 回流す．メリット: 実用的な方式の下流の正答率が得られる．デメリット: 実機と LLM の生成で 2 時間以上かかり，判定モデルの採点も要る．
+  - A3: R4 (c)．再学習しない ragroute が新参者を選ぶ理由を調べる．メリット: オフラインで小さく済む．デメリット: RQ への寄与が周辺的である．
+  - A4: R4 (a)．EQ3 の `ReadError` を再現する．デメリット: 実機が要り，運用の頑健性の話で RQ ではない．
+  - A5: 参加を通知する形のメンバー表の変種．デメリット: A1 の E-1 の結果に依存するので，次のイテレーションの候補に回す．
+- 自動選択: A1．config.yml の levers の末尾に `churn_eval.methods`（centroid_probe・device_probe）を追記した．事前登録は journal の Iteration 15．
+- 根拠: RQ の研究へ戻るという B39 の方向に合い，オフラインで判定でき，データ準備・削除・課金を伴わない．支持・不支持のどちらでも RQ-C の記述が進む．
+- 要レビュー:
+  - (a) 実機の質問者の `_tolerant`（`src/atrium/requester.py` の 357 行付近）が，centroid_probe・device_probe の probe の失敗にも効くかを確かめていない．効かない場合は，H-C2 の結果は「返事のあった分で続ける」と仮定した上限になる（journal の限界に記載）．実機での再生は次の候補．
+  - (b) 返事の無かったデバイスの分を補わない規則でよいか．補う変種は 1 往復を増やすので，今回は扱わない．
+  - (c) G1 の参照（`results/20261015_iter7_device_probe_eval/metrics.json` の test の hit のキー名）を確かめていない．実装のときに確かめる．
+  - (d) 計画は未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`）に触れず，削除・課金・`mise run clean --full` を伴わない．
+- 記録の注記: rc-researcher はツールの呼び出しの失敗でファイルへ書き込めなかったので，この節と journal・config.yml・state.json はオーケストレータが戻り値から書き写した．
+
+## B39 [human-decided 2026-10-16] Iteration 14（retrieve の本文を問ごとに 1 回だけ符号化する）は採用．Iteration 15 の方向は選択肢 1（負荷の系列を閉じて RQ の研究へ戻る）
+
+- [human-decided 2026-10-16] 人間が選択肢 1 を採用した．負荷の系列（Iteration 4〜14）を閉じる．state.json は iteration=15，phase=research，status=running，current_lever=null とし，次のセッションの rc-researcher が d0006・p0004 の未着手の項目から次の単一レバーを選ぶ．要レビュー (c) の `/tmp/iter14_prestudy/`・`/tmp/iter13_prestudy/` は削除してよい旨が書かれているが，削除は別途確認してから行う．
+- [human-decided 2026-10-16] 人間が「完了した」と伝えた．`/tmp/iter13_prestudy/`・`/tmp/iter14_prestudy/` がどちらも存在しないことを確かめた（人間が削除したと解釈した）．エージェントは削除していない．
+- 以下は判断を求めた時点の記録（経緯）である．
 
 - 状況: Iteration 14 の判定は採用（事前登録の規則の機械的な適用．G1〜G6 成立，H-R1・H-R2 成立）．組の比 q = pe ÷ pr の中央値は dp12 × N = 1 で 1.080（5 組 1.032〜1.118），fs × N = 1 で 1.043（5 組 1.022〜1.071）．
   1 要求の質問者の CPU は dp12 × N = 1 で 1.168 → 1.074 ms，fs × N = 1 で 1.031 → 0.995 ms．遅れの無い dp12 × N = 8 × pe は 326.3・323.1 問/秒で，最も忙しいノードは 1.50 コア（律速は質問者のまま）（journal の「Iteration 14 実行済み：分析・考察」）．
