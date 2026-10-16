@@ -20,6 +20,7 @@
     churn-join-eval           参加の通知の遅れ L ごとのメンバー表の見え方と hit の回復（EnronQA．Iteration 16．制御点のコンテナ）
     churn-leave-eval          離脱の通知の遅れ L_leave ごとの無駄な問い合わせと hit の回復（EnronQA．Iteration 17．制御点のコンテナ）
     churn-refill-eval         返事の無い probe の枠を次の順位で補ったときの hit と問い合わせの費用（EnronQA．Iteration 18．制御点のコンテナ）
+    churn-budget-eval         device_probe の D を変え，補う変種と補わない構成を同じ問い合わせの数で比べる（EnronQA．Iteration 19．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
     owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
@@ -396,6 +397,23 @@ def cmd_churn_refill_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     churn_refill_eval.write_outputs(Path(args.out_dir), metrics)
     print(churn_refill_eval.render_report(metrics))
+    return 0
+
+
+def cmd_churn_budget_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """device_probe の D ごとに補う変種と補わない構成を比べる評価（Iteration 19）を行い，metrics.json と analysis_report.md を書く．"""
+    from atrium import churn_budget_eval
+    from atrium.manifest import read_placement
+
+    refill_reference = json.loads(Path(args.refill_metrics).read_text(encoding="utf-8"))
+    metrics = churn_budget_eval.evaluate(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        read_placement(Path(args.placement)),
+        refill_reference,
+    )
+    churn_budget_eval.write_outputs(Path(args.out_dir), metrics)
+    print(churn_budget_eval.render_report(metrics))
     return 0
 
 
@@ -913,6 +931,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="G1 の基準（Iteration 16 の churn-join-eval の metrics.json）",
     )
     p.set_defaults(func=cmd_churn_refill_eval)
+
+    p = sub.add_parser(
+        "churn-budget-eval",
+        help="device_probe の D を変え，補う変種と補わない構成を同じ問い合わせの数で比べる（EnronQA．Iteration 19）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--placement", required=True, help="受信箱の配置（results/<run>/placement.json）"
+    )
+    p.add_argument(
+        "--refill-metrics",
+        required=True,
+        help="G1 の基準（Iteration 18 の churn-refill-eval の metrics.json）",
+    )
+    p.set_defaults(func=cmd_churn_budget_eval)
 
     p = sub.add_parser("loso", help="E2 の leave-one-source-out の評価（p0003．操作端末）")
     p.add_argument("dataset", choices=["medrag", "feb4rag"])

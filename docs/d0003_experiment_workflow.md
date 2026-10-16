@@ -197,6 +197,7 @@ bash scripts/tasks/remote.sh churn_cascade_eval <out_name> <placement_run> <devi
 bash scripts/tasks/remote.sh churn_join_eval <out_name> <placement_run> <cascade_run>  # 参加の通知の遅れ L ごとの評価（Iteration 16．cascade_run は Iteration 15 の churn-cascade-eval）
 bash scripts/tasks/remote.sh churn_leave_eval <out_name> <placement_run> <join_run>  # 離脱の通知の遅れ L_leave ごとの評価（Iteration 17．join_run は Iteration 16 の churn-join-eval）
 bash scripts/tasks/remote.sh churn_refill_eval <out_name> <placement_run> <join_run>  # 返事の無い probe の枠を補う変種の評価（Iteration 18．join_run は Iteration 16 の churn-join-eval）
+bash scripts/tasks/remote.sh churn_budget_eval <out_name> <placement_run> <refill_run>  # device_probe の D ごとに補う変種と補わない構成を同じ問い合わせの数で比べる評価（Iteration 19．refill_run は Iteration 18 の churn-refill-eval）
 bash scripts/tasks/remote.sh node_bench    <out_name> <placement_run> <target_host> <concurrency> [max_procs]  # 専門家ノード 1 台への負荷試験（Iteration 9．max_procs は負荷生成のプロセスの数の上限で省略時 4．deploy でノードを起動した後．placement_run は同じ deploy の実行）
 bash scripts/tasks/remote.sh owner_eval    <out_name> <reference_run>              # 持ち主推定の入力を揃える（p0005 T2）
 bash scripts/tasks/remote.sh header_eval   <out_name> <reference_run> [t2_run] [cascade_run]  # T2 の入力からヘッダーを除く（Iteration 2 の R1・R2）

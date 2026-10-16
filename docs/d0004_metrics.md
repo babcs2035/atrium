@@ -348,6 +348,23 @@ none は補わない（Iteration 15・16 と同じ）．once は 1 往復目で�
 
 1 刻みは 1 問である．2 往復目の待ち時間はオフラインでは測らない．
 
+### device_probe の D ごとに補う変種と補わない構成を同じ問い合わせの数で比べる評価（`atrium churn-budget-eval`．Iteration 19）
+
+Iteration 18 と同じ採点・時刻表・質問の順番・メンバー表（`join_notified_view`，L_join ∈ {∞, 0, 100}．離脱は通知しない）で，device_probe の D ∈ {9, …, 18} の全てに `refill` ∈ {none, once, until_full} を流す（構成の名前は `device_probe_d{D}`）．
+補う規則・2 段目・hit と (i)〜(iv)・`contacted`・`wasted`・往復の情報は churn-refill-eval の `route_cascade_with_refill` をそのまま使う．
+同じ（`availability`，`refresh`，`join_delay`，種）の none の D ごとの点（`contacted`，`n_hit`）を `contacted` の昇順に並べた折れ線 Î（`contacted` の等しい点は `n_hit` の最大値）を作り，補う変種の点（c，n）を同じ問い合わせの数で比べる．
+`runs` は churn-refill-eval の項目に `budget`・`contacted_max`（問ごとの contacted の最大）・`contacted_p95`（問ごとの contacted の 95 パーセンタイル．`numpy.percentile` の既定の線形補間）を足したもの．`summary`・`losses` は churn-refill-eval と同じまとめ方である．
+
+| 指標 | 定義 |
+|---|---|
+| `gates` | G1：D = 12 の全ての補い方と D = 15 の none（960 件）が Iteration 18 の `runs` の同じキー（`method`，`availability`，`refresh`，`join_delay`，`refill`，`seed`）の実行と churn-refill-eval の `EXACT_FIELDS` で完全に一致し，両側に欠けが無く，`m`・`n_test` も一致．G2：a = 1.0 または R = 1 の once・until_full が同じ D・条件の none と `EXACT_FIELDS` で完全に一致．G3：全ての実行で hit と (i)〜(iv) の件数の和が問の数に等しい．G4：同じ条件の none で `n_contacted` が D について減らず，返事のある候補が隣り合う D の間で入れ子．G5：全ての D の全ての問で返事のある候補が none ⊆ once ⊆ until_full．G6：L_join = 0・until_full が同じ（D，a，種）の R = 1（none・L_join = ∞）と COUNT_FIELDS で完全に一致．1 つでも通らなければ `hb` は判定しない |
+| `comparisons` | once・until_full の全ての実行の `interpolated_n_hit` = Î(c)（c が none の範囲の外なら `null`．外挿しない），`delta` = n − Î(c)，`saved_contacts` = Î⁻¹(n) − c（解がただ 1 つのときだけ．他は `null`），`diff_vs_d15_none`（同じ条件の `device_probe_d15` の none の `n_hit` との差） |
+| `hb` | 事前登録の判定．D = 12・once・`availability` = 0.7・R = 1000・L_join = 100 の種ごとの Δ で，H-B1（全ての種で Δ > 0 かつ平均 ≥ 15），H-B3（全ての種で Δ < 0 かつ平均 ≤ −15），H-B2（全ての種で \|Δ\| ≤ 25）の順に最初に成り立つもの．None の種があるか，どれも成り立たなければ `undetermined` |
+| `none_curves` | 記録．a = 0.7・R = 1000 の L_join ∈ {100, ∞, 0} と，a ∈ {0.9, 0.5}・R = 1000・L_join = 100 の none の D ごとの `n_hit`・`contacted`（種ごと）と `contacted`・`wasted` の種の平均 |
+| `variants` | 記録．`none_curves` と同じ条件の once・until_full の D ごとの Δ・s・d15 との差（種ごと），`second_round_rate`・`rounds_mean`・`contacted_p95`（種の平均），`rounds_max`・`contacted_max`（種の最大） |
+
+1 刻みは 1 問である．2 往復目の待ち時間はオフラインでは測らない．
+
 ### EnronQA の参加・離脱の実機の再生（`atrium churn-live-report`．p0004 EQ7b）
 
 `experiment.churn` を指定した実行（[d0002](d0002_configuration.md)）の `results.jsonl` は，問ごとに `churn: {step, up, n_visible}`
