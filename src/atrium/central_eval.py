@@ -129,6 +129,24 @@ def agreement_with_run(
     }
 
 
+def tie_aware_agreement(
+    scores_of: dict[str, F32Array], index_of: dict[str, int], rows: Sequence[dict[str, Any]], k: int
+) -> dict[str, Any]:
+    """C1 の top_doc_ids が，同点を許して 1 索引の上位 k 通と等価な問の割合（backlog B56 の A1．事前登録の厳密な一致は別に残す）．
+
+    等価とは，C1 の k 通の得点の並びが 1 索引の上位 k 通の得点の並びと一致し，かつ全てが k 位の得点以上であること．
+    重複するメール（同じ得点）のどちらを採るかだけが違う場合を，検索の誤りと区別する．
+    """
+    compared = [r for r in rows if r.get("error") is None and r["qid"] in scores_of]
+    ok = 0
+    for r in compared:
+        s = scores_of[r["qid"]]
+        got = np.sort(s[[index_of[d] for d in r["top_doc_ids"]]])[::-1]
+        want = np.sort(s)[::-1][:k]
+        ok += len(got) == k and bool(np.allclose(got, want, rtol=0, atol=1e-6))
+    return {"n_compared": len(compared), "tie_aware_agreement": ok / max(1, len(compared))}
+
+
 def run_summary(rows: Sequence[dict[str, Any]], gold_of: dict[str, str], k: int) -> dict[str, Any]:
     """実行（results.jsonl）の Recall@k と，1 問あたりの露出（質問を受け取ったデバイスの数・外に出た文書の数）．"""
     ok = [r for r in rows if r.get("error") is None and r["qid"] in gold_of]
@@ -169,6 +187,9 @@ def evaluate(
 
     c1_rows = read_results(c1_run / "results.jsonl")
     agreement = agreement_with_run(central_ids, c1_rows)
+    index_of = {d: i for i, d in enumerate(doc_ids)}
+    scores_of = {q: emb @ queries.emb[i] for i, q in enumerate(queries.qids)}
+    tie_aware = tie_aware_agreement(scores_of, index_of, c1_rows, k)
     return {
         "n_emails": len(doc_ids),
         "n_test": len(queries.qids),
@@ -184,8 +205,11 @@ def evaluate(
         },
         "c1_equivalence": {
             **agreement,
+            **tie_aware,
             "threshold": EQUIVALENCE_THRESHOLD,
+            # 事前登録の判定（厳密な集合の一致）．同点を許す一致は B56 の A1 で足した補助の指標
             "equivalent": agreement["set_agreement"] >= EQUIVALENCE_THRESHOLD,
+            "equivalent_tie_aware": tie_aware["tie_aware_agreement"] >= EQUIVALENCE_THRESHOLD,
         },
         "runs": {
             name: run_summary(read_results(path / "results.jsonl"), gold_of, k)
@@ -218,9 +242,9 @@ def render_report(metrics: dict[str, Any]) -> str:
         "",
         "## C1 の実機と中央の密ベクトルの索引の一致",
         "",
-        "| 比べた問 | 集合の一致 | 順序も一致 | 欠け・失敗 | 閾値 | 判定 |",
-        "|---|---|---|---|---|---|",
-        f"| {eq['n_compared']} | {eq['set_agreement']:.4f} | {eq['ordered_agreement']:.4f} | {eq['n_failed_or_missing']} | {eq['threshold']} | {'等価' if eq['equivalent'] else '不一致'} |",
+        "| 比べた問 | 集合の一致 | 順序も一致 | 同点を許す一致 | 欠け・失敗 | 閾値 | 判定（厳密） | 判定（同点を許す） |",
+        "|---|---|---|---|---|---|---|---|",
+        f"| {eq['n_compared']} | {eq['set_agreement']:.4f} | {eq['ordered_agreement']:.4f} | {eq['tie_aware_agreement']:.4f} | {eq['n_failed_or_missing']} | {eq['threshold']} | {'等価' if eq['equivalent'] else '不一致'} | {'等価' if eq['equivalent_tie_aware'] else '不一致'} |",
         "",
         "## 実行ごとの Recall と 1 問あたりの露出",
         "",

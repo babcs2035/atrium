@@ -9,6 +9,7 @@ from atrium.central_eval import (
     bm25_top_k,
     dense_top_k,
     recall_flags,
+    tie_aware_agreement,
     top_k_indices,
 )
 
@@ -55,3 +56,12 @@ def test_recall_flags_only_counts_the_gold_email_within_the_top_k() -> None:
     flags = recall_flags([["x", "g"], ["x", "y"]], ["g", "g"], 1)
     assert flags.tolist() == [0.0, 0.0]
     assert recall_flags([["x", "g"]], ["g"], 2).tolist() == [1.0]
+
+
+def test_tie_aware_agreement_accepts_a_swap_between_equal_scores_but_not_a_worse_document() -> None:
+    scores = {"q0": np.array([0.9, 0.5, 0.5, 0.1], np.float32)}
+    index = {"a": 0, "b": 1, "c": 2, "d": 3}
+    swapped = [{"qid": "q0", "top_doc_ids": ["a", "c"], "error": None}]
+    worse = [{"qid": "q0", "top_doc_ids": ["a", "d"], "error": None}]
+    assert tie_aware_agreement(scores, index, swapped, 2)["tie_aware_agreement"] == 1.0
+    assert tie_aware_agreement(scores, index, worse, 2)["tie_aware_agreement"] == 0.0
