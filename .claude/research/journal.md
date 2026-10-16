@@ -3,6 +3,94 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 16: 参加の通知の遅れ L ごとのメンバー表の見え方と hit の回復
+
+### 調査・計画（2026-10-16．research-cycle の phase 1）
+
+**直近の判定**：Iteration 15 は採用（G1〜G4 通過，H-C2 支持，E-1 確かめた）．hit の低下の大部分は，(ii) の「稼働中の正解がメンバー表で見えない」こと（確率 0.283）で決まっていた．config.yml の levers は使い切っており，B43 [auto-decided] で「参加を通知する形のメンバー表の変種をオフラインで評価する」に決まっている．レバーの形の選択は B45 [auto-decided] に記録した．
+
+**調べて分かったこと**
+- SWIM（Das, Gupta, Motivala, DSN 2002, doi:10.1109/DSN.2002.1028914）は，故障の検出と更新の伝播を分け，更新を故障の検出の probe のパケットに相乗りさせて感染型で伝える．参加したメンバーの incarnation 番号は 0 から始まる（論文の本文から抜粋した事実）．
+- gossip による更新は O(log n) 回の round で全体に届くとされる（Ajit Singh の解説記事，arXiv の "Revisiting Gossip Protocols: A Vision for Emergent Coordination in Agentic Multi-Agent Systems"．二次資料で，一次資料では確かめていない）．
+- HashiCorp memberlist は SWIM を拡張した実装（Lifeguard）で，Consul の講演では収束を約 2 秒としている（条件は未確認）．
+- P2P の情報検索の資源選択と churn を扱う研究は，今回の検索では見つからなかった．
+- 時刻表だけの概算（計画のための試算で，コードにはしていない）．条件は a = 0.7，ノード 30 台，2,940 刻み，5 個の種で，`churn_eval.simulate_availability` を使った．稼働中なのに見えないノードの割合は次のとおりである．
+  - R = 1000：L = ∞ 0.285 [0.248, 0.318]，L = 100 0.036，L = 10 0.004，L ≤ 1 0.000
+  - R = 100：L = ∞ 0.151，L = 10 0.028，L = 1 0.003
+  - R = 10：L = ∞ 0.022，L = 1 0.004
+  - 見えているのに離脱済みの割合は L に依らない（R = 1000 で 0.276〜0.281）．参加は 1 刻みあたり約 0.106 件である．
+  - R = 1000・L = ∞ の 0.285 は，Iteration 15 の 0.283 と同じ程度である．
+
+**単一レバー**：`churn_eval.join_notice_delay` を，通知なし（L = ∞．EQ7a・Iteration 15 と同じ）から {0, 1, 10, 100} へ変える．新しい CLI `atrium churn-join-eval`（`src/atrium/churn_join_eval.py`）で実行する．
+- 参加だけを通知する．直前の更新 u(t) = ⌊t/R⌋·R より後の刻み j（u(t) < j ≤ t − L）に参加したノードを，メンバー表に足す．参加は online[j] かつ ¬online[j−1] で定める．
+- 離脱は更新のときにだけ表から消える．通知の後に離脱したノードも，次の更新まで表に残る．
+- L ≥ R では次の更新の方が先に来るので，通知は効かない．
+- 1 刻みは 1 問である．秒への換算は処理量の仮定に依るので，ここでは行わない．
+
+**固定する構成**：config.yaml，データ，シャード，配置，m，`AVAILABILITIES`・`REFRESH_STEPS`・`MEAN_UP_STEPS`・`N_SCHEDULE_SEEDS`・experiment.seed．方式は Iteration 15 の 6 構成（multi_centroid，flood_score，centroid_probe K = 75・30，device_probe D = 24・12）と，G3 用の全数の構成である．
+
+**仮説 H-J1**：参加を L = 100 で通知すると，device_probe（D = 12）の a = 0.7・R = 1000 で，hit の低下の半分以上が 5 個の種のすべてで戻る．種ごとの回復の割合は ρ = (hit(R=1000, L=100) − hit(R=1000, L=∞)) / (hit(R=1) − hit(R=1000, L=∞)) とする．
+
+**期待効果（推測）**：見えなさが 0.285 から 0.036 に下がる．flood_score は低下の 7〜8 割が戻ると見込む．device_probe は，離脱済みのデバイスが 1 段目の上位 D 台の枠を取る分が残るので，5 割以上が戻ると見込む．
+
+**退行ゲート**（1 つでも通らなければ判定しない）
+- G1：L = ∞ の全ての実行（方式・a・R・種）が，`results/20261016_iter15_churn_cascade_eval/metrics.json` と 1/n_test 以内で一致し，欠けが無い．
+- G2：L ≥ R の実行は，同じ（方式，a，R，種）の L = ∞ と完全に一致する．
+- G3：flood_score の L = 0 の hit は，同じ（a，種）の R = 1 の hit と，全ての R で完全に一致する．L = 0 では返事のある候補が稼働中の全ノードになるので，構造上そうなる．
+- G4：hit と (i)〜(iv) の件数の和が問の数に等しい（`gate_g4`）．
+
+**判定の規則と成功条件**
+- G1〜G4 を全て通過し，5 個の種のすべてで ρ ≥ 0.5 なら，H-J1 を支持し，採用とする．分母が 0 以下の種は不成立とする．
+- ρ は種ごとに対で計算するので，種の間の揺れ（Iteration 15 の相対的な低下で 0.06〜0.10）の影響は小さい．
+
+**記録**（判定に使わない）
+- E-2：device_probe（D = 12）で L = 0 にしても残る低下と，そのうち候補外の件数の増分
+- 全ての方式の L ごとの ρ，contacted，wasted
+- B43 (c) の問ごとの遷移表：a = 0.7 に限り，（方式，L，種）ごとに，R = 1 の区分（hit・(i)〜(iv)）から R = 1000 の区分への 5 × 5 の件数
+
+**実機**：使わない．制御点のコンテナで実行するオフライン評価である．実機の再生は次の候補に残す（B45 の E1）．
+
+**記録の注記**：rc-researcher の最後のツールの呼び出しが失敗したので，この節はオーケストレータが戻り値から書き写した．Iteration 15 の `duration_s` と，device_probe（D = 12）の種ごとの hit は，計画の時点では取得していない（実装のときに確かめる）．
+
+### 事前登録（2026-10-16．実装の後，実行の前に commit・push する．結果を見て変えない．実装は commit `b2911be`）
+
+調査・計画の節の規則を，実行の前にそのまま固定する．計画と実装の間に規則の食い違いは無い（backlog への新しい記録は無い）．
+
+**評価**：`atrium churn-join-eval`（`src/atrium/churn_join_eval.py`）を制御点のコンテナで 1 回だけ流す．出力は `results/20261016_iter16_churn_join_eval/`（`metrics.json`・`analysis_report.md`・`run.log`）．実機のノードは使わない．
+
+```bash
+ssh wafl-ctrl5 'pgrep -af "[c]hain.sh" || echo NO_CHAIN'   # 連続実行が動いていないことを確かめる
+bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'
+bash scripts/tasks/remote.sh churn_join_eval 20261016_iter16_churn_join_eval 20261009_eq5_b1 20261016_iter15_churn_cascade_eval
+rsync -az wafl-ctrl5:<REMOTE_DIR>/results/20261016_iter16_churn_join_eval/ results/20261016_iter16_churn_join_eval/
+```
+
+**条件**：a ∈ {1.0, 0.9, 0.7, 0.5}，R ∈ {1, 10, 100, 1000}，L ∈ {∞（通知なし），0, 1, 10, 100}，時刻表の種 5 個，`experiment.seed` = 12，m = 2，C = 32，test 2,940 問．構成は multi_centroid・flood_score・`centroid_probe_k75`・`centroid_probe_k30`・`device_probe_d24`・`device_probe_d12` と，全数の `centroid_probe_k150`・`device_probe_d30` の 8 個（Iteration 15 と同じ）．実行の数は 8 × 4 × 4 × 5 × 5 = 3,200 件．
+
+**メンバー表**：`join_notified_view(online, R, L)` = `stale_view(online, R)` ∪ {区間 (u(t), t − L] に参加したノード}．u(t) = ⌊t/R⌋·R，参加は `online[j]` かつ ¬`online[j−1]`（刻み 0 は参加として数えない）．L = ∞ は `stale_view` そのもの．
+
+**退行ゲート**（1 つでも通らなければ H-J1 を判定しない）
+- G1：L = ∞ の 640 件が `results/20261016_iter15_churn_cascade_eval/metrics.json` の `runs` と，hit・hit_given_gold_online・gold_online_rate・contacted・wasted と全ての件数（n_test で割った差）で 1/2940 以内に一致し，どちらにも欠けが無く，件数の None の有無も一致する．m と n_test も一致する．
+- G2：L ≥ R の 960 件（構成・a・種ごとに 6 個）が，同じ（構成，a，R，種）の L = ∞ と全ての項目で完全に一致する．
+- G3：flood_score の L = 0 の `n_hit` が，同じ（a，種）の R = 1・L = ∞ と，全ての R で完全に一致する（80 件）．
+- G4：全ての実行で `n_hit` と (i)〜(iv) の件数の和が問の数に等しい（`churn_cascade_eval.gate_g4`）．
+
+**判定**
+- H-J1：G1〜G4 を全て通過し，`device_probe_d12` の a = 0.7・R = 1000・L = 100 の ρ = (n_hit(R=1000, L=100) − n_hit(R=1000, L=∞)) / (n_hit(R=1) − n_hit(R=1000, L=∞)) が 5 個の種の全てで 0.5 以上なら支持とし，採用とする．分母が 0 以下の種は不成立とする．問の数は実行によらず等しいので，件数の比は hit の比に等しい．
+
+**記録**（判定に使わない）
+- 全ての構成の a = 0.7 の L ごとの ρ（種ごと），R = 1000 の hit（種ごと）・contacted・wasted（種の平均）．
+- E-2：`device_probe_d12` の a = 0.7 で，R = 1 → 1000・L = 0 にしても残る hit の低下（問）と，(i)・(ii)・(iii)・候補外・上位 m 外・(iv) の件数の増分（種ごと）．
+- 遷移表：a = 0.7 の（構成，L，種）ごとに，R = 1・L = ∞ の区分（hit・(i)〜(iv)）から R = 1000 の区分への 5 × 5 の件数．
+
+**実装上の補足**
+- 採点・番号の付け方・質問の順番・時刻表の乱数・経路の選択は，`churn_cascade_eval` の関数をそのまま呼ぶ（既存の方式の挙動は変えていない）．
+- 問ごとの区分が互いに排他でなければ，評価は例外で止まる（遷移表を誤って数えないため）．
+
+**実装の検査**（commit `b2911be`）
+- `tests/test_churn_join_eval.py` と `tests/test_churn_cascade_eval.py` の 41 件が通過した．全体の pytest は 400 件が全て通過した（今回は `tests/test_node_workers.py` も通過した）．`ruff check src tests`・`ruff format --check src tests`・`mypy` は通過した．リポジトリ全体の `ruff check` の 34 件のエラーは，全て `results/` の下の前からあるスクリプトのものである．
+- 合成のデータ（ノード 30 台，1,200 刻み，乱数の得点）で，集計・ゲート・報告の流れを最後まで通した．実行 3,200 件，G1 は 640 件，G2 は 960 件，G3 は 80 件を照合し，遷移表は 200 個で，G1〜G4 は全て通過した．
+
 ## Iteration 15: 二段の方式の参加・離脱への頑健さのオフライン評価
 
 ### 調査・計画（2026-10-16．research-cycle の phase 1）
