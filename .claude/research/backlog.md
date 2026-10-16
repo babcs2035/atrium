@@ -17,6 +17,24 @@
 
 ---
 
+## B49 [auto-decided 2026-10-16] Iteration 17 は採用．Iteration 18 のレバーは，返事の無いデバイスの枠を次の順位のデバイスで補う変種（`churn_eval.probe_refill`．仮称）
+
+- 状況: Iteration 17 は採用である（G1〜G5 通過，H-L1 支持．device_probe_d12 の ρ_leave は 0.839〜0.883）．config.yml の levers は使い切っている．感度の格子（L_join = 100）で，参加の通知が遅いと，離脱の通知は hit を通知なしより下げると分かった（(ii) の割合は 0.036 → 0.381）．参加と離脱の遅れが対称な (100, 100) では，device_probe_d12 の hit は (100, ∞) より 960 問少ない．故障による離脱の伝播（数百問以上の見込み）では，L_leave = 100 でも ρ_leave は 0.26 にとどまる（journal の「Iteration 17 実行済み：分析・考察」）．
+- 選択肢:
+  - A1 (Recommended): 返事の無いデバイスの枠を，1 段目の次の順位のデバイスで補う変種（B40 (b)・B46 A2）を，新しいオフラインの CLI で評価する．メンバー表は Iteration 16 の形（参加の通知 L_join だけ．離脱は通知しない）にする．主の候補は device_probe_d12 の a = 0.7・R = 1000・L_join = 100（Iteration 16 の主の条件）．メリット: 離脱済みのデバイスの枠を，メンバー表の通知に頼らずに probe の返事で取り戻す．参加の通知の遅れと打ち消し合わない．Iteration 15〜17 の関数を再利用でき，オフラインで分単位で終わる．デメリット: 返事を待ってから補うので 1 往復が増える．補ったデバイスも離脱済みでありうる．「見え方を変える」の系列から，選び方の変更へ移る．
+  - A2: 遅れを対称にした通知（L_join = L_leave = L）を 1 つのキーとして振る．メリット: 同じ gossip で伝える構成に合う．デメリット: (0, 0)・(100, 100) は今回の格子で既に測っており，新しく分かるのは L = 10 の 1 点だけである．
+  - A3: 二段の方式の離脱下の実機での再生（B43 A2・B46 A3）．メリット: B40 (a) の `_tolerant` の効き方を確かめられる．デメリット: 実機が要る．A1 で補う規則を決めてからの方が，測る条件を絞れる．
+- 自動選択: A1．config.yml の levers の末尾に `churn_eval.probe_refill`（仮称．values [next_ranked]）を追記した．iteration_name は「返事の無いデバイスの枠を次の順位で補ったときの hit と問い合わせの費用」とした．キー名・補う回数（1 回か，返事が揃うまでか）・主の条件・判定の規則は，次の rc-researcher が事前登録で決める．
+- 根拠:
+  - device_probe_d12 の無駄な枠は，D × 表の中の離脱済みの割合に等しい（L_leave の 3 点で一致）．返事の無い枠を補えば，離脱の通知が無くても，この分を取り戻せる見込みがある．
+  - 推測の見込み: (L_join, L_leave) = (100, ∞) の d12 の低下 768 問（7,769 − 7,001．種の和）のうち，(iii) の増分は 392 問（2,925 − 2,533），(ii) は 376 問である．補う変種が動かせるのは (iii) の増分だけである．1 回だけ補うと，補ったデバイスの約 28%（flood_score の 7.92 / 28.24）も離脱済みなので，取り戻せる枠は約 72% と見込む．問い合わせは 1 問あたり約 3.35 台（同じ条件の d12 の wasted）増える．
+- 要レビュー:
+  - (a) 補う 1 往復の待ち時間の費用は，オフラインでは測れない．実機での影響は A3 で測る．
+  - (b) 主の条件を L_join = 100（現実的な参加の通知）にするか，L_join = 0（枠の分だけを切り出す）にするか．
+  - (c) 対称の通知の L = 10（A2）は，記録の格子として次の評価に足してよい．
+  - (d) 未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`，`/tmp` のファイル）に触れず，削除・課金・`mise run clean --full`・registry の blob の削除や garbage collect を伴わない．
+  - (e) B48 の要レビュー (a)（評価の前のインフラの失敗を「1 回だけ」の回数に数えないこと）は，Iteration 17 の判定の前提である．人間がこれを却下した場合は，Iteration 17 の判定を見直す．
+
 ## B48 [auto-decided 2026-10-16] Iteration 17 の事前登録した実行が docker pull の層の破損で評価の前に失敗した．blob を確かめて同じコマンドを 1 回だけ流し直す
 
 - 状況: 事前登録（commit `2b043ca`）のとおり，`NO_CHAIN` を確かめてから publish した（235 秒．版 `2b043caeec1d-dirty`．制御点の registry の manifest の digest `sha256:a93f5f0230cf…` はローカルのイメージと一致）．その後 `bash scripts/tasks/remote.sh churn_leave_eval 20261016_iter17_churn_leave_eval 20261009_eq5_b1 20261016_iter16_churn_join_eval` を 1 回流した．制御点の `churn_leave_eval.sh` の最初の `docker pull` の層の展開で `unpigz: skipping: <stdin>: corrupted -- crc32 mismatch`（層 `sha256:02e7dc8304d688f35c2fb5adb7596b055d4d39d4ac757cc72fa4b1e056c7e638`）となり，終了コード 1（125 秒）で止まった．`atrium churn-leave-eval` は起動しておらず，評価の数値は 1 つも出ていない．`results/20261016_iter17_churn_leave_eval/` は手元に無く，制御点に `atrium-full` のコンテナも残っていない．
@@ -35,6 +53,7 @@
   - blob の検査：制御点の registry（`localhost:5000`）の `atrium-full` の blob `sha256:02e7dc83…` をストリームで読み，`sha256sum` は digest と一致し（423,719,366 バイト），`gzip -t` も通った．registry の中の blob は壊れていない．1 度目の失敗は，転送か制御点での展開の途中の破損と推測する（確かめていない）．
   - publish はやり直していない．2 度目の実行は 1 度目と同じイメージ（`2b043caeec1d-dirty`）である．
   - 同じコマンドを 1 回だけ流し，終了コード 0（298 秒．評価の本体 56.9 秒，実行 5,120 件，失敗 0 件）で終わった．G1〜G5 は全て通過し，H-L1 の機械的な判定は「支持」である（journal の Iteration 17 の「実装・実験」）．B49 は不要になった．
+  - 補足（オーケストレータ）: rc-executor が `state.json` の `updated_at` を `1792118461` から `1792122304` に書き換えていた．`rc-executor.md` の手順（44〜51 行目）で決まっているのは `status`・`experiment_dir`・`experiment_deadline` だけで，`updated_at` を更新する手順は無い．そのため SKILL.md の決まりどおり，元の値 `1792118461` に戻した．
 
 ## B47 [auto-decided 2026-10-16] Iteration 17 のレバーの形：離脱の通知の遅れ L_leave（`churn_eval.leave_notice_delay`．L_join = 0 に固定．新しい CLI `atrium churn-leave-eval`）
 
