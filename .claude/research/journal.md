@@ -92,6 +92,53 @@ rsync -az wafl-ctrl5:<REMOTE_DIR>/results/20261016_iter17_churn_leave_eval/ resu
 - テストで G1・G2（L_leave = ∞ の表が `join_notified_view` と一致），G3（L_leave ≥ R の表が L_leave = ∞ と一致），G5（(0, 0) の表が稼働中の集合と一致），B47 (d)（手で作った時刻表で，再び参加したノードが参加の通知の届いた刻みから見える）の構造上の性質を確かめた．
 - 合成のデータ（4 構成，ノード 4 台，300 刻み，乱数の得点）で，集計・ゲート・報告の流れを最後まで通した．実行 2,560 件，G1・G2 は各 320 件，G3 は 800 件，G5 は 320 件を照合し，遷移表は 80 個で，G1〜G5 は全て通過した（8 構成の件数のちょうど半分）．
 
+### 実装・実験（2026-10-16．research-cycle の phase 2．数値の規則の機械的な出力のみ．解釈・判定は phase 3）
+
+- 実装：commit `f4ffac5`（`src/atrium/churn_leave_eval.py`，`tests/test_churn_leave_eval.py`，`scripts/remote/churn_leave_eval.sh`，`cli.py` の `churn-leave-eval`，README・d0001・d0003・d0004）．事前登録：commit `2b043ca`（実行の前に push 済み）．結果：この節と同じ commit（`results/20261016_iter17_churn_leave_eval/`．`metrics.json`・`analysis_report.md`・`run.log`）．
+- 検査：事前登録の「実装の検査」のとおり（pytest 441 件が全て通過，`ruff check src tests`・`ruff format --check src tests`・`mypy` が通過）．
+- 1 度目の実行（失敗．backlog B48）：`NO_CHAIN` を確かめてから publish した（235 秒．イメージの版は `2b043caeec1d-dirty`．dirty は未追跡のファイルによる．制御点の registry の manifest の digest はローカルと一致）．`remote.sh churn_leave_eval` は，制御点の `docker pull` の層の展開で `unpigz: corrupted -- crc32 mismatch`（層 `sha256:02e7dc83…`）となり，終了コード 1（125 秒）で止まった．評価は起動しておらず，数値は出ていない．
+- B48（A1）：制御点の registry の blob を読み取りだけで調べ，`sha256sum` が digest と一致し（423,719,366 バイト），`gzip -t` も通った．registry の中の blob は壊れていなかったので，publish はやり直さずに，同じコマンドを 1 回だけ流した．
+- 2 度目の実行：終了コード 0，pull を含めて 298 秒，評価の本体（`duration_s`）は 56.9 秒である．実行は 5,120 件で，失敗は 0 件．遷移表は 160 個．`run.log` は `remote.sh` の標準出力（1,324 行）で，WARNING は 128 行，全て faiss の k-means の「学習点が少ない」の警告である（Iteration 16 の `run.log` も 128 行）．`ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")` は faiss の loader の INFO の行である．
+- `metrics_cmd`（`uv run atrium metrics --json`）は，Iteration 16 と同じく `run_meta.json` のある最新の実行（`20261016_iter14_smoke_dp12_pe_n8`）を読んだ．今回のオフラインの評価は `run_meta.json` を作らないので，この命令の対象外である．数値は `metrics.json` から取った．
+- 退行ゲート：全て通過した．
+  - G1：640 件を照合し，こちらの欠け 0 件，基準の欠け 0 件，None の不一致 0 件，差の最大 0.0（許容 1/2940）．
+  - G2：640 件を照合し，こちらの欠け 0 件，基準の欠け 0 件，None の不一致 0 件，差の最大 0.0．
+  - G3：1,600 件 / 期待 1,600 件を照合し，不一致 0 件．
+  - G4：違反 0 件．
+  - G5：640 件 / 期待 640 件を照合し，不一致 0 件．
+- H-L1（`device_probe_d12`，a = 0.7，R = 1000，L_join = 0，L_leave = 10）：機械的な判定は「支持」．
+
+| 種 | n_hit（R = 1） | n_hit（R = 1000，L_leave = ∞） | n_hit（R = 1000，L_leave = 10） | 分母（問） | 回復（問） | ρ_leave |
+|---|---|---|---|---|---|---|
+| 0 | 1,561 | 1,450 | 1,545 | 111 | 95 | 0.8559 |
+| 1 | 1,542 | 1,448 | 1,529 | 94 | 81 | 0.8617 |
+| 2 | 1,552 | 1,439 | 1,535 | 113 | 96 | 0.8496 |
+| 3 | 1,577 | 1,459 | 1,558 | 118 | 99 | 0.8390 |
+| 4 | 1,537 | 1,417 | 1,523 | 120 | 106 | 0.8833 |
+
+- 記録：全ての構成の a = 0.7・R = 1000・L_join = 0 の ρ_leave（種の最小〜最大．L_leave = 0 は全ての構成で 1.000）と，contacted・wasted（種の平均．L_leave = ∞ / 0 / 10 / 100 の順）．`centroid_probe_k150`・`device_probe_d30` は全ての値が flood_score と同じ．
+
+| 構成 | ρ_leave（L_leave = 10） | ρ_leave（L_leave = 100） | contacted | wasted |
+|---|---|---|---|---|
+| multi_centroid | 0.817〜0.875 | 0.155〜0.250 | 1.96 / 1.94 / 1.95 / 1.95 | 0.55 / 0.00 / 0.09 / 0.43 |
+| flood_score | 定義できない（分母 0．hit は全ての L_leave で同じ） | 定義できない | 29.17 / 21.08 / 22.08 / 27.00 | 8.10 / 0.00 / 1.01 / 5.93 |
+| centroid_probe_k75 | 0.744〜0.978 | 0.170〜0.333 | 28.40 / 21.01 / 21.99 / 26.55 | 7.88 / 0.00 / 1.00 / 5.83 |
+| centroid_probe_k30 | 0.804〜0.904 | 0.065〜0.212 | 19.62 / 16.99 / 17.41 / 19.07 | 5.45 / 0.00 / 0.80 / 4.19 |
+| device_probe_d24 | 0.919〜1.022 | 0.270〜0.667 | 23.91 / 20.96 / 21.82 / 23.88 | 6.61 / 0.00 / 1.00 / 5.22 |
+| device_probe_d12 | 0.839〜0.883 | 0.204〜0.340 | 12.00 / 12.00 / 12.00 / 12.00 | 3.32 / 0.00 / 0.56 / 2.63 |
+
+- 記録：`device_probe_d12` の他の a の ρ_leave（R = 1000，L_join = 0，種の最小〜最大）．a = 0.9 は L_leave = 10 で 0.605〜0.800，100 で 0.000〜0.025．a = 0.5 は L_leave = 10 で 0.909〜0.972，100 で 0.504〜0.559．
+- E-2 相当（`device_probe_d12`，a = 0.7，R = 1 → 1000，L_join = 0，L_leave = 10．種 0〜4）：残る低下は 16・13・17・19・14 問，回復は 95・81・96・99・106 問．件数の増分は (iii) が残る低下と同じ値で，そのうち候補外が +28・+23・+25・+22・+26，上位 m 外が −12・−10・−8・−3・−12．(i)・(ii)・(iv) の増分は全ての種で 0．
+- 感度の格子（a = 0.7，R = 1000，L_join = 100．L_leave = ∞ / 0 / 10 / 100 の順）：(ii) の件数（種の和．全ての構成で同じ）は 376 / 3,931 / 3,921 / 2,399．ρ_leave は全ての構成・全ての種で負である．
+  - `device_probe_d12`：hit 0.466〜0.484 / 0.352〜0.380 / 0.352〜0.377 / 0.399〜0.422，contacted 12.00 / 11.32 / 11.52 / 12.00，wasted 3.35 / 0.00 / 0.54 / 2.77．
+  - flood_score：hit 0.554〜0.565 / 0.359〜0.387 / 0.360〜0.387 / 0.441〜0.464，contacted 28.24 / 13.07 / 13.75 / 21.00，wasted 7.92 / 0.00 / 0.64 / 4.85．
+- 遷移表（a = 0.7，L_join = 0，種の和，各 14,700 問．行は R = 1 の区分，列は R = 1000 の区分．R = 1 の (ii)・(iv) は 0 件．(i) → (i) は全てで 4,398 件）：
+  - `device_probe_d12`：L_leave = ∞ は hit → hit 7,140・→ (iii) 629，(iii) → hit 73・→ (iii) 2,460．L_leave = 0 は hit → hit 7,769，(iii) → (iii) 2,533．L_leave = 10 は hit → hit 7,679・→ (iii) 90，(iii) → hit 11・→ (iii) 2,522．L_leave = 100 は hit → hit 7,294・→ (iii) 475，(iii) → hit 61・→ (iii) 2,472．
+  - `centroid_probe_k75`：L_leave = ∞ は hit → (iii) 336・(iii) → hit 112，0 は 0・0，10 は 50・12，100 は 252・81．
+  - multi_centroid：hit → (iv) が L_leave = ∞ / 0 / 10 / 100 で 339 / 0 / 52 / 270．(iii) → (iii) は全てで 5,391．
+  - flood_score：全ての L_leave で hit → hit 8,529，(iii) → (iii) 1,773．
+- 計画からの逸脱：規則・閾値・ゲート・記録の項目の変更は無い．評価の前のインフラの失敗による再実行を 1 度行った（backlog B48）．
+
 ## Iteration 16: 参加の通知の遅れ L ごとのメンバー表の見え方と hit の回復
 
 ### 調査・計画（2026-10-16．research-cycle の phase 1）

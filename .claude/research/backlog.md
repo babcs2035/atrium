@@ -17,6 +17,25 @@
 
 ---
 
+## B48 [auto-decided 2026-10-16] Iteration 17 の事前登録した実行が docker pull の層の破損で評価の前に失敗した．blob を確かめて同じコマンドを 1 回だけ流し直す
+
+- 状況: 事前登録（commit `2b043ca`）のとおり，`NO_CHAIN` を確かめてから publish した（235 秒．版 `2b043caeec1d-dirty`．制御点の registry の manifest の digest `sha256:a93f5f0230cf…` はローカルのイメージと一致）．その後 `bash scripts/tasks/remote.sh churn_leave_eval 20261016_iter17_churn_leave_eval 20261009_eq5_b1 20261016_iter16_churn_join_eval` を 1 回流した．制御点の `churn_leave_eval.sh` の最初の `docker pull` の層の展開で `unpigz: skipping: <stdin>: corrupted -- crc32 mismatch`（層 `sha256:02e7dc8304d688f35c2fb5adb7596b055d4d39d4ac757cc72fa4b1e056c7e638`）となり，終了コード 1（125 秒）で止まった．`atrium churn-leave-eval` は起動しておらず，評価の数値は 1 つも出ていない．`results/20261016_iter17_churn_leave_eval/` は手元に無く，制御点に `atrium-full` のコンテナも残っていない．
+- 選択肢:
+  - A1 (Recommended): 読み取りだけで，制御点の registry の blob の `sha256sum` と `gzip -t` を調べる．壊れていれば publish からやり直し，壊れていなければ publish はやり直さない．その上で同じコマンドを 1 回だけ流す．メリット: 評価は始まっておらず，結果を誰も見ていない．規則もコマンドも変えないので，事前登録の趣旨に反しない．原因に応じた対処になる．デメリット: 「1 回だけ」の文言からは外れるので，その扱いを明記する必要がある．
+  - A2: blob を確かめずに，同じコマンドをそのまま流し直す．メリット: 手数が少ない．デメリット: blob が registry の中で壊れていれば，また同じ失敗になる．
+  - A3: 再実行せず，人間の判断を待つ（needs-human）．メリット: 指示の文言に最も忠実である．デメリット: イテレーションが止まる．
+- 自動選択: A1（コーディネーターの判断）．
+- 根拠: 事前登録の「1 回」は評価の実行を数えるものであり，評価の前のインフラの失敗（イメージの取得の失敗）は数えない．評価が起動していないので，結果を見て規則を変える余地は無い．
+- 要レビュー:
+  - (a) 「1 回だけ」の扱い（評価の前のインフラの失敗を回数に数えないこと）．
+  - (b) 原因が registry の中の破損か，転送の途中の破損か（blob の検査の結果を下に追記する）．
+  - (c) 2 度目も失敗したら（原因を問わず），それ以上流さずに B49 [needs-human] にして止める．
+  - (d) 未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`，`/tmp` のファイル）に触れず，削除・課金・`mise run clean --full`・registry の blob の削除や garbage collect を行わない．
+- 結果（2026-10-16）:
+  - blob の検査：制御点の registry（`localhost:5000`）の `atrium-full` の blob `sha256:02e7dc83…` をストリームで読み，`sha256sum` は digest と一致し（423,719,366 バイト），`gzip -t` も通った．registry の中の blob は壊れていない．1 度目の失敗は，転送か制御点での展開の途中の破損と推測する（確かめていない）．
+  - publish はやり直していない．2 度目の実行は 1 度目と同じイメージ（`2b043caeec1d-dirty`）である．
+  - 同じコマンドを 1 回だけ流し，終了コード 0（298 秒．評価の本体 56.9 秒，実行 5,120 件，失敗 0 件）で終わった．G1〜G5 は全て通過し，H-L1 の機械的な判定は「支持」である（journal の Iteration 17 の「実装・実験」）．B49 は不要になった．
+
 ## B47 [auto-decided 2026-10-16] Iteration 17 のレバーの形：離脱の通知の遅れ L_leave（`churn_eval.leave_notice_delay`．L_join = 0 に固定．新しい CLI `atrium churn-leave-eval`）
 
 - 状況: B46 で，Iteration 17 のレバーを離脱の通知の遅れ L_leave ∈ {0, 10, 100} と通知なし（∞）にし，参加の通知を L_join = 100 に固定する案にした（要レビュー (a) で，基準を L = 100 にするか L = 0 にするかを残していた）．計画のための時刻表の試算（churn-eval と同じ種）で，L_join = 100 のまま L_leave を短くすると，a = 0.7・R = 1000 の「稼働中なのに見えない」割合が 0.036（L_leave = ∞）→ 0.234（100）→ 0.378（10）に増え，通知なし（0.285）より大きくなると分かった．稼働中の平均 200 問・停止中の平均 85.7 問なので，離脱の通知の後に 100 問以内に再び参加するノードが多く，参加の通知が届くまで見えないためである．このままでは，離脱の通知の効果と見えなさの増加が混ざる．
