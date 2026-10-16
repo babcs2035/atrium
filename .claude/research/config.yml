@@ -223,7 +223,12 @@ levers:
             全ての D で refill ∈ {none, once, until_full} を流す．新しいオフライン評価 CLI atrium churn-budget-eval（src/atrium/churn_budget_eval.py．route_cascade_with_refill を再利用）．
             同じ（a, R, L_join, 種）の none の (contacted, n_hit) の折れ線で，once の contacted での値を補間して差 Δ を取る．主の点は D = 12・once・a = 0.7・R = 1000・L_join = 100．
             H-B1（全ての種で Δ > 0 かつ平均 ≥ +15 問）→ H-B3（全ての種で < 0 かつ平均 ≤ −15 問）→ H-B2（全ての種で |Δ| ≤ 25 問）の順に判定し，結論が決まれば採用．
-            G1 は Iteration 18 の D = 12（3 種）と D = 15 の none の 960 件の完全一致．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 19"}
+            G1 は Iteration 18 の D = 12（3 種）と D = 15 の none の 960 件の完全一致．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 19．
+            Iteration 19 は採用（結論は H-B2．主の点の Δ は −2.49〜+7.86 問，平均 −1.49 問．補う変種は同じ contacted で hit の利点が無い）"}
+  - {name: churn_eval.device_probe_cutoff, values: [score_gap],
+     note: "Iteration 19 の評価で追加（backlog B54 [auto-decided]）．仮称．device_probe の 1 段目のデバイスの得点（最大値でまとめたもの）の分布から，問ごとに probe の台数を決める（Rank-S・Taily に当たる打ち切り）．
+            例は，上位 1 台の得点との差が閾値以内のデバイスだけに送り，上限を D_max とする形．閾値を振って (contacted, n_hit) の曲線を作り，Iteration 19 の固定の D の none の曲線と同じ contacted で比べる（Δ の規則は Iteration 19 と同じ）．
+            1 往復のまま．打ち切りの規則・閾値の格子・D_max・主の条件・判定の規則は rc-researcher が事前登録で決める．config.yaml・データ・シャードは変えない"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:

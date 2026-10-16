@@ -17,6 +17,24 @@
 
 ---
 
+## B54 [auto-decided 2026-10-16] Iteration 19 は採用（結論は H-B2「差が無い」）．Iteration 20 のレバーは，問ごとに probe の台数を変える方式（`churn_eval.device_probe_cutoff`．仮称）
+
+- 状況: Iteration 19 は採用である（G1〜G6 通過．主の点の Δ は −2.49・−3.35・−2.47・−7.02・+7.86 問，平均 −1.49 問で，H-B2）．採用は「同じ問い合わせの数で，補う変種と補わない構成の hit に差が無い」という意味で，「補う変種が有効」の意味ではない．a < 1・R > 1 の 135 組でも，once の D = 12 の Δ は平均 −0.51 問（標準偏差 3.83 問）だった．config.yml の levers は使い切っている．
+- 選択肢:
+  - A1 (Recommended): 問ごとに probe の台数を変える方式を，新しいオフラインの CLI で評価する．1 段目のデバイスの得点（最大値でまとめたもの）の分布から，問ごとに送る台数を決める（例: 上位 1 台の得点との差が閾値以内のデバイスだけに送り，上限を D_max とする）．閾値を振って (contacted, n_hit) の曲線を作り，Iteration 19 の固定の D の none の曲線と同じ contacted で比べる（Δ の規則は Iteration 19 と同じ）．メリット: 固定の D の曲線を上回る余地があるのは，候補の数ではなく選び方である（Iteration 19 の学び）．selective search の Rank-S・Taily（問ごとの打ち切り）に当たり，1 往復のまま費用を減らせる見込みがある．オフラインで分単位で終わり，Iteration 15〜19 の関数を再利用できる．デメリット: 得点の尺度（multi_centroid の内積）によっては，閾値の意味が条件で変わる．
+  - A2: 補う変種の実機の再生（B49 A3・B51 A2）．デメリット: Iteration 19 で hit の利点が無いと分かったので，2 往復目の待ち時間を測る理由が弱い．
+  - A3: 同じ比較を centroid_probe（K を振る）で行う．メリット: Iteration 19 の結論の一般性を確かめられる．デメリット: 結論が変わる見込みは小さく，新しく分かることが少ない．
+  - A4: 次のイテレーションを調査・計画から始め，tavily-search で代わりの方向を調べる．デメリット: A1 という具体的な候補があるので，先送りになる．
+- 自動選択: A1．config.yml の levers の末尾に `churn_eval.device_probe_cutoff`（仮称．values [score_gap]）を足した．iteration_name は「問ごとに probe の台数を変える方式の，同じ問い合わせの数での hit の比較」とした．打ち切りの規則（得点の差・比・softmax の質量など），閾値の格子，D_max，主の条件，判定の規則は，次の rc-researcher が事前登録で決める．
+- 根拠:
+  - none の曲線では，D を 1 台増やしたときの回収が D = 9 → 10 の平均 31.0 問から D = 15 → 18 の平均 19.9 問へ減る．得点の高い問と低い問とで要る台数が違うなら，台数を問ごとに配り直すことで，同じ contacted でも hit を上げられる見込みがある（推測）．
+  - 補う変種は 96.4% の問に 2 往復目を要したが，打ち切りの方式は 1 往復のままである．
+- 要レビュー:
+  - (a) Rank-S・Taily の書誌と内容は，まだ確かめていない（B52 (d)）．phase 1 で確かめること．
+  - (b) 1 段目のデバイスの得点が，問の間で比べられる尺度かは確かめていない．比べられなければ，差ではなく問ごとの順位の情報（softmax など）を使う．
+  - (c) 論文で「補う変種を勧めない」と書くことは，オフラインの hit の比較だけに基づく．待ち時間の実測はない．
+  - (d) 未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`）に触れず，削除・課金・`mise run clean --full` を伴わない．
+
 ## B53 [auto-decided 2026-10-16] Iteration 19 の phase 2 で，rc-executor が `Unknown tool` で 2 度止まった．blocked にせず，同じ subagent を続けて動かす
 
 - 状況: phase 2 の rc-executor が，`Read`・`Bash` の `Unknown tool` で 2 度止まった．1 度目は書き込みの前に止まった．2 度目は `src/atrium/churn_budget_eval.py`（804 行，新規），`src/atrium/cli.py`（+34 行），`scripts/remote/churn_budget_eval.sh`（22 行，新規）を書いた後に止まった．テスト・文書・commit・評価の実行はまだ無い（HEAD は 9c63cf0 のまま）．Iteration 17〜19 では，phase 1・3 でも同じ失敗が続いている．
