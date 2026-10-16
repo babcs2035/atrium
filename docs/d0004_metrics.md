@@ -269,6 +269,30 @@ term_sketch の採点は，語の集合を走査して重みを足す順序が P
 
 flood_score は，質問者の実装（1 台でも失敗すると問全体が失敗する）と違い，返事のあった受信箱の中から選ぶと仮定した上限である．
 
+### 二段の方式の参加・離脱（`atrium churn-cascade-eval`．Iteration 15）
+
+EQ7a（上の節）と同じ時刻表・メンバー表・質問の順番で，centroid_probe（K = 75・30）と device_probe（D = 24・12）を評価する．
+1 段目（multi_centroid）は見えている受信箱だけを採点して候補を選び（device_probe は得点をデバイスごとに最大値でまとめた上位 D 台），
+候補の載るノードへ probe を送り，返事のあった候補の中で 2 段目（flood_score の密ベクトル）の上位 m 個を選ぶ．返事の無かった分は補わない．
+対照として multi_centroid・flood_score を EQ7a と同じ規則で並べ，退行の確認用に K = 受信箱の数・D = デバイスの数も流す．
+`results/<run_id>/metrics.json` の `runs` は（方式，`availability`，`refresh`，`seed`）ごとに，EQ7a と同じ `hit` などに加えて次の件数を持つ．
+`summary` は EQ7a と同じ形の種をまたいだ平均・最小・最大，`losses` は件数の種の和である．
+
+| 指標 | 定義 |
+|---|---|
+| `contacted`・`wasted` | 二段の方式では probe を送ったノードの数と，そのうち離脱していたノードの数（本照会は数えない） |
+| `n_hit` | hit の問の数 |
+| `n_gold_offline` | (i) 正解の受信箱のノードが離脱している問 |
+| `n_gold_invisible` | (ii) 正解のノードは稼働中だが，メンバー表で見えていない問 |
+| `n_not_selected` | (iii) 見えていて稼働中だが選ばれない問．二段の方式では `n_not_candidate`（候補に入らない）と `n_not_top_m`（候補に入ったが上位 m 個に入らない）に分ける（1 段の方式は `null`） |
+| `n_slot_taken` | (iv) 1 段の方式（flood_score 以外）で，離脱済みの受信箱が上位 m 個の枠を占めたために外れた問（離脱済みの受信箱を除けば m 位以内）．二段の方式と flood_score は 0 |
+| `gates` | G1：`availability` = 1 の `hit` が Iteration 7 の device-probe-eval の test の値と 5e-4 以内．G2：multi_centroid・flood_score の `hit`・`contacted`・`wasted` が EQ7a の `runs` と 1/n_test 以内．G3：K = 受信箱の数・D = デバイスの数が flood_score と `n_hit`・`contacted`・`wasted` で完全に一致．G4：`n_hit` と (i)〜(iv) の和が問の数に等しい．1 つでも通らなければ `hc2`・`e1` は判定しない |
+| `hc2` | 事前登録の判定．`availability` = 0.7 で更新間隔 1 → 1000 の `hit` の相対的な低下が，device_probe（D = 12）で multi_centroid より全ての種で小さければ `supported` |
+| `hc3` | 記録．全方式の相対的な低下と flood_score との差（churn-eval の `hc1` と同じ計算） |
+| `e1` | flood_score の `availability` = 0.7 で，更新間隔 1 → 1000 の hit の減少の件数のうち (ii) の増加の件数の割合．時刻表は更新間隔に依らないので，正解が稼働中の問に限った hit の低下に占める割合に等しい．全ての種で 0.8 以上なら `confirmed`（減少が 0 以下の種は不成立）．種の和の比 `pooled_share` は記録だけ |
+
+二段の方式の値は，実機の質問者が probe の失敗を許して返事のあった分で続けると仮定した値である．今の `experiment.churn` は二段の方式に使えない（[d0002](d0002_configuration.md)）．
+
 ### EnronQA の参加・離脱の実機の再生（`atrium churn-live-report`．p0004 EQ7b）
 
 `experiment.churn` を指定した実行（[d0002](d0002_configuration.md)）の `results.jsonl` は，問ごとに `churn: {step, up, n_visible}`
