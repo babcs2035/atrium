@@ -28,9 +28,15 @@ RoutingName = Literal[
     "centroid_probe",
     "device_probe",
 ]
-# snippet_return_small（B3）と delegate_gpu（B4）は p0004 で追加（RQ-B）
+# snippet_return_small（B3）と delegate_gpu（B4）は p0004 で追加（RQ-B）．
+# gold_context は p0006 の C0：検索せずに正解のメールを文脈として質問者が答える（評価専用．EnronQA のみ）
 AnswerMode = Literal[
-    "snippet_return", "local_answer", "retrieval_only", "snippet_return_small", "delegate_gpu"
+    "snippet_return",
+    "local_answer",
+    "retrieval_only",
+    "snippet_return_small",
+    "delegate_gpu",
+    "gold_context",
 ]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
 QueryEmbeddingMode = Literal["live", "cached"]
@@ -114,6 +120,15 @@ class ExperimentConfig(_Strict):
         # 離脱の状態（/v1/admin/availability）はプロセスごとに持つので，複数のプロセスのノードでは全体を切り替えられない
         if self.churn is not None and self.node_workers != 1:
             raise ValueError("experiment.churn requires experiment.node_workers = 1")
+        return self
+
+    @model_validator(mode="after")
+    def _check_gold_context(self) -> ExperimentConfig:
+        """gold_context は正解のメールの本文を質問者が持つ評価専用の条件で，EnronQA の churn なしの実行でだけ使える．"""
+        if self.answer_mode != "gold_context":
+            return self
+        if self.dataset != "enronqa" or self.churn is not None:
+            raise ValueError("answer_mode=gold_context requires dataset=enronqa and no churn")
         return self
 
     @model_validator(mode="after")

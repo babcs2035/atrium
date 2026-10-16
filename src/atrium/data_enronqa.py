@@ -44,7 +44,9 @@ from atrium.manifest import (
     ShardSpec,
     write_json_model,
 )
+from atrium.merge import SourcedDoc
 from atrium.paths import DatasetPaths
+from atrium.protocol import DocOut
 from atrium.routing.advert import tokenize
 
 logger = logging.getLogger(__name__)
@@ -306,6 +308,30 @@ def read_gold(paths: DatasetPaths) -> dict[str, dict[str, Any]]:
     """質問 ID → 正解の情報（受信箱・メールの path・正解・別解・誤答）．"""
     with (paths.questions.parent / GOLD_FILE).open(encoding="utf-8") as f:
         return {g["qid"]: g for g in map(json.loads, f)}
+
+
+def load_gold_docs(paths: DatasetPaths, qids: Sequence[str]) -> dict[str, SourcedDoc]:
+    """質問 ID → 正解のメール（answer_mode=gold_context の文脈．評価専用）．
+
+    検索を経ない上限の条件を作るためのもので，メールの本文は受信箱の chunk から読む．score は検索を経ないので 0 とする．
+    """
+    gold = read_gold(paths)
+    paths_of_inbox: dict[str, set[str]] = defaultdict(set)
+    for qid in qids:
+        paths_of_inbox[gold[qid]["inbox"]].add(gold[qid]["path"])
+    mails = {
+        d["id"]: d
+        for inbox, wanted in paths_of_inbox.items()
+        for d in read_inbox(paths, inbox)
+        if d["id"] in wanted
+    }
+    docs: dict[str, SourcedDoc] = {}
+    for qid in qids:
+        g = gold[qid]
+        mail = mails[g["path"]]
+        doc = DocOut(doc_id=mail["id"], title=mail["title"], content=mail["content"], score=0.0)
+        docs[qid] = SourcedDoc(g["inbox"], g["inbox"], doc)
+    return docs
 
 
 def embed_queries(cfg: AtriumConfig, paths: DatasetPaths) -> None:

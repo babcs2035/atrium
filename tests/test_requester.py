@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +18,9 @@ from atrium.benchmarks import Question
 from atrium.config import AtriumConfig
 from atrium.labels import contributing_sources_from_topk
 from atrium.manifest import NodeAssignment, Placement
+from atrium.merge import SourcedDoc
 from atrium.node import create_app
+from atrium.protocol import DocOut
 from atrium.requester import RETRIEVE_RETRIES, Requester, discover_shards, run_questions
 from atrium.routing import AllRouter, NoneRouter, Router, build_source_profiles
 from atrium.store import load_shard
@@ -618,3 +621,32 @@ async def test_device_probe_fails_the_question_for_a_source_split_over_devices(
     # pubmed は 2 台に分かれているので，デバイスを単位に選べない
     assert record["error"] is not None
     assert "single-shard" in record["error"]
+
+
+async def test_gold_context_answers_from_the_gold_email_alone(cfg: AtriumConfig) -> None:
+    seen: list[str] = []
+
+    def reply(body: dict[str, object]) -> str:
+        seen.append(json.dumps(body))
+        return "Answer: ok"
+
+    gold = SourcedDoc("a", "a", DocOut(doc_id="a/1", title="t", content="GOLD-BODY", score=0.0))
+    question = Question("enronqa/test/0-0", "a", "who?", {}, "ok")
+    requester = Requester(
+        cfg=with_experiment(cfg, dataset="enronqa", answer_mode="gold_context"),
+        placement=Placement(dataset="enronqa", nodes=[]),
+        sources=[],
+        router=NoneRouter(),
+        embedder=StubEmbedder({}),
+        client=httpx.AsyncClient(transport=ollama_mock(reply)),
+        ollama_url="http://ollama",
+        gold_docs={question.qid: gold},
+    )
+
+    record = await requester.process(question)
+
+    assert record["error"] is None
+    assert record["top_doc_ids"] == ["a/1"]
+    assert record["n_shards_queried"] == 0
+    assert record["final_answer"] == "ok"
+    assert len(seen) == 1 and "GOLD-BODY" in seen[0]

@@ -139,7 +139,7 @@ deploy_expert() {
   local role=node model=$EXPERT_MODEL
   if has_gpu "$host"; then role=node_gpu model=$EXPERT_MODEL_GPU; fi
   render_compose "$host" "$role" --node-id "$host" --shard-ids "$shard_ids"
-  if [ "$ANSWER_MODE" != "retrieval_only" ] && [ "$ANSWER_MODE" != "snippet_return" ]; then
+  if [ "$ANSWER_MODE" != "retrieval_only" ] && [ "$ANSWER_MODE" != "snippet_return" ] && [ "$ANSWER_MODE" != "gold_context" ]; then
     send_ollama_model "$host" "$model"
   fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
@@ -163,6 +163,10 @@ deploy_requester() {
       nrsync -aL --delete "$DS_DIR/$item" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/"
     fi
   done
+  # gold_context（p0006 C0．評価専用）は正解のメールの本文を質問者が読むので，受信箱の chunk（本文）だけを配る（埋め込みは配らない）
+  if [ "$ANSWER_MODE" = gold_context ]; then
+    nrsync -a --include='*/' --include='chunk/***' --exclude='*' "$DS_DIR/corpus/" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/corpus/"
+  fi
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
   nrsync -az "artifacts/$DATASET/placement.json" "$(ssh_dest "$host"):$REMOTE_DIR/placement.json"
   render_compose "$host" requester
@@ -188,7 +192,7 @@ deploy_requester() {
     nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
     # requester は実験ごとに start.sh が起動するので，ここでは使い捨てのコンテナから呼ぶ
     case $ANSWER_MODE in
-      snippet_return) preload_ollama_model "$host" "run --rm --no-deps -T requester" "$REQUESTER_MODEL" ;;
+      snippet_return | gold_context) preload_ollama_model "$host" "run --rm --no-deps -T requester" "$REQUESTER_MODEL" ;;
       snippet_return_small) preload_ollama_model "$host" "run --rm --no-deps -T requester" "$EXPERT_MODEL" ;;
     esac
   else

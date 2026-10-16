@@ -16,6 +16,7 @@ from atrium.analysis import read_results
 from atrium.benchmarks import load_questions
 from atrium.config import AtriumConfig
 from atrium.cpu_stat import diff_tcp_counters, read_device_cpu, read_tcp_counters
+from atrium.data_enronqa import load_gold_docs
 from atrium.manifest import Placement, read_placement
 from atrium.paths import dataset_paths
 from atrium.requester import (
@@ -135,6 +136,11 @@ async def build_requester(
         ollama_url=ollama_url,
         reranker=CrossEncoderReranker() if cfg.retrieval.merge == "cross_encoder" else None,
         rm_qrels=load_rm_qrels(paths.rm_qrels) if cfg.retrieval.merge == "qrels_oracle" else {},
+        gold_docs=(
+            load_gold_docs(paths, [q.qid for q in load_questions(paths.questions, None)])
+            if cfg.experiment.answer_mode == "gold_context"
+            else {}
+        ),
     )
     return requester, sources, discovery_s
 
@@ -198,6 +204,8 @@ async def run_experiment(
             "dataset": dataset,
             "routing": cfg.experiment.routing,
             "answer_mode": cfg.experiment.answer_mode,
+            # gold_context は検索を経ない評価専用の条件で，運用できない（p0006 C0）
+            "evaluation_only": cfg.experiment.answer_mode == "gold_context",
             "merge": cfg.retrieval.merge,
             # ルーティングのために事前に公開された情報の大きさ（p0004 §8.4．使わない方式は 0）
             "advert_bytes": getattr(requester.router, "advert_bytes", lambda _: 0)(sources),

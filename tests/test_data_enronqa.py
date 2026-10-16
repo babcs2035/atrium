@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 
 from atrium.data_enronqa import (
@@ -9,8 +12,10 @@ from atrium.data_enronqa import (
     clean_email,
     find_cross_inbox_duplicates,
     kmeans_centroids,
+    load_gold_docs,
     term_sketch,
 )
+from atrium.paths import dataset_paths
 from atrium.train_router import SourceInfo, build_matrix
 
 RAW = (
@@ -76,3 +81,29 @@ def test_triangular2_scale_matches_torch_and_does_not_overflow_on_long_runs() ->
 
     assert [triangular2_scale(c) for c in (1, 2, 3)] == [1.0, 0.5, 0.25]
     assert triangular2_scale(5000) == 2.0**-1000
+
+
+def test_load_gold_docs_returns_the_gold_email_of_each_question(tmp_path: Path) -> None:
+    paths = dataset_paths(tmp_path, "enronqa")
+    paths.questions.parent.mkdir(parents=True)
+    gold = [
+        {"qid": "q0", "inbox": "a", "path": "a/1"},
+        {"qid": "q1", "inbox": "b", "path": "b/9"},
+        {"qid": "q2", "inbox": "a", "path": "a/2"},
+    ]
+    (paths.questions.parent / "gold.jsonl").write_text("\n".join(json.dumps(g) for g in gold))
+    for inbox, mails in {"a": ["a/1", "a/2"], "b": ["b/9"]}.items():
+        chunk = paths.corpus(inbox) / "chunk"
+        chunk.mkdir(parents=True)
+        rows = [{"id": m, "title": f"t {m}", "content": f"body {m}"} for m in mails]
+        (chunk / f"{inbox}.jsonl").write_text("\n".join(json.dumps(r) for r in rows))
+
+    docs = load_gold_docs(paths, ["q1", "q0"])
+
+    assert list(docs) == ["q1", "q0"]
+    assert (docs["q1"].source, docs["q1"].doc.doc_id, docs["q1"].doc.content) == (
+        "b",
+        "b/9",
+        "body b/9",
+    )
+    assert docs["q0"].doc.title == "t a/1"

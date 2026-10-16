@@ -342,6 +342,8 @@ class Requester:
     rm_qrels: dict[str, dict[str, int]] = field(default_factory=dict)
     # EQ7b：質問者のメンバー表（見えているノードの URL）．None なら全ノードが見えている（従来どおり）
     visible_urls: frozenset[str] | None = None
+    # answer_mode=gold_context（p0006 C0．評価専用）：質問 ID → 正解のメール．他の条件では空
+    gold_docs: dict[str, SourcedDoc] = field(default_factory=dict)
     _embed_lock: threading.Lock = field(default_factory=threading.Lock)
 
     def __post_init__(self) -> None:
@@ -783,6 +785,18 @@ class Requester:
         }
         start = time.perf_counter()
         try:
+            if mode == "gold_context":
+                # 検索もルーティングもせず，正解のメールだけを文脈にする（回答のプロンプトは snippet_return と同じ）
+                gold = self.gold_docs[question.qid]
+                record["selected_sources"] = [gold.source]
+                record["n_shards_queried"] = 0
+                record["top_doc_ids"] = [gold.doc.doc_id]
+                record["contributing_sources"] = contributing_sources([gold])
+                record["choice"] = await self._generate(
+                    question, [gold], record, self.cfg.llm.requester_model
+                )
+                record["timings"]["e2e_s"] = time.perf_counter() - start
+                return record
             embeddings = await asyncio.to_thread(self._embed, question, record)
             encoded_embeddings = self._encode_embeddings(embeddings)
             if isinstance(self.router, (CentroidProbeRouter, DeviceProbeRouter)):
