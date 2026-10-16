@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 18,
-  "iteration_name": "返事の無いデバイスの枠を次の順位で補ったときの hit と問い合わせの費用",
-  "phase": "evaluate",
+  "iteration": 19,
+  "iteration_name": "返事の無い枠を補う方式と最初から多めに送る方式の，同じ問い合わせの数での hit の比較",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "churn_eval.probe_refill: [once, until_full]（atrium churn-refill-eval．L_join ∈ {∞, 0, 100}．離脱は通知しない．補わない none が基準）",
-  "experiment_dir": "results/20261016_iter18_churn_refill_eval",
-  "experiment_deadline": 1792199045,
+  "current_lever": "churn_eval.device_probe_budget",
+  "experiment_dir": null,
+  "experiment_deadline": null,
   "updated_at": 1792127446,
-  "last_slack_ts": "1792127428.891279",
-  "iteration_thread_ts": "1792124772.342079",
+  "last_slack_ts": "1792129767.678739",
+  "iteration_thread_ts": "1792129638.243129",
   "notion_toggle_created": true,
-  "last_commit": "96c4516"
+  "last_commit": "9c63cf0"
 }

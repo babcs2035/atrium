@@ -3,6 +3,109 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 19: 返事の無い枠を補う方式と最初から多めに送る方式の，同じ問い合わせの数での hit の比較
+
+### 調査・計画（2026-10-16．research-cycle の phase 1）
+
+**調べて分かったこと**
+
+- Iteration 18 の比較の偏り（journal の Iteration 18 の表から計算した．`metrics.json` は読めていない）：
+  - none で D を 12 から 15 へ上げたときの限界の回収は，1 種あたり 1 台あたり約 25.5 問である．
+  - once（D = 12）の contacted は 15.15〜15.64 で，d15（15.00）より 0.15〜0.64 台多い．限界の回収で換算すると約 4〜16 問になり，観測された差（平均 6.6 問．種ごとに 0〜+22 問）と同じ大きさである．最も近い D との単純な比較は，once に有利な側に偏っている．
+  - none の d12 と d15 の間を折れ線で補間すると，contacted 15.35 での none の n_hit の種の和は約 7,429 で，once の 7,417 との差は約 −12 問（1 種あたり約 −2.4 問）になる（推測．種ごとの対応は確かめていない）．
+- コードで確かめたこと：`visible_top_devices` は安定な並べ替えで上位 d 台を取る．そのため，none の候補は D について入れ子になり，contacted は D について減らない（G4 の根拠）．
+- Dean & Barroso, "The Tail at Scale", Communications of the ACM 56(2), 2013, pp. 74–80：
+  - fan-out の大きい要求では，最も遅い少数の要求が全体の待ち時間を決める．Google の測定では，1 台への要求の 99 パーセンタイルが 10 ms のとき，全ての要求の完了を待つ 99 パーセンタイルは 140 ms で，最も遅い 5% の要求を待つ分がその約半分を占める．
+  - tied request（同じ要求を 2 つの複製に送り，片方が処理を始めたら他方を取り消す）で，送る前に 1 ms 遅らせると，中央値が 16%，99.9 パーセンタイルが約 40% 短くなった．
+  - 送る前に遠隔の待ち行列を probe して最も空いた server を選ぶ方式は，複製へ同時に送る方式より効果が小さいとされる．理由は，probe と要求の間に負荷が変わること，処理時間を見積もりにくいこと，全ての client が同じ server を選んで偏りが生じうることである．
+  - atrium への含意（推測）：hedge は，遅い少数の要求にだけ追加を送る．once は 96.4% の問に 2 往復目を送るので，hedge のようには働かず，ほぼ全ての問の待ち時間に 2 往復目が加わる．hit が同じなら，往復の少ない構成が有利と読める．
+- Kulkarni & Callan, "Selective Search: Efficient and Effective Search of Large Textual Collections", ACM Transactions on Information Systems 33(4), 2015：
+  - 資源の順位付けに ReDDE（0.5% の標本からなる CSI）を使い，上位の固定の T 個のシャードだけを検索して結果を統合する．D はこの T に当たる．
+  - 返事の無いシャードの扱いの記述は見つからなかった．問ごとに打ち切りの数を変える Rank-S・Taily の書誌と内容は確かめていない．
+- B50 の要レビュー (a) への答え：2 つの文献の書誌と上の内容を確かめた．Iteration 18 の「hedge は複製に重ねて送る方式で，atrium の補う変種とは異なる」という記述は，本文と矛盾しない．
+
+**単一レバー**：`churn_eval.device_probe_budget`（device_probe の 1 段目の台数 D）を変える．Iteration 18 では D は {12, 15} で，15 は none だけだった．これを D ∈ {9, 10, 11, 12, 13, 14, 15, 16, 17, 18} に広げ，全ての D で refill ∈ {none, once, until_full} を流す．
+- 新しい CLI `atrium churn-budget-eval`（`src/atrium/churn_budget_eval.py`）で実行する．
+- 次の規則は，Iteration 18 の `route_cascade_with_refill` と同じにする（import して再利用する）．補う規則，2 段目，hit と (i)〜(iv) の分け方，contacted・wasted，往復の情報．
+- none の D = 9〜18 から，同じ条件・同じ種の「contacted と n_hit の曲線」を作る．once と until_full の点を，この曲線と同じ contacted で比べる．
+
+**固定する構成**
+- 変えないもの：config.yaml，データ，シャード，配置，m = 2，C = 32，`AVAILABILITIES`・`REFRESH_STEPS`・`MEAN_UP_STEPS`・`N_SCHEDULE_SEEDS`・`experiment.seed` = 12，採点・質問の順番．
+- メンバー表は Iteration 16 の `join_notified_view` とし，離脱は通知しない．返事の無いことは，送った時点で分かるとする．
+- 方式は device_probe だけにする．centroid_probe・multi_centroid・flood_score は流さない．
+- 条件は a ∈ {1.0, 0.9, 0.7, 0.5}，R ∈ {1, 10, 100, 1000}，L_join ∈ {∞, 0, 100}，種 5 個である．
+- 実行の数は，10（D）× 3（refill）× 4 × 4 × 3 × 5 = 7,200 件である．
+
+**比較の規則**
+- 同じ（a, R, L_join, 種）の none の点 (x_D, y_D) を作る．x_D は contacted の問あたりの平均，y_D は n_hit である（D = 9〜18）．
+- 点を x の昇順に並べ，折れ線で補間した関数 Î を作る．x の等しい点が複数あれば，その中の n_hit の最大値を使う（none に有利な側に寄せ，H-B1 を厳しくする）．
+- 補う変種の点 (c, n) に対し，Δ = n − Î(c) とする．c が none の x の範囲の外なら，Δ は None とする．
+- 記録として，s = Î⁻¹(n) − c も出す．これは，同じ hit に要る none の contacted との差で，補う変種が節約した問い合わせの数に当たる．Î が単調でない区間では None とする．
+
+**仮説と判定**
+- 主の点は，device_probe，D = 12，once，a = 0.7，R = 1000，L_join = 100 である．種ごとの Δ_s で判定する．
+- H-B1（補う変種が有利）：5 個の種の全てで Δ_s > 0，かつ平均 ≥ +15 問．
+- H-B3（補う変種が不利）：5 個の種の全てで Δ_s < 0，かつ平均 ≤ −15 問．
+- H-B2（差が無い）：5 個の種の全てで |Δ_s| ≤ 25 問．
+- 判定は H-B1 → H-B3 → H-B2 の順に調べ，最初に成り立ったものを結論とする．どれも成り立たない場合と，Δ_s が None の種がある場合は「判定できない」とする．
+- 成功条件（採用）：退行ゲートを全て通過し，結論が H-B1・H-B2・H-B3 のいずれかに決まること．「判定できない」なら棄却とし，D の範囲か種の数を見直す．
+- 閾値の根拠：
+  - 15 問は 2,940 問の約 0.51 ポイントで，限界の回収（約 25.5 問 / 台）の約 0.6 台分に当たる．25 問は約 1 台分（約 0.85 ポイント）である．
+  - Iteration 18 の once と d15 の差の，種の間の標準偏差は 9.3 問である．真の差が 0 なら，5 個の種の全てが ±25 問に入る確率は約 0.96 と見込む（正規分布で近似した推測）．
+- 期待：H-B2（Δ の平均は約 −2 問の見込み）．
+
+**期待効果（推測）**
+- once の D = 12 の contacted は 15.35 で，none の D = 15〜16 の間に入る．Δ は 1 種あたり −10〜+10 問の範囲と見込む．
+- once の D = 9・10・11 の contacted は，それぞれ約 11.5・12.8・14.1 と見込む．根拠は，Iteration 18 の補った枠の約 72% が稼働中だったことである．いずれも none の曲線の範囲（約 9〜18）に入る．
+- until_full の D = 12（contacted 16.70）は，none の D = 16〜17 の間に入る．
+
+**退行ゲート**（1 つでも通らなければ判定しない）
+- G1：D = 12 の none・once・until_full と，D = 15 の none の計 960 件を照合する．全ての条件で，`results/20261016_iter18_churn_refill_eval/metrics.json` の `runs` の同じキー（method，availability，refresh，join_delay，refill，seed）の実行と完全に一致する．照合する項目は，Iteration 18 の EXACT_FIELDS（STAT_FIELDS・COUNT_FIELDS・`n_contacted`・往復の情報）である．
+- G2：a = 1.0 または R = 1 の once・until_full の 2,100 件が，同じ D・条件の none と全ての項目で完全に一致する．
+- G3：全ての実行（7,200 件）で，n_hit と (i)〜(iv) の件数の和が問の数に等しい（`churn_cascade_eval.gate_g4`）．
+- G4：同じ（a, R, L_join, 種）の none で，contacted が D について減らない．かつ，全ての問で返事のある候補の集合が D について入れ子になる（違反 0）．
+- G5：全ての D で，全ての問の返事のある候補について none ⊆ once ⊆ until_full が成り立つ（違反 0 問．Iteration 18 の G6）．
+- G6：L_join = 0・until_full の 800 件（10 D × 4 a × 4 R × 5 種）が，同じ（D, a, 種）の R = 1 の none と COUNT_FIELDS で完全に一致する（Iteration 18 の G5）．
+
+**記録**（判定に使わない）
+- none の曲線：D ごとの n_hit・contacted・wasted．主の条件に加えて，L_join ∈ {∞, 0} と a ∈ {0.9, 0.5} でも出す．
+- once・until_full の D = 9〜18 の Δ と s（種ごと）．特に once の D = 9・10・11 と，until_full の D = 12．
+- 問ごとの contacted の分布（once は問ごとに深さが変わる．最大値と 95 パーセンタイル），second_round_rate，往復の数の平均と最大．
+- d15 との単純な差（Iteration 18 の対照の形）と，補間した Δ の両方．
+
+**実機**：使わない．補う変種の 2 往復目の待ち時間は測れない．H-B1 なら，実機の再生（B49 A3・B51 A2）を行う理由ができる．H-B2・H-B3 なら，1 往復で D を大きくする構成を推奨し，実機の再生の優先度を下げる．
+
+**記録の注記**：phase 1 の最後に，`Bash`・`Read` が `Unknown tool` で失敗した．`metrics.json` から主の条件の値（種ごとの contacted）を取り出す前に失敗したので，見込みは journal の Iteration 18 の表から計算した．この節・backlog の B52・config.yml の変更は，オーケストレータが戻り値から書き写した．「調べて分かったこと」の前半（B50 の要レビュー (a) への答えより上）は，戻り値の途中が省略されて届き，再送も得られなかったため，オーケストレータが戻り値に残っていた調査の要点から書き起こした．state.json は，指示により rc-researcher が触れていない．
+
+### 事前登録（2026-10-16．実装の後，実行の前に commit・push する．結果を見て変えない．実装は commit `7a1a3fe`）
+
+調査・計画の節の規則（単一レバー，固定する構成，比較の規則，H-B1〜H-B3 と判定の順，退行ゲート G1〜G6，記録の項目）を，実行の前にそのまま固定する．計画と実装の間に，規則の食い違いは無い．
+
+**評価**：`atrium churn-budget-eval`（`src/atrium/churn_budget_eval.py`）を制御点のコンテナで 1 回だけ流す．出力は `results/20261016_iter19_churn_budget_eval/`（`metrics.json`・`analysis_report.md`・`run.log`）である．実機のノードは使わない．失敗しても，規則を変えて再実行しない．評価の前のインフラの失敗（制御点の `docker pull` の `crc32 mismatch` 等）は B48 と同じ扱いとし，registry の blob の健全性を確かめたうえで，同じコマンドを 1 回だけ流し直す．
+
+```bash
+ssh wafl-ctrl5 'pgrep -af "[c]hain.sh" || echo NO_CHAIN'   # 連続実行が動いていないことを確かめる
+bash -c 'source scripts/tasks/lib.sh && sync_to_control && open_registry_tunnel && publish_images'
+bash scripts/tasks/remote.sh churn_budget_eval 20261016_iter19_churn_budget_eval 20261009_eq5_b1 20261016_iter18_churn_refill_eval
+rsync -az wafl-ctrl5:<REMOTE_DIR>/results/20261016_iter19_churn_budget_eval/ results/20261016_iter19_churn_budget_eval/
+```
+
+**照合の件数**：実行 7,200 件，G1 960 件（D = 12 の 3 つの補い方の 720 件と D = 15 の none の 240 件），G2 2,100 件，G3 7,200 件，G4 2,160 組（240 条件 × 隣り合う D の 9 組），G5 2,400 組（10 D × 240 条件），G6 800 件．
+
+**実装の細部**（規則の読み方を固定するもの）
+- 構成の名前は `device_probe_d{D}` とする．G1 は，この名前と（availability，refresh，join_delay，refill，seed）で Iteration 18 の `runs` と照合する．照合する項目は，Iteration 18 の `EXACT_FIELDS`（STAT_FIELDS・COUNT_FIELDS・`n_contacted`・往復の情報）である．加えて，`m`・`n_test` の一致と，両側の欠けが 0 件であることを求める．
+- G2 は `churn_refill_eval.gate_g3` を使わず，新しく書いた．理由は，`gate_g3` が `device_probe_d15` を対照として照合から外すためである．今回の d15 は格子の 1 点なので，照合に含める．
+- G3 は `churn_cascade_eval.gate_g4` をそのまま使う．
+- G4 の contacted は `n_contacted`（問の和）で比べる．入れ子は，none の返事のある候補（受信箱の印）で，昇順に隣り合う D の間で調べる．
+- G5 は，Iteration 18 の `gate_g6` に D ごとの照合を渡す．G6 の基準は，同じ（D, a, 種）の R = 1・L_join = ∞・none の実行で，COUNT_FIELDS を照合する（contacted・wasted は照合しない）．
+- 折れ線の x は，none の `contacted`（問あたりの平均）である．x の等しい点は，n_hit の最大値を使う．Δ は外挿しない（c が範囲の外なら None）．s は，Î(x) = n の解がただ 1 つのときだけ出す．頂点で等しい点と区間の内側の交点を数え，平らな区間で等しい場合と解が 2 つ以上の場合は None とする．
+- 問ごとの contacted の 95 パーセンタイルは，`numpy.percentile` の既定（線形補間）で計算する．記録の表では，最大は種の最大，95 パーセンタイルは種の平均で示す．d15 との単純な差は，同じ（a, R, L_join, 種）の `device_probe_d15` の none の n_hit との差である．
+
+**実装の検査**（commit `7a1a3fe`）
+- `tests/test_churn_budget_eval.py` の 23 件が通過した．全体の pytest は 512 件が全て通過した．`ruff check src tests`・`ruff format --check src tests`・`mypy` は通過した．
+- テストで，折れ線（等しい x の最大値，範囲の外の None，逆関数の一意性・頂点・平らな区間），判定の順（H-B1 → H-B3 → H-B2，None の種），ゲートが不通過を拾うこと（G1 の値・欠け・n_test，G2，G4 の減少と入れ子，G6）を確かめた．
+- 合成のデータ（18 ノード・18 デバイス・36 受信箱，300 刻み，乱数の得点）で，集計・ゲート・報告の流れを最後まで通した．実行 7,200 件，G1 960 件，G2 2,100 件，G4 2,160 組，G5 2,400 組，G6 800 件で，G1〜G6 は全て通過した．
+
 ## Iteration 18: 返事の無いデバイスの枠を次の順位で補ったときの hit と問い合わせの費用
 
 ### 調査・計画（2026-10-16．research-cycle の phase 1）

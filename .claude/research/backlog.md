@@ -17,6 +17,51 @@
 
 ---
 
+## B53 [auto-decided 2026-10-16] Iteration 19 の phase 2 で，rc-executor が `Unknown tool` で 2 度止まった．blocked にせず，同じ subagent を続けて動かす
+
+- 状況: phase 2 の rc-executor が，`Read`・`Bash` の `Unknown tool` で 2 度止まった．1 度目は書き込みの前に止まった．2 度目は `src/atrium/churn_budget_eval.py`（804 行，新規），`src/atrium/cli.py`（+34 行），`scripts/remote/churn_budget_eval.sh`（22 行，新規）を書いた後に止まった．テスト・文書・commit・評価の実行はまだ無い（HEAD は 9c63cf0 のまま）．Iteration 17〜19 では，phase 1・3 でも同じ失敗が続いている．
+- 自動選択: status を blocked にせず，同じ rc-executor を文脈を保ったまま再開し，残りの手順（テスト，文書，検査，実装の commit，事前登録，評価，結果の commit）から続ける．Slack で @mention して異常を知らせる．
+- 根拠: ツールの失敗は不可逆な判断ではなく，やり直しで済む（SKILL.md の blocked は不可逆な判断の待ちに使う）．2 度目で作業が進み，書いたファイルは作業ツリーに残っている．オーケストレータが構文の検査（`ast.parse`・`bash -n`）で，ファイルが途中で切れていないことを確かめた．
+- 要レビュー:
+  - (a) 3 度目も止まった場合は，同じ subagent を続けて呼ばず，status を blocked にして人間に判断を求める．
+  - (b) `Unknown tool` が subagent の側でだけ続く原因（ツールの許可，MCP の接続，subagent の定義の tools の欄など）は調べていない．
+  - (c) 書かれたコードは，まだ pytest・ruff・mypy を通していない．subagent の戻り値によれば，`float(np.mean(deltas))` が strict の mypy で型エラーになる可能性がある．
+
+## B52 [auto-decided 2026-10-16] Iteration 19 のレバーの形：device_probe の D を 9〜18 に広げ，補う変種を none の曲線の補間で同じ contacted にそろえて比べる（`churn_eval.device_probe_budget`．新しい CLI `atrium churn-budget-eval`）
+
+- 状況: B51 で，Iteration 19 のレバーを「同じ問い合わせの数での，補う変種と多めに送る構成の比較」に決めた．D の格子・比較の規則・仮説・閾値・ゲート・CLI の形は，rc-researcher が決めることになっていた．Iteration 18 の once（D = 12）の contacted は 15.15〜15.64 で，対照の d15（15.00）より 0.15〜0.64 台多い．限界の回収（約 25.5 問 / 種 / 台）で換算すると，この差は約 4〜16 問になり，観測された差（0〜+22 問）と同じ大きさである．
+- 選択肢:
+  - D の格子:
+    - A1 (Recommended): D ∈ {9, …, 18} の全てで none・once・until_full を流す（7,200 件）．メリット: once の D = 9〜12（contacted 約 11.5〜15.35）と until_full の D = 12（16.70）を，none の曲線の内側で挟める．デメリット: 判定に使わない実行が多い（オフラインで分単位なので問題は小さい）．
+    - A2: B51 の案（none の D ∈ {13, 14, 16, 17, 18} を足し，once は D ∈ {9, 10, 12}）．デメリット: once の D = 9（約 11.5）が none の範囲（12〜18）の外になり，補間できない．
+    - A3: none の D = 13〜18 だけを流す．デメリット: 補う変種の深さを変えた比較ができない．
+  - 比較の規則:
+    - B1 (Recommended): 同じ（条件，種）の none の (contacted, n_hit) の折れ線で，once の contacted での値を補間して差 Δ を取る．メリット: contacted の違いによる偏りを除ける．デメリット: 曲線が単調でないと補間がぶれる（x の等しい点は n_hit の最大値を使い，none に有利な側に寄せる）．
+    - B2: 最も近い D と比べる．デメリット: 最大 0.5 台分（約 13 問）の偏りが残り，観測された差と同じ大きさになる．
+    - B3: 同じ hit に要る none の contacted との差 s を主にする．デメリット: 曲線の平らな区間で不安定になる．記録だけに使う．
+  - 仮説の形:
+    - C1 (Recommended): H-B1（有利．全ての種で Δ > 0 かつ平均 ≥ +15 問）→ H-B3（不利．全ての種で < 0 かつ平均 ≤ −15 問）→ H-B2（差なし．全ての種で |Δ| ≤ 25 問）の順に判定し，結論が決まれば採用とする．メリット: 見込み（Δ ≈ 0）のとおりでも結論になり，論文の記述（補う変種を勧めるか）に直接答えられる．デメリット: 「仮説を支持すれば採用」という従来の形と，採用の意味が違う．
+    - C2: H-B1 だけを判定する．デメリット: 見込みどおりなら棄却になり，「差が無い」ことを主張できない．
+    - C3: H-B2 だけを判定する．デメリット: 方向の情報を失う．
+  - ゲート:
+    - D1 (Recommended): G1（Iteration 18 の D = 12 の 3 種と D = 15 の none の 960 件の完全一致），G2（a = 1.0 または R = 1 では補い方に依らない），G3（件数の和），G4（none の候補が D について入れ子），G5（none ⊆ once ⊆ until_full），G6（L_join = 0・until_full が R = 1 と一致）．メリット: Iteration 18 の再現と構造上の性質を全件で確かめられる．
+  - CLI の形:
+    - E1 (Recommended): 新しい CLI `atrium churn-budget-eval`（`src/atrium/churn_budget_eval.py`）を作り，`route_cascade_with_refill` を import する．メリット: Iteration 15〜18 の CLI と結果の再現に触れない．デメリット: 集計と報告の一部が重複する．
+    - E2: `churn-refill-eval` に D の格子の引数を足す．デメリット: 既存の CLI と metrics.json の形が変わる．
+- 自動選択: A1・B1・C1・D1・E1．config.yml の `churn_eval.device_probe_budget` の values を [9, 10, 11, 12, 13, 14, 15, 16, 17, 18] にし，note を更新した．事前登録の素案は journal の Iteration 19 の調査・計画に置いた．
+- 根拠:
+  - Iteration 18 の比較の偏り（contacted の差 0.15〜0.64 台）は観測された差と同じ大きさで，同じ contacted にそろえなければ結論が出ない．
+  - Dean & Barroso（CACM 2013）によれば，fan-out の待ち時間は最も遅い要求で決まり，hedge は少数の要求にだけ追加を送る．once は 96.4% の問に 2 往復目を送るので，hit が同じなら 1 往復の構成の方が有利と読める．
+  - Kulkarni & Callan（TOIS 2015）の selective search は，固定の T で上位のシャードを検索する．D は T に当たり，同じ問い合わせの数での hit の曲線は，その評価の形に合う．
+- 要レビュー:
+  - (a) phase 1 の最後に `Bash`・`Read` が `Unknown tool` で失敗し，`metrics.json` から種ごとの contacted と none の値を取り出せていない．見込み（Δ の平均 約 −2 問，限界の回収 25.5 問 / 台，once の D = 9〜11 の contacted）は，journal の表から計算した推測である．事前登録の前に，`metrics.json` で確かめること．
+  - (b) 採用の規則が従来と異なり，H-B2（差が無い）でも採用になる．採用は「補う変種が有効」の意味ではない．
+  - (c) 閾値の 15・25 問は，Iteration 18 の 1 組の差の標準偏差（9.3 問）に基づく．
+  - (d) Rank-S・Taily（問ごとの打ち切りの数）と，Dean & Barroso の「95 パーセンタイルの後に送る」という記述は確かめていない．
+  - (e) state.json は rc-researcher が触れていない．current_lever はオーケストレータが更新する．
+  - (f) 未追跡のファイル（`iter7_chain.log`，`results/20261016_iter14_smoke_*`，`/tmp` のファイル）に触れず，削除・課金・`mise run clean --full` を伴わない．
+  - (g) この B52・journal の節・config.yml の変更は，オーケストレータが戻り値から書き写したものである．
+
 ## B51 [auto-decided 2026-10-16] Iteration 18 は採用．Iteration 19 のレバーは，同じ問い合わせの数での補う変種と多めに送る構成の比較（`churn_eval.device_probe_budget`．仮称）
 
 - 状況: Iteration 18 は採用である（G1〜G6 通過，H-P1 支持．ρ_refill 0.514〜0.584，平均 0.541）．ただし，同じ程度の問い合わせの数の 1 往復の対照 `device_probe_d15` との n_hit の差は，種ごとに 0〜+22 問（種の和 +33 問 / 14,700 問）で，種の間の揺れの中にある．補う変種は 2 往復目の費用を払うので，利点があるかどうかが次の評価の要点になる．

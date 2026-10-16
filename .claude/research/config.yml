@@ -218,10 +218,12 @@ levers:
             メンバー表は Iteration 16 の形（参加の通知 L_join だけ．離脱は通知しない）で，L_join は ∞・0・100．主の仮説 H-P1 は device_probe（D = 12）の a = 0.7・R = 1000・L_join = 100・once で，
             5 個の種の全てで ρ_refill ≥ 0.20．同じ程度の問い合わせの数の 1 往復の対照として，device_probe_d15（補わない）を記録に足す．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 18．
             Iteration 18 は採用（ρ_refill 0.514〜0.584）．ただし同じ程度の問い合わせの数の対照 device_probe_d15 との n_hit の差は 0〜+22 問で，種の間の揺れの中にある"}
-  - {name: churn_eval.device_probe_budget, values: [13, 14, 16, 17, 18],
-     note: "Iteration 18 の評価で追加（backlog B51 [auto-decided]）．仮称．device_probe の none で D を振り，D ∈ {9, 10, 12} の once と，
-            a = 0.7・R = 1000・L_join = 100 で hit と contacted の組を比べる．補う変種が同じ問い合わせの数で 1 往復の構成より hit が高いかを決める．
-            オフラインの評価で，config.yaml・データ・シャードは変えない．D の格子と判定の規則は，次の rc-researcher が事前登録で決める"}
+  - {name: churn_eval.device_probe_budget, values: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+     note: "Iteration 18 の評価で追加（backlog B51 [auto-decided]）．Iteration 19 の rc-researcher が確定（backlog B52）．device_probe の 1 段目の台数 D を 9〜18 に広げ，
+            全ての D で refill ∈ {none, once, until_full} を流す．新しいオフライン評価 CLI atrium churn-budget-eval（src/atrium/churn_budget_eval.py．route_cascade_with_refill を再利用）．
+            同じ（a, R, L_join, 種）の none の (contacted, n_hit) の折れ線で，once の contacted での値を補間して差 Δ を取る．主の点は D = 12・once・a = 0.7・R = 1000・L_join = 100．
+            H-B1（全ての種で Δ > 0 かつ平均 ≥ +15 問）→ H-B3（全ての種で < 0 かつ平均 ≤ −15 問）→ H-B2（全ての種で |Δ| ≤ 25 問）の順に判定し，結論が決まれば採用．
+            G1 は Iteration 18 の D = 12（3 種）と D = 15 の none の 960 件の完全一致．config.yaml・データ・シャードは変えない．事前登録は journal の Iteration 19"}
 
 # ベースライン条件（環境変数ではなく config.yaml の値で切り替える）
 baselines:
