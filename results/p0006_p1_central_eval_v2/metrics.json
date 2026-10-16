@@ -1,0 +1,67 @@
+{
+ "n_emails": 73772,
+ "n_test": 2940,
+ "k": 5,
+ "central_dense": {
+  "recall@1": {
+   "value": 0.5346938775510204,
+   "ci95": [
+    0.5159863945578231,
+    0.5517091836734693
+   ],
+   "n": 2940
+  },
+  "recall@5": {
+   "value": 0.7329931972789115,
+   "ci95": [
+    0.7166666666666667,
+    0.748639455782313
+   ],
+   "n": 2940
+  }
+ },
+ "central_bm25": {
+  "recall@1": {
+   "value": 0.7193877551020408,
+   "ci95": [
+    0.7044132653061225,
+    0.7350340136054422
+   ],
+   "n": 2940
+  },
+  "recall@5": {
+   "value": 0.9030612244897959,
+   "ci95": [
+    0.8921768707482993,
+    0.9139455782312925
+   ],
+   "n": 2940
+  }
+ },
+ "c1_equivalence": {
+  "n_compared": 2940,
+  "n_failed_or_missing": 0,
+  "set_agreement": 0.9942176870748299,
+  "ordered_agreement": 0.9710884353741497,
+  "tie_aware_agreement": 1.0,
+  "threshold": 0.999,
+  "equivalent": false,
+  "equivalent_tie_aware": true
+ },
+ "runs": {
+  "c1": {
+   "recall": {
+    "value": 0.7333333333333333,
+    "ci95": [
+     0.7166666666666667,
+     0.7493197278911564
+    ],
+    "n": 2940
+   },
+   "mean_query_recipients": 30.0,
+   "mean_docs_exposed_per_query": 750.0,
+   "mean_shards_queried": 150.0
+  }
+ },
+ "central_one_time_docs": 73772
+}
