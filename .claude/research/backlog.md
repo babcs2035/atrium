@@ -17,6 +17,11 @@
 
 ---
 
+## B55 [human-decided 2026-10-16] RQ-C（参加・離脱）は凍結．p0006 の P0〜P5 を実行する
+- 回答: ユーザーが plans/p0006_generic_routing_and_central_baseline.md に従う全工程の遂行を指示した．RQ-C（参加・離脱）は凍結する．コード・CLI・結果・journal は残す．レバーは `frozen_levers` に移した．再開の条件は p0006 §9.3．
+- したこと: `.claude/research/config.yml` の `churn_eval.*` の 6 レバー（B54 で足した `device_probe_cutoff` を含む）を記述を変えずに `frozen_levers:` へ移し，p0006 §8 のレバー 10 件を `levers` の末尾に足した．skill のスクリプトは `slack.*` 以外の config のキーを読まないため，未知のトップレベルキーで足りた（コメント化の代替案は使っていない）．B54 の Iteration 20（`device_probe_cutoff`）は凍結の対象なので選ばない．同じ考え（問ごとの打ち切り）は p0006 P2-2 の `routing.adaptive_cutoff` で，参加・離脱なしに行う．
+- 要レビュー: なし．
+
 ## B54 [auto-decided 2026-10-16] Iteration 19 は採用（結論は H-B2「差が無い」）．Iteration 20 のレバーは，問ごとに probe の台数を変える方式（`churn_eval.device_probe_cutoff`．仮称）
 
 - 状況: Iteration 19 は採用である（G1〜G6 通過．主の点の Δ は −2.49・−3.35・−2.47・−7.02・+7.86 問，平均 −1.49 問で，H-B2）．採用は「同じ問い合わせの数で，補う変種と補わない構成の hit に差が無い」という意味で，「補う変種が有効」の意味ではない．a < 1・R > 1 の 135 組でも，once の D = 12 の Δ は平均 −0.51 問（標準偏差 3.83 問）だった．config.yml の levers は使い切っている．

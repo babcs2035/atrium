@@ -17,6 +17,8 @@
 #      192.168.13.100〜109・192.168.14.100〜109（GPU なし），質問者は制御点（wafl-ctrl5）である．
 #      192.168.15.100〜109（wafl500〜509）は，データ準備の埋め込みを分担する GPU PC（cluster.gpu_workers）である．
   #      1 台のデバイスの役割は 1 つだけで，デバイスは config.yaml の cluster の requester・experts・gpu_workers に書く．
+  #      （p0004 以降の解釈：禁じるのは「同時に持つ役割が 2 つ以上」であり，データ準備の後に wafl500〜509 を
+  #      GPU の専門家として使うことは許す．p0006 P0 で追記）
 #   3. データ準備は 2026-10-06 に完了している（`mise run data-status` で確認できる）．作り直しには
 #      制御点と wafl500〜509 の GPU で 6 時間以上かかるので，データ準備を中断・削除しない．
 #      `retrieval.k_ret`・`k_rerank`・`cluster.shard_budget_gb`・`data.medrag.embed_precision` を変えると
@@ -195,6 +197,33 @@ levers:
             判定は交互に並べた組の比（N = 1 は 5 組）で行う．主の仮説 H-R1 は dp12 × N = 1 で有効な組の全てで比 > 1 かつ中央値 ≥ 1.02．計 34 実行．事前登録は journal の Iteration 14．
             Iteration 14 は採用（組の比 q の中央値：dp12 N = 1 1.080〔5 組 1.032〜1.118〕，fs N = 1 1.043〔1.022〜1.071〕．1 要求の質問者の CPU は dp12 N = 1 で 1.168 → 1.074 ms．遅れの無い dp12 N = 8 × pe は 323〜326 問/秒で律速は質問者のまま）．
             これで設定キーで除ける大きな項目は残らない．次の方向（負荷の系列を続けるか RQ の研究へ戻るか）は人間の判断を待つ（backlog B39 [needs-human]）"}
+  # ---- p0006（2026-10-16 確定）：汎用のルーティングと中央集約ベースライン．上から順に 1 つずつ動かす ----
+  - {name: baseline.central, values: [all_global_merge, gold_context, central_bm25],
+     note: "p0006 P1．C1（routing=all・merge=score・snippet_return．オフラインの中央の索引と上位 5 通の文書 ID の一致 ≥ 0.999 を確かめる），
+            C0（answer_mode=gold_context．評価専用），C1′（全体で統計を共有した BM25．オフラインの Recall@5）．
+            回答は llama3.1:8b，判定は qwen3:8b．H-P1a（C2 > C1）・H-P1b（C1 ≥ C3）を事前登録する"}
+  - {name: routing.frontier_eval, values: [reproduce],
+     note: "p0006 P2-0．atrium frontier-eval を作り，§6.3 の既存の点を再現する（R4）．以後の方式はこの CLI に差し込む"}
+  - {name: routing.sample_summary, values: [4, 8, 16, 32, 64],
+     note: "p0006 P2-1 F1a．各デバイスが本文の埋め込みを S 個公開する（ReDDE・CSI 型）．ヘッダーを除いた本文から作る"}
+  - {name: routing.term_stats_summary, values: [1000, 4000, 16000],
+     note: "p0006 P2-1 F1b．本文の語の文書頻度の上位 V 語を公開し，CORI 型で順位づける"}
+  - {name: routing.adaptive_cutoff, values: [score_gap, softmax_mass],
+     note: "p0006 P2-2 F2．問ごとに 2 段目の台数を決める（Rank-S・Taily 型）．凍結した churn_eval.device_probe_cutoff の考えを，参加・離脱なしで評価する"}
+  - {name: routing.hierarchy, values: [random, similarity],
+     note: "p0006 P2-3 F3．g 個のグループの代表が要約を束ねる 2 段の階層．N=30 と N=150（1 受信箱 = 1 デバイスの模擬）"}
+  - {name: routing.overlay_walk, values: [greedy, tarw],
+     note: "p0006 P2-4 F4．近傍 d 台の要約だけを持つ転送（DRAG 型の再実装）．要求数・ホップ数・hit"}
+  - {name: generality.dataset, values: [feb4rag, medrag],
+     note: "p0006 P3．同じ frontier-eval を話題で分けたデータに当てる．判定は p0006 §7.3"}
+  - {name: generality.score_norm, values: [none, zscore, rank],
+     note: "p0006 P3．FeB4RAG のように検索器が違うデバイスの得点の比べ方"}
+  - {name: live.finalists, values: [tbd],
+     note: "p0006 P4．P2・P3 で残った方式（2 つまで）を Router にして実機で確認し，B1・B4 で回答まで行う．値は P3 のレビューで決める"}
+
+# 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
+# このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．
+frozen_levers:
   - {name: churn_eval.methods, values: [centroid_probe, device_probe],
      note: "Iteration 15 で追加（backlog B40 [auto-decided]）．B39 で負荷の系列を閉じ，RQ の研究へ戻った．新しいオフライン評価 CLI atrium churn-cascade-eval（src/atrium/churn_cascade_eval.py）．
             EQ7a の時刻表（a・R・種）のまま，centroid_probe（K = 75・30）と device_probe（D = 24・12）を，返事のあったデバイスの候補から上位 m 個を選ぶ規則で評価する．

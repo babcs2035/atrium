@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 19,
-  "iteration_name": "返事の無い枠を補う方式と最初から多めに送る方式の，同じ問い合わせの数での hit の比較",
-  "phase": "execute",
+  "iteration": 20,
+  "iteration_name": "p0006 P1：中央集約ベースライン（baseline.central）",
+  "phase": "research",
   "status": "running",
-  "current_lever": "churn_eval.device_probe_budget",
-  "experiment_dir": "results/20261016_iter19_churn_budget_eval",
-  "experiment_deadline": 1792203902,
+  "current_lever": null,
+  "experiment_dir": null,
+  "experiment_deadline": null,
   "updated_at": 1792132021,
-  "last_slack_ts": "1792129767.678739",
-  "iteration_thread_ts": "1792129638.243129",
-  "notion_toggle_created": true,
-  "last_commit": "9c63cf0"
+  "last_slack_ts": "1792132817.912919",
+  "iteration_thread_ts": null,
+  "notion_toggle_created": false,
+  "last_commit": "8670895"
 }
