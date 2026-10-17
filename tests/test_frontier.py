@@ -23,8 +23,8 @@ from atrium.frontier_methods import (
     make_groups,
     neighbor_table,
     sample_device_scores,
-    zscore_rows,
     walk_visited,
+    zscore_rows,
 )
 
 DIM = 4
