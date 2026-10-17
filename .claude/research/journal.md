@@ -3,6 +3,28 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0006 P3：汎用性の検証（FeB4RAG・MedRAG．事前登録．2026-10-17）
+
+レバー `generality.dataset`・`generality.score_norm`．評価の前に，条件・判定の規則を固定する．結果を見て変えない．
+
+**データと単位**（`atrium frontier-eval --dataset feb4rag|medrag`．dev = train + val の質問，test = test の質問．方式は学習しない）
+- FeB4RAG：13 エンジン（1 エンジン = 1 デバイス）．790 問（dev 316・test 474）．2 段目の得点はエンジンの配布済み検索結果の最高の得点．関連ラベルは LLM 判定（1 問平均 11.9 エンジンが関連）．m = 9（config の random_k.feb4rag と同じ）．主の指標は関連エンジンの再現率 `source_recall@9`（選んだ 9 エンジンに入る関連エンジンの割合．上限は 9 / 11.9）．要約は，エンジンが返した文書（title と text．13 エンジンで 512,806 通）を共通の符号化器（arctic-embed-m-v1.5）で埋め込んだもの．配布の評価スクリプトの資源選択の指標（nDCG など）は，このリポジトリに実装が無いので出さない（限界）．
+- MedRAG：16 シャード（1 シャード = 1 デバイス）．7,663 問．2 段目の得点は，全シャードを総当たりで検索した上位 15 件（保存されていないので GPU で計算し直す）の最高の内積．関連ラベルは「統合後の上位 15 件に 1 件以上を出したシャード」．m = 3（config の top_m.medrag と同じ）．主の指標は `source_recall@3`（シャード単位．データ源単位の集計は出さない）．要約は，各シャードから無作為に取った文書 50,000 通（25 ファイル × 2,000 通．シャードの約 1.2%．MedCPT の埋め込みと本文の語の統計）で，語の統計はこの標本から作る（近似．限界）．
+- 一致の確認（止まる条件の 1）：シャードのラベルから求めたデータ源の集合が `labels.json` と一致する割合 ≥ 0.999．届かなければ止まる．
+
+**得点の比べ方**（`generality.score_norm`．FeB4RAG のみ）：none・zscore・rank を全て流す（z 値と順位は，train の質問のエンジンごとの得点の分布から）．dev の全員に聞く方式の再現率が最大の正規化を，判定に使う．MedRAG は 1 つの検索器（MedCPT）なので none だけ．
+
+**方式**：flood_score・body_baseline（本文の重心）・sample_summary・term_stats・term_stats_large・hybrid_summary・adaptive_cutoff．設定の格子は P2 と同じ（`frontier_methods.py` の定数）．hierarchy・overlay_walk は P2 で目標に届かず，P3 から外す．ヘッダー込みの既存の基準（device_probe など）は EnronQA 固有なので使わない．
+
+**目標**：EnronQA は hit@2 ≥ 0.78．FeB4RAG・MedRAG は全員に聞く方式（flood_score）の test の再現率の 0.95 倍．方式の族ごとに，目標に届く最小の要求数（test の最小値．選ぶ変数は設定の格子だけ）で順位づけし，届かない族は，要求数 [m, n_devices + m] を 1 に正規化した，フロンティアの階段の下の面積で順位づける（p0006 §7.3）．
+
+**判定**（`atrium frontier-verdict`．EnronQA は `results/p0006_p2_iter2` の n30 を使う）
+- 「X は Y より汎用的に優れる」：X が Y より優れることが 3 つのデータのうち 2 つ以上で成り立ち，残りで逆転の差が区間の外にない（要求数の予算が全員に聞く方式の半分のとき，Y の再現率の 95% 区間の下端が X の上端より高いデータが無い）．予算内に点が無い方式は再現率 0 とみなす．
+- 比べる組：(hybrid_summary, body_baseline)・(hybrid_summary, term_stats)・(term_stats, body_baseline)・(hybrid_summary, sample_summary)．4 つの組を見る多重性があるが，閾値は変えない（組の数を結論に併記する）．
+- 結論が「汎用に優れる」にならない組は，EnronQA 固有の可能性があると書く．露出（出どころの top-1・AUC）と公開情報の大きさは記述のみ．
+
+**実行**：`bash scripts/tasks/remote.sh frontier_eval p0006_p3_feb4rag - flood_score,body_baseline,sample_summary,term_stats,term_stats_large,hybrid_summary,adaptive_cutoff --dataset feb4rag`（MedRAG も同じ形）．反復の上限は P3 全体で 4．
+
 ## p0006 P2：反復 2 の結果と P2 のまとめ（2026-10-17．`results/p0006_p2_iter2`）
 
 **判定**：H-P2a′ は規則どおり**不成立**．ただし near-miss である．dev で hit@2 ≥ 0.78 に届く最小の設定が選ばれ，hybrid_summary（V = 64,000・w = 0.5）は dev の D = 12 が 0.7778（目標に 0.002 届かない）で，D = 16（18 要求・dev 0.7863）が選ばれた．test は D = 16 が 0.8017（95% 区間 [0.787, 0.816]，18 要求）で，要求数の上限 16 を 2 超える．規則は結果を見て変えない．
