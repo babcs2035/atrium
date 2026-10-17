@@ -313,7 +313,7 @@ def cmd_frontier_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
             cfg, dataset_paths(Path(args.data_dir), args.dataset), args.dataset, names, work_dir
         )
     frontier_eval.write_outputs(Path(args.out_dir), result)
-    print(frontier_eval.render_report(result))
+    print(frontier_eval.render(result))
     return 0
 
 

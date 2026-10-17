@@ -687,6 +687,11 @@ def render_other_report(result: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def render(result: dict[str, Any]) -> str:
+    """データに応じた analysis_report.md の本文（EnronQA は dev で選んだ設定の表，他は族ごとの曲線の表）．"""
+    return render_other_report(result) if "dataset" in result["metrics"] else render_report(result)
+
+
 def write_outputs(out_dir: Path, result: dict[str, Any]) -> None:
     """frontier.json・metrics.json・analysis_report.md を書く（メールの本文は含まない）．"""
     out_dir.mkdir(parents=True, exist_ok=True)
