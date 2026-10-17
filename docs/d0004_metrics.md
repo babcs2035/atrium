@@ -365,6 +365,31 @@ Iteration 18 と同じ採点・時刻表・質問の順番・メンバー表（`
 
 1 刻みは 1 問である．2 往復目の待ち時間はオフラインでは測らない．
 
+### 中央集約ベースライン（`atrium central-eval`．p0006 P1）
+
+制御点のコンテナで流す（`scripts/remote/central_eval.sh <out_name> <c1_run> [<name>=<run> ...]`）．実機のノードは使わない．
+`central_dense`・`central_bm25` は，全メールを 1 つの索引にした場合（密ベクトルの内積と，全体で IDF と平均長を共有した BM25）の Recall@1・Recall@K（K = `data.enronqa.k_context`）と 95% 区間．
+`c1_equivalence` は，C1（`routing: all`・`snippet_return`）の `top_doc_ids` と 1 索引の上位 K 通の一致で，`set_agreement`（集合として）・`ordered_agreement`（順序も）・`tie_aware_agreement`（同点の重複メールの入れ替えを許す）・欠け・失敗の数と，閾値 0.999 での判定を持つ．
+`runs` は実行ごとの Recall@K と，1 問あたりの質問を受け取ったデバイスの数・外へ出た文書の数・問い合わせたシャードの数．`central_one_time_docs` は中央に集める場合に一度きり外へ出る文書の数．
+
+### 汎用のルーティング方式のフロンティア（`atrium frontier-eval`・`atrium frontier-verdict`．p0006 P2・P3）
+
+`frontier-eval` は制御点のコンテナで流す（`scripts/remote/frontier_eval.sh <out_name> <placement_run|-> [methods] [--dataset ...]`）．
+方式は `src/atrium/frontier_methods.py` の `BUILDERS` に足すだけで加わる（CLI は増やさない）．出力は次の 3 つ．
+
+- `frontier.json`：方式×設定×split（dev・test）×subset（`all`・`no_owner_name`）ごとに 1 行．`requests_per_query`（平均・p95・最大．probe したデバイス + 方式固有の追加 + 本照会の m），`round_trips`（平均・最大），`advert_bytes`（float32 で数えた公開情報），`hit@1`・`hit@m`・`source_recall@m`（test は 95% 区間），`attribution_top1`・`attribution_auc`（公開情報から正解でないメールの出どころのデバイスを当てる．test のみ），`family`・`method`・`params`．
+- `metrics.json`：EnronQA は R4（既存の点の再現），dev の hit@m が目標以上で平均の要求数が最小の設定（族ごと．test では選ばない），H-P2a・H-P2b・H-P2c の集計，test のフロンティア．FeB4RAG・MedRAG は族ごとの「目標に届く最小の要求数」と面積，全員に聞く方式の再現率（dev・test）．
+- `analysis_report.md`：上の表．
+
+hit は既存の評価と同じ規則（正解より得点が高いか同点のデータ源の数を順位とする．同点は不利な側）で数える．複数ラベルのデータ（FeB4RAG・MedRAG）の主の指標は，選んだ m 個に入る関連データ源の割合 `source_recall@m` である．
+`frontier-verdict` は複数のデータの `frontier.json` から，p0006 §7.3 の汎用の判定（3 データのうち 2 つ以上で優れ，残りで逆転の差が区間の外にない）を `X:Y` の組ごとに出す（操作端末）．
+
+### term_probe・hybrid_probe の要約とオフラインの選択（`atrium build-summary`．p0006 P4）
+
+制御点のコンテナで流す（`scripts/remote/build_summary.sh <out_name> <placement_run>`）．配置ごとの要約（語の統計の CORI 重みと本文の重心）を `<data_dir>/enronqa/summary/` に書き（既存の成果物とは別の新しいサブディレクトリ），
+`results/<out_name>/offline_selection.json` に，test の質問ごとの「選ばれるデータ源」（`frontier-eval` と同じ関数で求めたもの）を書く．
+実機の `retrieval_only` の `selected_sources` との一致率（集合として．閾値 0.999）で，質問者の選択がオフラインの評価と同じかを確かめる．
+
 ### EnronQA の参加・離脱の実機の再生（`atrium churn-live-report`．p0004 EQ7b）
 
 `experiment.churn` を指定した実行（[d0002](d0002_configuration.md)）の `results.jsonl` は，問ごとに `churn: {step, up, n_visible}`

@@ -1,9 +1,9 @@
 {
   "repo": "atrium",
   "iteration": 20,
-  "iteration_name": "p0006 P1：中央集約ベースライン（baseline.central）",
-  "phase": "research",
-  "status": "running",
+  "iteration_name": "p0006 完了（P0〜P5）．次は人間の判断（B56・B57・B58 のレビュー，P6 の開始）",
+  "phase": "evaluate",
+  "status": "converged",
   "current_lever": null,
   "experiment_dir": null,
   "experiment_deadline": null,
@@ -11,5 +11,5 @@
   "last_slack_ts": "1792132817.912919",
   "iteration_thread_ts": null,
   "notion_toggle_created": false,
-  "last_commit": "8670895"
+  "last_commit": "9d3815c"
 }

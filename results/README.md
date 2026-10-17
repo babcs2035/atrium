@@ -82,3 +82,24 @@
 | `20261012_eq7a_churn` | EQ7a：RQ-C のオフラインの評価（参加・離脱とメンバー表の古さ） | H-C1 支持（差は小さい） | EQ7a：RQ-C のオフラインの評価 |
 | `20261013_eq7b_summary` | EQ7b の 22 回の条件（`eq7b_specs.txt`）と集計（`final/` が全 22 回，`gate/` は退行ゲートの 2 回） | H-C1 支持，EQ7a と全 22 回で一致 | EQ7b の事前登録，EQ7b：実機の参加・離脱の再生 |
 | `20261013_eq7b_{multi_centroid,flood_score}_a{100,70}_r{1,1000}_s{0..4}` | EQ7b：稼働率 1（退行ゲート 2 回）と 0.7（20 回），2,940 問 | hit@2 は EQ7a と一致．H-C1 支持 | EQ7b：実機の参加・離脱の再生 |
+
+## p0006（2026-10-16〜．汎用のルーティングと中央集約ベースライン）
+
+| 実行 | 内容 | 主な値 | journal |
+|---|---|---|---|
+| `p0006_r1_med_all_ret`・`p0006_r2_feb_ragroute`・`p0006_r3_advert_eval` | P0：退行ゲート R1（MedRAG の `top_doc_ids`）・R2（FeB4RAG の `selected_sources`）・R3（`advert-eval`） | 全て既存の値と一致 | p0006 P0 |
+| `p0006_c0_gold_context` | P1：C0．正解メールだけを文脈にする（評価専用）．2,940 問 | 0.8816 | p0006 P1（結果と判定） |
+| `p0006_c1_all_pernode` | P1：C1．`routing: all`・`snippet_return`・`http_pool: per_node`．2,940 問（`shared` の最初の実行は PoolTimeout で止めた．制御点にだけ残る） | 0.6752 | 同上 |
+| `p0006_p1_central_eval`・`p0006_p1_central_eval_v2` | P1：`central-eval`．v2 は同点を許す一致を足した再実行 | C1 の一致 0.9942（厳密）・1.0000（同点を許す）．中央 BM25 の Recall@5 0.903 | 同上 |
+| `p0006_p2_r4_smoke` | P2：`frontier-eval` の R4（既存の点の再現） | 5 点とも一致 | p0006 P2（事前登録） |
+| `p0006_p2_frontier` | P2 反復 1：全方式（n30・n150） | H-P2a 不成立．term_stats が最良 | p0006 P2：反復 1 の結果と判定 |
+| `p0006_p2_iter2` | P2 反復 2：term_stats_large・hybrid_summary | hybrid 0.8017（18 要求），14 要求で 0.7895 | p0006 P2：反復 2 の結果と P2 のまとめ |
+| `p0006_p3_feb4rag`・`p0006_p3_medrag` | P3：FeB4RAG（得点の正規化 none・zscore・rank）と MedRAG（16 シャード） | 本文の重心が FeB4RAG で，語の統計が MedRAG で最少の要求数 | p0006 P3：結果と判定 |
+| `p0006_p3_verdict` | P3：`frontier-verdict`．§7.3 の汎用の判定 4 組 | 汎用に優れる組は無い | 同上 |
+| `p0006_p4_build_summary` | P4：`build-summary` の要約の記録とオフラインの選択 | 語彙 198,492・30 デバイス | p0006 P4（事前登録） |
+| `p0006_p4_{term,hybrid}_probe_full` | P4：オフラインとの一致．`retrieval_only`・2,940 問・parallel 30 | 一致 2,940/2,940（両方） | p0006 P4：オフラインとの一致と待ち時間の結果 |
+| `p0006_p4_{term,hybrid}_probe_p{1,30}_r{1,2,3}`・`p0006_p4_flood_score_p{1,30}_r{1,2,3}` | P4：待ち時間．300 問 × 3 回 | parallel 30 の e2e p50：flood 2.2 s，term 1.9 s，hybrid 1.4 s | 同上 |
+| `p0006_p4_{term,hybrid}_probe_{b1,b4}` | P4：回答まで．B1・B4，2,940 問 | B1 0.657・0.655（flood_score と差なし），B4 0.626・0.631 | p0006 P4：回答まで の結果と判定 |
+
+- EnronQA の実行の `results.jsonl` の回答は，`scripts/tasks/sanitize_results.py` で，メール本文の引用を除いてから commit する（backlog B57）．
+

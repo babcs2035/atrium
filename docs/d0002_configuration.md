@@ -26,8 +26,8 @@ Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLA
 |---|---|---|
 | `kind` | `e0_measure` / `e1_routing` | E0（実機の実測）か，連合 RAG の実行か |
 | `dataset` | `medrag` / `feb4rag` / `enronqa` | MIRAGE ＋ MedRAG コーパス（4 データ源）か，FeB4RAG（13 エンジン）か，EnronQA（150 人の受信箱．p0004） |
-| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid`，Iteration 1 で `centroid_probe`，Iteration 7 で `device_probe` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5） |
-| `answer_mode` | `retrieval_only` / `snippet_return` / `local_answer` / `snippet_return_small` / `delegate_gpu` | LLM を呼ばず検索まで／断片返却型／宿る型／断片返却型で質問者が専門家と同じ小型のモデルを使う（B3．p0004）／GPU の無い専門家が対応づけた GPU の専門家に断片を渡して答えさせる（B4．p0004） |
+| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid`，Iteration 1 で `centroid_probe`，Iteration 7 で `device_probe`，p0006 P4 で `term_probe`・`hybrid_probe` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5） |
+| `answer_mode` | `retrieval_only` / `snippet_return` / `local_answer` / `snippet_return_small` / `delegate_gpu` / `gold_context` | LLM を呼ばず検索まで／断片返却型／宿る型／断片返却型で質問者が専門家と同じ小型のモデルを使う（B3．p0004）／GPU の無い専門家が対応づけた GPU の専門家に断片を渡して答えさせる（B4．p0004）／検索もルーティングもせず，正解のメール 1 通だけを文脈にして質問者が答える（C0．p0006．評価専用で EnronQA のみ．`run_meta.json` に `evaluation_only: true`．deploy が受信箱の chunk（本文）を質問者へ配る） |
 | `question_limit` | 整数または `null` | 各問題集の先頭からこの数だけを使う（動作確認用） |
 | `parallel` | 整数 | 質問者が同時に処理する質問数 |
 | `seed` | 整数 | `random` のルーティングと，FeB4RAG の重心の無作為抽出の種 |
@@ -69,6 +69,9 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | `top_m.enronqa` | 2（dev で選んだ値） | 公開情報を使う方式と `flood_score` が問い合わせるデータ源の数 m（p0004 の RQ-A） |
 | `probe_k.enronqa` | 評価前は 75（仮置き） | `centroid_probe` が probe を送る候補の数 K（`multi_centroid` の上位 K 個．`top_m.enronqa` 以上）．`atrium cascade-eval` の dev で，hit@2 が `flood_score` の 0.95 倍以上になる最小の K（候補 {4, 8, 15, 30, 50, 75}．届かなければ 75）を選ぶ．実機（`experiment.routing: centroid_probe`）では，質問者が 1 段目の候補（既存のヘッダー込みの `multi_centroid`）を 1 問で 1 回だけ求め，候補のシャードを持つノードにだけ，候補の `shard_ids` で `/v1/probe` を送って上位 m 個を選ぶ．届くデバイスの数・シャードの数は `atrium probe-reach`（オフライン）と結果の `probe_*` で確かめる |
 | `probe_d.enronqa` | 評価前は 30（仮置き．全台で `flood_score` と同じ選択） | `device_probe` が probe を送るデバイスの数 D．`multi_centroid` の受信箱の得点をデバイス（`placement.json` のノード）ごとに最大値でまとめた上位 D 台を選び，その D 台に載る全ての受信箱へ `/v1/probe` を送って上位 m 個を選ぶ．1 問あたりの要求の数は D ＋ m に決まる．`atrium device-probe-eval` の dev で，Iteration 7 の事前登録の規則（比べる centroid_probe の K の dev の hit@2 以上になる最小の D）で選ぶ．1 データ源 1 シャード（EnronQA）でだけ使える |
+| `term_probe_d.enronqa` | 24 | `term_probe`（p0006 P4）が probe を送るデバイスの数 D．本文の語の文書頻度（CORI）の得点の上位 D 台．frontier-eval の dev の規則（dev の hit@2 が 0.78 以上になる最小の要求数）で選んだ値．要約は `atrium build-summary` が作った `<data_dir>/enronqa/summary/` を質問者が読む |
+| `hybrid_probe_d.enronqa` | 16 | `hybrid_probe`（p0006 P4）が probe を送るデバイスの数 D．語の統計と本文の重心を質問ごとに標準化して足した得点の上位 D 台．選び方は `term_probe_d` と同じ |
+| `summary_weight` | 0.5 | `hybrid_probe` で，本文の重心の得点（標準化後）に掛ける重み（frontier-eval の格子 0.5・1・2 で最良） |
 | `top_m.medrag` | 3 | MedRAG で `card_sim`（E2 の `desc_sim`）が問い合わせるデータ源の数（p0003 S5）．4 源の `train`・`val` で F1 が最大の k（候補 {1, 2, 3}）．MedRAG のデータ源は広告を持たないので，質問者が起動時に自己紹介文を MedCPT の文書側で埋め込んで付ける |
 
 ## llm
