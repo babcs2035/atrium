@@ -23,6 +23,7 @@ from atrium.frontier_methods import (
     make_groups,
     neighbor_table,
     sample_device_scores,
+    term_index,
     walk_visited,
     zscore_rows,
 )
@@ -130,7 +131,7 @@ def test_neighbor_table_excludes_the_device_itself() -> None:
 def test_cori_ranks_the_device_that_publishes_the_query_term_first() -> None:
     data = _data()
     weights, cf = cori_weights(data, 10)
-    scores = cori_scores(data, weights, cf, [["word2"]])
+    scores = cori_scores(term_index(data)["vocab"], weights, cf, [["word2"]])
     assert int(np.argmax(scores[0])) == 1  # 受信箱 2 のデバイスは 1
 
 

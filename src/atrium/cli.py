@@ -15,6 +15,7 @@
     probe-reach               centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA．Iteration 4．制御点のコンテナ）
     device-probe-eval         device_probe の D ごとの hit@m と D の選択（EnronQA．Iteration 7．制御点のコンテナ）
     frontier-eval             汎用のルーティング方式のフロンティア評価（EnronQA．p0006 P2．制御点のコンテナ）
+    build-summary             term_probe・hybrid_probe の要約の成果物とオフラインの選択を作る（EnronQA．p0006 P4．制御点のコンテナ）
     frontier-verdict          複数のデータの frontier.json から汎用の判定を出す（p0006 §7.3．操作端末）
     node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
@@ -314,6 +315,23 @@ def cmd_frontier_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         )
     frontier_eval.write_outputs(Path(args.out_dir), result)
     print(frontier_eval.render(result))
+    return 0
+
+
+def cmd_build_summary(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """term_probe・hybrid_probe の要約の成果物と，オフラインの選択を作る（p0006 P4）．"""
+    from atrium import summary_build
+    from atrium.manifest import read_placement
+
+    summary = summary_build.build(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        read_placement(Path(args.placement)),
+        Path(args.work_dir) if args.work_dir else None,
+        Path(args.summary_dir),
+        Path(args.out_dir),
+    )
+    print(json.dumps(summary, indent=1))
     return 0
 
 
@@ -845,6 +863,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--skip-n150", action="store_true", help="1 受信箱 = 1 デバイスの模擬を流さない")
     p.set_defaults(func=cmd_frontier_eval)
+
+    p = sub.add_parser(
+        "build-summary",
+        help="term_probe・hybrid_probe の要約の成果物とオフラインの選択を作る（EnronQA．p0006 P4）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--placement", required=True, help="配置（results/<run>/placement.json）")
+    p.add_argument(
+        "--work-dir", default=None, help="本文の埋め込みのキャッシュ（frontier-eval と同じ）"
+    )
+    p.add_argument(
+        "--summary-dir",
+        required=True,
+        help="要約の成果物の書き込み先（<data_dir>/enronqa/summary）",
+    )
+    p.add_argument(
+        "--out-dir", required=True, help="オフラインの選択の書き込み先（results/<name>）"
+    )
+    p.set_defaults(func=cmd_build_summary)
 
     p = sub.add_parser(
         "frontier-verdict", help="複数のデータの frontier.json から汎用の判定を出す（p0006 §7.3）"

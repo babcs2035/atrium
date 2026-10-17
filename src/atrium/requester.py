@@ -61,6 +61,7 @@ from atrium.protocol import (
 )
 from atrium.routing import Router, RoutingQuery, SourceProfile
 from atrium.routing.advert import CentroidProbeRouter, DeviceProbeRouter, tokenize
+from atrium.routing.summary import SummaryProbeRouter
 from atrium.store import RetrievedDoc
 
 logger = logging.getLogger(__name__)
@@ -736,7 +737,7 @@ class Requester:
 
     async def _route_by_candidate_probe(
         self,
-        router: CentroidProbeRouter | DeviceProbeRouter,
+        router: CentroidProbeRouter | DeviceProbeRouter | SummaryProbeRouter,
         question: Question,
         embeddings: dict[str, F32Array],
         record: dict[str, Any],
@@ -755,7 +756,7 @@ class Requester:
             tokens=tuple(tokenize(question.question)),
         )
         sources = self._routable_sources()
-        if isinstance(router, DeviceProbeRouter):
+        if isinstance(router, (DeviceProbeRouter, SummaryProbeRouter)):
             missing = [s.source for s in sources if s.source not in self._device_of_source]
             if missing:
                 raise ValueError(f"device_probe needs single-shard sources: {missing[:5]}")
@@ -799,7 +800,9 @@ class Requester:
                 return record
             embeddings = await asyncio.to_thread(self._embed, question, record)
             encoded_embeddings = self._encode_embeddings(embeddings)
-            if isinstance(self.router, (CentroidProbeRouter, DeviceProbeRouter)):
+            if isinstance(
+                self.router, (CentroidProbeRouter, DeviceProbeRouter, SummaryProbeRouter)
+            ):
                 selected = await self._route_by_candidate_probe(
                     self.router, question, embeddings, record, encoded_embeddings
                 )

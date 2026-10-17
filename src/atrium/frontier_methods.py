@@ -428,12 +428,17 @@ def cori_weights(data: FrontierData, size: int) -> Any:
 
 
 def cori_scores(
-    data: FrontierData, weights: Any, cf: np.ndarray[Any, Any], token_lists: list[list[str]]
+    vocab: dict[str, int],
+    weights: Any,
+    cf: np.ndarray[Any, Any],
+    token_lists: list[list[str]],
 ) -> F32Array:
-    """質問（または文書）の語から，デバイスの CORI の得点（公開された語の信念の平均）を作る．"""
+    """質問（または文書）の語から，デバイスの CORI の得点（公開された語の信念の平均）を作る．
+
+    vocab は語 → 語の番号．質問者（atrium.routing.summary）も同じ関数で採点する（オフラインの評価と実機の選択を一致させる）．
+    """
     from scipy.sparse import csr_matrix
 
-    vocab = term_index(data)["vocab"]
     rows: list[int] = []
     cols: list[int] = []
     for qi, toks in enumerate(token_lists):
@@ -463,12 +468,14 @@ def build_term_stats(data: FrontierData) -> list[Config]:
         def dscores(split: str, size: int = size, weights: Any = weights, cf: Any = cf) -> F32Array:
             key = f"cori_{size}_{split}"
             if key not in data.cache:
-                data.cache[key] = cori_scores(data, weights, cf, data.q_tokens[split])
+                data.cache[key] = cori_scores(
+                    term_index(data)["vocab"], weights, cf, data.q_tokens[split]
+                )
             out: F32Array = data.cache[key]
             return out
 
         def attribute(probes: ProbeDocs, weights: Any = weights, cf: Any = cf) -> F32Array:
-            return cori_scores(data, weights, cf, probes.tokens)
+            return cori_scores(term_index(data)["vocab"], weights, cf, probes.tokens)
 
         for d in d_grid(data.n_devices):
 
@@ -494,12 +501,14 @@ def build_term_stats_large(data: FrontierData) -> list[Config]:
     def dscores(split: str) -> F32Array:
         key = f"cori_{LARGE_TERM_SIZE}_{split}"
         if key not in data.cache:
-            data.cache[key] = cori_scores(data, weights, cf, data.q_tokens[split])
+            data.cache[key] = cori_scores(
+                term_index(data)["vocab"], weights, cf, data.q_tokens[split]
+            )
         out: F32Array = data.cache[key]
         return out
 
     def attribute(probes: ProbeDocs) -> F32Array:
-        return cori_scores(data, weights, cf, probes.tokens)
+        return cori_scores(term_index(data)["vocab"], weights, cf, probes.tokens)
 
     configs = []
     for d in d_grid(data.n_devices):
@@ -543,7 +552,9 @@ def build_hybrid_summary(data: FrontierData) -> list[Config]:
             ) -> F32Array:
                 key = f"cori_{size}_{split}"
                 if key not in data.cache:
-                    data.cache[key] = cori_scores(data, weights, cf, data.q_tokens[split])
+                    data.cache[key] = cori_scores(
+                        term_index(data)["vocab"], weights, cf, data.q_tokens[split]
+                    )
                 fused: F32Array = zscore_rows(data.cache[key]) + w * zscore_rows(
                     device_first_stage(data, split, "body")
                 )
@@ -552,7 +563,9 @@ def build_hybrid_summary(data: FrontierData) -> list[Config]:
             def attribute(
                 probes: ProbeDocs, w: float = w, weights: Any = weights, cf: Any = cf
             ) -> F32Array:
-                terms = zscore_rows(cori_scores(data, weights, cf, probes.tokens))
+                terms = zscore_rows(
+                    cori_scores(term_index(data)["vocab"], weights, cf, probes.tokens)
+                )
                 emb = zscore_rows(
                     aggregate_max(multi_scores(probes.emb, centers), device_of_source)
                 )

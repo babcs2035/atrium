@@ -27,6 +27,8 @@ RoutingName = Literal[
     "multi_centroid",
     "centroid_probe",
     "device_probe",
+    "term_probe",
+    "hybrid_probe",
 ]
 # snippet_return_small（B3）と delegate_gpu（B4）は p0004 で追加（RQ-B）．
 # gold_context は p0006 の C0：検索せずに正解のメールを文脈として質問者が答える（評価専用．EnronQA のみ）
@@ -167,6 +169,11 @@ class RoutingConfig(_Strict):
     # device_probe が probe を送るデバイスの数 D（multi_centroid の得点をデバイスごとに最大値でまとめた上位 D 台．
     # Iteration 7 の事前登録の規則で選ぶ）
     probe_d: dict[DatasetName, int] = Field(default_factory=dict)
+    # term_probe・hybrid_probe（p0006 P4）が probe を送るデバイスの数 D．P2 の dev の規則で選んだ値
+    term_probe_d: dict[DatasetName, int] = Field(default_factory=dict)
+    hybrid_probe_d: dict[DatasetName, int] = Field(default_factory=dict)
+    # hybrid_probe の併用の重み（本文の重心側．P2 の格子で最良の 0.5）
+    summary_weight: float = Field(default=0.5, gt=0)
 
 
 class LlmConfig(_Strict):

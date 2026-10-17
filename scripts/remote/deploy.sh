@@ -157,8 +157,8 @@ deploy_requester() {
   nssh "$host" "mkdir -p $REMOTE_DIR/data/$DATASET $REMOTE_DIR/results $REMOTE_DIR/hf-cache $REMOTE_DIR/ollama"
   own_remote_dir "$host"
   # 質問者が使うものだけを送る（シャードの本文と埋め込みは送らない）
-  # labels は routing=oracle（p0004）が使う
-  for item in benchmark manifest.json queries router qrels labels; do
+  # labels は routing=oracle（p0004）が，summary は routing=term_probe・hybrid_probe（p0006 P4．atrium build-summary）が使う
+  for item in benchmark manifest.json queries router qrels labels summary; do
     if [ -e "$DS_DIR/$item" ]; then
       nrsync -aL --delete "$DS_DIR/$item" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/"
     fi

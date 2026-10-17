@@ -200,6 +200,23 @@ def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = 
                 f"routing={name} requires routing.top_m.{dataset} and probe_d.{dataset}"
             )
         return advert.DeviceProbeRouter(cfg.routing.top_m[dataset], cfg.routing.probe_d[dataset])
+    if name in ("term_probe", "hybrid_probe"):
+        from atrium.routing.summary import SUMMARY_DIRNAME, SummaryProbeRouter, load_summary
+
+        depth = cfg.routing.term_probe_d if name == "term_probe" else cfg.routing.hybrid_probe_d
+        if dataset != "enronqa" or dataset not in cfg.routing.top_m or dataset not in depth:
+            raise ValueError(
+                f"routing={name} requires dataset=enronqa and routing.top_m.{dataset}, "
+                f"routing.{name}_d.{dataset}"
+            )
+        return SummaryProbeRouter(
+            "term" if name == "term_probe" else "hybrid",
+            cfg.routing.top_m[dataset],
+            depth[dataset],
+            load_summary(router_dir.parent / SUMMARY_DIRNAME),
+            cfg.data.require_enronqa().encoder,
+            cfg.routing.summary_weight,
+        )
     if name in by_name:
         if dataset not in cfg.routing.top_m:
             raise ValueError(f"routing={name} requires routing.top_m.{dataset}")
