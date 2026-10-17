@@ -468,6 +468,12 @@ def better_family(curves: dict[str, dict[str, Any]], x: str, y: str) -> str:
     return "tie" if abs(cx["area"] - cy["area"]) < 1e-9 else (x if cx["area"] > cy["area"] else y)
 
 
+def recall_ci(row: dict[str, Any], m: int) -> list[float]:
+    """再現率の 95% 区間（単一ラベルのデータの古い行は hit@m の区間が同じ値なので代用する）．"""
+    ci: list[float] = row.get(f"source_recall@{m}_ci95") or row[f"hit@{m}_ci95"]
+    return ci
+
+
 def generality_verdict(
     per_dataset: dict[str, list[dict[str, Any]]], x: str, y: str
 ) -> dict[str, Any]:
@@ -491,16 +497,16 @@ def generality_verdict(
         bx, by = best_at_budget(rows, x, m, budget), best_at_budget(rows, y, m, budget)
         key = f"source_recall@{m}"
         # 予算内に点が無い方式は，再現率 0 とみなす（区間も 0）
-        x_upper = bx[f"{key}_ci95"][1] if bx else 0.0
-        outside = bool(who == y and by and by[f"{key}_ci95"][0] > x_upper)
+        x_upper = recall_ci(bx, m)[1] if bx else 0.0
+        outside = bool(who == y and by and recall_ci(by, m)[0] > x_upper)
         wins += who == x
         reversal = reversal or outside
         detail[name] = {
             "available": True,
             "better": who,
             "budget": budget,
-            "x": None if bx is None else {"recall": bx[key], "ci95": bx[f"{key}_ci95"]},
-            "y": None if by is None else {"recall": by[key], "ci95": by[f"{key}_ci95"]},
+            "x": None if bx is None else {"recall": bx[key], "ci95": recall_ci(bx, m)},
+            "y": None if by is None else {"recall": by[key], "ci95": recall_ci(by, m)},
             "min_requests_x": curves[x]["min_requests_to_target"],
             "min_requests_y": curves[y]["min_requests_to_target"],
             "reversal_outside_interval": outside,

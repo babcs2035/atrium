@@ -1,0 +1,66 @@
+{
+ "dataset": "medrag",
+ "methods": [
+  "flood_score",
+  "body_baseline",
+  "sample_summary",
+  "term_stats",
+  "term_stats_large",
+  "hybrid_summary",
+  "adaptive_cutoff"
+ ],
+ "m": 3,
+ "n_devices": 16,
+ "flood_recall": {
+  "medrag": {
+   "dev": 0.573655168808563,
+   "test": 0.5739533370159593
+  }
+ },
+ "chosen_placement": "medrag",
+ "curves": {
+  "medrag": {
+   "adaptive_cutoff": {
+    "target": 0.5452556701651613,
+    "min_requests_to_target": null,
+    "area": 0.09427600931472964,
+    "best_recall": 0.10058005040066358
+   },
+   "body_baseline": {
+    "target": 0.5452556701651613,
+    "min_requests_to_target": 19.0,
+    "area": 0.30693152859860295,
+    "best_recall": 0.5739533370159593
+   },
+   "hybrid_summary": {
+    "target": 0.5452556701651613,
+    "min_requests_to_target": 15.0,
+    "area": 0.4361505149512733,
+    "best_recall": 0.5739533370159593
+   },
+   "reference": {
+    "target": 0.5452556701651613,
+    "min_requests_to_target": 19.0,
+    "area": 0.0,
+    "best_recall": 0.5739533370159593
+   },
+   "sample_summary": {
+    "target": 0.5452556701651613,
+    "min_requests_to_target": 15.0,
+    "area": 0.38267024418769363,
+    "best_recall": 0.5739533370159593
+   },
+   "term_stats": {
+    "target": 0.5452556701651613,
+    "min_requests_to_target": 11.0,
+    "area": 0.4490431383594299,
+    "best_recall": 0.5739533370159593
+   }
+  }
+ },
+ "target_dev": {
+  "medrag": 0.5449724103681348
+ },
+ "label_agreement": 1.0,
+ "duration_s": 1486.4247951391153
+}

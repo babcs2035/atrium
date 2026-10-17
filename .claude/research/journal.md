@@ -3,6 +3,34 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0006 P3：結果と判定（2026-10-17．`results/p0006_p3_feb4rag`・`results/p0006_p3_medrag`・`results/p0006_p3_verdict`）
+
+**結論**：事前登録の 4 組（X が Y より汎用的に優れるか）のうち，「汎用に優れる」と書ける組は**無い**．EnronQA で最良だった hybrid_summary の優位は，FeB4RAG で逆転する（区間の外）．EnronQA 固有の可能性が残る．一致の確認（MedRAG のシャードのラベルと labels.json）は 1.0000 で，止まる条件には当たらない．
+
+**FeB4RAG**（13 エンジン．test 474 問．m = 9．全員に聞く方式の再現率 0.7814・22 要求．目標 0.742）：
+- 目標に届く最小の要求数：body_baseline（本文の重心で probe なしに直接選ぶ）**9**，term_stats・hybrid_summary 17，sample_summary 21，flood_score 22．
+- 要求数が m = 9 を下回る probe 型は，D < 9 では選べる数が足りず再現率が頭打ち（D = 4：0.42）．probe 型は D ≥ 9 が要るので 18 要求近くになる．
+- 関連エンジンが 1 問あたり 11.9/13 と多く，ルーティングで選ぶ余地が小さい（ラベルが飽和）．直接選ぶ方式が最少の要求数になるのは，この構造による．
+- 得点の比べ方：flood_score の再現率は none 0.7814・zscore 0.7499・rank 0.7393．dev も none が最大で，none を判定に使った．z 値・順位の正規化は，本研究の範囲（検索器の違いが大きいデータ）では全員に聞く方式をむしろ下げた（原因は未確認．train の分布が test の分布と違う可能性）．
+- 限界：配布の評価スクリプトの資源選択の指標は実装が無く出していない．
+
+**MedRAG**（16 シャード．test 4,599 問．m = 3．全員に聞く方式の再現率 0.5740・19 要求．目標 0.545）：目標に届く最小の要求数は term_stats **11**，hybrid_summary 15，sample_summary 15，body_baseline 19，flood_score 19．打ち切りは届かない．要約は各シャードの標本 50,000 通（約 1.2%）から作った近似で，語の統計もその標本から作る（限界）．
+
+**判定**（`atrium frontier-verdict`．EnronQA は P2 反復 2 の n30，FeB4RAG は none）
+
+| 組 | 勝ったデータ | 逆転が区間の外 | 判定 |
+|---|---|---|---|
+| hybrid_summary > body_baseline | EnronQA・MedRAG（2/3） | FeB4RAG（予算 11：0.216 対 0.786） | 汎用でない |
+| hybrid_summary > term_stats | EnronQA（1/3） | MedRAG（予算 9.5：0.516 対 0.530） | 汎用でない |
+| term_stats > body_baseline | EnronQA・MedRAG（2/3） | FeB4RAG（0.215 対 0.786） | 汎用でない |
+| hybrid_summary > sample_summary | 判定不能（EnronQA の P2 反復 2 に sample_summary の行が無い．反復 1 の値は hybrid が上） | — | 判定不能 |
+
+- 4 組を見た多重性があるが，どの組も「汎用」でないので，結論は変わらない．
+- 読み方：probe 型（語の統計・併用）は「持ち主が少数のデバイスに偏る」EnronQA と MedRAG で，直接選ぶ重心に勝つ．ラベルが飽和し，直接選ぶ方が要求数の少ない FeB4RAG では勝てない．汎用の方式は無く，データの性質（関連データ源の数・検索器の違い）に依る．
+- 露出：term_stats と hybrid_summary の出どころの top-1 は EnronQA で 0.635・0.726（FeB4RAG のエンジンでは 0.515）．要約の種類による交換関係は P2 と同じ向き．
+
+**P4 の最終候補（最大 2 つ）**：hybrid_summary（V = 64,000・w = 0.5・dev が選んだ D = 16）と term_stats（V = 64,000・dev が選んだ D = 24）．P3 で「汎用に優れる」と言えないため，P4 は EnronQA の実機の確認として位置づけ，汎用性の主張はしない．
+
 ## p0006 P3：汎用性の検証（FeB4RAG・MedRAG．事前登録．2026-10-17）
 
 レバー `generality.dataset`・`generality.score_norm`．評価の前に，条件・判定の規則を固定する．結果を見て変えない．
