@@ -830,7 +830,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dataset", default="enronqa", choices=["enronqa", "feb4rag", "medrag"])
     p.add_argument("--data-dir", required=True)
     p.add_argument("--out-dir", required=True)
-    p.add_argument("--placement", required=True, help="n30 の配置（results/<run>/placement.json）")
+    p.add_argument(
+        "--placement", default=None, help="EnronQA の n30 の配置（results/<run>/placement.json）"
+    )
     p.add_argument(
         "--methods",
         default="all",
