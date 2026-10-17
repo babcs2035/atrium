@@ -3,6 +3,29 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0006 P2：汎用のルーティング方式（EnronQA．事前登録．2026-10-17）
+
+レバー `routing.frontier_eval`（R4）・`routing.sample_summary`・`routing.term_stats_summary`・`routing.adaptive_cutoff`・`routing.hierarchy`・`routing.overlay_walk`．評価の前に，条件・仮説・判定の規則・閾値を固定する．結果を見て変えない．
+
+**先行研究の確認**（tavily-search．§10 の 5）：連合 RAG の調査論文（arXiv:2505.18906）は選択的なルーティング（RAGRoute）・FeB4RAG・暗号化 kNN（FRAG）を挙げ，DRAG（arXiv:2505.00443）は TARW による P2P の探索，Rank-S・Taily（Kulkarni ら 2012，Aly ら 2013）は選択的検索の資源選択である．デバイス単位の要求数・往復・露出を同じ軸で測って汎用の方式を比べる研究は見つからず，§10 の 5 には当たらない．ただし F1〜F4 は既存の資源選択（ReDDE・CSI・CORI・Rank-S・Taily・DNS・DRAG）の再実装であり，新規性の主張は「分散 RAG の設定で同じ軸の上で比べ直した」範囲にとどめる．
+
+**R4**：`results/p0006_p2_r4_smoke`．flood_score 0.8041（32 要求），device_probe d24 0.7837（26）・d12 0.6830（14），centroid_probe K=75 0.7612（31.1 台に届く），multi_centroid 0.4401（2）．5 点とも一致（許容 6e-4．要求数は厳密）．
+
+**条件**：`atrium frontier-eval`．n30（既存の 30 台の配置）と n150（1 受信箱 = 1 デバイス）．要約は**ヘッダーを除いた本文**（区切り線より後）から作る．質問は dev 2,948 問・test 2,940 問．m = 2．部分集合は `all` と `no_owner_name`（質問が持ち主の姓を含む A 群を除く）．種は 12．
+
+**設定の選び方**（族ごと．dev だけで選ぶ）：dev の hit@2 が 0.78 以上の設定のうち，dev の平均の要求数が最小のもの．届かなければ dev の hit@2 が最大のもの．test の値は，その設定の値として報告する．
+
+**仮説と判定**
+- H-P2a（主）：§3.2 を守る族（body_baseline・sample_summary・term_stats・adaptive_cutoff・hierarchy・overlay_walk）のいずれかが，上の規則で選んだ設定の test（n30・`all`）で，hit@2 ≥ 0.78 かつ平均の要求数 ≤ 16．6 つの族から選ぶ多重性があるので，余裕（hit@2 − 0.78）が 0.01 未満なら「弱い成立」と書く．**採用**（P3 に進める最終候補）は，H-P2a を通り，かつ同じ要求数以下の body_baseline（device_probe_body）の最良の点に対して hit@2 が相対で 5% 以上高い方式だけ（p0006 §7.2）．
+- H-P2b：打ち切り（F2）が，同じ 1 段目（multi_centroid_body と標本 S = 64 の max）で dev が選んだ固定の D より，test の平均の要求数を 25% 以上減らし，hit@2 を 0.01 より下げない（2 つの 1 段目のどちらかで成立すれば成立）．
+- H-P2c：n150 で，dev が選んだ F3 の要求数の伸び（n150 / n30）が，flood_score の伸び（n150 / n30 = 152 / 32）より小さい．
+- 記述のみ：F4 の hit@2・要求数・往復（最大）．公開情報の大きさ（float32 で数えた bytes）と，出どころの特定（top-1・AUC．n30 の test のメール以外の最大 10 通 / 受信箱）．
+- A 群の点検：族ごとの dev が選んだ設定の hit@2 の順位が，`all` と `no_owner_name` で入れ替わる場合は，その方式を「汎用」と書かない（§3.2）．
+
+**実行**：`bash scripts/tasks/remote.sh frontier_eval p0006_p2_frontier p0006_c1_all_pernode all`（本文の埋め込みは制御点の `<data>/enronqa/frontier/` に保存済み）．方式の設定の格子は `src/atrium/frontier_methods.py` の定数（SAMPLE_SIZES など）に固定している．
+
+**止まる条件**：§3.2 の「主の候補にしない信号」を必要とする方式が見つかった，R4 が崩れた，ディスク使用率 90% 超（§10）．反復の上限は P2 全体で 6．
+
 ## p0006 P1：中央集約ベースライン（反復 1 回目．結果と判定．2026-10-17）
 
 **結論**：事前登録の厳密な一致は 0.9942 で閾値 0.999 に届かず，p0006 §10 の 1 に従って止まった（B56）．ユーザーの「残りを全て自律で遂行」の委任を受け，B56 の推奨 A1 を採用して，同点を許す一致（`central-eval` の追加指標．`results/p0006_p1_central_eval_v2`）で再確認した：**1.0000（等価）**．したがって C1 は「厳密な一致の事前登録には届かないが，差は重複メールの同点の順序だけで，同点を許すと精度の上で中央集約と等価」と書く（事後に基準を足した変更である）．B57（結果へのメール本文の混入）は `sanitize_results.py` で C0・C1 を整形した．仮説の判定は事前登録の規則で出したとおりで，変わらない．
