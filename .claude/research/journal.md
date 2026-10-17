@@ -3,6 +3,25 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0006 P4：実機での確認と回答まで（事前登録．2026-10-17）
+
+レバー `live.finalists`．P3 の結論（汎用に優れる方式は無い）を受け，P4 は EnronQA の実機での確認として行う．評価の前に，条件・仮説・判定の規則を固定する．結果を見て変えない．
+
+**最終候補（2 つ）**：`hybrid_probe`（V = 64,000・w = 0.5・D = 16．P2 反復 2 の dev の規則で選んだ設定）と `term_probe`（V = 64,000・D = 24．同）．実装：`src/atrium/routing/summary.py`（`SummaryProbeRouter`．オフラインの評価と同じ `frontier_methods` の関数で採点する）．要約は `atrium build-summary`（`results/p0006_p4_build_summary`．語彙 198,492 語・30 デバイス）が `<data_dir>/enronqa/summary/` に作り，質問者が読む．ノードの API と公開情報の構造は変えない．**限界**：要約の送信（一度きりの公開）の費用と待ち時間は実機で測らない（質問ごとの要求数には含まれない）．config.yaml のキー `routing.term_probe_d`・`hybrid_probe_d`・`summary_weight` は既定値付きの追加．
+
+**手順と判定**
+1. **オフラインとの一致**（止まる条件の 1）：`retrieval_only`・EnronQA test 2,940 問・parallel 30・`http_pool: per_node`（接続の持ち方だけが違い，選択は変わらない）で流し，`selected_sources` が `offline_selection.json`（`results/p0006_p4_build_summary`）と全問で一致する割合 ≥ **0.999**（集合として）．届かなければ止まる．
+2. **待ち時間**（受信箱ごとの先頭 2 問 = 300 問，`retrieval_only`，`http_pool: per_node`）：routing ∈ {term_probe, hybrid_probe, flood_score} × parallel ∈ {1, 30} × 3 回．判定は「3 回の範囲が重ならないときだけ差がある」（p0005 EQ6・EQ10・T4 と同じ）．
+   - H-P4a：parallel 30 の処理量（問/秒）が，要求数の逆数による予測（flood_score の処理量 × 32 /（D + m））の ±20% に入る（Iteration 6 以降の比 0.977〜1.054 の範囲を踏まえた緩い範囲）．
+   - 記述：parallel 1 の e2e の p50・p95．
+3. **回答まで**（EnronQA test 2,940 問，`llama3.1:8b`，温度 0，判定は qwen3:8b）：B1（質問者の 8B．`snippet_return`）と B4（GPU への委託．`delegate_gpu`）を，2 つの Router で．既存の実行 C1（`p0006_c1_all_pernode`）・C2（oracle の B1，`20261009_eq5_b1`）・C3（flood_score の B1，`20261009_eq5_b1_flood`）・B4 の oracle（`20261009_eq5_b4`）と比べる．McNemar の正確検定（同じ 2,940 問）．**主の比較**（Holm の補正をかける 4 組）：B1 の hybrid_probe 対 C3・term_probe 対 C3・hybrid_probe 対 C2・term_probe 対 C2．
+   - H-P4b：Router の B1 は，同じ hit@2 の flood_score（C3）に対して正答率が下がらない（C3 − Router の差が 0.01 以下で，McNemar で C3 の方が有意に高くない）．
+   - H-P4c：Router の B1 は，中央集約 C1 を上回るか同等（記述）．
+   - 記述：B4 − B1（Router ごと）・Router の正答率と oracle の差（ルーティングの誤りの代償）．
+
+**実行**：連続実行（`results/20261014_t4_load_summary/t4_chain.sh` と同じ形）．各回の前に deploy し直し，commit は実験の連続実行の間は行わない．回答の採点は `judge.sh`（制御点と wafl500〜509 の GPU）．
+**止まる条件**：オフラインとの一致が 0.999 未満，3 回とも失敗率が 10% 超（その条件より大きい parallel は飛ばす），ディスク使用率 90% 超．
+
 ## p0006 P3：結果と判定（2026-10-17．`results/p0006_p3_feb4rag`・`results/p0006_p3_medrag`・`results/p0006_p3_verdict`）
 
 **結論**：事前登録の 4 組（X が Y より汎用的に優れるか）のうち，「汎用に優れる」と書ける組は**無い**．EnronQA で最良だった hybrid_summary の優位は，FeB4RAG で逆転する（区間の外）．EnronQA 固有の可能性が残る．一致の確認（MedRAG のシャードのラベルと labels.json）は 1.0000 で，止まる条件には当たらない．
