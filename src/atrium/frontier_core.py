@@ -231,5 +231,6 @@ def make_row(
         if with_ci:
             row["hit@1_ci95"] = bootstrap_ci(per_query.hit1[mask], data.seed)
             row[f"hit@{data.m}_ci95"] = bootstrap_ci(per_query.hit_m[mask], data.seed)
+            row[f"source_recall@{data.m}_ci95"] = bootstrap_ci(per_query.recall_m[mask], data.seed)
         rows.append(row)
     return rows

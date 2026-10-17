@@ -15,6 +15,7 @@
     probe-reach               centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA．Iteration 4．制御点のコンテナ）
     device-probe-eval         device_probe の D ごとの hit@m と D の選択（EnronQA．Iteration 7．制御点のコンテナ）
     frontier-eval             汎用のルーティング方式のフロンティア評価（EnronQA．p0006 P2．制御点のコンテナ）
+    frontier-verdict          複数のデータの frontier.json から汎用の判定を出す（p0006 §7.3．操作端末）
     node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     churn-cascade-eval        二段の方式の参加・離脱への頑健さのオフラインの評価（EnronQA．Iteration 15．制御点のコンテナ）
@@ -295,16 +296,41 @@ def cmd_frontier_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium.manifest import read_placement
 
     names = list(BUILDERS) if args.methods == "all" else args.methods.split(",")
-    result = frontier_eval.evaluate(
-        cfg,
-        dataset_paths(Path(args.data_dir), args.dataset),
-        read_placement(Path(args.placement)),
-        names,
-        Path(args.work_dir) if args.work_dir else None,
-        not args.skip_n150,
-    )
+    work_dir = Path(args.work_dir) if args.work_dir else None
+    if args.dataset == "enronqa":
+        if args.placement is None:
+            raise SystemExit("frontier-eval enronqa requires --placement")
+        result = frontier_eval.evaluate(
+            cfg,
+            dataset_paths(Path(args.data_dir), "enronqa"),
+            read_placement(Path(args.placement)),
+            names,
+            work_dir,
+            not args.skip_n150,
+        )
+    else:
+        result = frontier_eval.evaluate_other(
+            cfg, dataset_paths(Path(args.data_dir), args.dataset), args.dataset, names, work_dir
+        )
     frontier_eval.write_outputs(Path(args.out_dir), result)
     print(frontier_eval.render_report(result))
+    return 0
+
+
+def cmd_frontier_verdict(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """複数のデータの frontier.json から，p0006 §7.3 の汎用の判定（X は Y より汎用的に優れるか）を出す．"""
+    from atrium import frontier_eval
+
+    per_dataset: dict[str, list[dict[str, Any]]] = {}
+    for spec in args.run:
+        name, _, rest = spec.partition("=")
+        directory, _, placement = rest.partition(":")
+        rows = json.loads((Path(directory) / "frontier.json").read_text(encoding="utf-8"))
+        per_dataset[name] = [r for r in rows if not placement or r["placement"] == placement]
+    verdicts = [
+        frontier_eval.generality_verdict(per_dataset, *pair.split(":", 1)) for pair in args.pair
+    ]
+    print(json.dumps(verdicts, indent=1, ensure_ascii=False))
     return 0
 
 
@@ -801,7 +827,7 @@ def build_parser() -> argparse.ArgumentParser:
         "frontier-eval",
         help="汎用のルーティング方式のフロンティア評価（p0006 P2．要求数・往復・見つけやすさ・露出）",
     )
-    p.add_argument("--dataset", default="enronqa", choices=["enronqa"])
+    p.add_argument("--dataset", default="enronqa", choices=["enronqa", "feb4rag", "medrag"])
     p.add_argument("--data-dir", required=True)
     p.add_argument("--out-dir", required=True)
     p.add_argument("--placement", required=True, help="n30 の配置（results/<run>/placement.json）")
@@ -817,6 +843,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--skip-n150", action="store_true", help="1 受信箱 = 1 デバイスの模擬を流さない")
     p.set_defaults(func=cmd_frontier_eval)
+
+    p = sub.add_parser(
+        "frontier-verdict", help="複数のデータの frontier.json から汎用の判定を出す（p0006 §7.3）"
+    )
+    p.add_argument(
+        "--run",
+        action="append",
+        required=True,
+        metavar="NAME=DIR[:PLACEMENT]",
+        help="データの名前と frontier.json のあるディレクトリ（配置を絞るなら :配置）",
+    )
+    p.add_argument(
+        "--pair",
+        action="append",
+        required=True,
+        metavar="X:Y",
+        help="比べる方式の族（X が Y より優れるか）",
+    )
+    p.set_defaults(func=cmd_frontier_verdict)
 
     p = sub.add_parser(
         "device-probe-eval",

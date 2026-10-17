@@ -165,3 +165,77 @@ def test_hybrid_summary_with_a_large_weight_follows_the_centroid_ranking() -> No
     configs = {(c.params["V"], c.params["w"], c.params["D"]): c for c in build_hybrid_summary(data)}
     result = evaluate_selection(data, configs[(16000, 2.0, 1)].select("test"), "test")
     assert result.requests.tolist() == [1 + 2] * 4
+
+
+def _rows(method_requests: dict[str, list[tuple[float, float, float]]]) -> list[dict[str, object]]:
+    """族 → (要求数, 再現率, 区間の幅) の列から，test・全問の行を作る（flood_score は 5 デバイス + m = 2 で再現率 1.0）．"""
+    rows: list[dict[str, object]] = []
+    for family, pts in {**method_requests, "reference": [(7.0, 1.0, 0.0)]}.items():
+        for requests, recall, width in pts:
+            rows.append(
+                {
+                    "dataset": "other",
+                    "family": family,
+                    "method": "flood_score" if family == "reference" else family,
+                    "split": "test",
+                    "subset": "all",
+                    "requests_per_query": {"mean": requests},
+                    "source_recall@2": recall,
+                    "source_recall@2_ci95": [recall - width, recall + width],
+                }
+            )
+    return rows
+
+
+def test_family_curve_reports_the_smallest_request_count_reaching_the_target() -> None:
+    from atrium.frontier_eval import family_curves
+
+    curves = family_curves(
+        _rows({"fast": [(3.0, 0.5, 0.0), (4.0, 0.96, 0.0)], "slow": [(6.0, 0.99, 0.0)]})
+    )
+    assert curves["fast"]["min_requests_to_target"] == 4.0
+    assert curves["slow"]["min_requests_to_target"] == 6.0
+    assert curves["reference"]["min_requests_to_target"] == 7.0
+
+
+def test_unreached_target_falls_back_to_the_area_under_the_frontier() -> None:
+    from atrium.frontier_eval import better_family, family_curves
+
+    curves = family_curves(_rows({"a": [(3.0, 0.4, 0.0)], "b": [(3.0, 0.6, 0.0)]}))
+    assert curves["a"]["min_requests_to_target"] is None
+    assert better_family(curves, "a", "b") == "b"
+
+
+def test_general_superiority_needs_two_datasets_and_no_reversal_outside_the_interval() -> None:
+    from atrium.frontier_eval import generality_verdict
+
+    x_wins = _rows({"x": [(3.0, 0.97, 0.01)], "y": [(5.0, 0.97, 0.01)]})
+    y_wins = _rows({"x": [(5.0, 0.97, 0.01)], "y": [(3.0, 0.97, 0.01)]})
+    two_of_three = generality_verdict({"d1": x_wins, "d2": x_wins, "d3": y_wins}, "x", "y")
+    assert two_of_three["wins"] == 2
+    assert (
+        two_of_three["reversal_outside_interval"] is True
+    )  # 予算 3.5 で y が x より区間の外で高い
+    assert two_of_three["generally_better"] is False
+    only_one = generality_verdict({"d1": x_wins, "d2": y_wins, "d3": y_wins}, "x", "y")
+    assert only_one["generally_better"] is False
+
+
+def test_zscore_and_rank_normalizations_use_only_the_train_distribution() -> None:
+    from atrium.frontier_data import normalize_scores
+
+    train = np.array([[1.0], [2.0], [3.0], [4.0]], dtype=np.float32)
+    raw = {"test": np.array([[2.5], [100.0]], dtype=np.float32)}
+    rank = normalize_scores(raw, train, "rank")["test"]
+    assert rank.ravel().tolist() == [0.5, 1.0]
+    z = normalize_scores(raw, train, "zscore")["test"]
+    assert abs(float(z[0, 0])) < 1e-6
+
+
+def test_contributing_shards_marks_the_shards_that_supply_the_global_top() -> None:
+    from atrium.frontier_data import MEDRAG_TOP, contributing_shards
+
+    top = np.full((1, 3, MEDRAG_TOP), -1.0, dtype=np.float32)
+    top[0, 0, :] = np.linspace(1.0, 0.8, MEDRAG_TOP)  # シャード 0 だけが上位 15 件を埋める
+    top[0, 2, 0] = 0.1
+    assert contributing_shards(top).tolist() == [[True, False, False]]

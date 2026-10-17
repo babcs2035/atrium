@@ -37,6 +37,7 @@ from atrium.frontier_core import (
     evaluate_selection,
     make_row,
 )
+from atrium.frontier_data import SCORE_NORMS, TARGET_RATIO, Feb4ragBase, MedragBase
 from atrium.frontier_methods import build_all, probe_docs
 from atrium.header_eval import classify_question, owner_surname, split_header_body
 from atrium.manifest import Placement
@@ -390,6 +391,170 @@ def judge_hierarchy_growth(by_placement: dict[str, list[dict[str, Any]]], m: int
     }
 
 
+# ── 他のデータ（P3．§7.3 の汎用の判定）──────────────────────────────────────
+
+
+def infer_m(rows: list[dict[str, Any]]) -> int:
+    """行の列名（source_recall@m）から m を読む．"""
+    key = next(k for k in rows[0] if k.startswith("source_recall@") and not k.endswith("_ci95"))
+    return int(key.split("@")[1])
+
+
+def flood_reference(rows: list[dict[str, Any]], m: int) -> tuple[int, float]:
+    """全員に聞く方式（flood_score）の test・全問の再現率と，デバイスの数（要求数 − m）．"""
+    flood = next(
+        r
+        for r in rows
+        if r["method"] == "flood_score" and r["split"] == "test" and r["subset"] == "all"
+    )
+    return int(round(flood["requests_per_query"]["mean"])) - m, float(flood[f"source_recall@{m}"])
+
+
+def family_curves(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """方式の族ごとの test の曲線（再現率と要求数）．目標（全員に聞く方式の再現率の 0.95 倍）に届く最小の要求数と，
+    フロンティアの下の面積（要求数 [m, n+m] を 1 に正規化．x 以下の点の最良の再現率の階段）を出す．"""
+    m = infer_m(rows)
+    n_dev, flood = flood_reference(rows, m)
+    key = f"source_recall@{m}"
+    # §7.3：EnronQA は hit@m 0.78，他のデータは全員に聞く方式の再現率の 0.95 倍
+    target = TARGET_HIT if rows[0]["dataset"] == "enronqa" else TARGET_RATIO * flood
+    lo, hi = float(m), float(n_dev + m)
+    out: dict[str, dict[str, Any]] = {}
+    for fam in sorted({r["family"] for r in rows}):
+        pts = sorted(
+            (r["requests_per_query"]["mean"], r[key])
+            for r in rows
+            if r["family"] == fam and r["split"] == "test" and r["subset"] == "all"
+        )
+        reached = [x for x, y in pts if y >= target]
+        best = np.maximum.accumulate([y for _, y in pts])
+        xs = np.clip([x for x, _ in pts], lo, hi)
+        area = float(np.sum(np.diff(np.r_[xs, hi]) * best) / (hi - lo))
+        out[fam] = {
+            "target": target,
+            "min_requests_to_target": min(reached) if reached else None,
+            "area": area,
+            "best_recall": float(best[-1]),
+        }
+    return out
+
+
+def best_at_budget(
+    rows: list[dict[str, Any]], family: str, m: int, budget: float
+) -> dict[str, Any] | None:
+    """test・全問で，平均の要求数が budget 以下の設定のうち再現率が最大の行．"""
+    key = f"source_recall@{m}"
+    cands = [
+        r
+        for r in rows
+        if r["family"] == family
+        and r["split"] == "test"
+        and r["subset"] == "all"
+        and r["requests_per_query"]["mean"] <= budget
+    ]
+    return max(cands, key=lambda r: r[key]) if cands else None
+
+
+def better_family(curves: dict[str, dict[str, Any]], x: str, y: str) -> str:
+    """§7.3：目標に届く最小の要求数で順位づけし（届かない場合は面積），x が y より優れるか（x・y・tie）．"""
+    cx, cy = curves[x], curves[y]
+    rx, ry = cx["min_requests_to_target"], cy["min_requests_to_target"]
+    if rx is not None and ry is not None:
+        return "tie" if abs(rx - ry) < 1e-9 else (x if rx < ry else y)
+    if rx is not None:
+        return x
+    if ry is not None:
+        return y
+    return "tie" if abs(cx["area"] - cy["area"]) < 1e-9 else (x if cx["area"] > cy["area"] else y)
+
+
+def generality_verdict(
+    per_dataset: dict[str, list[dict[str, Any]]], x: str, y: str
+) -> dict[str, Any]:
+    """§7.3：x が y より優れることが 3 つのデータのうち 2 つ以上で成り立ち，残りで逆転の差が区間の外にない場合だけ「汎用に優れる」．
+
+    逆転の差が区間の外にある：y が優れるデータで，要求数の予算が全員に聞く方式の半分のとき，
+    y の再現率の 95% 区間の下端が x の上端より大きい．
+    """
+    detail: dict[str, Any] = {}
+    wins = 0
+    reversal = False
+    for name, rows in per_dataset.items():
+        curves = family_curves(rows)
+        if x not in curves or y not in curves:
+            detail[name] = {"available": False}
+            continue
+        m = infer_m(rows)
+        n_dev, _ = flood_reference(rows, m)
+        who = better_family(curves, x, y)
+        budget = (n_dev + m) / 2
+        bx, by = best_at_budget(rows, x, m, budget), best_at_budget(rows, y, m, budget)
+        key = f"source_recall@{m}"
+        # 予算内に点が無い方式は，再現率 0 とみなす（区間も 0）
+        x_upper = bx[f"{key}_ci95"][1] if bx else 0.0
+        outside = bool(who == y and by and by[f"{key}_ci95"][0] > x_upper)
+        wins += who == x
+        reversal = reversal or outside
+        detail[name] = {
+            "available": True,
+            "better": who,
+            "budget": budget,
+            "x": None if bx is None else {"recall": bx[key], "ci95": bx[f"{key}_ci95"]},
+            "y": None if by is None else {"recall": by[key], "ci95": by[f"{key}_ci95"]},
+            "min_requests_x": curves[x]["min_requests_to_target"],
+            "min_requests_y": curves[y]["min_requests_to_target"],
+            "reversal_outside_interval": outside,
+        }
+    return {
+        "x": x,
+        "y": y,
+        "wins": wins,
+        "n_datasets": len(per_dataset),
+        "reversal_outside_interval": reversal,
+        "generally_better": bool(wins >= 2 and not reversal),
+        "detail": detail,
+    }
+
+
+def evaluate_other(
+    cfg: AtriumConfig,
+    paths: DatasetPaths,
+    dataset: str,
+    method_names: list[str],
+    work_dir: Path | None,
+) -> dict[str, Any]:
+    """FeB4RAG・MedRAG で方式を評価する（P3）．FeB4RAG は得点の正規化（none・zscore・rank）ごとに流し，dev の全員に聞く方式の再現率が最大のものを使う．"""
+    start = time.perf_counter()
+    datas: dict[str, FrontierData] = {}
+    extra: dict[str, Any] = {}
+    if dataset == "feb4rag":
+        base = Feb4ragBase(cfg, paths, work_dir)
+        datas = {f"feb4rag_{norm}": base.data(norm) for norm in SCORE_NORMS}
+    else:
+        medrag = MedragBase(cfg, paths, work_dir)
+        datas = {"medrag": medrag.data()}
+        extra["label_agreement"] = medrag.label_agreement
+    by_placement = {name: run_configs(d, build_all(d, method_names)) for name, d in datas.items()}
+    flood_dev = {name: float(d.cache["flood_recall"]["dev"]) for name, d in datas.items()}
+    chosen = max(flood_dev, key=lambda k: flood_dev[k])
+    curves = {name: family_curves(rows) for name, rows in by_placement.items()}
+    return {
+        "rows": [r for rows in by_placement.values() for r in rows],
+        "metrics": {
+            "dataset": dataset,
+            "methods": method_names,
+            "m": next(iter(datas.values())).m,
+            "n_devices": next(iter(datas.values())).n_devices,
+            "flood_recall": {n: d.cache["flood_recall"] for n, d in datas.items()},
+            "chosen_placement": chosen,
+            "curves": curves,
+            "target_dev": {n: d.target_hit for n, d in datas.items()},
+            **extra,
+            "duration_s": time.perf_counter() - start,
+        },
+    }
+
+
 # ── 全体 ──────────────────────────────────────────────────────────────────
 
 
@@ -491,6 +656,37 @@ def render_report(result: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def render_other_report(result: dict[str, Any]) -> str:
+    """FeB4RAG・MedRAG の analysis_report.md の本文．"""
+    metrics = result["metrics"]
+    m = metrics["m"]
+    lines = [
+        f"# frontier-eval（p0006 P3．{metrics['dataset']}）",
+        "",
+        f"- 方式：{', '.join(metrics['methods'])}．m = {m}，デバイス {metrics['n_devices']}",
+        f"- dev の全員に聞く方式の再現率が最大の配置：{metrics['chosen_placement']}",
+    ]
+    if "label_agreement" in metrics:
+        lines.append(
+            f"- シャードのラベルから求めたデータ源の集合が labels.json と一致する割合：{metrics['label_agreement']:.4f}"
+        )
+    for name, fams in metrics["curves"].items():
+        flood = metrics["flood_recall"][name]
+        lines += [
+            "",
+            f"## {name}（全員に聞く方式の再現率 dev {flood['dev']:.4f}・test {flood['test']:.4f}．目標 = 0.95 倍）",
+            "",
+            "| 族 | 目標に届く最小の要求数（test） | 面積 | 最良の再現率 |",
+            "|---|---|---|---|",
+            *(
+                f"| {fam} | {'-' if c['min_requests_to_target'] is None else format(c['min_requests_to_target'], '.2f')} "
+                f"| {c['area']:.4f} | {c['best_recall']:.4f} |"
+                for fam, c in fams.items()
+            ),
+        ]
+    return "\n".join(lines) + "\n"
+
+
 def write_outputs(out_dir: Path, result: dict[str, Any]) -> None:
     """frontier.json・metrics.json・analysis_report.md を書く（メールの本文は含まない）．"""
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -500,4 +696,7 @@ def write_outputs(out_dir: Path, result: dict[str, Any]) -> None:
     (out_dir / "metrics.json").write_text(
         json.dumps(result["metrics"], indent=1, ensure_ascii=False), encoding="utf-8"
     )
-    (out_dir / "analysis_report.md").write_text(render_report(result), encoding="utf-8")
+    report = (
+        render_other_report(result) if "dataset" in result["metrics"] else render_report(result)
+    )
+    (out_dir / "analysis_report.md").write_text(report, encoding="utf-8")
