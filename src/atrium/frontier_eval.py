@@ -66,6 +66,7 @@ ELIGIBLE_FAMILIES = (
     "body_baseline",
     "sample_summary",
     "term_stats",
+    "hybrid_summary",
     "adaptive_cutoff",
     "hierarchy",
     "overlay_walk",

@@ -48,6 +48,12 @@ CORI_DEFAULT_BELIEF = 0.4
 CORI_DF_BASE = 50.0
 CORI_DF_SCALE = 150.0
 MIN_TERM_LENGTH = 3
+# 反復 2：語の数をさらに増やした term_stats と，語の統計と重心の併用（hybrid_summary）
+LARGE_TERM_SIZE = 64000
+HYBRID_TERM_SIZES = (16000, 64000)
+HYBRID_WEIGHTS = (0.5, 1.0, 2.0)
+# 質問ごと・デバイス間の標準化で，得点が一定のときに 0 割りしないための下限
+Z_EPSILON = 1e-9
 # 打ち切り（F2）の格子
 GAP_DELTAS = (0.01, 0.02, 0.03, 0.05, 0.08)
 SOFTMAX_TAUS = (0.01, 0.02, 0.05)
@@ -477,6 +483,102 @@ def build_term_stats(data: FrontierData) -> list[Config]:
     return configs
 
 
+# ── 反復 2：語の統計の拡張と，語の統計と重心の併用 ────────────────────────────
+
+
+def build_term_stats_large(data: FrontierData) -> list[Config]:
+    """F1b の語の数を V = 64,000 に増やした設定（同じ CORI の順位づけ）．"""
+    weights, cf = cori_weights(data, LARGE_TERM_SIZE)
+    advert = int(LARGE_TERM_SIZE * TERM_ENTRY_BYTES * data.n_devices)
+
+    def dscores(split: str) -> F32Array:
+        key = f"cori_{LARGE_TERM_SIZE}_{split}"
+        if key not in data.cache:
+            data.cache[key] = cori_scores(data, weights, cf, data.q_tokens[split])
+        out: F32Array = data.cache[key]
+        return out
+
+    def attribute(probes: ProbeDocs) -> F32Array:
+        return cori_scores(data, weights, cf, probes.tokens)
+
+    configs = []
+    for d in d_grid(data.n_devices):
+
+        def select(split: str, d: int = d) -> Selection:
+            return reach_selection(top_devices(dscores(split), d, data.device_of_source))
+
+        configs.append(
+            Config(
+                "term_stats",
+                "term_stats",
+                {"V": LARGE_TERM_SIZE, "D": d},
+                advert,
+                select,
+                attribute,
+            )
+        )
+    return configs
+
+
+def zscore_rows(scores: F32Array) -> F32Array:
+    """行ごと（質問ごと）にデバイス間で標準化する．"""
+    centered = scores - scores.mean(axis=1, keepdims=True)
+    out: F32Array = (centered / (scores.std(axis=1, keepdims=True) + Z_EPSILON)).astype(np.float32)
+    return out
+
+
+def build_hybrid_summary(data: FrontierData) -> list[Config]:
+    """語の統計（CORI）と本文の重心（multi_centroid_body のデバイス最大）を，質問ごとに標準化して重み付きで足す．"""
+    centers = source_centers(data, "body")
+    centroid_bytes = sum(c.shape[0] * c.shape[1] * FLOAT32_BYTES for c in centers)
+    device_of_source = data.device_of_source
+    configs = []
+    for size in HYBRID_TERM_SIZES:
+        weights, cf = cori_weights(data, size)
+        advert = int(size * TERM_ENTRY_BYTES * data.n_devices) + centroid_bytes
+        for w in HYBRID_WEIGHTS:
+
+            def dscores(
+                split: str, size: int = size, w: float = w, weights: Any = weights, cf: Any = cf
+            ) -> F32Array:
+                key = f"cori_{size}_{split}"
+                if key not in data.cache:
+                    data.cache[key] = cori_scores(data, weights, cf, data.q_tokens[split])
+                fused: F32Array = zscore_rows(data.cache[key]) + w * zscore_rows(
+                    device_first_stage(data, split, "body")
+                )
+                return fused
+
+            def attribute(
+                probes: ProbeDocs, w: float = w, weights: Any = weights, cf: Any = cf
+            ) -> F32Array:
+                terms = zscore_rows(cori_scores(data, weights, cf, probes.tokens))
+                emb = zscore_rows(
+                    aggregate_max(multi_scores(probes.emb, centers), device_of_source)
+                )
+                fused: F32Array = terms + w * emb
+                return fused
+
+            for d in d_grid(data.n_devices):
+
+                def select(
+                    split: str, d: int = d, dscores: Callable[[str], F32Array] = dscores
+                ) -> Selection:
+                    return reach_selection(top_devices(dscores(split), d, data.device_of_source))
+
+                configs.append(
+                    Config(
+                        "hybrid_summary",
+                        "hybrid_summary",
+                        {"V": size, "w": w, "D": d},
+                        advert,
+                        select,
+                        attribute,
+                    )
+                )
+    return configs
+
+
 # ── F2 問ごとに台数を変える（Rank-S・Taily 型の打ち切り）─────────────────────
 
 
@@ -741,6 +843,8 @@ BUILDERS: dict[str, Callable[[FrontierData], list[Config]]] = {
     "body_baseline": build_multi_centroid_body,
     "sample_summary": build_sample_summary,
     "term_stats": build_term_stats,
+    "term_stats_large": build_term_stats_large,
+    "hybrid_summary": build_hybrid_summary,
     "adaptive_cutoff": build_adaptive_cutoff,
     "hierarchy": build_hierarchy,
     "overlay_walk": build_overlay_walk,

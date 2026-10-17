@@ -16,12 +16,14 @@ from atrium.frontier_methods import (
     adaptive_device_mask,
     build_device_probe,
     build_flood,
+    build_hybrid_summary,
     build_multi_centroid,
     cori_scores,
     cori_weights,
     make_groups,
     neighbor_table,
     sample_device_scores,
+    zscore_rows,
     walk_visited,
 )
 
@@ -149,3 +151,17 @@ def test_random_groups_are_balanced_and_cover_every_device() -> None:
 def test_top_k_mask_breaks_ties_by_the_smaller_column() -> None:
     scores: F32Array = np.array([[0.5, 0.5, 0.5]], dtype=np.float32)
     assert top_k_mask(scores, 2).tolist() == [[True, True, False]]
+
+
+def test_zscore_rows_standardizes_each_query_across_devices_and_survives_constant_rows() -> None:
+    scores = np.array([[1.0, 2.0, 3.0], [5.0, 5.0, 5.0]], dtype=np.float32)
+    z = zscore_rows(scores)
+    assert abs(float(z[0].mean())) < 1e-6 and abs(float(z[0].std()) - 1.0) < 1e-3
+    assert z[1].tolist() == [0.0, 0.0, 0.0]
+
+
+def test_hybrid_summary_with_a_large_weight_follows_the_centroid_ranking() -> None:
+    data = _data()
+    configs = {(c.params["V"], c.params["w"], c.params["D"]): c for c in build_hybrid_summary(data)}
+    result = evaluate_selection(data, configs[(16000, 2.0, 1)].select("test"), "test")
+    assert result.requests.tolist() == [1 + 2] * 4
