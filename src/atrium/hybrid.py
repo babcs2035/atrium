@@ -60,10 +60,6 @@ class Bm25Index:
         self._weights: F64Array = weights[order]
         self._starts = np.concatenate([[0], np.cumsum(df)]).astype(np.int64)
 
-    def nbytes(self) -> int:
-        """索引の配列の大きさ（バイト．語の辞書は含まない）．"""
-        return int(self._docs.nbytes + self._weights.nbytes + self._starts.nbytes)
-
     def scores(self, query_tokens: Iterable[str]) -> F64Array:
         """質問の語（重複を除く）に対する，全文書の BM25 の得点（語が 1 つも当たらない文書は 0）．"""
         out = np.zeros(self.n_docs, dtype=np.float64)

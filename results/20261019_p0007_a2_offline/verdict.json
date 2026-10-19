@@ -1,0 +1,12 @@
+{
+ "verdict_original": {
+  "hypothesis": "dev の受信箱の中の Recall@5 で，RRF が密ベクトルのみより 0.02 以上高い（回答まで流すゲート）",
+  "threshold": 0.02,
+  "dev_in_inbox_dense": 0.8541383989145184,
+  "dev_in_inbox_rrf": 0.9206241519674355,
+  "dev_diff": 0.06648575305291723,
+  "test_diff_confirmation_only": 0.05646258503401361,
+  "gate_passed": true
+ },
+ "verdict_revised": null
+}

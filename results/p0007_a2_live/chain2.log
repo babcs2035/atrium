@@ -1,0 +1,5 @@
+[2026-10-20_01:42:07] BEGIN p0007_a2_p2p_rrf_r2 experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=abstain experiment.routing=hybrid_probe experiment.question_split=test experiment.question_limit=null retrieval.fusion=rrf
+[01:44:49] p0007_a2_p2p_rrf_r2 deployed
+[02:24:37] p0007_a2_p2p_rrf_r2 start=0 inner=0
+[02:24:40] p0007_a2_p2p_rrf_r2 analyze=0
+[2026-10-20_02:24:40] ALL DONE

@@ -1,0 +1,28 @@
+{
+ "note": "p0007 A2 のオフライン（results/20261019_p0007_a2_offline）の予測と実機の値．§10（K4）",
+ "central_rrf_recall_at_5": {
+  "offline_test": 0.8551,
+  "live_c1_rrf_top_doc_ids": 0.855,
+  "match": true,
+  "comment": "C1-RRF（central_local + rrf）の実機の上位 5 通に正解が入る割合（results/p0007_a2_c1_rrf/analysis_report.md）は，オフラインの中央・RRF の test と小数 3 桁で一致した"
+ },
+ "in_inbox_gain_vs_accuracy_gain": {
+  "offline_in_inbox_recall_at_5_test": {"dense": 0.8629, "rrf": 0.9194, "gain": 0.0565},
+  "live_p2p_accuracy_gain_vs_a1": 0.0320,
+  "live_p2p_accuracy_given_owner_in_candidates": {"a1_no_rrf": 0.7394, "a2_rrf": 0.7775, "gain": 0.0381},
+  "live_p2p_accuracy_given_owner_not_in_candidates": {"a1_no_rrf": 0.1522, "a2_rrf": 0.1522},
+  "owner_in_candidates_rate": 0.8391,
+  "comment": "受信箱の中の Recall の増分 0.0565 は，持ち主が候補に入った問（0.8391）の正答率の増分 0.0381 に，候補に入らない問の増分 0 を足して全体 +0.0320 になった．RRF は持ち主の特定を変えない（候補は同じ）"
+ },
+ "central_rrf_accuracy_gain": {
+  "offline_central_recall_at_5_test": {"dense": 0.7333, "rrf": 0.8551, "gain": 0.1218},
+  "live_c1_rrf_vs_c1_accuracy_gain": 0.0901
+ },
+ "throughput_q_per_s": {
+  "p2p_rrf_r2": 1.23,
+  "p2p_a1_test_no_rrf": 0.495,
+  "c1_rrf": 0.445,
+  "c1_no_rrf_p0006": 0.495,
+  "comment": "P2P-RRF の処理量が A1（RRF なし）の約 2.5 倍になった理由は未検証（BM25 は検索を遅くしても速くはしない．A1 の実行が別の要因で遅かった可能性がある）．同じ条件の流し直しではないので，RRF の効果としては扱わない"
+ }
+}

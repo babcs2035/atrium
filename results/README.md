@@ -113,3 +113,8 @@
 | `p0007_a1_dev_ref_{flood_score,oracle}_m3_abstain` | A1 の参照（選択に使わない）．同じ 300 問・m = 3・abstain で Router を替えた | flood_score 0.740・oracle 0.807 | 同上 |
 | `p0007_a1_test`，`p0007_a1_test_verdict_c1`，`p0007_a1_test_verdict_p41` | A1 の test 2,940 問（hybrid_probe D = 16・owner_answer・m = 3・abstain）と，C1・P4-1 に対する `verdict.json`・`sim_vs_live.json` | 0.6449．C1 に −0.0303（非劣性・優越とも不成立）．P4-1 に −0.0105 | 同上 |
 | `p0007_a1_dev_sweep` | A1 の連続実行のスクリプト・条件・ログ・dev の表（`dev_table.json`） | — | 同上 |
+| `20261019_p0007_a2_offline` | A2 のオフライン：`atrium fusion-eval`．受信箱の中と中央の Recall@5（密ベクトル・BM25・RRF．dev・test）とゲートの `verdict.json` | 受信箱の中 dev 0.854→0.921（+0.0665，ゲート通過）・中央 test 0.733→0.855 | p0007 A2：デバイス内の検索の改良（RRF）の結果と判定 |
+| `p0007_a2_p2p_rrf_r2`，`p0007_a2_c1_rrf` | A2 の test 2,940 問．P2P-RRF（hybrid_probe D = 16・owner_answer・m = 3・abstain・`retrieval.fusion: rrf`）と C1-RRF（`central_local`・rrf）．`p0007_a2_p2p_rrf_r2` は `sim_vs_live.json` を含む（最初の `p0007_a2_p2p_rrf` は probe の 400 で全問失敗し，commit していない） | 0.6769・0.7653 | 同上 |
+| `p0007_a2_verdict_rrf`，`p0007_a2_verdict_vs_c1`，`p0007_a2_verdict_vs_p2p_norrf`，`p0007_a2_verdict_c1rrf_vs_c1` | A2 の `verdict.json`（主：P2P-RRF − C1-RRF．他は RRF の効果と参考） | 主 −0.0884（−0.1054〜−0.0714）・非劣性・優越とも不成立 | 同上 |
+| `p0007_a2_live` | A2 の連続実行のスクリプト・条件・ログと，ノードの BM25 の索引の費用の測定（`bm25_cost.jsonl`） | CPU の専門家 +150〜159 MB・+3.8〜4.3 秒 | 同上 |
+| `20261020_p0007_a2_r3_advert_eval`，`20261020_p0007_a2_r4_frontier`，`20261020_p0007_a2_r5_selection` | A2 の退行ゲート R3〜R5（オフライン） | 全て通過 | 同上 |

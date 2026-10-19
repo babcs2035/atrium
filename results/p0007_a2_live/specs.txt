@@ -1,0 +1,3 @@
+# p0007 A2 の実機の条件（事前登録は journal の「p0007 A2（事前登録）」）
+p0007_a2_p2p_rrf experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=abstain experiment.routing=hybrid_probe experiment.question_split=test experiment.question_limit=null retrieval.fusion=rrf
+p0007_a2_c1_rrf experiment.dataset=enronqa experiment.answer_mode=snippet_return experiment.parallel=30 experiment.http_pool=per_node experiment.routing=central_local experiment.requester_procs=1 experiment.question_split=test experiment.question_limit=null retrieval.fusion=rrf
