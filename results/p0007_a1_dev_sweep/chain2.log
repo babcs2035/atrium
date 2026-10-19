@@ -1,0 +1,13 @@
+[2026-10-19_19:33:07] BEGIN p0007_a1_dev_ref_flood_score_m3_abstain experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=abstain experiment.routing=flood_score experiment.question_split=dev experiment.question_limit=2
+[19:36:01] p0007_a1_dev_ref_flood_score_m3_abstain deployed
+[19:45:36] p0007_a1_dev_ref_flood_score_m3_abstain start=0 inner=0
+[19:45:38] p0007_a1_dev_ref_flood_score_m3_abstain analyze=0
+[2026-10-19_19:45:38] BEGIN p0007_a1_dev_ref_oracle_m3_abstain experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=abstain experiment.routing=oracle experiment.question_split=dev experiment.question_limit=2
+[19:48:16] p0007_a1_dev_ref_oracle_m3_abstain deployed
+[19:54:50] p0007_a1_dev_ref_oracle_m3_abstain start=0 inner=0
+[19:54:51] p0007_a1_dev_ref_oracle_m3_abstain analyze=0
+[2026-10-19_19:54:51] BEGIN p0007_a1_test experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=abstain experiment.routing=hybrid_probe experiment.question_split=test experiment.question_limit=null
+[19:57:37] p0007_a1_test deployed
+[21:37:51] p0007_a1_test start=0 inner=0
+[21:37:53] p0007_a1_test analyze=0
+[2026-10-19_21:37:53] ALL DONE

@@ -109,3 +109,7 @@
 | 実行 | 内容 | 主な値 | journal |
 |---|---|---|---|
 | `20261019_155617_p0007_b_exposure` | B：`exposure-eval`．2,940 問で外に出た文書の重複なしの数（C1・C3・P4-1・P4-3・C2）と H-B の判定 | P4-1 27.3%・P4-3 17.9%（73,772 通に対して．再構成した値）．H-B 成立 | p0007 B：露出 |
+| `p0007_a1_dev_m{2,3}_{max_score,abstain,agree,llm_select}` | A1 の dev（EnronQA dev の受信箱ごとの先頭 2 問 = 300 問）．hybrid_probe D = 16・owner_answer・m × 統合の規則の 8 条件 | 正答率 0.537〜0.737（`m3_abstain` が最大で選ばれた） | p0007 A1：精度の結果と判定 |
+| `p0007_a1_dev_ref_{flood_score,oracle}_m3_abstain` | A1 の参照（選択に使わない）．同じ 300 問・m = 3・abstain で Router を替えた | flood_score 0.740・oracle 0.807 | 同上 |
+| `p0007_a1_test`，`p0007_a1_test_verdict_c1`，`p0007_a1_test_verdict_p41` | A1 の test 2,940 問（hybrid_probe D = 16・owner_answer・m = 3・abstain）と，C1・P4-1 に対する `verdict.json`・`sim_vs_live.json` | 0.6449．C1 に −0.0303（非劣性・優越とも不成立）．P4-1 に −0.0105 | 同上 |
+| `p0007_a1_dev_sweep` | A1 の連続実行のスクリプト・条件・ログ・dev の表（`dev_table.json`） | — | 同上 |

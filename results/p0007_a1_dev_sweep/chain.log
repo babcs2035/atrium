@@ -1,0 +1,33 @@
+[2026-10-19_16:31:08] BEGIN p0007_a1_dev_m2_max_score experiment.dataset=enronqa experiment.routing=hybrid_probe experiment.answer_mode=owner_answer experiment.question_split=dev experiment.question_limit=2 experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=2 answer.aggregate=max_score
+[16:34:04] p0007_a1_dev_m2_max_score deployed
+[16:42:39] p0007_a1_dev_m2_max_score start=0 inner=0
+[16:42:40] p0007_a1_dev_m2_max_score analyze=0
+[2026-10-19_16:42:40] BEGIN p0007_a1_dev_m2_abstain experiment.dataset=enronqa experiment.routing=hybrid_probe experiment.answer_mode=owner_answer experiment.question_split=dev experiment.question_limit=2 experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=2 answer.aggregate=abstain
+[16:45:13] p0007_a1_dev_m2_abstain deployed
+[16:53:48] p0007_a1_dev_m2_abstain start=0 inner=0
+[16:53:50] p0007_a1_dev_m2_abstain analyze=0
+[2026-10-19_16:53:50] BEGIN p0007_a1_dev_m2_agree experiment.dataset=enronqa experiment.routing=hybrid_probe experiment.answer_mode=owner_answer experiment.question_split=dev experiment.question_limit=2 experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=2 answer.aggregate=agree
+[16:56:47] p0007_a1_dev_m2_agree deployed
+[17:04:22] p0007_a1_dev_m2_agree start=0 inner=0
+[17:04:23] p0007_a1_dev_m2_agree analyze=0
+[2026-10-19_17:04:23] BEGIN p0007_a1_dev_m2_llm_select experiment.dataset=enronqa experiment.routing=hybrid_probe experiment.answer_mode=owner_answer experiment.question_split=dev experiment.question_limit=2 experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=2 answer.aggregate=llm_select
+[17:07:01] p0007_a1_dev_m2_llm_select deployed
+[17:17:36] p0007_a1_dev_m2_llm_select start=0 inner=0
+[17:17:38] p0007_a1_dev_m2_llm_select analyze=0
+[2026-10-19_17:17:38] BEGIN p0007_a1_dev_m3_max_score experiment.dataset=enronqa experiment.routing=hybrid_probe experiment.answer_mode=owner_answer experiment.question_split=dev experiment.question_limit=2 experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=max_score
+[17:20:13] p0007_a1_dev_m3_max_score deployed
+[17:36:52] p0007_a1_dev_m3_max_score start=0 inner=0
+[17:36:54] p0007_a1_dev_m3_max_score analyze=0
+[2026-10-19_17:36:54] BEGIN p0007_a1_dev_m3_abstain experiment.dataset=enronqa experiment.routing=hybrid_probe experiment.answer_mode=owner_answer experiment.question_split=dev experiment.question_limit=2 experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=abstain
+[17:39:31] p0007_a1_dev_m3_abstain deployed
+[17:52:07] p0007_a1_dev_m3_abstain start=0 inner=0
+[17:52:09] p0007_a1_dev_m3_abstain analyze=0
+[2026-10-19_17:52:09] BEGIN p0007_a1_dev_m3_agree experiment.dataset=enronqa experiment.routing=hybrid_probe experiment.answer_mode=owner_answer experiment.question_split=dev experiment.question_limit=2 experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=agree
+[17:54:55] p0007_a1_dev_m3_agree deployed
+[18:07:32] p0007_a1_dev_m3_agree start=0 inner=0
+[18:07:34] p0007_a1_dev_m3_agree analyze=0
+[2026-10-19_18:07:34] BEGIN p0007_a1_dev_m3_llm_select experiment.dataset=enronqa experiment.routing=hybrid_probe experiment.answer_mode=owner_answer experiment.question_split=dev experiment.question_limit=2 experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=llm_select
+[18:10:01] p0007_a1_dev_m3_llm_select deployed
+[18:25:40] p0007_a1_dev_m3_llm_select start=0 inner=0
+[18:25:42] p0007_a1_dev_m3_llm_select analyze=0
+[2026-10-19_18:25:42] ALL DONE

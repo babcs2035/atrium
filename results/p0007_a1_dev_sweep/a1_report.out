@@ -1,0 +1,27 @@
+{
+ "selection_vs_offline": {
+  "n": 2940,
+  "offline_top2_within_live_top3": 1.0,
+  "note": "selected_sources は受信箱名の昇順で順位を保たない．実機の上位 3（m = 3）がオフラインの上位 2 を全て含む割合で照合した",
+  "offline_file": "results/p0006_p4_build_summary/offline_selection.json"
+ },
+ "requests_per_question": {
+  "predicted": 19,
+  "live_mean": 19
+ },
+ "generations_per_question": {
+  "predicted": 3,
+  "live_mean": 3
+ },
+ "throughput_qps": {
+  "p4_1_live": 0.4867211175588393,
+  "owner_answer_live": 0.495373421843123,
+  "live_ratio_to_p4_1": 1.017776718478293,
+  "predicted_ratio_by_request_inverse": 0.9473684210526315,
+  "predicted_ratio_by_generation_inverse": 0.3333333333333333,
+  "note": "owner_answer の生成は GPU 10 台（委託）へ分かれ，P4-1 は質問者の GPU 1 枚．要求数の逆数は通信の律速の予測で，生成が律速の本条件には当てはまらない"
+ }
+}
+p0007_a1_dev_m3_abstain acc 0.7366666666666667 failed 0 req 19 cand_unknown 0.5977777777777777 chosen_unknown 0.08333333333333333 hit_gold_in_candidates 0.9
+p0007_a1_dev_ref_flood_score_m3_abstain acc 0.74 failed 0 req 33 cand_unknown 0.6 chosen_unknown 0.07666666666666666 hit_gold_in_candidates 0.92
+p0007_a1_dev_ref_oracle_m3_abstain acc 0.8066666666666666 failed 0 req 1 cand_unknown 0.05 chosen_unknown 0.05 hit_gold_in_candidates 1.0
