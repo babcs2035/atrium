@@ -3,6 +3,50 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0007 A1：精度（事前登録．2026-10-19．`plans/p0007_p2p_vs_central.md` §6.2）
+
+実機を動かす前に，条件・dev の部分集合・選び方・判定の規則を固定する．dev の結果を見て規則を変えない．test は選んだ 1 つだけを 1 回流す．
+
+**目的**：持ち主ごとの文脈で答えて統合する答え方（`answer_mode: owner_answer`）で，P2P の精度が中央（C1 = 0.6752）に対して非劣性（δ = 0.02）になるかを調べる．
+
+**dev の部分集合**：EnronQA の dev 2,948 問から，受信箱ごとに `dev_questions.jsonl` の先頭 2 問（ファイルの並びは `write_questions_files` が決めた (メールの行, 質問の番号) の昇順）．150 受信箱 × 2 = **300 問**（制御点で確認済み．全受信箱が 5 問以上持つ）．`experiment.question_limit: 2` の既存の実装（各問題集の先頭からの数）を，分割の選択に使えるよう `experiment.question_split: dev` を追加した（既定 `test`．既存の挙動は変わらない．`run_meta.json` に記録）．
+
+**条件**（共通：EnronQA・Router = `hybrid_probe`（D = 16．`routing.hybrid_probe_d`）・`answer_mode: owner_answer`・回答は llama3.1:8b・温度 0・`parallel: 30`・`http_pool: per_node`（P4 の B1・B4 と同じ）・`question_split: dev`・`question_limit: 2`・種 12．判定は qwen3:8b）
+
+| 条件 | answer.owner_m | answer.aggregate |
+|---|---|---|
+| A1-d1 | 2 | max_score |
+| A1-d2 | 2 | abstain |
+| A1-d3 | 2 | agree |
+| A1-d4 | 2 | llm_select |
+| A1-d5 | 3 | max_score |
+| A1-d6 | 3 | abstain |
+| A1-d7 | 3 | agree |
+| A1-d8 | 3 | llm_select |
+
+結果の使い回しはしない．m = 2 と m = 3 の候補の回答は，採った 1 つ以外を保存しない（メール本文の混入を避けるため）ので，m = 3 から m = 2 を再構成できない．8 条件とも流す．run_id は `p0007_a1_dev_m{m}_{aggregate}`．
+
+**選び方**（機械的）：dev の 300 問の正答率（判定不能・失敗は不正解として分母は 300 に固定）が最大の 1 条件．同点（正解数が同じ）は，次の順で決める．(1) 1 問あたりの要求数 `n_requests_total` の平均が少ない方，(2) 1 問あたりの生成回数 `n_generations` の平均が少ない方，(3) m が小さい方，(4) aggregate の順 max_score < abstain < agree < llm_select．失敗率が 10% を超えた条件は選ばない（原因を調べて 1 回だけ流し直す）．
+
+**参照**（選択に使わない）：選んだ aggregate と m で，Router を `flood_score`・`oracle`（持ち主 1 受信箱．m は無関係）に替えて dev の 300 問を流す．Router の違いによる精度の差の記述にだけ使う．
+
+**test**：選んだ 1 条件を test 2,940 問（`question_split: test`・`question_limit: null`）で 1 回だけ流す．run_id は `p0007_a1_test`．同じ設定で流し直さない（失敗した質問のやり直しだけは，同じ run_id で再開してよい）．比べる対象は，C1 = `results/p0006_c1_all_pernode`（主）と P4-1 = `results/p0006_p4_hybrid_probe_b1`（hybrid_probe・B1．同じ Router で答え方だけが違う）．
+
+**判定の規則**（§4.2．最初の基準．test の評価の前に固定）：
+- H-A1（主）：P2P（選んだ条件）− C1 の正答率の差の 95% 信頼区間（対応ありのブートストラップ，10,000 回，種 12）の下端が −0.02 より大きければ非劣性．
+- H-A2：McNemar の正確検定（両側 5%）で P2P が C1 より有意に高ければ優越．
+- 同じ判定を P4-1 に対しても出す（P4-1 に対する差は，持ち主ごとの回答の効果の記述）．
+- 出力：`atrium compare results/p0007_a1_test results/p0006_c1_all_pernode --out-dir results/p0007_a1_test_verdict_c1`（P4-1 は `..._verdict_p41`）．`verdict_original` はこの規則の判定で，書き換えない．基準の見直し（`verdict_revised`）は §4.4 の 2 の条件を守る．
+
+**併記する費用と指標**：1 問あたりの要求数（`n_requests_total`）・生成回数（`n_generations`）・待ち時間（e2e の p50・p95．parallel 30）・UNKNOWN の割合（`abstain`・`agree` などで UNKNOWN と答えた候補の割合と，採った回答が UNKNOWN だった問の割合）・外に出た文書の数・回答の長さ．待ち時間は生成が律速で，dev は 300 問なので参考値．
+
+**`sim_vs_live.json`**（§10）：(i) 実機の hybrid_probe の選択と，オフラインの選択（`results/p0006_p4_build_summary/offline_selection.json`）の一致（m = 2 の上位 2 受信箱．test の全問），(ii) 1 問あたりの要求数の予測（D + m）と実測，(iii) 処理量：P4-1（B1，D + 2 = 18 要求）に対する，生成回数の比（owner_answer の m）からの予測と実測の比，の 3 つを可能な範囲で書く．
+
+**回答の保存**：回答は採った 1 つだけ（`answer`・`final_answer`）．test の結果は commit の前に `sanitize_results.py` を通し，`results.jsonl` の行の内容（`answer`・`final_answer`・`node_answers`）にメール本文の混入（区切り線・ヘッダー行）が無いかを点検する（B57 の再発防止）．
+
+**実行**：連続実行（`t4_chain.sh` と同じ形）．各回の前に deploy し直し（新しいプロトコルのため，最初の deploy で全ノードのイメージを入れ替える），start → analyze する．実機の連続実行の間は commit しない．採点は全 dev の実行が終わってから `judge.sh`．実験の後に `mise run stop`．
+**止まる条件**：§12．実験の失敗（ノードの不調・時間切れ）は原因を調べて 1 回だけ直して流し直す．H-A1 が不成立でも止まらない．
+
 ## p0007 実装（I2・I4・I9．2026-10-19．実装とオフラインの確認だけ．実機の流しは別）
 
 事前登録は書かない（結果を出す実験ではない）．`plans/p0007_p2p_vs_central.md` §8 の I2・I4・I9 を実装した．既存の answer_mode・routing・CLI の既定の挙動と設定キーの意味は変えていない（`answer` 節は追加で，既定は従来どおり）．
