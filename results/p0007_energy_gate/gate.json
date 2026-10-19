@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-19",
+  "method": "wafl-ctrl5 から denjo で各ホストへ SSH し，/sys/class/powercap/*/energy_uj の読み出しと nvidia-smi --query-gpu=power.draw の実行を試した（読み取りのみ）．コンテナは atrium のイメージを --user で動かし /sys/class/powercap を見た",
+  "groups": [
+    {"name": "control", "hosts": ["wafl-ctrl5"], "count": 1, "cpu": "i7-8700", "gpu": "RTX 3060",
+     "rapl_files": 3, "rapl_host_readable": 0, "rapl_container_readable": false, "gpu_power_readable": true},
+    {"name": "cpu_experts_13", "hosts": ["192.168.13.100-109"], "count": 10, "cpu": "i5-8350U", "gpu": null,
+     "rapl_files": 7, "rapl_host_readable": 0, "rapl_container_readable": false, "gpu_power_readable": false},
+    {"name": "cpu_experts_14", "hosts": ["192.168.14.100-109"], "count": 10, "cpu": "i5-8350U", "gpu": null,
+     "rapl_files": 7, "rapl_host_readable": 0, "rapl_container_readable": false, "gpu_power_readable": false},
+    {"name": "gpu_experts_15", "hosts": ["192.168.15.100-109"], "count": 10, "cpu": "i7-8700 / i7-9700(K) / i5-12400F", "gpu": "RTX 3060",
+     "rapl_files": "2 or 3", "rapl_host_readable": 0, "rapl_container_readable": false, "gpu_power_readable": true}
+  ],
+  "rapl_reason": "energy_uj の所有者が root でモードが 0400．一般ユーザーは Permission denied．コンテナでは /sys/class/powercap 自体が見えない",
+  "decision": {
+    "cpu_energy": "全ホストで読めないため出さない（CPU の専門家 20 台は電力の指標なし）",
+    "gpu_energy": "wafl-ctrl5 と 192.168.15.100〜109 の計 11 台で出す",
+    "limitation": "K5 は GPU を持つ 11 台の GPU 消費電力だけ．CPU とホスト全体の電力は含まない．CPU の専門家と GPU 無しの構成のエネルギーは比較できない"
+  },
+  "note": "調査時に 192.168.15.102・105・106・107・109 の GPU は 100 W 超を示し，他の利用者の処理が動いていた可能性がある．測定の前後で GPU の使用状況（アイドル時の電力）を併記すること"
+}
