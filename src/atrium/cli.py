@@ -222,6 +222,8 @@ def cmd_failure_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         baseline_s=args.baseline_s,
         down_s=args.down_s,
         post_s=args.post_s,
+        stream_parallel=args.stream_parallel,
+        answer_deadline_s=args.answer_deadline_s,
         bin_s=args.bin_s,
         poll_interval_s=args.poll_interval_s,
         central_questions=args.central_questions,

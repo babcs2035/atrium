@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from pathlib import Path
 
+import httpx
 import pytest
 import yaml
 
@@ -16,6 +18,7 @@ from atrium.failure_run import (
     ContainerInjector,
     FailureContext,
     FailureParams,
+    InjectionResult,
     central_hit_rate,
     measure_central_restart,
     predict_fault_hit_rate,
@@ -118,7 +121,7 @@ async def test_fault_lowers_the_answered_rate_to_the_offline_prediction_and_node
     urls = ctx.url_of_host
     params = _params()
     result = await run_fault(
-        ctx, AvailabilityInjector(cluster.client, urls), ["node-0"], params, 0.8
+        ctx, AvailabilityInjector(cluster.client, urls), ["node-0"], params, 1.6
     )
     # 平常は全問に答えられ，半分の受信箱が止まっている間は，その受信箱の質問に答えられない
     assert result["baseline_hit_rate"] == 1.0
@@ -131,9 +134,9 @@ async def test_fault_lowers_the_answered_rate_to_the_offline_prediction_and_node
     assert 0 <= result["detection_s"]["node-0"] < 0.5
     assert result["ready_s"]["node-0"] is not None
     assert result["first_failed_request_s"] is not None
-    # 窓 [0, 0.8] の積分は，全問に答えられる場合（0.8）より小さく，止まった半分の分だけ減る
-    assert 0.2 < result["integral"] < 0.7
-    assert result["integral_relative"] == pytest.approx(result["integral"] / 0.8)
+    # 窓 [0, 1.6] の積分は，全問に答えられる場合（1.6）より小さい（止まっている 0.8 秒の間，止まった半分の分だけ減る）
+    assert 0.8 < result["integral"] < 1.6
+    assert result["integral_relative"] == pytest.approx(result["integral"] / 1.6)
     assert await _alive_hosts(cluster) == ["node-0", "node-1"]
 
 
@@ -226,11 +229,12 @@ async def test_run_failure_compares_p2p_with_the_central_restart_on_the_same_win
     summary = json.loads((out_dir / "failure.json").read_text("utf-8"))
     window = summary["window_s"]
     restart = summary["central"]["restart"]["restart_to_answer_s"]
-    assert window == max(restart, 0.8)
+    # 窓 = 復旧の操作を始めるまで + 中央の再起動 + 復旧のあと．中央はその再起動が終わるまで 0，あとは再起動後の割合
+    assert window == pytest.approx(0.8 + restart + 0.4)
+    assert summary["central"]["outage_s"] == pytest.approx(0.8 + restart)
     row = summary["p2p"][0]
-    # 中央は再起動が終わるまで 0．窓が再起動の時間と同じなら積分は 0 で，P2P の積分の方が大きい
     assert row["central_integral"] == pytest.approx(
-        summary["central"]["hit_rate_after_restart"] * max(0.0, window - restart)
+        summary["central"]["hit_rate_after_restart"] * 0.4
     )
     assert row["integral"] > 0
     assert verdict["verdict_original"]["holds"] is (row["integral"] > row["central_integral"])
@@ -238,3 +242,64 @@ async def test_run_failure_compares_p2p_with_the_central_restart_on_the_same_win
     sim = json.loads((out_dir / "sim_vs_live.json").read_text("utf-8"))
     assert sim["rows"][0]["k"] == 1
     assert await _alive_hosts(cluster) == ["node-0", "node-1"]
+
+
+class HangingTransport(httpx.AsyncBaseTransport):
+    """hang_hosts のノードは要求に応答しない（止まったコンテナのポートが SYN に応答しない状態の代わり）．"""
+
+    def __init__(self, routes: dict[str, httpx.AsyncBaseTransport]) -> None:
+        self._routes = routes
+        self.hang_hosts: set[str] = set()
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        host = request.url.host
+        if host in self.hang_hosts:
+            await asyncio.sleep(3600)
+        return await self._routes[host].handle_async_request(request)
+
+
+class HangInjector:
+    """HangingTransport のノードを応答しない状態にする・戻す止め方（テスト用）．"""
+
+    name = "hang"
+
+    def __init__(self, transport: HangingTransport) -> None:
+        self._transport = transport
+
+    async def stop(self, hosts: list[str]) -> InjectionResult:
+        began = time.perf_counter()
+        self._transport.hang_hosts |= set(hosts)
+        return InjectionResult("stop", tuple(hosts), began, time.perf_counter())
+
+    async def start(self, hosts: list[str]) -> InjectionResult:
+        began = time.perf_counter()
+        self._transport.hang_hosts -= set(hosts)
+        return InjectionResult("start", tuple(hosts), began, time.perf_counter())
+
+
+async def test_questions_to_a_silent_node_time_out_and_count_as_unanswered_without_blocking_others(
+    cluster: MiniCluster, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """応答しないノードがあると，それへ要求を送る質問は時間切れになる．ほかの質問を止めず，検出は生存の確認の打ち切りで測る．"""
+    monkeypatch.setattr("atrium.failure_run.LIVENESS_TIMEOUT_S", 0.3)
+    transport = HangingTransport(cluster.routes)
+    client = httpx.AsyncClient(transport=transport)
+    cluster.requester.client = client
+    ctx = FailureContext(
+        requester=cluster.requester,
+        client=client,
+        questions=cluster.questions,
+        gold_doc_of={q.qid: cluster.gold[q.qid]["path"] for q in cluster.questions},
+        url_of_host={n.host: n.url for n in cluster.placement.nodes},
+        inboxes_of_host={n.host: list(n.shard_ids) for n in cluster.placement.nodes},
+    )
+    params = _params(baseline_s=0.3, down_s=0.9, post_s=0.3, answer_deadline_s=0.3)
+    result = await run_fault(ctx, HangInjector(transport), ["node-0"], params, 1.8)
+    assert result["baseline_hit_rate"] > 0.9
+    # 全ての受信箱へ問い合わせる設定なので，止まっている間は全ての質問が時間切れになる
+    assert result["fault_hit_rate"] == 0.0
+    assert result["n_timeouts"] > 0
+    assert result["first_failed_request_e2e_s"] == pytest.approx(0.3)
+    # 検出：生存の確認の打ち切り（0.3 秒）で止まったと分かる
+    assert result["detection_s"]["node-0"] == pytest.approx(0.3, abs=0.2)
+    assert result["ready_s"]["node-0"] is not None

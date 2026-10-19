@@ -10,7 +10,7 @@ import json
 import shutil
 import zlib
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import httpx
@@ -83,6 +83,8 @@ class MiniCluster:
     # 受信箱 → そのメールの文書 ID（行の順）
     doc_ids: dict[str, list[str]]
     inboxes: tuple[str, ...]
+    # ホスト → そのノードの ASGI トランスポート（応答しないノードを再現するテストが差し替える）
+    routes: dict[str, httpx.AsyncBaseTransport] = field(default_factory=dict)
 
 
 def enron_cfg(cfg: AtriumConfig, inboxes: Sequence[str], **cluster_changes: object) -> AtriumConfig:
@@ -223,4 +225,5 @@ async def build_cluster(
         embedder=embedder,
         doc_ids=doc_ids,
         inboxes=tuple(inboxes),
+        routes=routes,
     )

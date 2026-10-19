@@ -2,8 +2,9 @@
 
 質問者のコンテナ（deploy で `cluster.node_admin: true` にしたもの）で動く．
 
-- **P2P**：k 台（k ∈ {1, 3, 6, 10}．ホストの無作為抽出，種 12）を止め，質問を 1 問ずつ流し続けて，答えられた割合（正解のメールが上位 5 通に入った割合）を
-  時間の関数として記録する．止め方は 2 種類．
+- **P2P**：k 台（k ∈ {1, 3, 6, 10}．ホストの無作為抽出，種 12）を止め，質問を stream_parallel 本で流し続けて，答えられた割合を時間の関数として記録する．
+  質問は，answer_deadline_s までに正解のメールが上位 5 通に入れば「答えられた」（止まったノードへの要求は応答が無く，既定の打ち切りは 120 秒と長いので，
+  時間切れの質問は答えられなかったものとして数え，ほかの質問を止めない）．止め方は 2 種類．
   `availability`：`/v1/admin/availability` で止める（離脱中は 503．再現性が高い）．
   `container`：ノードのコンテナを実際に止めて再開する（`docker compose stop node` / `start node`．**止めるのは node サービスだけで，
   データ・image・Ollama は消さない**）．質問者のコンテナは ssh できないので，制御点の `scripts/remote/failure_run.sh` が
@@ -15,8 +16,9 @@
 - **中央**：中央の索引を持つプロセス（子プロセス）を止め（kill），再起動して最初の質問に答えられるまでの時間（インタプリタの起動・import・
   索引の読み込みを含む．`central_local` の `central_index` と同じ読み込み）を実測する．再起動のあとの答えられた割合は同じ質問で測る．
   冗長化（2 台）は，切り替え時間の見込み（検出の時間＋切り替えの操作．操作は測れないので仮定として明記）とデータ複製の費用を，同じ手順の実測値から見積もる（2 台目は立てない）．
-- **主の指標**：障害の窓 [0, W] の中で答えられた割合の時間積分（割合 × 秒）．W = max(中央の再起動の時間, 止めておく時間) として，
-  P2P も中央も同じ窓で積分する．中央は再起動が終わるまで 0，そのあと再起動後の割合．
+- **主の指標**：障害の窓 [0, W] の中で答えられた割合の時間積分（割合 × 秒）．障害の時刻を 0 とし，どちらの構成も復旧の操作を始めるのは同じ down_s 後
+  （P2P は k 台を再開，中央は再起動の開始）とする．中央は down_s ＋ 再起動の時間（測定値）まで 0，そのあと再起動後の割合．P2P は止めた k 台が再開して戻るまで下がる．
+  W = down_s ＋ 中央の再起動の時間 ＋ post_s（復旧のあとに測る時間）として，P2P も中央も同じ窓で積分する．
   判定（事前登録）：測った全ての（止め方，k）で P2P の積分 > 中央の積分（`verdict_original`）．
 
 使い方（実機の本番の手順は docs/d0003_experiment_workflow.md の §7．制御点で `scripts/remote/failure_run.sh`）:
@@ -87,10 +89,13 @@ class FailureParams:
 
     ks: tuple[int, ...] = DEFAULT_KS
     modes: tuple[str, ...] = MODES
-    # 止める前に測る時間・止めておく時間・再開してから（窓の終わりと止めておく時間の後に）さらに測る時間（秒）
+    # 止める前に測る時間・復旧の操作を始めるまでの時間（P2P の k 台を再開する．中央も同じだけ止まっているとみなす）・復旧のあとに測る時間（秒）
     baseline_s: float = 15.0
     down_s: float = 45.0
     post_s: float = 30.0
+    # 質問を流し続ける本数と，1 問が「答えられた」とみなされる時間の上限（秒）
+    stream_parallel: int = 4
+    answer_deadline_s: float = 5.0
     bin_s: float = DEFAULT_BIN_S
     poll_interval_s: float = 0.2
     # 中央の答えられた割合を測る質問の数
@@ -221,8 +226,11 @@ class ContainerInjector:
 async def node_alive(client: httpx.AsyncClient, url: str) -> bool:
     """生存の確認：`/v1/profile` が 200 を返すか（離脱中は 503，コンテナが止まっていれば接続の失敗．打ち切りも「止まっている」）．"""
     try:
-        response = await client.get(f"{url}/v1/profile", timeout=LIVENESS_TIMEOUT_S)
-    except httpx.HTTPError:
+        # 応答の無いデバイスでも LIVENESS_TIMEOUT_S で返るよう，httpx の打ち切りに加えて asyncio でも打ち切る
+        response = await asyncio.wait_for(
+            client.get(f"{url}/v1/profile", timeout=LIVENESS_TIMEOUT_S), LIVENESS_TIMEOUT_S
+        )
+    except (httpx.HTTPError, TimeoutError):
         return False
     return response.status_code == 200
 
@@ -427,8 +435,8 @@ async def run_fault(
 ) -> dict[str, Any]:
     """hosts を止めて再開するあいだ質問を流し続け，答えられた割合の時間変化と，検出・再開の時間を測る．
 
-    時刻 0 は止める操作が終わった時刻．止める前の baseline_s，止めておく down_s，再開してから
-    max(窓 W の終わり, 止めた後 down_s + post_s) までを測る．途中で失敗しても，止めたノードは再開する．
+    時刻 0 は止める操作が終わった時刻．止める前の baseline_s，再開の頼みを出すまでの down_s，窓 W の終わり
+    （再開して返事をしてから post_s 以上）までを測る．途中で失敗しても，止めたノードは再開する．
     """
     cycle = itertools.cycle(ctx.questions)
     rows: list[dict[str, Any]] = []
@@ -439,7 +447,24 @@ async def run_fault(
         while running.is_set():
             question = next(cycle)
             asked = time.perf_counter()
-            record = await ctx.requester.process(question)
+            try:
+                record = await asyncio.wait_for(
+                    ctx.requester.process(question), params.answer_deadline_s
+                )
+            except TimeoutError:
+                # 止まったノードへの要求は応答が無く，既定の打ち切りは長い．上限を超えた質問は答えられなかったものとして数える
+                rows.append(
+                    {
+                        "asked_at": asked,
+                        "hit": False,
+                        "bank": question.bank,
+                        "e2e_s": params.answer_deadline_s,
+                        "error": "answer deadline",
+                        "timed_out": True,
+                        "failed_nodes": 0,
+                    }
+                )
+                continue
             rows.append(
                 {
                     "asked_at": asked,
@@ -447,11 +472,12 @@ async def run_fault(
                     "bank": question.bank,
                     "e2e_s": record["timings"].get("e2e_s"),
                     "error": record["error"],
+                    "timed_out": False,
                     "failed_nodes": record.get("failed_nodes", 0) + record.get("probe_failed", 0),
                 }
             )
 
-    stream_task = asyncio.create_task(stream())
+    stream_tasks = [asyncio.create_task(stream()) for _ in range(params.stream_parallel)]
     stopped = False
     detect: dict[str, asyncio.Task[float | None]] = {}
     try:
@@ -484,12 +510,12 @@ async def run_fault(
             for h in hosts
         }
         ready_s = {h: await t for h, t in ready.items()}
-        end_at = t0 + max(window_s, params.down_s) + params.post_s
+        end_at = max(t0 + window_s, time.perf_counter() + params.post_s)
         await asyncio.sleep(max(0.0, end_at - time.perf_counter()))
         detect_s = {h: await t for h, t in detect.items()}
     finally:
         running.clear()
-        await stream_task
+        await asyncio.gather(*stream_tasks)
         for task in detect.values():
             task.cancel()
         if stopped:
@@ -522,7 +548,7 @@ def summarize_fault(
     baseline = [h for r, h in zip(rows, hits, strict=True) if r["asked_at"] < stop.requested_at]
     during = [h for t, h in zip(rel, hits, strict=True) if 0 <= t < params.down_s]
     after_start = start.acked_at - t0
-    horizon = max(window_s, params.down_s) + params.post_s
+    horizon = window_s
     rates = binned_rates(rel, hits, -params.baseline_s, horizon, params.bin_s)
     base_rate = float(np.mean(baseline)) if baseline else 0.0
     filled = fill_forward(rates, base_rate)
@@ -532,7 +558,9 @@ def summarize_fault(
         r["bank"] in down_inboxes for t, r in zip(rel, rows, strict=True) if 0 <= t < params.down_s
     ]
     failed_rows = [
-        (t, r) for t, r in zip(rel, rows, strict=True) if r["failed_nodes"] > 0 and t >= 0
+        (t, r)
+        for t, r in zip(rel, rows, strict=True)
+        if (r["failed_nodes"] > 0 or r["timed_out"]) and t >= 0
     ]
     first_failed = failed_rows[0] if failed_rows else None
     return {
@@ -558,6 +586,7 @@ def summarize_fault(
         "first_failed_request_e2e_s": None if first_failed is None else first_failed[1]["e2e_s"],
         "n_questions": len(rows),
         "n_errors": sum(r["error"] is not None for r in rows),
+        "n_timeouts": sum(r["timed_out"] for r in rows),
         "baseline_hit_rate": base_rate if baseline else None,
         "fault_hit_rate": float(np.mean(during)) if during else None,
         # 止めている間の質問のうち，正解の受信箱が止まったノードにあった割合（オフラインの予測の入力）
@@ -601,16 +630,16 @@ async def run_failure(
     rate_after = await asyncio.to_thread(
         central_hit_rate, central, central_questions, ctx.gold_doc_of, embeddings, use_text
     )
-    window_s = max(restart["restart_to_answer_s"], params.down_s)
+    # 中央は障害から down_s 後に再起動を始め，restart_to_answer_s 後に答えられる．その後 post_s 測る
+    central_outage_s = params.down_s + restart["restart_to_answer_s"]
+    window_s = central_outage_s + params.post_s
     hosts_all = sorted(ctx.url_of_host)
     p2p_rows: list[dict[str, Any]] = []
     for mode in params.modes:
         for k in params.ks:
             hosts = choose_names(hosts_all, k, params.seed)
             result = await run_fault(ctx, injectors[mode], hosts, params, window_s)
-            central_integral = central_rate_integral(
-                restart["restart_to_answer_s"], rate_after, window_s
-            )
+            central_integral = central_rate_integral(central_outage_s, rate_after, window_s)
             p2p_rows.append(
                 {
                     "mode": mode,
@@ -645,22 +674,25 @@ async def run_failure(
                 "baseline_s": params.baseline_s,
                 "down_s": params.down_s,
                 "post_s": params.post_s,
+                "stream_parallel": params.stream_parallel,
+                "answer_deadline_s": params.answer_deadline_s,
                 "bin_s": params.bin_s,
                 "poll_interval_s": params.poll_interval_s,
                 "seed": params.seed,
                 "unreachable_request_timeout_s": RETRIEVE_TIMEOUT_S,
                 "note": (
-                    "docker compose stop ではホストは到達できたままなので接続は即座に拒否される．"
-                    "応答の無いデバイスへの要求は RETRIEVE_TIMEOUT_S まで待つが，この実験では測っていない"
+                    "止まったノードへの要求は，ホストが応答しなければ RETRIEVE_TIMEOUT_S まで待つ．"
+                    "質問は answer_deadline_s で打ち切り，答えられなかったものとして数える．"
+                    "検出は生存の確認の打ち切り（LIVENESS_TIMEOUT_S）が上限"
                 ),
+                "liveness_timeout_s": LIVENESS_TIMEOUT_S,
             },
             "window_s": window_s,
             "central": {
                 "restart": restart,
                 "hit_rate_after_restart": rate_after,
-                "integral": central_rate_integral(
-                    restart["restart_to_answer_s"], rate_after, window_s
-                ),
+                "outage_s": central_outage_s,
+                "integral": central_rate_integral(central_outage_s, rate_after, window_s),
                 "redundancy": redundancy_estimate(restart, detect_s, rate_after, window_s),
             },
             "p2p": p2p_rows,
@@ -691,7 +723,10 @@ def sim_vs_live(p2p_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     return {
         "rows": rows,
         "max_abs_difference": max((abs(r["difference"]) for r in rows), default=None),
-        "causes": "止めている間の質問の数が少ないと割合が揺れる．再開の前後・検出の遅れの質問は予測に含まれない",
+        "causes": (
+            "予測は正解の受信箱が止まった質問だけが答えられないとする．実機では，止まったノードに probe・本照会を送る質問も"
+            "時間切れで答えられず（要求を送る先は正解の受信箱とは限らない），予測より低くなる．質問の数が少ないと割合が揺れる"
+        ),
     }
 
 

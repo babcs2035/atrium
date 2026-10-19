@@ -417,6 +417,37 @@ hit は既存の評価と同じ規則（正解より得点が高いか同点の�
 `hit` などを数え（失敗した問は hit = 0，分母は全問），EQ7a の同じ条件の値と比べて `metrics.json` の `equivalence`・`regression`・`hc1` と
 `analysis_report.md` に書く．`equivalence.equivalent` は，全ての実行で |実機の hit − EQ7a の hit| が 2 問分（2 / n_test）以内かを示す（H-C2）．
 
+### 新しいメールへの追従（`atrium freshness-run`．p0007 I5）
+
+実機の壁時計で，後から届くメールが答えに使えるようになるまでの時間を測る（質問者のコンテナ．[d0003](d0003_experiment_workflow.md) の §7.1）．出力は `results/<run_id>/`：
+
+| ファイル | 内容 |
+|---|---|
+| `freshness.json` | `p2p.rows`：メールごとの `direct_s`（持ち主へ直接質問して答えられるまで．打ち切りは null）・`routed_s`（設定の routing を通した場合）・`node_embed_s`・`node_add_s`・`node_bm25_s`（デバイスの CPU の埋め込み・索引への追加・BM25 の作り直し）・`add_rtt_s`．`central.<T>`：`times_s`（メールごと）・`summary`（n・n_censored・p50・p95）・`flushes`（転送の `transfer_bytes`・`transfer_s`・中央の `embed_s`・`add_s`）・`hit_at_delay_rate`．`preparation.pre_arrival_hit_rate`（外した直後の hit．0 でなければ使わない） |
+| `verdict.json` | `verdict_original`：P2P（direct）の p50 < 1 秒，かつ中央の T ≥ 60 秒の全てより有意に短い（対にした片側の符号検定，α = 0.05）．`comparisons.<T>` に p 値 |
+| `sim_vs_live.json` | 中央：予定の待ち時間（T の倍数まで待つだけの予測）と実測の中央値・比．P2P：デバイスが報告した埋め込み＋追加の時間と，実測の答えられるまでの時間 |
+| `<条件>/results.jsonl` | 届いてから 1 秒後の質問の結果（`p2p`・`central_T<秒>`）．`atrium judge` で採点し，`atrium freshness-accuracy --run-dir` が条件ごとの `accuracy.json` を作る |
+
+### 障害（`atrium failure-run`．p0007 I6）
+
+k 台の停止（availability API・コンテナの停止と再開）と，中央の索引を持つプロセスの再起動で，答えられた割合の時間積分を比べる（§7.2）．
+
+| ファイル | 内容 |
+|---|---|
+| `failure.json` | `central.restart`：`restart_to_answer_s`（インタプリタの起動・import・索引の読み込みを含む）・`index_load`（`central_index` と同じ内訳）・`index_bytes`．`central.redundancy`：切り替え時間の見込みとデータ複製の費用．`p2p[]`（止め方 × k）：`detection_s`（生存の確認が最初に失敗するまで）・`ready_s`（再開の頼みから返事をするまで）・`first_failed_request_s`・`n_timeouts`（`answer_deadline_s` で打ち切った質問）・`baseline_hit_rate`・`fault_hit_rate`・`rates`（`bin_s` ごとの答えられた割合）・`integral`（窓 W = down_s ＋ 中央の再起動 ＋ post_s の積分．割合 × 秒）・`central_integral` |
+| `verdict.json` | `verdict_original`：測った全ての（止め方，k）で P2P の積分 > 中央の積分 |
+| `sim_vs_live.json` | 止めている間の答えられた割合の予測（平常の割合 × 正解の受信箱が動いている割合）と実測 |
+
+### 参加（`atrium join-run`．p0007 I7）
+
+途中で加わるデバイスが答えに加わるまでの時間（§7.3）．
+
+| ファイル | 内容 |
+|---|---|
+| `join.json` | `p2p.devices[]`：`up_s`・`published_s`・`member_s`（参加の時刻から）・`device_*_s`（デバイスの CPU での公開情報の作成の内訳）・`payload_bytes`・`answers[].answer_s`．`central.devices[]`：`transfer_bytes`・`transfer_s`・`embed_s`・`add_s`・`indexed_s`・`answers[]`．`delays[]`：通知の遅れ L ごとの hit と最初に答えられた位置．`pre_join`：参加前の hit |
+| `verdict.json` | `verdict_original`：P2P の答えられるまでの時間（受信箱ごとの中央値）が中央より短い，または中央の 1.25 倍以内で転送量が小さい（`branch`） |
+| `sim_vs_live.json` | 参加前の hit の予測（0）と実測．実機で組み立てた要約とオフラインの `build-summary` の要約の probe の候補の一致率 |
+
 ## 4. E0 の実測値
 
 | ファイル | 内容 |
