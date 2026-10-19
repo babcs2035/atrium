@@ -455,6 +455,8 @@ class Requester:
         """1 シャードの検索．encoded_embedding（埋め込みの JSON）があれば，RetrieveRequest の model_dump() を json= で
         符号化した本文とバイト単位で同じ本文を bytes の連結で作って送る（faiss のシャードだけ）．"""
         k = self._k_ret()
+        # retrieval.fusion=rrf のノードだけが BM25 に使う質問の文字列．none では従来どおり null を送る
+        query_text = question.question if self.cfg.retrieval.fusion == "rrf" else None
         request_body: dict[str, Any] | bytes
         if encoded_embedding is not None and source.kind == "faiss":
             request_body = (
@@ -466,6 +468,8 @@ class Requester:
                 + encoded_embedding
                 + b',"query_id":'
                 + encode_json_like_httpx(question.source_qid)
+                + b',"query_text":'
+                + encode_json_like_httpx(query_text)
                 + b"}"
             )
         else:
@@ -475,6 +479,7 @@ class Requester:
                 k=k,
                 embedding=embedding.tolist() if source.kind == "faiss" else None,
                 query_id=question.source_qid,
+                query_text=query_text,
             )
             request_body = req.model_dump()
         start = time.perf_counter()
@@ -781,7 +786,10 @@ class Requester:
         encoder = self.cfg.data.require_enronqa().encoder
         start = time.perf_counter()
         found = await asyncio.to_thread(
-            self.central_index.search, embeddings[encoder], self._k_ret()
+            self.central_index.search,
+            embeddings[encoder],
+            self._k_ret(),
+            question.question if self.cfg.retrieval.fusion == "rrf" else None,
         )
         record["timings"]["retrieve_s"] = time.perf_counter() - start
         docs = [

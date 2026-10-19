@@ -28,6 +28,8 @@ class RetrieveRequest(_Model):
     k: int = Field(ge=1)
     embedding: list[float] | None = None
     query_id: str | None = None
+    # retrieval.fusion=rrf のとき，BM25 に使う質問の文字列（それ以外は None）
+    query_text: str | None = None
 
 
 class RetrieveResponse(_Model):

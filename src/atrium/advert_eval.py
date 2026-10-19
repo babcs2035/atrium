@@ -29,6 +29,7 @@ import numpy as np
 from atrium.arrays import F32Array, F64Array, I64Array
 from atrium.benchmarks import load_questions
 from atrium.config import AtriumConfig
+from atrium.hybrid import BM25_B, BM25_K1, MIN_DOC_LENGTH  # BM25 の定数はノードと共有する
 from atrium.paths import DatasetPaths
 
 logger = logging.getLogger(__name__)
@@ -39,10 +40,6 @@ CENTROID_CANDIDATES = (2, 4, 8, 16, 32)
 M_CANDIDATES = (1, 2, 3, 5, 10, 20)
 DEV_HIT_TARGET = 0.9
 BOOTSTRAP_SAMPLES = 1000
-BM25_K1 = 1.2
-BM25_B = 0.75
-# BM25 の文書の長さを数えない極端に短いメールのための下限（0 除算を避ける）
-MIN_DOC_LENGTH = 1
 
 
 @dataclass(frozen=True)

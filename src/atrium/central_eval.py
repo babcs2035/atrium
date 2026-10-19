@@ -27,10 +27,11 @@ from typing import Any
 
 import numpy as np
 
-from atrium.advert_eval import BM25_B, BM25_K1, MIN_DOC_LENGTH, bootstrap_ci
+from atrium.advert_eval import bootstrap_ci
 from atrium.analysis import read_results
 from atrium.arrays import F32Array, F64Array, I64Array
 from atrium.config import AtriumConfig
+from atrium.hybrid import BM25_B, BM25_K1, MIN_DOC_LENGTH
 from atrium.paths import DatasetPaths
 
 logger = logging.getLogger(__name__)

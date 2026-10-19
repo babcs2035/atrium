@@ -48,6 +48,7 @@ AnswerMode = Literal[
 AggregateName = Literal["max_score", "abstain", "agree", "llm_select"]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
 QueryEmbeddingMode = Literal["live", "cached"]
+FusionName = Literal["none", "rrf"]
 Precision = Literal["fp32", "fp16_autocast"]
 
 DEFAULT_CONFIG_PATH = Path("config.yaml")
@@ -188,6 +189,11 @@ class RetrievalConfig(_Strict):
     k_rerank: int = Field(default=15, ge=1)
     merge: MergeName = "score"
     query_embedding: dict[DatasetName, QueryEmbeddingMode]
+    # p0007 A2・I3：受信箱（シャード）の中の検索．none：密ベクトルの内積の上位 k 通（従来）／rrf：BM25 と密ベクトルの RRF（k = 60）の上位 k 通．
+    # routing=central_local では全体の BM25 と密ベクトルの RRF（中央にも同じ改良を入れる）．EnronQA の faiss のシャードだけで使える
+    fusion: FusionName = "none"
+    # rrf で順位を付ける，密ベクトル・BM25 それぞれの上位の件数
+    fusion_depth: int = Field(default=50, ge=1)
 
 
 class RoutingConfig(_Strict):

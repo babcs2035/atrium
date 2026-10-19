@@ -55,6 +55,11 @@ retrieval:
   # score: 検索スコアで統合 ／ cross_encoder: bge-reranker-v2-m3 で再ランク ／
   # qrels_oracle: FeB4RAG の結果統合用ラベルの順に並べる（RAGRoute で再ランクを無効にした場合と同じ）
   merge: score
+  # 受信箱（シャード）の中の検索（p0007 A2）．none：密ベクトルの内積の上位 k 通（従来）／rrf：BM25（その受信箱だけの統計）と密ベクトルの
+  # RRF（k = 60）の上位 k 通．routing=central_local では全体の BM25 と密ベクトルの RRF（中央にも同じ改良を入れる）．EnronQA の faiss のシャードだけ
+  fusion: none
+  # rrf で順位を付ける，密ベクトル・BM25 それぞれの上位の件数
+  fusion_depth: 50
   # medrag ではクエリ埋め込みを質問者がその場で計算する（live）．
   # feb4rag は検索器が 8 種類（5.8B を含む）あるため，中継点で事前計算したものを使う（cached）．
   query_embedding:

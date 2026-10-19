@@ -19,14 +19,26 @@ from tests.test_requester import DIM, _cfg, _questions, _requester, corpus  # no
 
 
 def _httpx_json_body(
-    shard_id: str, k: int, embedding: list[float] | None, query_id: str | None
+    shard_id: str,
+    k: int,
+    embedding: list[float] | None,
+    query_id: str | None,
+    query_text: str | None = None,
 ) -> bytes:
     """per_request の経路が実際に送る本文（RetrieveRequest → model_dump → httpx の json=）．"""
-    req = RetrieveRequest(shard_id=shard_id, k=k, embedding=embedding, query_id=query_id)
+    req = RetrieveRequest(
+        shard_id=shard_id, k=k, embedding=embedding, query_id=query_id, query_text=query_text
+    )
     return httpx.Request("POST", "http://node/v1/retrieve", json=req.model_dump()).content
 
 
-def _pre_encoded_body(shard_id: str, k: int, embedding: list[float], query_id: str | None) -> bytes:
+def _pre_encoded_body(
+    shard_id: str,
+    k: int,
+    embedding: list[float],
+    query_id: str | None,
+    query_text: str | None = None,
+) -> bytes:
     """pre_encoded の経路の本文の組み立て（requester._retrieve と同じ形）．"""
     return (
         b'{"shard_id":'
@@ -37,6 +49,8 @@ def _pre_encoded_body(shard_id: str, k: int, embedding: list[float], query_id: s
         + encode_json_like_httpx(embedding)
         + b',"query_id":'
         + encode_json_like_httpx(query_id)
+        + b',"query_text":'
+        + encode_json_like_httpx(query_text)
         + b"}"
     )
 
@@ -48,15 +62,16 @@ def test_default_retrieve_body_is_per_request(cfg: AtriumConfig) -> None:
 @pytest.mark.parametrize("shard_id", ["a", "pubmed-00", 'q"\\/é日本-1'])
 @pytest.mark.parametrize("k", [1, 30])
 @pytest.mark.parametrize("query_id", [None, "enron/0001", 'ü\n"x"'])
+@pytest.mark.parametrize("query_text", [None, 'Who sent "the" é日本 report?\n'])
 def test_pre_encoded_body_equals_httpx_json_body_byte_for_byte(
-    shard_id: str, k: int, query_id: str | None
+    shard_id: str, k: int, query_id: str | None, query_text: str | None
 ) -> None:
     rng = np.random.default_rng(0)
     embedding = rng.normal(size=768).astype(np.float32)
     embedding[0], embedding[1], embedding[2], embedding[3] = -0.5, 1e-30, 0.0, 1e-5
     values = embedding.tolist()
-    assert _pre_encoded_body(shard_id, k, values, query_id) == _httpx_json_body(
-        shard_id, k, values, query_id
+    assert _pre_encoded_body(shard_id, k, values, query_id, query_text) == _httpx_json_body(
+        shard_id, k, values, query_id, query_text
     )
 
 

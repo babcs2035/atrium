@@ -8,6 +8,9 @@
     <shard_id>/results.jsonl          {"qid", "hits": [[doc_id, score], ...]}（kind="search_results"）
     <shard_id>/docs.jsonl             {"_id", "title", "text"}（kind="search_results"）
 
+retrieval.fusion=rrf（p0007 A2）のときは，起動時に全断片の本文を 1 回読んで BM25 の転置索引（`atrium.hybrid.Bm25Index`．
+そのシャードだけの統計）を作り，検索で BM25 と密ベクトルの RRF の上位を返す（本文そのものは載せない）．
+
 本文は全件をメモリに載せず，行の先頭のバイト位置だけを持って必要な行を読み出す
 （PubMed のシャードは本文だけで数 GB あり，L480 の 16 GB に索引と同居させるため）．
 """
@@ -17,6 +20,8 @@ from __future__ import annotations
 import json
 import logging
 import threading
+import time
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -24,7 +29,9 @@ from typing import Protocol
 import faiss
 import numpy as np
 
-from atrium.arrays import I64Array
+from atrium.arrays import F32Array, I64Array
+from atrium.config import FusionName
+from atrium.hybrid import Bm25Index, rrf_top_k
 from atrium.manifest import SHARD_SPEC_FILENAME, ShardSpec
 
 logger = logging.getLogger(__name__)
@@ -49,9 +56,14 @@ class ShardStore(Protocol):
     spec: ShardSpec
 
     def search(
-        self, *, k: int, embedding: list[float] | None, query_id: str | None
+        self,
+        *,
+        k: int,
+        embedding: list[float] | None,
+        query_id: str | None,
+        query_text: str | None = None,
     ) -> list[RetrievedDoc]:
-        """上位 k 件の断片をスコアの降順で返す．"""
+        """上位 k 件の断片をスコアの降順で返す（query_text は fusion=rrf の BM25 だけが使う）．"""
         ...
 
 
@@ -76,9 +88,19 @@ def _line_offsets(path: Path) -> I64Array:
 class FaissShardStore:
     """MedRAG 型のシャード．fp16 の FAISS 平坦索引で内積検索する．"""
 
-    def __init__(self, shard_dir: Path, spec: ShardSpec) -> None:
-        """シャードを読み込み，索引を組み立てる．"""
+    def __init__(
+        self,
+        shard_dir: Path,
+        spec: ShardSpec,
+        fusion: FusionName = "none",
+        fusion_depth: int = 50,
+    ) -> None:
+        """シャードを読み込み，索引を組み立てる（fusion=rrf なら BM25 の索引も作る）．"""
         self.spec = spec
+        self._fusion = fusion
+        self._fusion_depth = fusion_depth
+        self._bm25: Bm25Index | None = None
+        self.bm25_build_s = 0.0
         self._dir = shard_dir
         self._lock = threading.Lock()
         self._index = faiss.IndexScalarQuantizer(
@@ -102,7 +124,33 @@ class FaissShardStore:
                 raise ValueError(f"{chunk.name}: {len(offsets)} lines != {chunk.n_docs} docs")
             self._offsets.append(offsets)
             self._file_starts[i + 1] = self._file_starts[i] + chunk.n_docs
-        logger.info("loaded shard %s (%d docs)", spec.shard_id, self._index.ntotal)
+        if fusion == "rrf":
+            self._build_bm25()
+        logger.info(
+            "loaded shard %s (%d docs, fusion=%s, bm25 build %.2f s)",
+            spec.shard_id,
+            self._index.ntotal,
+            fusion,
+            self.bm25_build_s,
+        )
+
+    def _build_bm25(self) -> None:
+        """全断片の本文を先頭から 1 回読み，そのシャードだけの統計で BM25 の索引を作る（本文は索引に残さない）．"""
+        from atrium.routing.advert import tokenize
+
+        start = time.perf_counter()
+
+        def token_lists() -> Iterator[list[str]]:
+            for chunk in self.spec.files:
+                with (self._dir / "chunk" / f"{chunk.name}.jsonl").open("rb") as f:
+                    for line in f:
+                        if line.strip():
+                            yield tokenize(json.loads(line)["content"])
+
+        self._bm25 = Bm25Index(token_lists())
+        if self._bm25.n_docs != self._index.ntotal:
+            raise ValueError(f"bm25 docs {self._bm25.n_docs} != index docs {self._index.ntotal}")
+        self.bm25_build_s = time.perf_counter() - start
 
     def _read_doc(self, global_idx: int) -> dict[str, str]:
         file_no = int(np.searchsorted(self._file_starts, global_idx, side="right")) - 1
@@ -114,14 +162,21 @@ class FaissShardStore:
         return doc
 
     def search(
-        self, *, k: int, embedding: list[float] | None, query_id: str | None
+        self,
+        *,
+        k: int,
+        embedding: list[float] | None,
+        query_id: str | None,
+        query_text: str | None = None,
     ) -> list[RetrievedDoc]:
-        """クエリ埋め込みとの内積の上位 k 件を返す．"""
+        """クエリ埋め込みとの内積の上位 k 件を返す（fusion=rrf なら，BM25 との RRF で選んだ上位 k 件．score は内積のまま）．"""
         if embedding is None:
             raise ValueError("faiss shard requires a query embedding")
         if len(embedding) != self.spec.dim:
             raise ValueError(f"embedding dim {len(embedding)} != {self.spec.dim}")
         query = np.asarray(embedding, dtype=np.float32).reshape(1, -1)
+        if self._bm25 is not None:
+            return self._search_rrf(k, query, query_text)
         # FAISS の検索自体はスレッド安全だが，OpenMP のスレッドを奪い合うと遅くなるので直列にする
         with self._lock:
             scores, ids = self._index.search(query, k)
@@ -133,6 +188,35 @@ class FaissShardStore:
             docs.append(
                 RetrievedDoc(
                     doc_id=raw["id"], title=raw["title"], content=raw["content"], score=float(score)
+                )
+            )
+        return docs
+
+    def _search_rrf(self, k: int, query: F32Array, query_text: str | None) -> list[RetrievedDoc]:
+        """全断片の内積と BM25 の得点から RRF で上位 k 件を選ぶ．score は内積（受信箱をまたぐ統合の比べ方を変えない）．
+
+        文脈の並びは従来どおり内積の降順にする（RRF が変えるのは，どの断片が上位 k 件に入るかだけ）．
+        """
+        from atrium.routing.advert import tokenize
+
+        if query_text is None or self._bm25 is None:
+            raise ValueError("fusion=rrf requires the query text")
+        n = self._index.ntotal
+        with self._lock:
+            scores, ids = self._index.search(query, n)
+        dense = np.zeros(n, dtype=np.float64)
+        dense[ids[0]] = scores[0]
+        picked = rrf_top_k(dense, self._bm25.scores(tokenize(query_text)), k, self._fusion_depth)
+        picked.sort(key=lambda i: (-dense[i], i))
+        docs: list[RetrievedDoc] = []
+        for idx in picked:
+            raw = self._read_doc(idx)
+            docs.append(
+                RetrievedDoc(
+                    doc_id=raw["id"],
+                    title=raw["title"],
+                    content=raw["content"],
+                    score=float(dense[idx]),
                 )
             )
         return docs
@@ -157,7 +241,12 @@ class SearchResultsShardStore:
         logger.info("loaded shard %s (%d queries)", spec.shard_id, len(self._hits))
 
     def search(
-        self, *, k: int, embedding: list[float] | None, query_id: str | None
+        self,
+        *,
+        k: int,
+        embedding: list[float] | None,
+        query_id: str | None,
+        query_text: str | None = None,
     ) -> list[RetrievedDoc]:
         """要求 ID に対する配布済みの検索結果の上位 k 件を返す．"""
         if query_id is None:
@@ -171,9 +260,11 @@ class SearchResultsShardStore:
         return docs
 
 
-def load_shard(shard_dir: Path) -> ShardStore:
-    """shard.json の kind に応じてシャードを読み込む．"""
+def load_shard(shard_dir: Path, fusion: FusionName = "none", fusion_depth: int = 50) -> ShardStore:
+    """shard.json の kind に応じてシャードを読み込む（fusion は faiss のシャードだけで有効．他の kind では指定を拒否する）．"""
     spec = ShardSpec.model_validate_json((shard_dir / SHARD_SPEC_FILENAME).read_text("utf-8"))
     if spec.kind == "faiss":
-        return FaissShardStore(shard_dir, spec)
+        return FaissShardStore(shard_dir, spec, fusion, fusion_depth)
+    if fusion != "none":
+        raise ValueError(f"retrieval.fusion={fusion} supports only faiss shards, not {spec.kind}")
     return SearchResultsShardStore(shard_dir, spec)

@@ -155,10 +155,14 @@ def create_app(
         return stores[shard_id]
 
     def search(
-        store: ShardStore, k: int, embedding: list[float] | None, query_id: str | None
+        store: ShardStore,
+        k: int,
+        embedding: list[float] | None,
+        query_id: str | None,
+        query_text: str | None,
     ) -> list[RetrievedDoc]:
         try:
-            return store.search(k=k, embedding=embedding, query_id=query_id)
+            return store.search(k=k, embedding=embedding, query_id=query_id, query_text=query_text)
         except (ValueError, KeyError) as exc:
             # 入力の不整合（次元違い・未知の要求 ID）は呼び出し元の誤りとして 400 で返す
             raise NodeError(400, "Invalid retrieval request", str(exc)) from exc
@@ -217,7 +221,7 @@ def create_app(
     @app.post("/v1/retrieve", dependencies=up_only)
     def retrieve(req: RetrieveRequest) -> RetrieveResponse:
         start = time.perf_counter()
-        docs = search(store_of(req.shard_id), req.k, req.embedding, req.query_id)
+        docs = search(store_of(req.shard_id), req.k, req.embedding, req.query_id, req.query_text)
         return RetrieveResponse(
             shard_id=req.shard_id,
             docs=[
@@ -232,7 +236,7 @@ def create_app(
         start = time.perf_counter()
         scores: dict[str, float] = {}
         for shard_id in req.shard_ids:
-            docs = search(store_of(shard_id), 1, req.embedding, None)
+            docs = search(store_of(shard_id), 1, req.embedding, None, None)
             scores[shard_id] = docs[0].score if docs else float("-inf")
         return ProbeResponse(node_id=node_id, scores=scores, duration_s=time.perf_counter() - start)
 
@@ -244,7 +248,12 @@ def create_app(
             # FAISS の検索とディスクの読み出しは同期処理なので，イベントループを塞がないようスレッドで動かす
             docs.extend(
                 await asyncio.to_thread(
-                    search, store_of(shard_id), req.k, req.embedding, req.query_id
+                    search,
+                    store_of(shard_id),
+                    req.k,
+                    req.embedding,
+                    req.query_id,
+                    req.question,
                 )
             )
         context = _merge_top(docs, req.k)
@@ -343,7 +352,10 @@ def main(
     import uvicorn
 
     cfg = load_config(config_path)
-    stores = {sid: load_shard(shards_dir / sid) for sid in shard_ids}
+    stores = {
+        sid: load_shard(shards_dir / sid, cfg.retrieval.fusion, cfg.retrieval.fusion_depth)
+        for sid in shard_ids
+    }
     workers = cfg.experiment.node_workers
     if workers == 1:
         app = create_app(node_id, stores, cfg, ollama_url, expert_model=expert_model)
@@ -399,7 +411,10 @@ def serve_one_worker(args: WorkerArgs) -> None:
         level=logging.INFO, format=f"%(asctime)s %(levelname)s [{os.getpid()}] %(message)s"
     )
     cfg = load_config(args.config_path)
-    stores = {sid: load_shard(args.shards_dir / sid) for sid in args.shard_ids}
+    stores = {
+        sid: load_shard(args.shards_dir / sid, cfg.retrieval.fusion, cfg.retrieval.fusion_depth)
+        for sid in args.shard_ids
+    }
     app = create_app(args.node_id, stores, cfg, args.ollama_url, expert_model=args.expert_model)
     sock = open_reuseport_socket(args.host, args.port)
     uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port)).run(sockets=[sock])

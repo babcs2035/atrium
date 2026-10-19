@@ -27,6 +27,7 @@
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     central-eval              中央集約ベースラインの検索の精度と C1 の実機との一致（EnronQA．p0006 P1．制御点のコンテナ）
     central-local-eval        routing=central_local の索引と C1 の上位文書 ID の一致（EnronQA．p0007 I4．制御点のコンテナ）
+    fusion-eval               受信箱の中と中央の，密ベクトル・BM25・RRF の Recall と A2 のゲートの判定（EnronQA．p0007 A2．制御点のコンテナ）
     exposure-eval             条件ごとの，デバイスの外に出た文書の重複なしの数と H-B の判定（EnronQA．p0007 B．制御点のコンテナ）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
     owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
@@ -562,6 +563,20 @@ def cmd_central_local_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0 if result["verdict"]["verdict_original"]["verdict"] != "not_equivalent" else 1
 
 
+def cmd_fusion_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """受信箱の中と中央の Recall（密ベクトル・BM25・RRF）を求め，A2 のゲートを判定して metrics.json・verdict.json などを書く（p0007 A2）．"""
+    from atrium import fusion_eval
+
+    metrics = fusion_eval.evaluate(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        Path(args.reference),
+        Path(args.out_dir),
+    )
+    print(fusion_eval.render_report(metrics))
+    return 0 if metrics["reference_p0006_p1"]["consistent"] else 1
+
+
 def cmd_exposure_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """条件ごとの外に出た文書の重複なしの数を数え，H-B を判定して 4 つの出力を書く（p0007 B）．"""
     from atrium import exposure_eval
@@ -1067,6 +1082,19 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out-dir", required=True)
     p.add_argument("--c1-run", required=True, help="C1（routing=all）の実行のディレクトリ")
     p.set_defaults(func=cmd_central_local_eval)
+
+    p = sub.add_parser(
+        "fusion-eval",
+        help="受信箱の中と中央の密ベクトル・BM25・RRF の Recall と A2 のゲート（EnronQA．p0007 A2）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--reference",
+        required=True,
+        help="p0006 P1 の central-eval の出力のディレクトリ（metrics.json の中央の Recall と照合する）",
+    )
+    p.set_defaults(func=cmd_fusion_eval)
 
     p = sub.add_parser(
         "exposure-eval",
