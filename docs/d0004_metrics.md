@@ -104,6 +104,11 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 
 - 2 つの実行の正答率の比較は，同じ質問の正誤の組に対する McNemar の正確検定（両側）で行う
   （`atrium compare`）．p 値は二項分布 Bin(b + c, 0.5) の両側確率で，b と c は片方だけが正解した問数である．
+- P2P と中央の精度の判定（p0007 I9．plans/p0007 §4.2）は `atrium compare <P2P の実行> <中央の実行> --out-dir <出力先>` が行い，
+  `verdict.json`（`verdict_original`・`verdict_revised`）を書く．差（P2P − 中央）の 95% 信頼区間は，質問を組のまま再抽出する対応ありの
+  ブートストラップ（既定は 10,000 回・種 12）で求め，下端が −δ（既定 0.02．`--margin`）より上なら非劣性（`non_inferior`），
+  McNemar の正確検定で P2P が有意に高ければ優越（`superior`）である．`--revised-margin` と `--revised-reason` を付けると，事後の見直しの判定を
+  `verdict_revised`（`post_hoc: true`）に足す．書いた `verdict_original` は，別の値で書き直そうとすると拒否される．
 - 正答率の信頼区間は Wilson のスコア区間（z = 1.96）である．
 
 ### EnronQA の採点（`atrium judge`・`judge-validate`・`judge-kappa`）

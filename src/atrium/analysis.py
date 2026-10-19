@@ -234,20 +234,28 @@ def compute_metrics(
     return out
 
 
+def paired_correctness(
+    rows_a: Sequence[dict[str, Any]], rows_b: Sequence[dict[str, Any]]
+) -> tuple[list[str], list[bool], list[bool]]:
+    """2 つの実行が両方とも採点済み・成功の質問について，（質問 ID の昇順，A の正誤，B の正誤）を返す（対応ありの比較の入力）．"""
+    a = {r["qid"]: bool(r["correct"]) for r in rows_a if "correct" in r and r.get("error") is None}
+    b = {r["qid"]: bool(r["correct"]) for r in rows_b if "correct" in r and r.get("error") is None}
+    shared = sorted(set(a) & set(b))
+    return shared, [a[q] for q in shared], [b[q] for q in shared]
+
+
 def compare_runs(
     rows_a: Sequence[dict[str, Any]], rows_b: Sequence[dict[str, Any]]
 ) -> dict[str, Any]:
     """同じ質問に対する 2 つの実行の正答を McNemar の正確検定で比べる．"""
-    a = {r["qid"]: bool(r["correct"]) for r in rows_a if "correct" in r and r.get("error") is None}
-    b = {r["qid"]: bool(r["correct"]) for r in rows_b if "correct" in r and r.get("error") is None}
-    shared = sorted(set(a) & set(b))
-    only_a = sum(a[q] and not b[q] for q in shared)
-    only_b = sum(b[q] and not a[q] for q in shared)
+    shared, a, b = paired_correctness(rows_a, rows_b)
+    only_a = sum(x and not y for x, y in zip(a, b, strict=True))
+    only_b = sum(y and not x for x, y in zip(a, b, strict=True))
     n = len(shared)
     return {
         "n_shared": n,
-        "accuracy_a": sum(a[q] for q in shared) / n if n else 0.0,
-        "accuracy_b": sum(b[q] for q in shared) / n if n else 0.0,
+        "accuracy_a": sum(a) / n if n else 0.0,
+        "accuracy_b": sum(b) / n if n else 0.0,
         "only_a_correct": only_a,
         "only_b_correct": only_b,
         "mcnemar_p": mcnemar_exact(only_a, only_b),

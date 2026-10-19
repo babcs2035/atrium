@@ -54,6 +54,7 @@ from atrium.manifest import (
     write_json_model,
 )
 from atrium.paths import dataset_paths
+from atrium.verdict import BOOTSTRAP_SAMPLES, BOOTSTRAP_SEED, NON_INFERIORITY_MARGIN
 
 MEDRAG_STEPS = ("benchmark", "corpus", "embed", "shards", "queries", "labels", "split", "train")
 FEB4RAG_STEPS = ("fetch", "beir", "shards", "queries", "split", "train")
@@ -739,14 +740,28 @@ def cmd_metrics(args: argparse.Namespace, cfg: AtriumConfig) -> int:
 
 
 def cmd_compare(args: argparse.Namespace, cfg: AtriumConfig) -> int:
-    """2 つの実行の正答を McNemar 検定で比べる．"""
+    """2 つの実行の正答を McNemar 検定で比べる．--out-dir を付けると，A（P2P）− B（中央）の精度の判定を verdict.json にも書く（p0007 I9）．"""
     from atrium.analysis import compare_runs, read_results
 
-    result = compare_runs(
-        read_results(Path(args.run_a) / "results.jsonl"),
-        read_results(Path(args.run_b) / "results.jsonl"),
-    )
-    print(json.dumps(result, indent=1))
+    rows_a = read_results(Path(args.run_a) / "results.jsonl")
+    rows_b = read_results(Path(args.run_b) / "results.jsonl")
+    print(json.dumps(compare_runs(rows_a, rows_b), indent=1))
+    if args.out_dir is None:
+        return 0
+    from atrium import verdict
+
+    if (args.revised_margin is None) != (args.revised_reason is None):
+        raise SystemExit("--revised-margin and --revised-reason must be given together")
+    original = verdict.judge_accuracy(rows_a, rows_b, args.margin, args.samples, args.seed)
+    revised = None
+    if args.revised_margin is not None:
+        # 結果を見た後の見直し（plans/p0007 §4.4 の 2）．最初の基準の判定は書き換えない
+        revised = {
+            **verdict.judge_accuracy(rows_a, rows_b, args.revised_margin, args.samples, args.seed),
+            "post_hoc": True,
+            "reason": args.revised_reason,
+        }
+    print(json.dumps(verdict.write_verdict(Path(args.out_dir), original, revised), indent=1))
     return 0
 
 
@@ -1204,9 +1219,19 @@ def build_parser() -> argparse.ArgumentParser:
             p.add_argument("--json", action="store_true", help="1 行の JSON で出す")
         p.set_defaults(func=func)
 
-    p = sub.add_parser("compare", help="2 つの実行を McNemar 検定で比べる")
-    p.add_argument("run_a")
-    p.add_argument("run_b")
+    p = sub.add_parser(
+        "compare", help="2 つの実行を McNemar 検定で比べる（--out-dir で精度の判定も出す）"
+    )
+    p.add_argument("run_a", help="P2P 側の実行（差は A − B）")
+    p.add_argument("run_b", help="中央側の実行")
+    p.add_argument("--out-dir", default=None, help="verdict.json（非劣性・優越の判定）の出力先")
+    p.add_argument("--margin", type=float, default=NON_INFERIORITY_MARGIN, help="非劣性の δ")
+    p.add_argument("--samples", type=int, default=BOOTSTRAP_SAMPLES, help="ブートストラップの回数")
+    p.add_argument("--seed", type=int, default=BOOTSTRAP_SEED, help="ブートストラップの種")
+    p.add_argument(
+        "--revised-margin", type=float, default=None, help="事後の見直しの δ（verdict_revised）"
+    )
+    p.add_argument("--revised-reason", default=None, help="見直しの理由（結果とは独立の根拠）")
     p.set_defaults(func=cmd_compare)
 
     p = sub.add_parser("e0", help="E0 の実測と集約")
