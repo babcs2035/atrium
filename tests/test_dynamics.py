@@ -14,6 +14,7 @@ from atrium.dynamics import (
     choose_held_back,
     choose_names,
     durations_or_censored,
+    eligible_indices,
     fill_forward,
     integrate_rates,
     judge_failure,
@@ -205,3 +206,15 @@ def test_join_fails_when_p2p_is_slower_than_the_equivalence_ratio() -> None:
 def test_join_treats_a_never_answered_p2p_as_not_faster() -> None:
     verdict = judge_join([math.inf] * 3, [10.0] * 3, p2p_bytes=1, central_bytes=100)
     assert verdict["holds"] is False
+
+
+def test_only_mails_answerable_in_p2p_and_in_some_finite_central_run_are_compared() -> None:
+    p2p = [0.1, 0.2, None, 0.4]
+    central = {0.0: [0.0, None, 0.1, None], 60.0: [30.0, None, 20.0, 40.0], math.inf: [None] * 4}
+    # 1 番目は両方で答えられる／2 番目は中央が最後まで答えられない／3 番目は P2P が答えられない／4 番目は T = 60 で答えられる
+    assert eligible_indices(p2p, central) == [0, 3]
+    assert eligible_indices(p2p, {math.inf: [None] * 4}) == [
+        0,
+        1,
+        3,
+    ]  # 有限の T が無ければ P2P だけで決める

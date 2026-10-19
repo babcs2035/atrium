@@ -43,6 +43,7 @@ from atrium.dynamics import (
     central_flush_offsets,
     choose_held_back,
     durations_or_censored,
+    eligible_indices,
     judge_freshness,
     summarize_times,
     times_or_censored,
@@ -526,11 +527,22 @@ async def run_freshness(
         central_rows[interval] = await measure_central(
             ctx, central, embedder, arrivals, interval, params, central_requester, out_dir
         )
+    # どの構成でも最後まで答えられないメール（新しさとは別の理由．中央は全受信箱の上位 5 通に入らない場合など）は，時間の比較から除く
+    eligible = eligible_indices(
+        [r["direct_s"] for r in p2p_rows], {k: row["times_s"] for k, row in central_rows.items()}
+    )
     central_times = {
-        interval: [math.inf if t is None else t for t in row["times_s"]]
+        interval: [math.inf if row["times_s"][i] is None else row["times_s"][i] for i in eligible]
         for interval, row in central_rows.items()
     }
-    verdict_body = judge_freshness(p2p_times, central_times)
+    verdict_body = {
+        **judge_freshness([p2p_times[i] for i in eligible], central_times),
+        "eligibility": {
+            "n_arrivals": len(arrivals),
+            "n_compared": len(eligible),
+            "rule": "P2P（direct）で答えられ，かつ中央の有限の T のどれかで答えられたメールだけを比べる",
+        },
+    }
     verdict = write_verdict(out_dir, verdict_body)
     summary = {
         "params": {

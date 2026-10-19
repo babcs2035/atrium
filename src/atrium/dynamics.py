@@ -100,6 +100,22 @@ def durations_or_censored(durations: Sequence[float | None]) -> list[float]:
     return [CENSORED if d is None else d for d in durations]
 
 
+def eligible_indices(
+    p2p: Sequence[float | None], central_by_interval: Mapping[float, Sequence[float | None]]
+) -> list[int]:
+    """時間を比べるメール（番号）：P2P で答えられ，かつ中央の有限の T のどれかで答えられたもの．
+
+    どの構成でも最後まで答えられないメール（検索の順位が低い・質問が曖昧など，新しさとは別の理由）は，答えられるまでの時間の比較から除く．
+    T = ∞ は転送しないので条件にしない．有限の T の条件が無ければ P2P だけで決める．
+    """
+    finite = [times for interval, times in central_by_interval.items() if not math.isinf(interval)]
+    return [
+        i
+        for i, value in enumerate(p2p)
+        if value is not None and (not finite or any(times[i] is not None for times in finite))
+    ]
+
+
 def summarize_times(times: Sequence[float]) -> dict[str, Any]:
     """答えられるまでの時間の件数・打ち切りの数・中央値・p95・最大（打ち切りは無限大．無限大の統計は null で書く）．"""
     if not times:
