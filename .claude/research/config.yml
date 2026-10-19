@@ -220,6 +220,21 @@ levers:
      note: "p0006 P3．FeB4RAG のように検索器が違うデバイスの得点の比べ方"}
   - {name: live.finalists, values: [tbd],
      note: "p0006 P4．P2・P3 で残った方式（2 つまで）を Router にして実機で確認し，B1・B4 で回答まで行う．値は P3 のレビューで決める"}
+  # ---- p0007（2026-10-19 確定）：P2P 対 中央集約の多基準比較．D1：EnronQA に固定（MedRAG・FeB4RAG は使わない） ----
+  - {name: p0007.exposure, values: [distinct_docs],
+     note: "p0007 B．既存の結果から外に出た重複なしの文書数．H-B：P2P は 73,772 通の 50% 未満"}
+  - {name: answer.aggregate, values: [max_score, abstain, agree, llm_select],
+     note: "p0007 A1．owner_answer．m ∈ {2, 3}．dev 約 300 問で 1 つ選び，test 2,940 問で中央と比べる．H-A1（非劣性 δ = 0.02）・H-A2（優越）"}
+  - {name: retrieval.fusion, values: [rrf],
+     note: "p0007 A2．受信箱の中の BM25 と密ベクトルの RRF．中央にも同じ改良（C1-RRF）を入れて比べる"}
+  - {name: p0007.load, values: [central_local, semi_central, p2p_delegate, p2p_b1],
+     note: "p0007 D．生成まで含めた処理量と p95．parallel {1, 4, 8, 16, 30} × 3 回，300 問．エネルギーは読める場合だけ"}
+  - {name: p0007.freshness, values: [T0, T60, T600, Tinf],
+     note: "p0007 C．正解メールの 10% を途中で届け，答えられるまでの時間と費用を実測する"}
+  - {name: p0007.failure, values: [k1, k3, k6, k10],
+     note: "p0007 E1．P2P は k 台停止，中央は 1 台停止と再起動．障害の窓の中で答えられた割合の時間積分．availability API とコンテナの停止の 2 種類"}
+  - {name: p0007.join, values: [Ljoin0, Ljoin10, Ljoin100],
+     note: "p0007 E2．15 受信箱（3 台）を途中で加える．P2P は要約の作成と配布，中央は全メールの転送と索引．答えられるまでの時間と転送量"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．
