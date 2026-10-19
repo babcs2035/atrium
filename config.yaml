@@ -16,6 +16,9 @@ experiment:
   answer_mode: retrieval_only
   # 動作確認用に各データセットの先頭 N 問へ絞る（null で全問）
   question_limit: null
+  # 流す質問の分割．test：従来（questions.jsonl）／dev：設定の選択用（dev_questions.jsonl．EnronQA のみ．p0007 A1）．
+  # question_limit は選んだ分割の中で各受信箱の先頭からの数
+  question_split: test
   # 質問者が同時に処理する質問数
   parallel: 4
   # 乱数の種（random ルーティング・学習の分割で使う）

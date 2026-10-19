@@ -17,7 +17,7 @@ from atrium.analysis import read_results
 from atrium.benchmarks import load_questions
 from atrium.config import AtriumConfig
 from atrium.cpu_stat import diff_tcp_counters, read_device_cpu, read_tcp_counters
-from atrium.data_enronqa import load_gold_docs
+from atrium.data_enronqa import QUESTION_FILES, load_gold_docs
 from atrium.manifest import Placement, read_placement
 from atrium.paths import dataset_paths
 from atrium.requester import (
@@ -175,7 +175,13 @@ async def run_experiment(
     dataset = cfg.experiment.dataset
     paths = dataset_paths(data_dir, dataset)
     placement = read_placement(placement_path)
-    all_questions = load_questions(paths.questions, cfg.experiment.question_limit)
+    # dev は enronqa だけ（config が検査済み）．dev_questions.jsonl は test の questions.jsonl と同じ書式
+    questions_path = (
+        paths.questions.parent / QUESTION_FILES["dev"]
+        if cfg.experiment.question_split == "dev"
+        else paths.questions
+    )
+    all_questions = load_questions(questions_path, cfg.experiment.question_limit)
     out_dir.mkdir(parents=True, exist_ok=True)
     # 複数のプロセスで流した前回の実行が途中で落ちていれば，プロセスごとの結果を先にまとめる
     merge_part_files(out_dir / RESULTS)
@@ -226,6 +232,7 @@ async def run_experiment(
             "merge": cfg.retrieval.merge,
             # ルーティングのために事前に公開された情報の大きさ（p0004 §8.4．使わない方式は 0）
             "advert_bytes": getattr(requester.router, "advert_bytes", lambda _: 0)(sources),
+            "question_split": cfg.experiment.question_split,
             "n_questions": len(all_questions),
             "n_skipped_on_resume": len(done),
             "n_nodes": len(placement.nodes),

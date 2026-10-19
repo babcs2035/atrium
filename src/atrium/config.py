@@ -89,6 +89,9 @@ class ExperimentConfig(_Strict):
     routing: RoutingName
     answer_mode: AnswerMode
     question_limit: int | None = None
+    # 流す質問の分割（p0007 A1）．test：questions.jsonl（従来）／dev：dev_questions.jsonl（設定の選択用．EnronQA のみ）．
+    # question_limit は選んだ分割の中で各問題集（EnronQA は受信箱）の先頭からの数
+    question_split: Literal["test", "dev"] = "test"
     parallel: int = Field(default=4, ge=1)
     seed: int = 12
     # 質問者の HTTP 接続の持ち方（Iteration 5）．shared：全ノードで 1 つの池（上限 512．従来の挙動）／
@@ -128,6 +131,13 @@ class ExperimentConfig(_Strict):
         # 離脱の状態（/v1/admin/availability）はプロセスごとに持つので，複数のプロセスのノードでは全体を切り替えられない
         if self.churn is not None and self.node_workers != 1:
             raise ValueError("experiment.churn requires experiment.node_workers = 1")
+        return self
+
+    @model_validator(mode="after")
+    def _check_question_split(self) -> ExperimentConfig:
+        """dev の質問は EnronQA だけが持つ．churn は test の全問を再生するので dev とは併用できない．"""
+        if self.question_split == "dev" and (self.dataset != "enronqa" or self.churn is not None):
+            raise ValueError("experiment.question_split=dev requires dataset=enronqa and no churn")
         return self
 
     @model_validator(mode="after")

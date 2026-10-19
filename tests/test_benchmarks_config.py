@@ -46,6 +46,20 @@ def test_repository_config_is_valid() -> None:
     AtriumConfig.model_validate(raw)
 
 
+def test_question_split_defaults_to_test_and_accepts_dev_for_enronqa() -> None:
+    raw = yaml.safe_load((REPO_ROOT / "config.yaml").read_text(encoding="utf-8"))
+    assert AtriumConfig.model_validate(raw).experiment.question_split == "test"
+    raw["experiment"].update({"dataset": "enronqa", "question_split": "dev"})
+    assert AtriumConfig.model_validate(raw).experiment.question_split == "dev"
+
+
+def test_question_split_dev_is_rejected_outside_enronqa() -> None:
+    raw = yaml.safe_load((REPO_ROOT / "config.yaml").read_text(encoding="utf-8"))
+    raw["experiment"].update({"dataset": "medrag", "question_split": "dev"})
+    with pytest.raises(ValidationError, match="question_split"):
+        AtriumConfig.model_validate(raw)
+
+
 def test_config_rejects_unknown_keys() -> None:
     raw = yaml.safe_load((REPO_ROOT / "config.yaml").read_text(encoding="utf-8"))
     raw["experiment"]["routnig"] = "all"
