@@ -107,7 +107,11 @@
 | POST | `/v1/probe` | `{"shard_ids", "embedding"}` | `{"node_id", "scores": {shard_id: 最高スコア}, "duration_s"}`．本文は返さない（flood_score の 1 段目．p0004） |
 | POST | `/v1/generate` | `{"dataset", "question", "options", "docs", "allow_unknown"?}` | `{"node_id", "answer", "llm"}`．B4（`delegate_gpu`）で GPU の専門家が受け取った断片から答える（p0004） |
 | POST | `/v1/answer` | `{"dataset", "question", "options", "shard_ids", "k", "embedding"?, "query_id"?, "delegate_url"?, "allow_unknown"?}` | `{"node_id", "answer", "choice", "n_context_docs", "top_score", "retrieve_s", "llm", "duration_s"}` |
-| POST | `/v1/admin/availability` | `{"up": bool}` | `{"up": bool}`．`experiment.churn` を指定した実験でだけ存在する（EQ7b）．`false` の間，ノードは `/healthz` 以外の要求を 503 で拒否する（プロセスは生きている） |
+| POST | `/v1/admin/availability` | `{"up": bool}` | `{"up": bool}`．`experiment.churn` を指定した実験（EQ7b）か `cluster.node_admin: true` のときだけ存在する．`false` の間，ノードは `/healthz` 以外の要求を 503 で拒否する（プロセスは生きている） |
+| POST | `/v1/admin/docs/hide` | `{"shard_id", "doc_ids"}` | `{"shard_id", "n_hidden", "n_visible"}`．`cluster.node_admin: true` のときだけ存在する（p0007 I5）．文書を検索の結果から外す（行は消さず，検索で飛ばす）．実験の開始時に，後から届くメールを外しておく．同じ ID を足し直した行も外れる |
+| POST | `/v1/admin/docs/add` | `{"shard_id", "docs": [{"doc_id","title","content"}]}` | `{"shard_id", "n_added", "embed_s", "add_s", "bm25_s", "total_s", "embedder", "device", "n_visible"}`（同上）．ノードがその場で本文を CPU で埋め込み（コーパスと同じ `data.enronqa.encoder`．`atrium-node-embed` のイメージ．CPU 版の torch を持つ），索引に足す．`fusion=rrf` では BM25 を作り直す（`bm25_s`）．所要時間は応答に含める |
+| POST | `/v1/admin/docs/export` | `{"shard_id", "doc_ids"?}` | `{"shard_id", "docs": [{"doc_id","title","content"}], "duration_s"}`（同上）．外した文書も返す．`doc_ids` を省略すると検索対象の全メール．中央への転送の測定で使う |
+| POST | `/v1/admin/embedder/load` | － | `{"embedder", "device", "load_s", "warm_s"}`（同上）．埋め込みモデルの読み込みとならし運転を，測定の前に済ませる |
 
 - MedRAG 型のシャードは `embedding`，FeB4RAG 型は `query_id`（元のデータセットの要求 ID）で検索する．
 - `/v1/answer`（宿る型）は，指定したシャードからそれぞれ上位 `k` 件を取り，スコアで統合した上位 `k` 件を

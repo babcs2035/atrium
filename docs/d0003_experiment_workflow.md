@@ -224,3 +224,53 @@ rsync -az wafl-ctrl5:<remote_dir>/results/<out_name>/ results/<out_name>/
 - 連続実行の間は，commit しない（HEAD が進むと，deploy で作ったイメージと start の版が合わず止まる）．`config.yaml` は各回の後と終了時に元へ戻る．
 - 起動するプロセスが `docker` グループを持たないと docker のソケットに触れないので，`sg docker -c` で起動する．
 - 結果のある回は飛ばされるので，止まったら同じ条件の一覧で再実行すればよい．
+
+## 7. 実機の動的な測定（p0007 C・E1・E2．`freshness-run`・`failure-run`・`join-run`）
+
+新しいメールの追従（C）・障害（E1）・参加（E2）を，31 台の実機の壁時計で測る．3 つのコマンドは質問者のコンテナで動き，
+ノードの管理 API（[d0001](d0001_architecture.md) §3）で状態を変える．測る時間は壁時計なので，**実機を専有して 1 つずつ流す**（他の実験・deploy と同時に流さない）．
+
+### 7.0 共通の準備
+
+```bash
+# 1. config.yaml を次にする（既存のキーの意味は変わらない．node_admin は追加のキー）
+#    cluster.node_admin: true       # ノードを atrium-node-embed（CPU 版の torch つき）で動かし，埋め込みモデルと中央の索引の資材を配る
+#    experiment.routing: hybrid_probe / answer_mode: retrieval_only   # 答えられるかを，上位 5 通に正解のメールが入るかで測る
+#    experiment.node_workers: 1 / requester_procs: 1 / question_limit: null
+# 2. 各ノードの空きを確かめる（atrium-node-embed は約 3 GB．ディスクの使用率が 90% を超えるなら deploy しない）
+bash scripts/tasks/remote.sh data_status   # 制御点の空き．ノードは ssh <host> df -h / で確かめる
+# 3. deploy（条件ごとの deploy の約 3〜10 分に，node_embed の build・取得が加わる）
+mise run deploy
+```
+
+流し方は 3 つとも同じで，制御点で切り離して起動し，終了の印を待ち，結果を `results/<run_id>/` に回収する．
+
+```bash
+bash scripts/tasks/live_run.sh <freshness_run|failure_run|join_run> <run_id> [コマンドの引数...]
+```
+
+- 流している間は commit しない（HEAD が進むと，deploy で作ったイメージと版が合わず止まる）．`mise run check` は流す前に通しておく．
+- 出力は `<run_id>/verdict.json`（`verdict_original`）・`sim_vs_live.json`（オフラインの予測と実機の値）・`run_meta.json`．
+  メール本文は保存しない．回答文を残す実行（`snippet_return` など）は `scripts/tasks/sanitize_results.py` を通してから commit する．
+
+### 7.1 新しいメールへの追従（`freshness-run`．C）
+
+```bash
+# 本番（約 30 分．T = 600 秒の待ちを含む．後から届くメール 294 通を 0.5 秒間隔で届ける）
+bash scripts/tasks/live_run.sh freshness_run p0007_c_freshness --intervals 0,60,600,inf --arrival-gap-s 0.5
+# 小さな確認（20 通だけ．判定の符号検定は 5 通以上が要る）
+bash scripts/tasks/live_run.sh freshness_run p0007_c_smoke --intervals 0,5,inf --n-arrivals 20
+```
+
+- test の正解メールの 10%（種 12）を実験の開始時に持ち主の索引から外し，途中で 1 通ずつ届ける．**届けなかったメールは P2P・中央とも外したまま**にする．
+- P2P：持ち主のデバイスが CPU で埋め込み（`embed_s`），索引に足し（`add_s`），足した直後から持ち主のデバイスへ質問を繰り返す．
+  **答えられるまでの時間は，持ち主のデバイスへ直接質問したとき（direct）の正解のメールが上位 5 通に入るまで**を主とする．公開情報（hybrid_probe の要約）は
+  届いたメールを含んで作ってあり，作り直さないので，設定の routing を通した時間（routed）は参考にとどめる．
+- 中央：間隔 T（開始を 0 とする T の倍数の時刻）に，届いたメールを持ち主のデバイスから取り出し（転送の大きさ・時間），質問者が埋め込んで索引に足す（`embed_s`・`add_s`）．T = ∞ は転送しない（打ち切り）．
+- 判定（事前登録）：P2P の p50 < 1 秒，かつ中央の T ≥ 60 秒の全てより有意に短い（対にした片側の符号検定，α = 0.05）．`verdict.json` の `comparisons` に T ごとの p 値がある．
+- 新しいメールについての正答率：`answer_mode: snippet_return` で deploy して流すと，届いてから 1 秒後（`--ask-delay-s`）の質問の回答が `<run_id>/<条件>/results.jsonl` に残る．
+  `bash scripts/tasks/judge.sh up qwen3:8b` の後 `bash scripts/tasks/judge.sh run <run_id>/p2p <run_id>/central_T0 <run_id>/central_T60 ...` で採点し
+  （判定モデルの原文は `<data_dir>/enronqa/judge_raw/` に条件名で残るので，同じ条件名の実行は上書きされる），
+  `uv run atrium freshness-accuracy --run-dir results/<run_id>` で条件ごとの正答率（`accuracy.json`）を出す．
+- 失敗時：`pre_arrival_hit_rate` が 0 でない（外した直後にメールが見つかる）なら外し方か質問の誤りで，結果を使わない．`/v1/admin/embedder/load` が 501 なら deploy が `node_admin` でない．
+

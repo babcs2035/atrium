@@ -3,6 +3,9 @@
 #   target=node : 専門家ノード用（GPU なしの PC）．FAISS・FastAPI だけを入れた軽いイメージ
 #   target=full : 質問者・データ中継点・E0 用．torch（CUDA 版）・transformers を含む
 #
+#   target=node_embed : node_admin（p0007 I5〜I7）の専門家ノード用．メールをその場で CPU で埋め込むので，CPU 版の torch と
+#                       sentence-transformers を足した node（約 3 GB）．full は CUDA のライブラリを含み 13 GB 近く，専門家の PC
+#                       （空きが 27 GB の機がある）に置くには重いため，専門家には full を使わない
 # 使い方: scripts/tasks/lib.sh の publish_images（mise run setup / deploy）が `docker build --target node|full` で作る．
 FROM python:3.12-slim AS base
 # deploy が古い自前のイメージだけを見分けて消すためのラベル（docker image prune --filter label=...）
@@ -28,6 +31,21 @@ COPY src ./src
 RUN uv sync --frozen --no-dev --no-editable
 ARG GIT_HEAD=unknown
 # 実験の記録とイメージの照合（start.sh）のために，build したコミットをファイルに残す
+RUN echo "$GIT_HEAD" > /etc/atrium-git-head
+
+FROM base AS node_embed
+COPY pyproject.toml uv.lock README.md ./
+# lock の版のまま，CUDA 版の torch・triton・nvidia のライブラリだけを除いて入れ，torch は PyTorch の CPU 版の index から入れる
+RUN uv export --frozen --no-dev --extra requester --no-emit-project --no-hashes -o /tmp/requirements.txt \
+    && uv venv /opt/venv
+RUN grep -Ev '^(nvidia-|cuda-|triton==|torch==)' /tmp/requirements.txt > /tmp/rest.txt \
+    && uv pip install --python /opt/venv/bin/python --no-deps -r /tmp/rest.txt
+RUN TORCH=$(grep -E '^torch==' /tmp/requirements.txt | sed -E 's/[ ;].*//') \
+    && uv pip install --python /opt/venv/bin/python --no-deps --index-url https://download.pytorch.org/whl/cpu "$TORCH"
+COPY src ./src
+# CUDA 版の torch を再び入れないよう，uv sync ではなくプロジェクトだけを入れる（依存は上で入れた）
+RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache .
+ARG GIT_HEAD=unknown
 RUN echo "$GIT_HEAD" > /etc/atrium-git-head
 
 FROM base AS full

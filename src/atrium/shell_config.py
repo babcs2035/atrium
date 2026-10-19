@@ -55,6 +55,8 @@ def shell_variables(raw: dict[str, Any]) -> dict[str, str]:
         "REQUESTER_LLM": cluster["requester_llm"]["host"] if cluster.get("requester_llm") else "",
         "EXPERTS": _hosts(cluster["experts"]),
         "GPU_WORKERS": _hosts(cluster.get("gpu_workers", [])),
+        # p0007 I5〜I7：true なら専門家を atrium-full で動かし，埋め込みモデルを配る（空なら従来どおり）
+        "NODE_ADMIN": "1" if cluster.get("node_admin", False) else "",
         "KIND": exp["kind"],
         "DATASET": exp["dataset"],
         "ROUTING": exp["routing"],

@@ -41,6 +41,18 @@ def compose_values(
     model = cfg.llm.expert_model
     if role == "node_gpu" and cfg.llm.expert_model_gpu:
         model = cfg.llm.expert_model_gpu
+    # p0007 I5〜I7：node_admin のノードは，その場の埋め込みに torch（CPU 版）を使うので atrium-node-embed で動かし，埋め込みモデルを
+    # ./hf-cache（deploy が配る）から読む（ノードはインターネットに出ないので HF_HUB_OFFLINE=1）．既定は従来どおり atrium-node
+    if cfg.cluster.node_admin:
+        values["NODE_IMAGE"] = "atrium-node-embed"
+        values["NODE_HF_MOUNT"] = "- ./hf-cache:/cache/huggingface:ro"
+        values["NODE_ENVIRONMENT"] = (
+            'environment:\n      HF_HOME: /cache/huggingface\n      HF_HUB_OFFLINE: "1"'
+        )
+    else:
+        values["NODE_IMAGE"] = "atrium-node"
+        values["NODE_HF_MOUNT"] = ""
+        values["NODE_ENVIRONMENT"] = ""
     values.update(
         NODE_PORT=str(cfg.cluster.node_port),
         NODE_ID=node_id,

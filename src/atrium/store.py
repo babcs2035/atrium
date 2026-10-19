@@ -13,6 +13,13 @@ retrieval.fusion=rrf（p0007 A2）のときは，起動時に全断片の本文�
 
 本文は全件をメモリに載せず，行の先頭のバイト位置だけを持って必要な行を読み出す
 （PubMed のシャードは本文だけで数 GB あり，L480 の 16 GB に索引と同居させるため）．
+
+p0007 I5（新しいメールへの追従）のため，kind="faiss" のシャードは起動後に次の操作を受け付ける（既定の挙動は変えない）．
+
+- `hide`：指定した文書を検索の結果から外す（行を消さず，検索で飛ばす．ファイルのオフセットの対応を壊さないため）．
+- `add`：新しいメール（と，デバイスが作った埋め込み）を索引の末尾に足す．本文はメモリに持つ（ディスクのシャードは変えない）．
+  fusion=rrf のときは BM25 の索引を全文書から作り直す（足した時間に含める）．
+- `export`：指定した文書（外した文書を含む）の本文を返す．中央への転送の測定で使う．
 """
 
 from __future__ import annotations
@@ -21,7 +28,7 @@ import json
 import logging
 import threading
 import time
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -48,6 +55,23 @@ class RetrievedDoc:
     title: str
     content: str
     score: float
+
+
+@dataclass(frozen=True)
+class MailDoc:
+    """起動後に足すメール 1 通（本文の埋め込みは足すときに別に渡す）．"""
+
+    doc_id: str
+    title: str
+    content: str
+
+
+@dataclass(frozen=True)
+class AddTiming:
+    """メールの追加（索引への追加と，fusion=rrf の BM25 の作り直し）の所要時間（秒）．"""
+
+    add_s: float
+    bm25_s: float
 
 
 class ShardStore(Protocol):
@@ -103,6 +127,10 @@ class FaissShardStore:
         self.bm25_build_s = 0.0
         self._dir = shard_dir
         self._lock = threading.Lock()
+        # p0007 I5：起動後に足したメール（行の番号は _base_rows から続く）と，検索から外した行
+        self._extra: list[dict[str, str]] = []
+        self._hidden: set[int] = set()
+        self._rows_of_id: dict[str, list[int]] | None = None
         self._index = faiss.IndexScalarQuantizer(
             spec.dim, faiss.ScalarQuantizer.QT_fp16, faiss.METRIC_INNER_PRODUCT
         )
@@ -124,6 +152,7 @@ class FaissShardStore:
                 raise ValueError(f"{chunk.name}: {len(offsets)} lines != {chunk.n_docs} docs")
             self._offsets.append(offsets)
             self._file_starts[i + 1] = self._file_starts[i] + chunk.n_docs
+        self._base_rows = int(self._index.ntotal)
         if fusion == "rrf":
             self._build_bm25()
         logger.info(
@@ -146,6 +175,8 @@ class FaissShardStore:
                     for line in f:
                         if line.strip():
                             yield tokenize(json.loads(line)["content"])
+            for doc in self._extra:
+                yield tokenize(doc["content"])
 
         self._bm25 = Bm25Index(token_lists())
         if self._bm25.n_docs != self._index.ntotal:
@@ -153,6 +184,8 @@ class FaissShardStore:
         self.bm25_build_s = time.perf_counter() - start
 
     def _read_doc(self, global_idx: int) -> dict[str, str]:
+        if global_idx >= self._base_rows:
+            return self._extra[global_idx - self._base_rows]
         file_no = int(np.searchsorted(self._file_starts, global_idx, side="right")) - 1
         line_no = global_idx - int(self._file_starts[file_no])
         path = self._dir / "chunk" / f"{self.spec.files[file_no].name}.jsonl"
@@ -180,11 +213,14 @@ class FaissShardStore:
             return self._search_rrf(k, query, query_text)
         # FAISS の検索自体はスレッド安全だが，OpenMP のスレッドを奪い合うと遅くなるので直列にする
         with self._lock:
-            scores, ids = self._index.search(query, k)
+            # 外した行は結果から飛ばすので，その分だけ多めに取る（外した行が無ければ従来どおり k 件）
+            scores, ids = self._index.search(query, min(k + len(self._hidden), self._index.ntotal))
         docs: list[RetrievedDoc] = []
         for score, idx in zip(scores[0], ids[0], strict=True):
-            if idx < 0:
+            if idx < 0 or int(idx) in self._hidden:
                 continue
+            if len(docs) == k:
+                break
             raw = self._read_doc(int(idx))
             docs.append(
                 RetrievedDoc(
@@ -207,7 +243,16 @@ class FaissShardStore:
             scores, ids = self._index.search(query, n)
         dense = np.zeros(n, dtype=np.float64)
         dense[ids[0]] = scores[0]
-        picked = rrf_top_k(dense, self._bm25.scores(tokenize(query_text)), k, self._fusion_depth)
+        bm25_scores = self._bm25.scores(tokenize(query_text))
+        if self._hidden:
+            # 外した行は順位づけの対象から除く（残した行の番号へ対応づけ直す）
+            visible = np.setdiff1d(np.arange(n), np.fromiter(self._hidden, dtype=np.int64))
+            picked = [
+                int(visible[i])
+                for i in rrf_top_k(dense[visible], bm25_scores[visible], k, self._fusion_depth)
+            ]
+        else:
+            picked = rrf_top_k(dense, bm25_scores, k, self._fusion_depth)
         picked.sort(key=lambda i: (-dense[i], i))
         docs: list[RetrievedDoc] = []
         for idx in picked:
@@ -221,6 +266,79 @@ class FaissShardStore:
                 )
             )
         return docs
+
+    # ── p0007 I5：起動後のメールの非表示・追加・取り出し ─────────────────────────────
+
+    @property
+    def n_visible(self) -> int:
+        """検索の対象になる文書の数（外した行を除く）．"""
+        return int(self._index.ntotal) - len(self._hidden)
+
+    def _row_map(self) -> dict[str, list[int]]:
+        """文書 ID → 行の番号（同じ ID を足し直しても全ての行を外せるよう，リストで持つ）．最初に必要になったとき 1 回だけ全断片を読む．"""
+        if self._rows_of_id is None:
+            rows: dict[str, list[int]] = {}
+            row = 0
+            for chunk in self.spec.files:
+                with (self._dir / "chunk" / f"{chunk.name}.jsonl").open("rb") as f:
+                    for line in f:
+                        if line.strip():
+                            rows.setdefault(json.loads(line)["id"], []).append(row)
+                            row += 1
+            for doc in self._extra:
+                rows.setdefault(doc["id"], []).append(row)
+                row += 1
+            self._rows_of_id = rows
+        return self._rows_of_id
+
+    def hide(self, doc_ids: Sequence[str]) -> int:
+        """文書を検索の結果から外す（足し直した同じ ID の行も外す）．新しく外れた行の数を返す．未知の ID は誤りとして KeyError にする．"""
+        rows = self._row_map()
+        unknown = [d for d in doc_ids if d not in rows]
+        if unknown:
+            raise KeyError(f"unknown doc ids: {unknown[:3]}")
+        with self._lock:
+            before = len(self._hidden)
+            for doc_id in doc_ids:
+                self._hidden.update(rows[doc_id])
+            return len(self._hidden) - before
+
+    def add(self, docs: Sequence[MailDoc], embeddings: F32Array) -> AddTiming:
+        """新しいメールを索引の末尾に足す（embeddings は docs と同じ並びの行列）．足した行は検索の対象になる．
+
+        同じ ID の古い行（外してある行）は外したままにし，新しい行が代わりに検索される．
+        """
+        if embeddings.shape != (len(docs), self.spec.dim):
+            raise ValueError(
+                f"embeddings shape {embeddings.shape} != ({len(docs)}, {self.spec.dim})"
+            )
+        start = time.perf_counter()
+        rows = self._row_map()
+        with self._lock:
+            first = int(self._index.ntotal)
+            self._index.add(np.ascontiguousarray(embeddings, dtype=np.float32))
+            for offset, doc in enumerate(docs):
+                self._extra.append({"id": doc.doc_id, "title": doc.title, "content": doc.content})
+                rows.setdefault(doc.doc_id, []).append(first + offset)
+        add_s = time.perf_counter() - start
+        bm25_s = 0.0
+        if self._fusion == "rrf":
+            self._build_bm25()
+            bm25_s = self.bm25_build_s
+        return AddTiming(add_s=add_s, bm25_s=bm25_s)
+
+    def export(self, doc_ids: Sequence[str] | None) -> list[dict[str, str]]:
+        """文書（外した文書も含む）の {id, title, content} を返す．doc_ids が None なら検索の対象の全文書．
+
+        同じ ID が複数の行にあるときは，最後に足した行（最新）を返す．未知の ID は KeyError．
+        """
+        if doc_ids is None:
+            return [self._read_doc(i) for i in range(self._index.ntotal) if i not in self._hidden]
+        rows = self._row_map()
+        unknown = [d for d in doc_ids if d not in rows]
+        if unknown:
+            raise KeyError(f"unknown doc ids: {unknown[:3]}")
+        return [self._read_doc(rows[d][-1]) for d in doc_ids]
 
 
 class SearchResultsShardStore:

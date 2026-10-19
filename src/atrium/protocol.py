@@ -143,6 +143,75 @@ class AvailabilityRequest(_Model):
     up: bool
 
 
+class NewMail(_Model):
+    """p0007 I5：メール 1 通（持ち主のデバイスが受け取って索引に足す，または中央へ転送する）．"""
+
+    doc_id: str
+    title: str
+    content: str
+
+
+class HideDocsRequest(_Model):
+    """p0007 I5：実験の開始時に，「後から届くメール」を検索の結果から外す．"""
+
+    shard_id: str
+    doc_ids: list[str]
+
+
+class HideDocsResponse(_Model):
+    """外した行の数と，検索の対象に残った文書の数．"""
+
+    shard_id: str
+    n_hidden: int
+    n_visible: int
+
+
+class AddDocsRequest(_Model):
+    """p0007 I5：新しいメールを届ける．ノードがその場で埋め込みを作り（CPU），索引に足す．"""
+
+    shard_id: str
+    docs: list[NewMail] = Field(min_length=1)
+
+
+class AddDocsResponse(_Model):
+    """足した通数と，ノードの中での所要時間（秒．embed_s は埋め込み，add_s は索引への追加，bm25_s は fusion=rrf の BM25 の作り直し）．"""
+
+    shard_id: str
+    n_added: int
+    embed_s: float
+    add_s: float
+    bm25_s: float
+    total_s: float
+    embedder: str
+    device: str
+    n_visible: int
+
+
+class ExportDocsRequest(_Model):
+    """p0007 I5・I7：メールの本文を中央へ転送する．doc_ids が None ならシャードの検索対象の全メール．"""
+
+    shard_id: str
+    doc_ids: list[str] | None = None
+
+
+class ExportDocsResponse(_Model):
+    """取り出したメール．"""
+
+    shard_id: str
+    docs: list[NewMail]
+    duration_s: float
+
+
+class EmbedderLoadResponse(_Model):
+    """埋め込みモデルの読み込み（最初の追加の時間に読み込みを含めないよう，測定の前に呼ぶ）．"""
+
+    embedder: str
+    device: str
+    load_s: float
+    # 読み込みの後のならし運転（1 文の埋め込み）の秒数
+    warm_s: float
+
+
 class Problem(_Model):
     """RFC 9457 の problem details．"""
 

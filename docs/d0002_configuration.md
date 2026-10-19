@@ -139,6 +139,7 @@ answer: {owner_m: 3, aggregate: abstain}
 | `registry_port` | 5000 | 制御点のローカル registry．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送が既に張られており，それをそのまま使う |
 | `node_port` | 8100 | 専門家ノードの HTTP ポート |
 | `shard_budget_gb` | 6.0 | 1 シャードの fp16 の埋め込みの目安．変えるとシャードの切り方が変わるので，制御点で `shards` 以降の段を作り直す必要がある |
+| `node_admin` | `false` | p0007 I5〜I7（`freshness-run`・`failure-run`・`join-run`）の測定用．`true` にすると，専門家ノードが管理 API（`/v1/admin/docs/*`・`/v1/admin/embedder/load`・`/v1/admin/availability`）を持ち，`atrium-node-embed` のイメージ（`atrium-node` に CPU 版の torch と sentence-transformers を足した約 3 GB）で動き（メールをその場で埋め込む），deploy が埋め込みモデル（arctic-embed-m-v1.5）を各ノードと質問者の `hf-cache` へ配る．質問者には中央の索引の資材（chunk・埋め込み）も配る．`experiment.node_workers: 1` が要る．deploy の前に各ノードの空きを確かめる（`atrium-full` は 13 GB 近くあり，専門家には使わない） |
 
 ### デバイス（`requester`・`experts`・`gpu_workers`）
 

@@ -56,11 +56,14 @@ open_registry_tunnel() {
   trap 'ssh -S "$TUNNEL_SOCKET" -O exit "$CONTROL" 2> /dev/null || true' EXIT
 }
 
-# イメージ（node / full）を操作端末で build し，制御点の registry へ push する．setup と deploy の両方で呼び，
+# イメージ（node / full．node_admin なら node_embed も）を操作端末で build し，制御点の registry へ push する．setup と deploy の両方で呼び，
 # イメージを常に今のコードと config.yaml の版にそろえる（古いイメージが新しい設定を読めずに失敗したため）．
 # 変更が無ければ build も push もキャッシュで済む
 publish_images() {
-  for target in node full; do
+  # node_embed は cluster.node_admin（p0007 I5〜I7）のノード用．使わない設定では build も push もしない
+  local targets="node full"
+  if [ -n "$NODE_ADMIN" ]; then targets="$targets node_embed"; fi
+  for target in $targets; do
     local image="localhost:$LOCAL_REGISTRY_PORT/atrium-$target:latest"
     log "building $image (git $GIT_HEAD)"
     docker build -q --target "$target" --build-arg GIT_HEAD="$GIT_HEAD" -t "$image" . > /dev/null

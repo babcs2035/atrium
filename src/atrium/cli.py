@@ -6,6 +6,8 @@
     plan                      manifest.json から placement.json を作る（--tsv でシェル向けの表も出す）
     node                      専門家ノードを起動する（コンテナ内）
     run                       質問者として実験を行う（コンテナ内）
+    freshness-run             新しいメールが答えに使えるようになるまでの時間を実機で測る（EnronQA．p0007 I5．質問者のコンテナ）
+    freshness-accuracy        freshness-run の新しいメールについての質問の正答率を条件ごとに出す（採点の後．p0007 I5．操作端末）
     data {medrag,feb4rag} STEP   データ中継点での準備（コンテナ内）
     embed-plan                MedRAG の埋め込みを複数の GPU で分担する表を作る（コンテナ内）
     fetch-models DATASET      データセットで使うモデルを Hugging Face のキャッシュへ取得する（コンテナ内）
@@ -144,6 +146,43 @@ def cmd_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         )
     )
     return 2 if failures else 0
+
+
+def cmd_freshness_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """新しいメールの追従の時間を測る（p0007 I5）．verdict_original が成立しなくても終了コードは 0（結果が判定）．"""
+    from atrium.dynamics import DEFAULT_SEED, HELD_BACK_FRACTION, parse_interval
+    from atrium.freshness_run import FreshnessParams, run_freshness_command
+
+    params = FreshnessParams(
+        intervals=tuple(parse_interval(t) for t in args.intervals.split(",")),
+        n_arrivals=args.n_arrivals,
+        arrival_gap_s=args.arrival_gap_s,
+        ask_delay_s=args.ask_delay_s,
+        poll_timeout_s=args.poll_timeout_s,
+        routed=not args.no_routed,
+        fraction=HELD_BACK_FRACTION,
+        seed=DEFAULT_SEED,
+    )
+    verdict = asyncio.run(
+        run_freshness_command(
+            cfg,
+            Path(args.data_dir),
+            Path(args.placement),
+            Path(args.out_dir),
+            args.ollama_url,
+            params,
+        )
+    )
+    print(json.dumps(verdict, indent=1, ensure_ascii=False))
+    return 0
+
+
+def cmd_freshness_accuracy(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """採点済みの freshness-run の結果から，条件ごとの正答率を出す（accuracy.json）．"""
+    from atrium.freshness_run import freshness_accuracy
+
+    print(json.dumps(freshness_accuracy(Path(args.run_dir)), indent=1, ensure_ascii=False))
+    return 0
 
 
 def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
@@ -869,6 +908,50 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out-dir", required=True)
     p.add_argument("--ollama-url", default="http://localhost:11434")
     p.set_defaults(func=cmd_run)
+
+    p = sub.add_parser(
+        "freshness-run",
+        help="新しいメールが答えに使えるようになるまでの時間を実機で測る（p0007 I5）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--placement", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument("--ollama-url", default="http://localhost:11434")
+    p.add_argument(
+        "--intervals",
+        default="0,60,600,inf",
+        help="中央の転送の間隔 T（秒．カンマ区切り．inf は転送しない）",
+    )
+    p.add_argument(
+        "--n-arrivals",
+        type=int,
+        default=None,
+        help="届けるメールの数の上限（省略は後から届く全て）",
+    )
+    p.add_argument("--arrival-gap-s", type=float, default=0.5, help="メールが届く間隔（秒）")
+    p.add_argument(
+        "--ask-delay-s",
+        type=float,
+        default=1.0,
+        help="届いてから answer_mode で質問を流すまでの遅れ（秒）",
+    )
+    p.add_argument(
+        "--poll-timeout-s", type=float, default=30.0, help="答えられるまで繰り返す時間の上限（秒）"
+    )
+    p.add_argument(
+        "--no-routed", action="store_true", help="設定の routing を通した質問の時間を測らない"
+    )
+    p.set_defaults(func=cmd_freshness_run)
+
+    p = sub.add_parser(
+        "freshness-accuracy", help="freshness-run の新しいメールについての質問の正答率（採点の後）"
+    )
+    p.add_argument(
+        "--run-dir",
+        required=True,
+        help="results/<run_id>（条件ごとの子ディレクトリを採点済みにする）",
+    )
+    p.set_defaults(func=cmd_freshness_accuracy)
 
     p = sub.add_parser("data", help="データ中継点での準備")
     p.add_argument("dataset", choices=sorted(STEPS_OF))

@@ -298,6 +298,10 @@ class ClusterConfig(_Strict):
     experts: list[DeviceConfig] = Field(min_length=1)
     gpu_workers: list[DeviceConfig] = Field(default_factory=list)
     shard_budget_gb: float = Field(gt=0)
+    # p0007 I5〜I7：専門家ノードの管理 API（参加・離脱の切り替え，メールの非表示・追加・取り出し，公開情報の作成）を有効にする．
+    # true のノードは atrium-node-embed のイメージで動き（その場の埋め込みに CPU 版の torch を使う），質問者とノードの hf-cache に
+    # 埋め込みモデルを配る．false（既定）は従来どおり（管理 API は experiment.churn のときの availability だけ）
+    node_admin: bool = False
 
     @model_validator(mode="after")
     def _check_directories_are_absolute(self) -> ClusterConfig:
@@ -447,6 +451,13 @@ class AtriumConfig(_Strict):
     e0: E0Config
     cluster: ClusterConfig
     data: DataConfig
+
+    @model_validator(mode="after")
+    def _check_node_admin_workers(self) -> AtriumConfig:
+        """管理 API の状態（離脱・外したメール・足したメール）はプロセスごとに持つので，node_admin は 1 プロセスのノードに限る．"""
+        if self.cluster.node_admin and self.experiment.node_workers != 1:
+            raise ValueError("cluster.node_admin requires experiment.node_workers = 1")
+        return self
 
     @model_validator(mode="after")
     def _check_e0_hosts_are_experts(self) -> AtriumConfig:

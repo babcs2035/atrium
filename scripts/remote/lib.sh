@@ -165,3 +165,66 @@ prepare_running() {
 dataset_dir() {
   echo "$DATA_DIR/$DATASET"
 }
+
+# ── p0007 I5〜I7：質問者のコンテナで atrium のサブコマンドを 1 回流す共通処理 ─────────────────────
+# freshness_run.sh・failure_run.sh・join_run.sh が使う（start.sh は従来のまま）．
+
+# require_node_admin: cluster.node_admin: true で deploy した状態か（ノードの管理 API と，質問者の中央の索引の資材がある状態）
+require_node_admin() {
+  if [ -z "$NODE_ADMIN" ]; then
+    log "cluster.node_admin is not true in config.yaml; set it and run 'mise run deploy' first" >&2
+    return 1
+  fi
+}
+
+# verify_deployed <git_head>: 配った設定とイメージが今のものと同じかを確かめる（start.sh と同じ確認．古い設定・イメージで流さない）
+verify_deployed() {
+  local git_head=$1
+  local tsv="artifacts/$DATASET/placement.tsv"
+  local local_sum host remote_sum image_head
+  local_sum=$(sha256sum < config.yaml)
+  for host in "$REQUESTER" $(cut -f1 "$tsv"); do
+    remote_sum=$(nssh "$host" "sha256sum < $REMOTE_DIR/config.yaml" || echo missing)
+    if [ "$local_sum" != "$remote_sum" ]; then
+      log "config.yaml on $host differs from the current one; run 'mise run deploy' first" >&2
+      return 1
+    fi
+  done
+  image_head=$(nssh "$REQUESTER" "docker run --rm --entrypoint cat $IMAGE_FULL /etc/atrium-git-head")
+  if [ "$image_head" != "$git_head" ]; then
+    log "requester image is built from $image_head, not $git_head; run 'mise run deploy' first" >&2
+    return 1
+  fi
+}
+
+# run_requester_job <run_id> <atrium のサブコマンドと引数...>: 質問者のコンテナ atrium-job-<run_id> で
+# `atrium --config /app/config.yaml <引数...>` を流し，終わるまで待って結果（results/<run_id>/）を制御点へ回収する．
+# コンテナの終了コードを返す．同じ run_id のコンテナが残っていれば新しく起動せず，それを待ち直す
+run_requester_job() {
+  local run_id=$1
+  shift
+  local name="atrium-job-$run_id" rdir="$REMOTE_DIR/results/$run_id" state exit_code
+  local deps_flag=""
+  if [ -n "$REQUESTER_LLM" ]; then deps_flag="--no-deps"; fi
+  if ! nssh "$REQUESTER" "docker ps -aq -f name=^$name\$" | grep -q .; then
+    log "starting $name on $REQUESTER"
+    nssh "$REQUESTER" "mkdir -p $rdir && cd $REMOTE_DIR && docker compose --profile run run -d $deps_flag --name $name \
+      requester atrium --config /app/config.yaml $*" > /dev/null
+  fi
+  while true; do
+    state=$(nssh "$REQUESTER" "docker inspect -f '{{.State.Running}}' $name" 2> /dev/null || echo unknown)
+    case "$state" in
+      true) log "running: $(nssh "$REQUESTER" "docker logs --tail 1 $name 2>&1" | cut -c1-150)" ;;
+      false) break ;;
+      *) log "could not check $name" ;;
+    esac
+    sleep 30
+  done
+  exit_code=$(retry 3 nssh "$REQUESTER" "docker inspect -f '{{.State.ExitCode}}' $name")
+  nssh "$REQUESTER" "docker logs $name" > "results/$run_id/requester.log" 2>&1 || true
+  nssh "$REQUESTER" "docker rm $name" > /dev/null || true
+  if ! is_control_host "$REQUESTER"; then
+    retry 3 nrsync -a "$(ssh_dest "$REQUESTER"):$rdir/" "results/$run_id/"
+  fi
+  return "$exit_code"
+}

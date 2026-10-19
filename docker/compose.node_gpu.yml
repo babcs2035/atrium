@@ -24,10 +24,12 @@ services:
       NVIDIA_VISIBLE_DEVICES: all
 
   node:
-    image: localhost:${REGISTRY_PORT}/atrium-node:latest
+    image: localhost:${REGISTRY_PORT}/${NODE_IMAGE}:latest
     restart: unless-stopped
     # シャードのディレクトリに書くキャッシュの所有者を SSH のユーザーにそろえる
     user: "${HOST_UID}:${HOST_GID}"
+    # cluster.node_admin のときだけ埋まる（p0007 I5〜I7．既定は空の行）
+    ${NODE_ENVIRONMENT}
     command:
       - atrium
       - --config
@@ -51,5 +53,6 @@ services:
       - ./config.yaml:/app/config.yaml:ro
       # 行の先頭位置のキャッシュ（*.offsets.npy）を書くので読み書き可能にする
       - ./shards:/shards
+      ${NODE_HF_MOUNT}
     depends_on:
       - ollama

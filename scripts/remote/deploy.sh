@@ -135,6 +135,12 @@ deploy_expert() {
     nrsync -aL --delete --exclude '*.offsets.npy' "$DS_DIR/shards/$sid/" "$(ssh_dest "$host"):$REMOTE_DIR/shards/$sid/"
   done
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
+  # cluster.node_admin（p0007 I5〜I7）：ノードがその場でメールを埋め込めるよう，埋め込みモデルを hf-cache へ配る．
+  # compose が ./hf-cache を読み取り専用で bind mount するので，docker に root 所有で作らせないよう先に作る
+  if [ -n "$NODE_ADMIN" ]; then
+    nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"
+    nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--Snowflake--snowflake-arctic-embed-m-v1.5 "$(ssh_dest "$host"):$REMOTE_DIR/hf-cache/hub/"
+  fi
   # GPU を持つ専門家（nvidia-smi で判定）は Ollama を GPU で動かし，llm.expert_model_gpu を使う
   local role=node model=$EXPERT_MODEL
   if has_gpu "$host"; then role=node_gpu model=$EXPERT_MODEL_GPU; fi
@@ -168,7 +174,8 @@ deploy_requester() {
     nrsync -a --include='*/' --include='chunk/***' --exclude='*' "$DS_DIR/corpus/" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/corpus/"
   fi
   # routing=central_local（p0007 I4）は質問者が全メールの 1 つの索引を作るので，受信箱の chunk（本文）と埋め込みを配る
-  if [ "$ROUTING" = central_local ]; then
+  # cluster.node_admin（p0007 I5〜I7）の質問者も，中央の索引（freshness-run・failure-run・join-run の中央側）を作るので同じものを配る
+  if [ "$ROUTING" = central_local ] || [ -n "$NODE_ADMIN" ]; then
     nrsync -a --include='*/' --include='chunk/***' --include='emb/***' --exclude='*' "$DS_DIR/corpus/" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/corpus/"
   fi
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
@@ -188,6 +195,10 @@ deploy_requester() {
     "$DATA_DIR"/.cache/huggingface/hub/models--BAAI--bge-reranker-v2-m3; do
     [ -d "$m" ] && hf_models+=("$m")
   done
+  # cluster.node_admin：central_local の追加・参加の測定で，質問者もメールを埋め込む（arctic-embed-m-v1.5）
+  if [ -n "$NODE_ADMIN" ]; then
+    hf_models+=("$DATA_DIR"/.cache/huggingface/hub/models--Snowflake--snowflake-arctic-embed-m-v1.5)
+  fi
   if [ "${#hf_models[@]}" -gt 0 ]; then
     nrsync -a "${hf_models[@]}" "$(ssh_dest "$host"):$REMOTE_DIR/hf-cache/hub/"
   fi

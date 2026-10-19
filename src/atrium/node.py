@@ -7,6 +7,9 @@
 - flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．
 - 参加・離脱の再生（/v1/admin/availability．EQ7b）: experiment.churn を指定した実験でだけ有効になり，離脱中は
   /healthz 以外の要求を 503 で拒否する．
+- 管理 API（p0007 I5．cluster.node_admin の実験でだけ有効）: メールの非表示（/v1/admin/docs/hide）・追加（/v1/admin/docs/add．
+  ノードがその場で埋め込みを作り索引に足す）・取り出し（/v1/admin/docs/export）・埋め込みモデルの読み込み（/v1/admin/embedder/load）．
+  参加・離脱の切り替え（/v1/admin/availability）も node_admin で有効になる．
 - 生存確認（/healthz）: プロセスの CPU 時間の累計（Iteration 8）とデバイス全体の CPU 時間の累計（Iteration 9）も返す
   （質問者・負荷試験が専門家の側の CPU 使用率を測る）．
 
@@ -24,27 +27,38 @@ import multiprocessing.connection as mp_connection
 import os
 import signal
 import socket
+import threading
 import time
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator, Mapping, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
 import httpx
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, params
 from fastapi.responses import JSONResponse
 
 from atrium import llm, prompts
+from atrium.arrays import F32Array
 from atrium.config import AtriumConfig, DatasetName, load_config
 from atrium.cpu_stat import read_cgroup_cpu_s, read_device_cpu
 from atrium.protocol import (
+    AddDocsRequest,
+    AddDocsResponse,
     AnswerRequest,
     AnswerResponse,
     AvailabilityRequest,
     DocOut,
+    EmbedderLoadResponse,
+    ExportDocsRequest,
+    ExportDocsResponse,
     GenerateRequest,
     GenerateResponse,
+    HideDocsRequest,
+    HideDocsResponse,
     LlmUsage,
+    NewMail,
     ProbeRequest,
     ProbeResponse,
     Problem,
@@ -53,12 +67,40 @@ from atrium.protocol import (
     RetrieveResponse,
     ShardProfile,
 )
-from atrium.store import RetrievedDoc, ShardStore, load_shard
+from atrium.store import FaissShardStore, MailDoc, RetrievedDoc, ShardStore, load_shard
 
 logger = logging.getLogger(__name__)
 
 AGENT_CARD_PATH = "/.well-known/agent-card.json"
 A2A_PROTOCOL_VERSION = "0.3.0"
+# メールの追加（p0007 I5）の埋め込みは，デバイスの種類によらず CPU で行う（GPU の無い専門家と同じ条件で，既存機材の費用を測るため）
+EMBED_DEVICE = "cpu"
+# 埋め込みの初期化を測定の前に済ませるための，ならし運転の文
+WARM_UP_TEXT = "warm up"
+
+
+class DocEmbedder(Protocol):
+    """メールの本文を埋め込む（EnronQA は atrium.encoders.ArcticEncoder．コーパスの埋め込みと同じ入力・同じモデル）．"""
+
+    name: str
+
+    def encode_texts(self, texts: Sequence[str]) -> F32Array:
+        """本文ごとの埋め込み（正規化済み．行が本文）を返す．"""
+        ...
+
+
+def load_cpu_arctic_embedder(cfg: AtriumConfig) -> DocEmbedder:
+    """data.enronqa.encoder を CPU で読み込む（torch が無い atrium-node のイメージでは 501 で断る）．"""
+    try:
+        from atrium.encoders import ArcticEncoder
+    except ImportError as exc:
+        raise NodeError(
+            501,
+            "Embedder unavailable",
+            "this node image has no torch; deploy with cluster.node_admin: true (atrium-node-embed)",
+        ) from exc
+    e = cfg.data.require_enronqa()
+    return ArcticEncoder(e.encoder, e.embed_batch_size, device=EMBED_DEVICE)
 
 
 class NodeError(Exception):
@@ -102,6 +144,105 @@ def _merge_top(docs: list[RetrievedDoc], k: int) -> list[RetrievedDoc]:
     return sorted(docs, key=lambda d: d.score, reverse=True)[:k]
 
 
+def register_admin_docs_api(
+    app: FastAPI,
+    node_id: str,
+    stores: Mapping[str, ShardStore],
+    cfg: AtriumConfig,
+    embedder: DocEmbedder | None,
+    dependencies: list[params.Depends],
+) -> None:
+    """p0007 I5 の管理 API（メールの非表示・追加・取り出し・埋め込みモデルの読み込み）を app に足す．
+
+    メールの追加は，ノードの CPU で本文を埋め込み（コーパスの埋め込みと同じく本文だけ），索引に足す．
+    かかった時間（埋め込み・索引への追加・BM25 の作り直し）は応答に含める．
+    """
+    held: dict[str, DocEmbedder | None] = {"embedder": embedder}
+    lock = threading.Lock()
+    # 埋め込みモデルは同時に呼ばない（同じ受信箱へ重なって届いたメールの推論が干渉して，所要時間を歪めるため）
+    encode_lock = threading.Lock()
+
+    def faiss_store(shard_id: str) -> FaissShardStore:
+        if shard_id not in stores:
+            raise NodeError(404, "Unknown shard", f"this node does not hold shard {shard_id!r}")
+        store = stores[shard_id]
+        if not isinstance(store, FaissShardStore):
+            raise NodeError(400, "Unsupported shard", "only faiss shards accept mail updates")
+        return store
+
+    def embedder_loaded() -> tuple[DocEmbedder, float]:
+        """（埋め込み，この呼び出しで読み込みにかかった秒数．読み込み済みなら 0）．"""
+        with lock:
+            if held["embedder"] is not None:
+                return held["embedder"], 0.0
+            start = time.perf_counter()
+            loaded = load_cpu_arctic_embedder(cfg)
+            held["embedder"] = loaded
+            return loaded, time.perf_counter() - start
+
+    @app.post("/v1/admin/embedder/load", dependencies=dependencies)
+    def load_embedder() -> EmbedderLoadResponse:
+        loaded, load_s = embedder_loaded()
+        # 最初の推論には，読み込みとは別の初期化の時間がかかるので，測定の前に 1 回流しておく
+        warm_start = time.perf_counter()
+        with encode_lock:
+            loaded.encode_texts([WARM_UP_TEXT])
+        return EmbedderLoadResponse(
+            embedder=loaded.name,
+            device=EMBED_DEVICE,
+            load_s=load_s,
+            warm_s=time.perf_counter() - warm_start,
+        )
+
+    @app.post("/v1/admin/docs/hide", dependencies=dependencies)
+    def hide_docs(req: HideDocsRequest) -> HideDocsResponse:
+        store = faiss_store(req.shard_id)
+        try:
+            n_hidden = store.hide(req.doc_ids)
+        except KeyError as exc:
+            raise NodeError(400, "Unknown documents", str(exc)) from exc
+        return HideDocsResponse(shard_id=req.shard_id, n_hidden=n_hidden, n_visible=store.n_visible)
+
+    @app.post("/v1/admin/docs/add", dependencies=dependencies)
+    def add_docs(req: AddDocsRequest) -> AddDocsResponse:
+        store = faiss_store(req.shard_id)
+        total_start = time.perf_counter()
+        loaded, _ = embedder_loaded()
+        embed_start = time.perf_counter()
+        # コーパスの埋め込み（data_enronqa.embed_corpus）と同じく本文だけを埋め込む
+        with encode_lock:
+            embeddings = loaded.encode_texts([d.content for d in req.docs])
+        embed_s = time.perf_counter() - embed_start
+        timing = store.add([MailDoc(d.doc_id, d.title, d.content) for d in req.docs], embeddings)
+        return AddDocsResponse(
+            shard_id=req.shard_id,
+            n_added=len(req.docs),
+            embed_s=embed_s,
+            add_s=timing.add_s,
+            bm25_s=timing.bm25_s,
+            total_s=time.perf_counter() - total_start,
+            embedder=loaded.name,
+            device=EMBED_DEVICE,
+            n_visible=store.n_visible,
+        )
+
+    @app.post("/v1/admin/docs/export", dependencies=dependencies)
+    def export_docs(req: ExportDocsRequest) -> ExportDocsResponse:
+        store = faiss_store(req.shard_id)
+        start = time.perf_counter()
+        try:
+            docs = store.export(req.doc_ids)
+        except KeyError as exc:
+            raise NodeError(400, "Unknown documents", str(exc)) from exc
+        return ExportDocsResponse(
+            shard_id=req.shard_id,
+            docs=[NewMail(doc_id=d["id"], title=d["title"], content=d["content"]) for d in docs],
+            duration_s=time.perf_counter() - start,
+        )
+
+    logger.info("node %s: admin docs API enabled", node_id)
+
+
 def create_app(
     node_id: str,
     stores: Mapping[str, ShardStore],
@@ -109,10 +250,12 @@ def create_app(
     ollama_url: str,
     llm_client: httpx.AsyncClient | None = None,
     expert_model: str | None = None,
+    embedder: DocEmbedder | None = None,
 ) -> FastAPI:
     """ノードの FastAPI アプリを作る（テストでは llm_client に MockTransport を渡す）．
 
     expert_model は宿る型で使う LLM（GPU を持つ専門家は llm.expert_model_gpu）．省略すると llm.expert_model．
+    embedder は管理 API のメールの追加で使う埋め込み（省略すると最初に必要になったとき CPU で読み込む．テストでは軽い偽物を渡す）．
     """
     client = llm_client or httpx.AsyncClient()
     model = expert_model or cfg.llm.expert_model
@@ -142,12 +285,15 @@ def create_app(
 
     up_only = [Depends(require_up)]
 
-    if cfg.experiment.churn is not None:
+    if cfg.experiment.churn is not None or cfg.cluster.node_admin:
 
         @app.post("/v1/admin/availability")
         def set_availability(req: AvailabilityRequest) -> dict[str, bool]:
             availability["up"] = req.up
             return availability
+
+    if cfg.cluster.node_admin:
+        register_admin_docs_api(app, node_id, stores, cfg, embedder, up_only)
 
     def store_of(shard_id: str) -> ShardStore:
         if shard_id not in stores:
