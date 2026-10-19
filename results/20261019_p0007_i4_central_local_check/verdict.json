@@ -1,0 +1,11 @@
+{
+ "verdict_original": {
+  "hypothesis": "central_local の上位 K 通の文書 ID が C1 と一致する（集合．閾値 0.999）",
+  "threshold": 0.999,
+  "set_agreement": 0.9942176870748299,
+  "tie_aware_agreement": 1.0,
+  "switched_to_tie_aware": true,
+  "verdict": "equivalent_tie_aware"
+ },
+ "verdict_revised": null
+}

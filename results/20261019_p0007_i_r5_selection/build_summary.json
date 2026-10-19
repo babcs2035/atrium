@@ -1,0 +1,9 @@
+{
+ "n_sources": 150,
+ "n_devices": 30,
+ "vocab_size": 198492,
+ "term_size": 64000,
+ "term_probe_d": 24,
+ "hybrid_probe_d": 16,
+ "summary_weight": 0.5
+}

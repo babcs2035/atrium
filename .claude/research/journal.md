@@ -3,6 +3,16 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0007 実装（I2・I4・I9．2026-10-19．実装とオフラインの確認だけ．実機の流しは別）
+
+事前登録は書かない（結果を出す実験ではない）．`plans/p0007_p2p_vs_central.md` §8 の I2・I4・I9 を実装した．既存の answer_mode・routing・CLI の既定の挙動と設定キーの意味は変えていない（`answer` 節は追加で，既定は従来どおり）．
+
+- **I2 `answer_mode: owner_answer`**：Router が `answer.owner_m` 個の受信箱を選び（`routing.top_m` の代わり．選ぶ数を持たない oracle・all は従来どおり），受信箱ごとに別の `/v1/answer` で，その受信箱の上位 5 通だけで 8B が答える．GPU の無いノードは B4 と同じ委託の経路（`delegate_of`）．`answer.aggregate` は `max_score`・`abstain`・`agree`・`llm_select`（`atrium.merge` の `choose_*`・要求の流れは `Requester._owner_answers`）．`abstain` は `allow_unknown`（`/v1/answer`・`/v1/generate` の追加フィールド）で UNKNOWN を許すプロンプトに切り替える．記録は 1 問ごとに要求数・生成回数・UNKNOWN の数・採った受信箱（`owner_answer` フィールド）．**回答の本文は採った 1 つだけ**（`answer`・`final_answer`）を残し，他の候補の回答は UNKNOWN かどうかと得点だけにした（テストで検査）．採った回答は commit の前に `sanitize_results.py` を通す．
+- **I4 `routing: central_local`**：質問者の起動時に全 73,772 通の 1 つの索引を作り（`atrium.routing.central.CentralIndex`．`central_eval` と同じ fp32 の内積・同点は行の番号の小さい方），上位 5 通を取って質問者の LLM が答える（B1 相当）．ノードは発見も問い合わせもしない．起動の費用は `run_meta.json` の `central_index`．deploy は質問者へ受信箱の chunk と埋め込みを配る．C1 との一致は `atrium central-local-eval`（`results/20261019_p0007_i4_central_local_check`）：厳密な集合の一致 **0.9942**（順序も合う 0.9711），同点を許す一致 **1.0000**．厳密が 0.999 に届かないので，D9 に従い**同点を許す判定に自動で切り替えた**（`verdict_original.verdict = equivalent_tie_aware`．p0006 P1 の C1 の値と同じで，差は重複メールの同点の順序だけ）．制御点での索引の構築は 6.7 秒（文書 3.7 秒・埋め込み 3.0 秒）．
+- **I9 `verdict.json`**：共通の書式 `atrium.verdict.make_verdict`・`write_verdict`（`exposure_eval` も同じ関数を使う．`verdict_original` は上書き不可）と，精度の判定 `judge_accuracy`（差の 95% 信頼区間は対応ありのブートストラップ 10,000 回・種 12，下端 > −0.02 で非劣性，McNemar の正確検定で優越）．既存の `atrium compare` に `--out-dir`・`--margin`・`--revised-margin`・`--revised-reason` を足して再利用した（付けなければ従来の出力のまま）．
+- **退行ゲート**（経路に触れたので再実行．オフライン．新しいイメージ `git 950c73f3b148-dirty` で，既存の `results/` と要約は変えていない）：R3 flood_score hit@1 0.7224・hit@2 0.8041，multi_centroid 0.3486・0.4401（`results/20261019_p0007_i_r3_advert_eval`），R4 既存の 5 点が一致（`results/20261019_p0007_i_r4_frontier`），R5 hybrid_probe・term_probe の 2,940 問の選択が `p0006_p4_build_summary/offline_selection.json` と全問一致（`results/20261019_p0007_i_r5_selection`．要約は一時ディレクトリ）．全て通過．`mise run check` 通過（630 件）．
+- **未検証**：`owner_answer`・`central_local` の実機での動作（ノードのイメージの再配布・Ollama の 8B の preload を含む）．deploy.sh は，owner_answer のとき GPU のノードで 8B を preload し，central_local のとき質問者へ受信箱の chunk・埋め込みを配るよう変えた．
+
 ## p0007 P0：退行ゲート R3〜R5（2026-10-19）
 
 オフライン（制御点 1 台）で実行し，3 つとも通過した．R3：flood_score hit@1 0.72245・hit@2 0.80408，multi_centroid 0.34864・0.44014（`results/p0007_r3_advert_eval`．term_sketch だけ 0.2915 対 0.2918 でハッシュの種の揺れ）．R4：既存の 5 点の hit と要求数が一致（`results/p0007_r4_frontier`）．R5：hybrid_probe・term_probe の選択が `offline_selection.json` と全問一致（`results/p0007_r5_selection`．要約の再計算は一時ディレクトリで行い，既存の要約は上書きしていない）．R5 は実機では動かしていない．`mise run check` も通過（545 件）．
