@@ -7,6 +7,7 @@ import logging
 import random
 import resource
 import time
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Literal
 
@@ -44,6 +45,7 @@ from atrium.routing import (
     make_router,
     with_card_embeddings,
 )
+from atrium.routing.central import CentralIndex
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +98,8 @@ def _make_embedder(
             raise ValueError("live query embedding is only supported for medrag")
         m = cfg.data.medrag
         return LiveMedcptEmbedder(m.query_encoder, m.article_encoder, m.embed_precision)
-    encoders = sorted({s.encoder for s in sources})
+    # central_local はノードを発見せず（sources が空），EnronQA の符号化器の埋め込みだけを使う
+    encoders = sorted({s.encoder for s in sources}) or [cfg.data.require_enronqa().encoder]
     return CachedQueryEmbedder(paths.query_ids, {e: paths.query_embeddings(e) for e in encoders})
 
 
@@ -113,6 +116,20 @@ async def build_requester(
     """
     dataset = cfg.experiment.dataset
     paths = dataset_paths(data_dir, dataset)
+    if cfg.experiment.routing == "central_local":
+        # p0007 I4：ノードには問い合わせない（発見もしない）．質問者が全メールの索引を作る（その費用は index.load に残る）
+        central = CentralIndex.from_corpus(cfg, paths)
+        requester = Requester(
+            cfg=cfg,
+            placement=placement,
+            sources=[],
+            router=make_router(cfg, paths.router, paths.labels),
+            embedder=_make_embedder(cfg, data_dir, []),
+            client=client,
+            ollama_url=ollama_url,
+            central_index=central,
+        )
+        return requester, [], 0.0
     start = time.perf_counter()
     shards = await discover_shards(client, placement)
     discovery_s = time.perf_counter() - start
@@ -228,6 +245,9 @@ async def run_experiment(
             "pool_assign": cfg.experiment.pool_assign,
             "httpcore_version": httpcore_version,
         }
+        if requester.central_index is not None:
+            # p0007 §6.5 E1：質問者の起動のたびに払う，全メールの索引を作る（読み込む）費用（秒）
+            meta["central_index"] = asdict(requester.central_index.load)
         _write_meta(out_dir, meta)
         finished_at: float | None = None
         # 質問の処理（N ≥ 2 では子のプロセスの起動も含む）の前後の，質問者のネットワークの名前空間の TCP の再送の計数（記録だけ）

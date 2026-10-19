@@ -8,6 +8,9 @@
   一致する問の割合（集合として．順序も合う割合を併記する）．journal の事前登録の閾値（≥ 0.999）で判定する．
 - Recall@K：正解のメールが上位 K 通に入る割合（問の再抽出による 95% ブートストラップ区間）．実機の実行（oracle・flood_score など）
   の `top_doc_ids` からも同じ指標を出し，中央との差を検索の損失として読めるようにする．
+- central_local の確認（`atrium central-local-eval`）：routing=central_local が使う `CentralIndex`（質問者の起動時に作る 1 つの索引）の
+  test の上位 K 通を C1 と比べる．判定は厳密な集合の一致 ≥ 0.999．満たさず，同点を許す一致 ≥ 0.999 なら，同点を許す判定に自動で切り替えて
+  記録する（plans/p0007 D9）．どちらも満たさなければ not_equivalent（止まる条件）．verdict.json を書く．
 - 露出：実行ごとの 1 問あたりの，質問を受け取ったデバイスの数・デバイスの外に出た文書の数（results.jsonl の値の平均）．
   中央に集める場合の一度きりの文書の数（全メール）は別に数える．
 """
@@ -18,6 +21,7 @@ import json
 import logging
 from collections import Counter
 from collections.abc import Sequence
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -220,6 +224,56 @@ def evaluate(
     }
 
 
+def judge_equivalence(set_agreement: float, tie_aware_agreement_value: float) -> dict[str, Any]:
+    """central_local と C1 の一致の判定（verdict_original の中身）．
+
+    厳密な集合の一致が閾値以上なら equivalent．満たさず，同点を許す一致が閾値以上なら，同点を許す判定に自動で切り替えて
+    equivalent_tie_aware（plans/p0007 D9．重複メールの入れ替えだけが原因の場合）．どちらも満たさなければ not_equivalent（止まる条件）．
+    """
+    strict_ok = set_agreement >= EQUIVALENCE_THRESHOLD
+    tie_ok = tie_aware_agreement_value >= EQUIVALENCE_THRESHOLD
+    return {
+        "hypothesis": "central_local の上位 K 通の文書 ID が C1 と一致する（集合．閾値 0.999）",
+        "threshold": EQUIVALENCE_THRESHOLD,
+        "set_agreement": set_agreement,
+        "tie_aware_agreement": tie_aware_agreement_value,
+        "switched_to_tie_aware": (not strict_ok) and tie_ok,
+        "verdict": "equivalent"
+        if strict_ok
+        else "equivalent_tie_aware"
+        if tie_ok
+        else "not_equivalent",
+    }
+
+
+def evaluate_central_local(cfg: AtriumConfig, paths: DatasetPaths, c1_run: Path) -> dict[str, Any]:
+    """routing=central_local の索引（`CentralIndex`）の上位 K 通を，C1 の実機の top_doc_ids と比べて判定する（p0007 I4・D9）."""
+    from atrium.advert_eval import load_query_set
+    from atrium.routing.central import CentralIndex
+    from atrium.verdict import make_verdict
+
+    k = cfg.data.require_enronqa().k_context
+    index = CentralIndex.from_corpus(cfg, paths)
+    queries = load_query_set(cfg, paths, "test")
+    central_ids = {
+        q: [d.doc_id for d in index.search(queries.emb[i], k)] for i, q in enumerate(queries.qids)
+    }
+    c1_rows = read_results(c1_run / "results.jsonl")
+    agreement = agreement_with_run(central_ids, c1_rows)
+    index_of = {d: i for i, d in enumerate(index.doc_ids)}
+    scores_of = {q: index.emb @ queries.emb[i] for i, q in enumerate(queries.qids)}
+    tie_aware = tie_aware_agreement(scores_of, index_of, c1_rows, k)
+    verdict = judge_equivalence(agreement["set_agreement"], tie_aware["tie_aware_agreement"])
+    return {
+        "n_emails": len(index.doc_ids),
+        "n_test": len(queries.qids),
+        "k": k,
+        "c1_agreement": {**agreement, **tie_aware},
+        "index_load": asdict(index.load),
+        "verdict": make_verdict(verdict),
+    }
+
+
 def render_report(metrics: dict[str, Any]) -> str:
     """analysis_report.md の本文．"""
     k = metrics["k"]
@@ -271,3 +325,37 @@ def write_outputs(out_dir: Path, metrics: dict[str, Any]) -> None:
         json.dumps(metrics, indent=1, ensure_ascii=False), encoding="utf-8"
     )
     (out_dir / "analysis_report.md").write_text(render_report(metrics), encoding="utf-8")
+
+
+def write_central_local_outputs(out_dir: Path, result: dict[str, Any]) -> str:
+    """central_local_check.json・verdict.json・analysis_report.md を書き，報告の本文を返す（メールの本文は含まない）．"""
+    from atrium.verdict import write_verdict
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    body = {key: value for key, value in result.items() if key != "verdict"}
+    (out_dir / "central_local_check.json").write_text(
+        json.dumps(body, indent=1, ensure_ascii=False), encoding="utf-8"
+    )
+    write_verdict(out_dir, result["verdict"]["verdict_original"])
+    verdict = result["verdict"]["verdict_original"]
+    agreement = result["c1_agreement"]
+    load = result["index_load"]
+    report = "\n".join(
+        [
+            "# central_local の索引と C1 の一致（p0007 I4）",
+            "",
+            f"メール {result['n_emails']:,} 通の 1 つの索引．test {result['n_test']:,} 問，K = {result['k']}．",
+            "",
+            "| 比べた問 | 集合の一致（厳密） | 順序も一致 | 同点を許す一致 | 閾値 | 判定 |",
+            "|---|---|---|---|---|---|",
+            f"| {agreement['n_compared']} | {agreement['set_agreement']:.4f} | {agreement['ordered_agreement']:.4f} | "
+            f"{agreement['tie_aware_agreement']:.4f} | {verdict['threshold']} | {verdict['verdict']}"
+            f"{'（D9：同点を許す判定に切り替え）' if verdict['switched_to_tie_aware'] else ''} |",
+            "",
+            f"索引を作る費用：{load['total_s']:.1f} 秒（文書の読み込み {load['read_docs_s']:.1f} 秒・埋め込みの読み込み "
+            f"{load['read_emb_s']:.1f} 秒．{load['n_docs']:,} 通・{load['n_inboxes']} 受信箱）．",
+            "",
+        ]
+    )
+    (out_dir / "analysis_report.md").write_text(report, encoding="utf-8")
+    return report

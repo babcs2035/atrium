@@ -29,6 +29,8 @@ RoutingName = Literal[
     "device_probe",
     "term_probe",
     "hybrid_probe",
+    # p0007 I4：質問者が全メールの 1 つの索引を持ち，ノードに問い合わせずに上位 k 通を取る（中央集約．atrium.routing.central）
+    "central_local",
 ]
 # snippet_return_small（B3）と delegate_gpu（B4）は p0004 で追加（RQ-B）．
 # gold_context は p0006 の C0：検索せずに正解のメールを文脈として質問者が答える（評価専用．EnronQA のみ）
@@ -39,7 +41,11 @@ AnswerMode = Literal[
     "snippet_return_small",
     "delegate_gpu",
     "gold_context",
+    # p0007 I2：Router が選んだ上位 m 受信箱が，それぞれ自分の上位 k 通だけで答え，answer.aggregate で 1 つに統合する
+    "owner_answer",
 ]
+# owner_answer の回答の統合の規則（p0007 §6.2 A1）
+AggregateName = Literal["max_score", "abstain", "agree", "llm_select"]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
 QueryEmbeddingMode = Literal["live", "cached"]
 Precision = Literal["fp32", "fp16_autocast"]
@@ -134,6 +140,23 @@ class ExperimentConfig(_Strict):
         return self
 
     @model_validator(mode="after")
+    def _check_p0007_conditions(self) -> ExperimentConfig:
+        """owner_answer は自由記述の回答を統合するので EnronQA だけで使える．central_local は質問者の 1 つの索引から
+        取った断片を質問者の LLM で答える（B1 相当）EnronQA の条件で，索引をプロセスごとに持たないよう質問者は 1 プロセスに限る．"""
+        if self.answer_mode == "owner_answer" and self.dataset != "enronqa":
+            raise ValueError("answer_mode=owner_answer requires dataset=enronqa")
+        if self.routing == "central_local":
+            if self.dataset != "enronqa" or self.answer_mode != "snippet_return":
+                raise ValueError(
+                    "routing=central_local requires dataset=enronqa and answer_mode=snippet_return"
+                )
+            if self.requester_procs != 1 or self.churn is not None:
+                raise ValueError(
+                    "routing=central_local requires experiment.requester_procs = 1 and no churn"
+                )
+        return self
+
+    @model_validator(mode="after")
     def _check_churn_conditions(self) -> ExperimentConfig:
         """churn は EnronQA の検索だけの実験で，質問を 1 問ずつ流すときにだけ使える（1 問 = 1 刻みを保つため）．"""
         if self.churn is None:
@@ -203,6 +226,16 @@ class LocalAnswerConfig(_Strict):
     # 1 台の専門家への回答の要求の打ち切り時間（秒）．専門家の Ollama は要求を順番に処理するので，
     # 質問者が並列に送ると待ち時間が積み重なる（生成 1 回の上限 llm.timeout_s とは別に持つ）
     timeout_s: float = 1800.0
+
+
+class AnswerConfig(_Strict):
+    """answer_mode=owner_answer（p0007 I2）の設定．他の answer_mode では使われない（既定のままで従来の挙動）．"""
+
+    # 候補にする受信箱の数 m．Router がこの数だけ選ぶ（routing.top_m の代わりに使う．選ぶ数を持たない oracle・all などは従来どおり）
+    owner_m: int = Field(default=2, ge=1)
+    # 候補の回答の統合の規則．max_score：検索の最高得点の候補／abstain：UNKNOWN を許し，UNKNOWN でない回答のうち得点最高
+    # （全て UNKNOWN なら max_score）／agree：正規化した文字列の一致の票数（同票は得点）／llm_select：質問者の LLM が 1 つを選ぶ
+    aggregate: AggregateName = "max_score"
 
 
 class GgufModel(_Strict):
@@ -393,6 +426,8 @@ class AtriumConfig(_Strict):
     routing: RoutingConfig
     llm: LlmConfig
     local_answer: LocalAnswerConfig
+    # p0007 で追加．既存の config.yaml がそのまま読めるよう省略できる
+    answer: AnswerConfig = Field(default_factory=AnswerConfig)
     e0: E0Config
     cluster: ClusterConfig
     data: DataConfig

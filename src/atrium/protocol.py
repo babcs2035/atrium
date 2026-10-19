@@ -65,6 +65,8 @@ class AnswerRequest(_Model):
     query_id: str | None = None
     # B4（delegate_gpu．p0004）：検索した断片を，この URL の GPU の専門家に渡して答えさせる
     delegate_url: str | None = None
+    # owner_answer の abstain（p0007 I2）：答えがメールに無ければ UNKNOWN と答えさせるプロンプトを使う
+    allow_unknown: bool = False
 
 
 class GenerateRequest(_Model):
@@ -74,6 +76,7 @@ class GenerateRequest(_Model):
     question: str
     options: dict[str, str]
     docs: list[DocOut]
+    allow_unknown: bool = False
 
 
 class LlmUsage(_Model):

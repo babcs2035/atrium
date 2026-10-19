@@ -8,6 +8,9 @@
    - retrieval_only / snippet_return: 選んだデータ源の全シャードへ /v1/retrieve を送り，統合する．
      snippet_return のみ，統合した断片で質問者の LLM が回答する．
    - local_answer: 選んだシャードを持つノードへ /v1/answer を送り，回答を多数決で統合する．
+   - owner_answer（p0007）: 選んだ各データ源（受信箱）へ /v1/answer を 1 つずつ送り，その受信箱の上位 k 通だけで答えさせ，
+     answer.aggregate の規則で 1 つの回答に統合する．
+   - routing=central_local（p0007）: ノードに問い合わせず，質問者が持つ全メールの 1 つの索引から上位 k 通を取って質問者の LLM が答える．
 4. 計測値（各段の所要時間・受信バイト数・デバイス外へ出た断片数）とともに results.jsonl へ追記する．
 """
 
@@ -42,7 +45,12 @@ from atrium.hf_revisions import pinned_revision
 from atrium.manifest import NodeAssignment, Placement
 from atrium.merge import (
     NodeVote,
+    OwnerCandidate,
+    OwnerChoice,
     SourcedDoc,
+    choose_abstain,
+    choose_agree,
+    choose_max_score,
     contributing_sources,
     merge_by_qrels,
     merge_by_score,
@@ -52,6 +60,7 @@ from atrium.merge import (
 from atrium.protocol import (
     AnswerRequest,
     AnswerResponse,
+    DocOut,
     ProbeRequest,
     ProbeResponse,
     ProfileResponse,
@@ -61,6 +70,7 @@ from atrium.protocol import (
 )
 from atrium.routing import Router, RoutingQuery, SourceProfile
 from atrium.routing.advert import CentroidProbeRouter, DeviceProbeRouter, tokenize
+from atrium.routing.central import CentralIndex, inbox_of_doc
 from atrium.routing.summary import SummaryProbeRouter
 from atrium.store import RetrievedDoc
 
@@ -72,6 +82,10 @@ RETRIEVE_TIMEOUT_S = 120.0
 # 検索は読み取りだけなので，同じ要求を送り直しても結果は変わらない
 RETRIEVE_RETRIES = 2
 JSON_CONTENT_TYPE_HEADER = {"Content-Type": "application/json"}
+# 回答の生成を GPU の専門家へ委託する answer_mode（GPU の無い専門家が，対応づけた GPU の専門家へ検索した断片を渡す）
+DELEGATING_MODES = ("delegate_gpu", "owner_answer")
+# routing=central_local の断片に付けるシャード ID（ノードのシャードではない．SourcedDoc の必須の項目を埋める）
+CENTRAL_SHARD_ID = "central"
 
 
 def apply_sniffio_lookup(mode: str) -> bool:
@@ -345,6 +359,8 @@ class Requester:
     visible_urls: frozenset[str] | None = None
     # answer_mode=gold_context（p0006 C0．評価専用）：質問 ID → 正解のメール．他の条件では空
     gold_docs: dict[str, SourcedDoc] = field(default_factory=dict)
+    # routing=central_local（p0007 I4）：質問者が持つ全メールの 1 つの索引．他の方式では None
+    central_index: CentralIndex | None = None
     _embed_lock: threading.Lock = field(default_factory=threading.Lock)
 
     def __post_init__(self) -> None:
@@ -536,6 +552,20 @@ class Requester:
         record["top_doc_ids"] = [d.doc.doc_id for d in merged]
         return merged
 
+    def _delegate_urls(self, urls: Sequence[str]) -> dict[str, str]:
+        """B4（delegate_gpu）・owner_answer：GPU の無い専門家（URL）→ 回答を委託する，対応づけた GPU の専門家の URL．
+        委託しない answer_mode（local_answer など）では空にする．"""
+        if self.cfg.experiment.answer_mode not in DELEGATING_MODES:
+            return {}
+        url_of_host = {n.host: n.url for n in self.placement.nodes}
+        host_of_url = {n.url: n.host for n in self.placement.nodes}
+        delegate_url_of: dict[str, str] = {}
+        for url in urls:
+            gpu_host = self.placement.delegate_of.get(host_of_url[url])
+            if gpu_host is not None:
+                delegate_url_of[url] = url_of_host[gpu_host]
+        return delegate_url_of
+
     async def _local_answers(
         self,
         question: Question,
@@ -553,15 +583,7 @@ class Requester:
                 shards_of_url[url].append(shard_id)
                 sources_of_url[url].append(source_name)
                 encoder_of_url.setdefault(url, source.encoder)
-        # B4（delegate_gpu）：GPU の無い専門家は，対応づけた GPU の専門家に回答を委託する
-        delegate_url_of: dict[str, str] = {}
-        if self.cfg.experiment.answer_mode == "delegate_gpu":
-            url_of_host = {n.host: n.url for n in self.placement.nodes}
-            host_of_url = {n.url: n.host for n in self.placement.nodes}
-            for url in shards_of_url:
-                gpu_host = self.placement.delegate_of.get(host_of_url[url])
-                if gpu_host is not None:
-                    delegate_url_of[url] = url_of_host[gpu_host]
+        delegate_url_of = self._delegate_urls(list(shards_of_url))
 
         async def ask(url: str) -> tuple[AnswerResponse, int]:
             req = AnswerRequest(
@@ -612,6 +634,170 @@ class Requester:
             record["final_answer"] = prompts.extract_free_answer(best.answer)
             return None
         return vote([NodeVote(a.node_id, a.choice, a.top_score) for a, _ in answers])
+
+    async def _owner_answers(
+        self,
+        question: Question,
+        selected: list[str],
+        embeddings: dict[str, F32Array],
+        record: dict[str, Any],
+    ) -> None:
+        """owner_answer（p0007 I2）：選んだ各受信箱が，その受信箱の上位 k 通だけで答え，answer.aggregate の規則で 1 つに統合する．
+
+        local_answer と違い，同じノードに複数の受信箱があっても受信箱ごとに別の要求にする（受信箱ごとの文脈で答えさせるため）．
+        GPU の無いノードは B4 と同じ経路で，検索した断片を対応づけた GPU のノードへ渡して答えさせる．
+        回答の本文は，採った 1 つ（answer・final_answer）だけを record に残す（候補の回答にはメールの引用が混ざりうるので，
+        残りは UNKNOWN かどうかと得点などの数だけを残す．採った回答は commit の前に sanitize_results.py を通す）．
+        """
+        rule = self.cfg.answer.aggregate
+        allow_unknown = rule == "abstain"
+        profiles = [self._profile(name) for name in selected]
+        urls = []
+        for profile in profiles:
+            owners = {self._url_of_shard[sid] for sid in profile.shard_ids}
+            if len(owners) != 1:
+                raise ValueError(f"owner_answer needs single-node sources: {profile.source}")
+            urls.append(owners.pop())
+        delegate_url_of = self._delegate_urls(urls)
+
+        async def ask(profile: SourceProfile, url: str) -> tuple[AnswerResponse, int]:
+            req = AnswerRequest(
+                dataset=self.cfg.experiment.dataset,
+                question=question.question,
+                options=question.options,
+                shard_ids=list(profile.shard_ids),
+                k=self._k_local(),
+                embedding=embeddings[profile.encoder].tolist(),
+                query_id=question.source_qid,
+                delegate_url=delegate_url_of.get(url),
+                allow_unknown=allow_unknown,
+            )
+            response = await self.client.post(
+                f"{url}/v1/answer", json=req.model_dump(), timeout=self.cfg.local_answer.timeout_s
+            )
+            response.raise_for_status()
+            return AnswerResponse.model_validate_json(response.content), len(response.content)
+
+        start = time.perf_counter()
+        answers = await gather_or_cancel([ask(p, u) for p, u in zip(profiles, urls, strict=True)])
+        record["timings"]["generate_s"] = time.perf_counter() - start
+        candidates = [
+            OwnerCandidate(
+                p.source,
+                (free := prompts.extract_free_answer(a.answer)),
+                a.top_score,
+                prompts.is_unknown_answer(free),
+            )
+            for p, (a, _) in zip(profiles, answers, strict=True)
+        ]
+        choice, select_info = await self._choose_owner_answer(question, candidates, rule, record)
+        chosen = answers[choice.index][0]
+        record["answer"] = chosen.answer
+        record["final_answer"] = candidates[choice.index].answer
+        record["bytes_received"] = sum(size for _, size in answers)
+        record["snippets_exposed"] = 0
+        # 受信箱ごとに，外へ出た文書の数（委託したときだけ）を残す（B4 と同じ見方で露出を数えられる）
+        record["docs_exposed_by_source"] = {
+            p.source: a.docs_sent
+            for p, (a, _) in zip(profiles, answers, strict=True)
+            if a.docs_sent
+        }
+        record["query_recipients"] = len(set(urls) | set(delegate_url_of.values()))
+        record["node_answers"] = [
+            {
+                "node_id": a.node_id,
+                "source": c.source,
+                "unknown": c.unknown,
+                "top_score": a.top_score,
+                "n_context_docs": a.n_context_docs,
+                "retrieve_s": a.retrieve_s,
+                "duration_s": a.duration_s,
+                "delegated_to": a.delegated_to,
+                **a.llm.model_dump(),
+            }
+            for c, (a, _) in zip(candidates, answers, strict=True)
+        ]
+        record["owner_answer"] = {
+            "aggregate": rule,
+            "candidate_sources": [c.source for c in candidates],
+            "n_candidates": len(candidates),
+            # 質問者が /v1/answer を送った回数と，生成した回数（候補ごとに 1 回．llm_select は選ぶ 1 回を足す）
+            "n_requests": len(candidates),
+            # probe（候補を選ぶ 1 段目）の要求の数を足した，1 問あたりの質問者からノードへの要求の総数
+            "n_requests_total": len(candidates) + int(record.get("probe_recipients", 0)),
+            "n_generations": len(candidates) + select_info["n_select_generations"],
+            "n_unknown": sum(c.unknown for c in candidates),
+            "chosen_source": candidates[choice.index].source,
+            "chosen_index": choice.index,
+            "chosen_unknown": candidates[choice.index].unknown,
+            "fell_back_to_max_score": choice.fell_back,
+            "vote_groups": [list(g) for g in choice.vote_groups],
+            **select_info,
+        }
+
+    async def _choose_owner_answer(
+        self,
+        question: Question,
+        candidates: list[OwnerCandidate],
+        rule: str,
+        record: dict[str, Any],
+    ) -> tuple[OwnerChoice, dict[str, Any]]:
+        """統合の規則で候補から 1 つを採る．llm_select だけ質問者の LLM を呼ぶ．（採った候補，llm_select の記録）を返す．
+
+        llm_select で候補が 1 つなら選ぶ必要が無いので呼ばない．LLM の出力から番号を取り出せなければ max_score にする．
+        """
+        select_info: dict[str, Any] = {"n_select_generations": 0, "select_parse_failed": False}
+        if rule == "abstain":
+            return choose_abstain(candidates), select_info
+        if rule == "agree":
+            return choose_agree(candidates), select_info
+        if rule == "max_score" or len(candidates) == 1:
+            return choose_max_score(candidates), select_info
+        messages = prompts.build_select_messages(question.question, [c.answer for c in candidates])
+        start = time.perf_counter()
+        result = await llm.chat(
+            self.client, self.ollama_url, self.cfg.llm.requester_model, messages, self.cfg.llm
+        )
+        record["timings"]["select_s"] = time.perf_counter() - start
+        select_info["n_select_generations"] = 1
+        select_info["select_prompt_tokens"] = result.prompt_tokens
+        select_info["select_output_tokens"] = result.output_tokens
+        picked = prompts.extract_selected_index(result.content, len(candidates))
+        if picked is None:
+            select_info["select_parse_failed"] = True
+            return choose_max_score(candidates), select_info
+        return OwnerChoice(picked), select_info
+
+    async def _central_answer(
+        self, question: Question, embeddings: dict[str, F32Array], record: dict[str, Any]
+    ) -> str | None:
+        """routing=central_local（p0007 I4）：質問者の 1 つの索引から上位 k 通を取り，質問者の LLM で答える（B1 相当）．
+
+        ノードには問い合わせない．メールは起動の前に質問者へ集めてあるので，質問ごとに外へ出る文書は 0 とする
+        （集める一度きりの量は run_meta の central_index に残す）．
+        """
+        if self.central_index is None:
+            raise RuntimeError("routing=central_local requires a central index")
+        encoder = self.cfg.data.require_enronqa().encoder
+        start = time.perf_counter()
+        found = await asyncio.to_thread(
+            self.central_index.search, embeddings[encoder], self._k_ret()
+        )
+        record["timings"]["retrieve_s"] = time.perf_counter() - start
+        docs = [
+            SourcedDoc(
+                inbox_of_doc(d.doc_id),
+                CENTRAL_SHARD_ID,
+                DocOut(doc_id=d.doc_id, title=d.title, content=d.content, score=d.score),
+            )
+            for d in found
+        ]
+        record["selected_sources"] = []
+        record["n_shards_queried"] = 0
+        record["query_recipients"] = 0
+        record["contributing_sources"] = contributing_sources(docs)
+        record["top_doc_ids"] = [d.doc.doc_id for d in docs]
+        return await self._generate(question, docs, record, self.cfg.llm.requester_model)
 
     async def _generate(
         self, question: Question, docs: list[SourcedDoc], record: dict[str, Any], model: str
@@ -799,6 +985,10 @@ class Requester:
                 record["timings"]["e2e_s"] = time.perf_counter() - start
                 return record
             embeddings = await asyncio.to_thread(self._embed, question, record)
+            if self.central_index is not None:
+                record["choice"] = await self._central_answer(question, embeddings, record)
+                record["timings"]["e2e_s"] = time.perf_counter() - start
+                return record
             encoded_embeddings = self._encode_embeddings(embeddings)
             if isinstance(
                 self.router, (CentroidProbeRouter, DeviceProbeRouter, SummaryProbeRouter)
@@ -822,6 +1012,9 @@ class Requester:
                     if selected
                     else None
                 )
+            elif mode == "owner_answer":
+                if selected:
+                    await self._owner_answers(question, selected, embeddings, record)
             else:
                 docs = await self._snippets(
                     question, selected, embeddings, record, encoded_embeddings

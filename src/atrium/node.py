@@ -253,7 +253,9 @@ def create_app(
             generated = await delegate(req, context)
             content, usage, delegated_to = generated.answer, generated.llm, generated.node_id
         else:
-            content, usage = await generate(req.dataset, req.question, context, req.options)
+            content, usage = await generate(
+                req.dataset, req.question, context, req.options, req.allow_unknown
+            )
             delegated_to = None
         return AnswerResponse(
             node_id=node_id,
@@ -273,8 +275,9 @@ def create_app(
         question: str,
         context: list[RetrievedDoc],
         options: dict[str, str],
+        allow_unknown: bool = False,
     ) -> tuple[str, LlmUsage]:
-        messages = prompts.build_messages(dataset, question, context, options)
+        messages = prompts.build_messages(dataset, question, context, options, allow_unknown)
         try:
             result = await llm.chat(client, ollama_url, model, messages, cfg.llm)
         except httpx.HTTPError as exc:
@@ -298,6 +301,7 @@ def create_app(
                 DocOut(doc_id=d.doc_id, title=d.title, content=d.content, score=d.score)
                 for d in context
             ],
+            allow_unknown=req.allow_unknown,
         )
         try:
             response = await client.post(
@@ -314,7 +318,9 @@ def create_app(
     @app.post("/v1/generate", dependencies=up_only)
     async def generate_for_peer(req: GenerateRequest) -> GenerateResponse:
         context = [RetrievedDoc(d.doc_id, d.title, d.content, d.score) for d in req.docs]
-        content, usage = await generate(req.dataset, req.question, context, req.options)
+        content, usage = await generate(
+            req.dataset, req.question, context, req.options, req.allow_unknown
+        )
         return GenerateResponse(node_id=node_id, answer=content, llm=usage)
 
     return app

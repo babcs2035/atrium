@@ -105,8 +105,8 @@
 | GET | `/v1/profile` | － | シャードごとの `source`・`n_docs`・`dim`・`encoder`・`centroid`・`description` |
 | POST | `/v1/retrieve` | `{"shard_id", "k", "embedding"?, "query_id"?}` | `{"shard_id", "docs": [{"doc_id","title","content","score"}], "duration_s"}` |
 | POST | `/v1/probe` | `{"shard_ids", "embedding"}` | `{"node_id", "scores": {shard_id: 最高スコア}, "duration_s"}`．本文は返さない（flood_score の 1 段目．p0004） |
-| POST | `/v1/generate` | `{"dataset", "question", "options", "docs"}` | `{"node_id", "answer", "llm"}`．B4（`delegate_gpu`）で GPU の専門家が受け取った断片から答える（p0004） |
-| POST | `/v1/answer` | `{"dataset", "question", "options", "shard_ids", "k", "embedding"?, "query_id"?}` | `{"node_id", "answer", "choice", "n_context_docs", "top_score", "retrieve_s", "llm", "duration_s"}` |
+| POST | `/v1/generate` | `{"dataset", "question", "options", "docs", "allow_unknown"?}` | `{"node_id", "answer", "llm"}`．B4（`delegate_gpu`）で GPU の専門家が受け取った断片から答える（p0004） |
+| POST | `/v1/answer` | `{"dataset", "question", "options", "shard_ids", "k", "embedding"?, "query_id"?, "delegate_url"?, "allow_unknown"?}` | `{"node_id", "answer", "choice", "n_context_docs", "top_score", "retrieve_s", "llm", "duration_s"}` |
 | POST | `/v1/admin/availability` | `{"up": bool}` | `{"up": bool}`．`experiment.churn` を指定した実験でだけ存在する（EQ7b）．`false` の間，ノードは `/healthz` 以外の要求を 503 で拒否する（プロセスは生きている） |
 
 - MedRAG 型のシャードは `embedding`，FeB4RAG 型は `query_id`（元のデータセットの要求 ID）で検索する．
@@ -138,6 +138,12 @@ curl -s http://192.168.13.100:8100/v1/retrieve -H 'content-type: application/jso
      （同数なら，その選択肢を出したノードの最高検索スコアが高い方を採る）．EnronQA は最高の検索スコアのノードの回答を採る．
      `delegate_gpu` では，対応づけた GPU の専門家（`placement.json` の `delegate_of`）が，CPU の専門家の断片を受け取って答える．
    - `snippet_return_small`：`snippet_return` と同じ流れで，質問者が `llm.expert_model` で答える．
+   - `owner_answer`（p0007 I2．EnronQA のみ）：Router が `answer.owner_m` 個の受信箱を選び，受信箱ごとに別の `/v1/answer` を並列に送る
+     （各ノードがその受信箱の上位 5 通だけで答える．GPU の無いノードは `delegate_gpu` と同じ経路で GPU の専門家が答える）．
+     `answer.aggregate` の規則で 1 つの回答に統合する（`atrium.merge` の `choose_*`．`llm_select` だけ質問者の LLM を 1 回呼ぶ）．
+     `abstain` は `/v1/answer` の `allow_unknown` で UNKNOWN を許すプロンプトに切り替える．
+   - `routing: central_local`（p0007 I4）：ルーティングも `/v1/*` も使わず，質問者が起動時に作った全メールの 1 つの索引（`atrium.routing.central.CentralIndex`）から
+     上位 5 通を取り，質問者の LLM が答える（B1 相当）．ノードを発見しないので，ノードが止まっていても流せる．
 4. 結果を `results.jsonl` に 1 行で追記する（書式は [d0004_metrics.md](d0004_metrics.md)）．
 
 ## 5. ルーティング方式
@@ -182,9 +188,10 @@ EnronQA（p0004 の RQ-A）のために，公開情報を使う方式を `src/at
 | `centroid_sim` | 埋め込みの平均 | 内積の上位 m 個 |
 | `multi_centroid` | k-means の C 個の中心 | 中心との内積の最大の上位 m 個 |
 | `device_probe` | `multi_centroid` と同じ | 1 段目に `multi_centroid` の得点をノードごとに最大値でまとめた上位 D 台を選び，その D 台の全ての受信箱へ `/v1/probe` を送って上位 m 個に本照会する（D は `routing.probe_d`．Iteration 7） |
+| `central_local` | なし（質問者が全メールの索引を持つ．中央集約の実装） | 選ばない．質問者の 1 つの索引から上位 5 通を取る（p0007 I4．`atrium.routing.central`．C1 との一致は `atrium central-local-eval`） |
 | `term_probe` / `hybrid_probe` | 本文の語の統計（CORI．V = 64,000）／語の統計と本文の重心の併用 | 1 段目に要約の得点の上位 D 台（`routing.term_probe_d`・`hybrid_probe_d`）を選び，その全ての受信箱へ `/v1/probe` を送って上位 m 個に本照会する（p0006 P4．要約は `atrium build-summary` の成果物．`atrium.routing.summary`） |
 
-これらの評価は，実機を使わないもの（`atrium advert-eval`．RQ-A のオフライン評価，`atrium owner-eval`．持ち主推定の入力を揃えた評価，`atrium newcomer-eval`．150 人での新参者の評価，`atrium churn-eval`．参加・離脱のオフライン評価，`atrium churn-cascade-eval`．二段の方式の参加・離脱のオフライン評価，`atrium churn-join-eval`．参加の通知の遅れごとのオフライン評価，`atrium churn-leave-eval`．離脱の通知の遅れごとのオフライン評価，`atrium churn-refill-eval`．返事の無い probe の枠を補う変種のオフライン評価，`atrium churn-budget-eval`．device_probe の D ごとに補う変種と補わない構成を同じ問い合わせの数で比べるオフライン評価，`atrium central-eval`．中央集約ベースライン，`atrium frontier-eval`・`atrium build-summary`．汎用のルーティング方式のフロンティア）と，
+これらの評価は，実機を使わないもの（`atrium advert-eval`．RQ-A のオフライン評価，`atrium owner-eval`．持ち主推定の入力を揃えた評価，`atrium newcomer-eval`．150 人での新参者の評価，`atrium churn-eval`．参加・離脱のオフライン評価，`atrium churn-cascade-eval`．二段の方式の参加・離脱のオフライン評価，`atrium churn-join-eval`．参加の通知の遅れごとのオフライン評価，`atrium churn-leave-eval`．離脱の通知の遅れごとのオフライン評価，`atrium churn-refill-eval`．返事の無い probe の枠を補う変種のオフライン評価，`atrium churn-budget-eval`．device_probe の D ごとに補う変種と補わない構成を同じ問い合わせの数で比べるオフライン評価，`atrium central-eval`．中央集約ベースライン，`atrium central-local-eval`．central_local の索引と C1 の一致，`atrium frontier-eval`・`atrium build-summary`．汎用のルーティング方式のフロンティア）と，
 実機に流すもの（`experiment.routing` に名前を書く．参加・離脱の再生は `experiment.churn`）がある．指標は [d0004](d0004_metrics.md) にある．
 
 ## 6. データの配置

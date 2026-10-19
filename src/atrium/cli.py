@@ -26,6 +26,7 @@
     churn-budget-eval         device_probe の D を変え，補う変種と補わない構成を同じ問い合わせの数で比べる（EnronQA．Iteration 19．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     central-eval              中央集約ベースラインの検索の精度と C1 の実機との一致（EnronQA．p0006 P1．制御点のコンテナ）
+    central-local-eval        routing=central_local の索引と C1 の上位文書 ID の一致（EnronQA．p0007 I4．制御点のコンテナ）
     exposure-eval             条件ごとの，デバイスの外に出た文書の重複なしの数と H-B の判定（EnronQA．p0007 B．制御点のコンテナ）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
     owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
@@ -550,6 +551,17 @@ def cmd_central_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_central_local_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """routing=central_local の索引（質問者が起動時に作るもの）の上位 K 通が C1 と一致するかを判定し，verdict.json などを書く（p0007 I4）．"""
+    from atrium import central_eval
+
+    result = central_eval.evaluate_central_local(
+        cfg, dataset_paths(Path(args.data_dir), "enronqa"), Path(args.c1_run)
+    )
+    print(central_eval.write_central_local_outputs(Path(args.out_dir), result))
+    return 0 if result["verdict"]["verdict_original"]["verdict"] != "not_equivalent" else 1
+
+
 def cmd_exposure_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """条件ごとの外に出た文書の重複なしの数を数え，H-B を判定して 4 つの出力を書く（p0007 B）．"""
     from atrium import exposure_eval
@@ -1041,6 +1053,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Recall と露出を並べる実行（繰り返せる）",
     )
     p.set_defaults(func=cmd_central_eval)
+
+    p = sub.add_parser(
+        "central-local-eval",
+        help="routing=central_local の索引と C1 の上位文書 ID の一致（EnronQA．p0007 I4）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument("--c1-run", required=True, help="C1（routing=all）の実行のディレクトリ")
+    p.set_defaults(func=cmd_central_local_eval)
 
     p = sub.add_parser(
         "exposure-eval",

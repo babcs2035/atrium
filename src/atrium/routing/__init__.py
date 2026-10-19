@@ -164,10 +164,16 @@ def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = 
     """config.yaml の experiment.routing に対応するルーターを作る．
 
     oracle は labels_path（質問 → 関連ありのデータ源）を読む．公開情報を使う方式と flood_score は，
-    routing.top_m のデータ源に問い合わせる．
+    routing.top_m のデータ源に問い合わせる．answer_mode=owner_answer では，候補の数 m を answer.owner_m にする
+    （routing.top_m の存在の確認は従来どおり）．central_local は問い合わせ先を選ばない（索引は質問者が持つ）．
     """
     dataset = cfg.experiment.dataset
     name = cfg.experiment.routing
+    if name == "central_local":
+        from atrium.routing.central import CentralLocalRouter
+
+        return CentralLocalRouter()
+    owner = cfg.experiment.answer_mode == "owner_answer"
     if name == "all":
         return AllRouter()
     if name == "none":
@@ -193,13 +199,19 @@ def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = 
             raise ValueError(
                 f"routing={name} requires routing.top_m.{dataset} and probe_k.{dataset}"
             )
-        return advert.CentroidProbeRouter(cfg.routing.top_m[dataset], cfg.routing.probe_k[dataset])
+        return advert.CentroidProbeRouter(
+            cfg.answer.owner_m if owner else cfg.routing.top_m[dataset],
+            cfg.routing.probe_k[dataset],
+        )
     if name == "device_probe":
         if dataset not in cfg.routing.top_m or dataset not in cfg.routing.probe_d:
             raise ValueError(
                 f"routing={name} requires routing.top_m.{dataset} and probe_d.{dataset}"
             )
-        return advert.DeviceProbeRouter(cfg.routing.top_m[dataset], cfg.routing.probe_d[dataset])
+        return advert.DeviceProbeRouter(
+            cfg.answer.owner_m if owner else cfg.routing.top_m[dataset],
+            cfg.routing.probe_d[dataset],
+        )
     if name in ("term_probe", "hybrid_probe"):
         from atrium.routing.summary import SUMMARY_DIRNAME, SummaryProbeRouter, load_summary
 
@@ -211,7 +223,7 @@ def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = 
             )
         return SummaryProbeRouter(
             "term" if name == "term_probe" else "hybrid",
-            cfg.routing.top_m[dataset],
+            cfg.answer.owner_m if owner else cfg.routing.top_m[dataset],
             depth[dataset],
             load_summary(router_dir.parent / SUMMARY_DIRNAME),
             cfg.data.require_enronqa().encoder,
@@ -220,7 +232,7 @@ def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = 
     if name in by_name:
         if dataset not in cfg.routing.top_m:
             raise ValueError(f"routing={name} requires routing.top_m.{dataset}")
-        return by_name[name](cfg.routing.top_m[dataset])
+        return by_name[name](cfg.answer.owner_m if owner else cfg.routing.top_m[dataset])
     # torch を必要とするので，使うときだけ読み込む
     from atrium.routing.ragroute import RagrouteRouter
 

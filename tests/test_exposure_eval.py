@@ -77,6 +77,18 @@ def test_b4_documents_go_to_the_delegate_gpu_and_not_to_the_requester() -> None:
     assert summary["bounds"]["lower_docs"] == 0  # B4 は文書 ID を記録しない
 
 
+def test_owner_answer_documents_go_to_the_delegate_gpu_like_b4() -> None:
+    row = {
+        "qid": "q0",
+        "error": None,
+        "answer_mode": "owner_answer",
+        "docs_exposed_by_source": {"a": 2},
+        "node_answers": [{"delegated_to": "gpu0"}, {"delegated_to": None}],
+    }
+    summary = summarize_condition([row], {"q0": 0}, make_tops(), {"a": 4, "b": 2})
+    assert summary["distinct_docs_by_receiver"] == {"requester": 0, "delegate_gpu": 2}
+
+
 def test_a_gpu_node_answering_locally_exposes_no_documents() -> None:
     row = {"qid": "q0", "error": None, "answer_mode": "delegate_gpu", "docs_exposed_by_source": {}}
     summary = summarize_condition([row], {"q0": 0}, make_tops(), {"a": 4, "b": 2})

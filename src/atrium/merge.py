@@ -1,7 +1,13 @@
-"""検索結果の統合と，宿る型の回答の統合（いずれも純粋関数）．"""
+"""検索結果の統合と，宿る型の回答の統合（いずれも純粋関数）．
+
+owner_answer（p0007 I2）の統合の規則（max_score・abstain・agree）もここに置く．llm_select は質問者の LLM を呼ぶので
+atrium.requester が行い，LLM が選べなかったときの代替に max_score を使う．
+"""
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -74,3 +80,79 @@ def vote(answers: Sequence[NodeVote]) -> str | None:
             score = a.top_score if a.top_score is not None else float("-inf")
             best_score[a.choice] = max(best_score.get(a.choice, float("-inf")), score)
     return max(counts, key=lambda c: (counts[c], best_score[c]))
+
+
+@dataclass(frozen=True)
+class OwnerCandidate:
+    """owner_answer で 1 つの受信箱が出した回答．answer は "Answer:" の後ろだけを取り出した文．"""
+
+    source: str
+    answer: str
+    top_score: float | None
+    unknown: bool
+
+
+@dataclass(frozen=True)
+class OwnerChoice:
+    """統合で採った候補の番号（候補の並びの 0 始まり）と，票の組．
+
+    vote_groups は agree のときだけ，同じ回答とみなした候補の番号の組（採った組が先頭）．fell_back は abstain で全ての回答が
+    UNKNOWN だったため max_score に切り替えたことを表す．
+    """
+
+    index: int
+    fell_back: bool = False
+    vote_groups: tuple[tuple[int, ...], ...] = ()
+
+
+_NON_ALNUM = re.compile(r"[^0-9a-z]+")
+
+
+def normalize_answer(answer: str) -> str:
+    """agree の一致の判定用に回答を正規化する（Unicode の正規化・小文字化・英数字以外を空白 1 つにする）．"""
+    folded = unicodedata.normalize("NFKC", answer).casefold()
+    return _NON_ALNUM.sub(" ", folded).strip()
+
+
+def _score_of(candidate: OwnerCandidate) -> float:
+    return candidate.top_score if candidate.top_score is not None else float("-inf")
+
+
+def _best_index(candidates: Sequence[OwnerCandidate], indices: Sequence[int]) -> int:
+    """indices のうち検索得点が最高の候補の番号（同点は候補の並びの先の方）．"""
+    return max(indices, key=lambda i: (_score_of(candidates[i]), -i))
+
+
+def choose_max_score(candidates: Sequence[OwnerCandidate]) -> OwnerChoice:
+    """検索の最高得点の受信箱の回答を採る（既存の B4 の統合と同じ．同点は候補の並びの先の方）．"""
+    if not candidates:
+        raise ValueError("no candidates to choose from")
+    return OwnerChoice(_best_index(candidates, range(len(candidates))))
+
+
+def choose_abstain(candidates: Sequence[OwnerCandidate]) -> OwnerChoice:
+    """UNKNOWN でない回答のうち得点が最高のものを採る．全て UNKNOWN なら max_score に切り替える．"""
+    answered = [i for i, c in enumerate(candidates) if not c.unknown]
+    if not answered:
+        return OwnerChoice(choose_max_score(candidates).index, fell_back=True)
+    return OwnerChoice(_best_index(candidates, answered))
+
+
+def choose_agree(candidates: Sequence[OwnerCandidate]) -> OwnerChoice:
+    """正規化した回答の文字列が一致する候補の数で票を数え，最多の組から得点最高の候補を採る（同票は組の中の最高得点で決める）．
+
+    正規化すると空になる回答（記号だけなど）は，他と一致したとみなさず 1 票ずつ別の組にする．
+    """
+    if not candidates:
+        raise ValueError("no candidates to choose from")
+    groups: dict[str, list[int]] = defaultdict(list)
+    for i, c in enumerate(candidates):
+        groups[normalize_answer(c.answer) or f"\0empty{i}"].append(i)
+    ranked = sorted(
+        groups.values(),
+        key=lambda g: (len(g), _score_of(candidates[_best_index(candidates, g)])),
+        reverse=True,
+    )
+    return OwnerChoice(
+        _best_index(candidates, ranked[0]), vote_groups=tuple(tuple(g) for g in ranked)
+    )

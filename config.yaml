@@ -8,9 +8,11 @@ experiment:
   kind: e1_routing
   # medrag: MIRAGE ＋ MedRAG コーパス ／ feb4rag: FeB4RAG（13 エンジン）
   dataset: medrag
-  # ragroute / all / random / none（RAGRoute の 4 方式）
+  # ragroute / all / random / none（RAGRoute の 4 方式）．そのほかの方式は docs/d0002_configuration.md を参照
+  # （central_local：質問者が全メールの 1 つの索引を持ち，ノードに問い合わせない．p0007．answer_mode は snippet_return）
   routing: all
-  # snippet_return: 断片返却型 ／ local_answer: 宿る型 ／ retrieval_only: LLM を呼ばず検索まで
+  # snippet_return: 断片返却型 ／ local_answer: 宿る型 ／ retrieval_only: LLM を呼ばず検索まで ／
+  # owner_answer: 選んだ各受信箱が自分の上位 5 通だけで答えて統合（p0007．answer 節を参照）
   answer_mode: retrieval_only
   # 動作確認用に各データセットの先頭 N 問へ絞る（null で全問）
   question_limit: null
@@ -120,6 +122,14 @@ local_answer:
   # 1 台の専門家への回答の要求の打ち切り時間（秒）．専門家の Ollama（CPU）は要求を順番に処理するので，
   # experiment.parallel 件の要求が同じ専門家で待つ時間も含む
   timeout_s: 1800
+
+# answer_mode: owner_answer（p0007 I2）の設定．他の answer_mode では使われない
+answer:
+  # 候補にする受信箱の数 m．Router がこの数だけ選ぶ（routing.top_m の代わり）．各候補が自分の上位 5 通だけで 8B で答える
+  owner_m: 2
+  # 候補の回答の統合の規則．max_score：検索の最高得点の候補／abstain：UNKNOWN を許し，UNKNOWN でない回答のうち得点最高（全て UNKNOWN なら max_score）／
+  # agree：正規化した文字列の一致の票数（同票は得点）／llm_select：質問者の LLM が 1 つを選ぶ
+  aggregate: max_score
 
 e0:
   # 実測の対象ホスト（GPU なしの専門家の代表）と，RTT・スループットを測る相手

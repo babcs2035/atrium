@@ -53,7 +53,8 @@ git のコミットは，未コミットの変更があると末尾に `-dirty` 
 | `snippets_exposed` | デバイスの外へ出た原文の断片の数（宿る型では 0） |
 | `answer`，`choice`，`correct` | LLM の出力，抽出した選択肢，正誤（`retrieval_only` では無い） |
 | `prompt_tokens`，`output_tokens`，`llm` | 断片返却型の生成の計測値（プレフィル・デコードの秒数） |
-| `node_answers` | 宿る型の各ノードの選択肢・検索時間・生成の計測値 |
+| `node_answers` | 宿る型の各ノードの選択肢・検索時間・生成の計測値．`owner_answer`（p0007）では候補の受信箱ごとに `source`・`unknown`・`top_score`・`delegated_to` と生成の計測値（回答の本文は残さない） |
+| `owner_answer` | `owner_answer` の 1 問の記録（p0007 I2）：`aggregate`・`candidate_sources`・`n_candidates`・`n_requests`（`/v1/answer` の回数）・`n_requests_total`（probe の要求を足した総数）・`n_generations`（生成の回数．`llm_select` は選ぶ 1 回を足す）・`n_unknown`・`chosen_source`・`chosen_index`・`chosen_unknown`・`fell_back_to_max_score`・`vote_groups`・`select_parse_failed`．採った回答の本文だけが `answer`・`final_answer` に入る |
 | `timings` | `embed_s`・`route_s`・`retrieve_s`・`merge_s`・`generate_s`・`e2e_s`（秒） |
 | `error` | 失敗したときの例外（成功なら `null`） |
 | `docs_exposed_by_source` | 持ち主のデバイスの外に出た本文の数（データ源ごと．p0004）．断片返却型は受け取った断片，委託（`delegate_gpu`）は委託先へ渡した断片，宿る型は空 |

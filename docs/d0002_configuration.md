@@ -26,8 +26,8 @@ Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLA
 |---|---|---|
 | `kind` | `e0_measure` / `e1_routing` | E0（実機の実測）か，連合 RAG の実行か |
 | `dataset` | `medrag` / `feb4rag` / `enronqa` | MIRAGE ＋ MedRAG コーパス（4 データ源）か，FeB4RAG（13 エンジン）か，EnronQA（150 人の受信箱．p0004） |
-| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid`，Iteration 1 で `centroid_probe`，Iteration 7 で `device_probe`，p0006 P4 で `term_probe`・`hybrid_probe` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5） |
-| `answer_mode` | `retrieval_only` / `snippet_return` / `local_answer` / `snippet_return_small` / `delegate_gpu` / `gold_context` | LLM を呼ばず検索まで／断片返却型／宿る型／断片返却型で質問者が専門家と同じ小型のモデルを使う（B3．p0004）／GPU の無い専門家が対応づけた GPU の専門家に断片を渡して答えさせる（B4．p0004）／検索もルーティングもせず，正解のメール 1 通だけを文脈にして質問者が答える（C0．p0006．評価専用で EnronQA のみ．`run_meta.json` に `evaluation_only: true`．deploy が受信箱の chunk（本文）を質問者へ配る） |
+| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid`，Iteration 1 で `centroid_probe`，Iteration 7 で `device_probe`，p0006 P4 で `term_probe`・`hybrid_probe`，p0007 I4 で `central_local` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5）．`central_local`（p0007 I4．EnronQA の `answer_mode: snippet_return`・`requester_procs: 1` だけ）は質問者が全 73,772 通の 1 つの索引を持ち，ノードに問い合わせずに上位 5 通を取って質問者の LLM が答える（B1 相当）．索引は `atrium.central_eval` と同じ作り（fp32 の内積・同点は行の番号の小さい方）で，質問者の起動時に作る．その秒数は `run_meta.json` の `central_index`（`total_s`・`read_docs_s`・`read_emb_s`・`n_docs`）に残る．deploy が質問者へ受信箱の chunk と埋め込みを配る．C1 との文書 ID の一致は `atrium central-local-eval` で確かめる |
+| `answer_mode` | `retrieval_only` / `snippet_return` / `local_answer` / `snippet_return_small` / `delegate_gpu` / `gold_context` / `owner_answer` | LLM を呼ばず検索まで／断片返却型／宿る型／断片返却型で質問者が専門家と同じ小型のモデルを使う（B3．p0004）／GPU の無い専門家が対応づけた GPU の専門家に断片を渡して答えさせる（B4．p0004）／検索もルーティングもせず，正解のメール 1 通だけを文脈にして質問者が答える（C0．p0006．評価専用で EnronQA のみ．`run_meta.json` に `evaluation_only: true`．deploy が受信箱の chunk（本文）を質問者へ配る）／Router が選んだ上位 m 受信箱が，それぞれ自分の上位 5 通だけで 8B が答え，`answer.aggregate` で 1 つに統合する（p0007 I2．EnronQA のみ．GPU の無い専門家は B4 と同じく対応づけた GPU に断片を渡して答えさせる．詳細は下の `answer`） |
 | `question_limit` | 整数または `null` | 各問題集の先頭からこの数だけを使う（動作確認用） |
 | `parallel` | 整数 | 質問者が同時に処理する質問数 |
 | `seed` | 整数 | `random` のルーティングと，FeB4RAG の重心の無作為抽出の種 |
@@ -96,6 +96,24 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | `k_context` | 15 | 宿る型で各専門家が自分のシャードから使う断片数 |
 | `aggregate` | `vote` | 複数の専門家の回答の統合（選択肢の多数決） |
 | `timeout_s` | 1800 | 1 台の専門家への回答の要求の打ち切り時間（秒）．専門家の Ollama は要求を順番に処理するので，並列に送った要求の待ち時間も含む（CPU の 0.6B で 1 回 30〜190 秒を実測） |
+
+## answer
+
+`answer_mode: owner_answer`（p0007 I2．EnronQA のみ）の設定．他の `answer_mode` では使われない．省略すると既定値になり，従来の挙動は変わらない．
+
+| キー | 既定値 | 意味 |
+|---|---|---|
+| `owner_m` | 2 | 候補にする受信箱の数 m．`owner_answer` では Router がこの数だけ選ぶ（`routing.top_m.enronqa` の代わりに使う．`oracle` など選ぶ数を持たない方式は従来どおり）．m を変えるときは `routing.top_m` を変えない |
+| `aggregate` | `max_score` | 候補の回答の統合の規則．`max_score`：検索の最高得点の受信箱の回答（B4 に相当）／`abstain`：「メールに答えが無ければ UNKNOWN」のプロンプト（`prompts.ENRON_ABSTAIN_TEMPLATE`）で答えさせ，UNKNOWN でない回答のうち得点最高のもの（全て UNKNOWN なら `max_score`）／`agree`：正規化した回答の文字列（NFKC・小文字・英数字以外を空白に）の一致で票を数え，同票は得点で決める／`llm_select`：質問者の LLM（`llm.requester_model`）が候補の回答から 1 つを選ぶ（番号を読み取れなければ `max_score`．候補が 1 つなら呼ばない） |
+
+結果（`results.jsonl`）には，1 問ごとに `owner_answer`（`aggregate`・`candidate_sources`・`n_candidates`・`n_requests`・`n_requests_total`・`n_generations`・`n_unknown`・`chosen_source`・`chosen_index`・`chosen_unknown`・`fell_back_to_max_score`・`vote_groups`・`select_parse_failed`），`node_answers`（候補ごとの `unknown`・`top_score`・`delegated_to`・生成の計測値）が残る．
+回答の本文は，採った 1 つ（`answer`・`final_answer`）だけを残す（候補の回答にはメールの引用が混ざりうるため）．commit の前に `scripts/tasks/sanitize_results.py` を通す．
+
+```yaml
+# 例：hybrid_probe（D = 16）の上位 3 受信箱が答え，UNKNOWN を許して統合する
+experiment: {routing: hybrid_probe, answer_mode: owner_answer, dataset: enronqa}
+answer: {owner_m: 3, aggregate: abstain}
+```
 
 ## e0
 

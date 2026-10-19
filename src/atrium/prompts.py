@@ -60,6 +60,27 @@ USER_PROMPT_TEMPLATES: dict[DatasetName, str] = {
     ),
 }
 
+# p0007 I2（aggregate=abstain）：答えがメールに無いときは UNKNOWN と答えさせる．元の文面に 1 文だけ足し，ほかは変えない
+UNKNOWN_TOKEN = "UNKNOWN"
+ENRON_ABSTAIN_SENTENCE = (
+    f"If the emails do not contain the answer, write {UNKNOWN_TOKEN} as the answer."
+)
+ENRON_ABSTAIN_TEMPLATE = USER_PROMPT_TEMPLATES["enronqa"].replace(
+    "\n\n---\n\nFollow the following format.",
+    f" {ENRON_ABSTAIN_SENTENCE}\n\n---\n\nFollow the following format.",
+    1,
+)
+
+# p0007 I2（aggregate=llm_select）：質問者の LLM が，各受信箱の回答から 1 つを選ぶ（メールの本文は渡さず，回答だけを渡す）
+SELECT_SYSTEM_PROMPT = "You choose the most plausible answer to a question about emails."
+SELECT_USER_TEMPLATE = (
+    "Several mailboxes each answered the question below using only their own emails. "
+    "Choose the answer most likely to be correct. Answers saying the information is missing "
+    f"or {UNKNOWN_TOKEN} are unlikely to be correct unless every answer says so.\n\n"
+    "Question: {question}\n\n{candidates}\n\n"
+    "Reply with the number of the best answer only."
+)
+
 
 def format_options(options: Mapping[str, str]) -> str:
     """選択肢を MedRAG と同じ「A. 本文」の行へ整形する．"""
@@ -81,9 +102,13 @@ def build_messages(
     question: str,
     docs: Sequence[RetrievedDoc],
     options: Mapping[str, str],
+    allow_unknown: bool = False,
 ) -> list[dict[str, str]]:
-    """Ollama の chat API に渡す messages を作る．"""
-    user = USER_PROMPT_TEMPLATES[dataset].format(
+    """Ollama の chat API に渡す messages を作る．allow_unknown は EnronQA だけで，答えが無ければ UNKNOWN と答えさせる．"""
+    if allow_unknown and dataset != "enronqa":
+        raise ValueError("allow_unknown is only defined for the enronqa prompt")
+    template = ENRON_ABSTAIN_TEMPLATE if allow_unknown else USER_PROMPT_TEMPLATES[dataset]
+    user = template.format(
         context=format_context(docs), question=question, options=format_options(options)
     )
     return [
@@ -117,6 +142,33 @@ def extract_free_answer(llm_output: str) -> str:
     """自由記述の回答（EnronQA）を取り出す：最後の "Answer:" の行の内容．無ければ出力の全体を返す．"""
     found = _FREE_ANSWER.findall(llm_output)
     return str(found[-1]).strip() if found else llm_output.strip()
+
+
+_UNKNOWN_ANSWER = re.compile(rf"^\W*{UNKNOWN_TOKEN}\b", re.IGNORECASE)
+
+
+def is_unknown_answer(answer: str) -> bool:
+    """回答が UNKNOWN で始まるか（引用符・記号・大小文字は無視する．「UNKNOWN. The emails do not say」も該当）．"""
+    return _UNKNOWN_ANSWER.match(answer) is not None
+
+
+def build_select_messages(question: str, answers: Sequence[str]) -> list[dict[str, str]]:
+    """llm_select の messages：候補の回答に 1 から番号を振って並べる．"""
+    candidates = "\n".join(f"Answer {i}: {a}" for i, a in enumerate(answers, start=1))
+    user = SELECT_USER_TEMPLATE.format(question=question, candidates=candidates)
+    return [
+        {"role": "system", "content": SELECT_SYSTEM_PROMPT},
+        {"role": "user", "content": user},
+    ]
+
+
+def extract_selected_index(llm_output: str, n_candidates: int) -> int | None:
+    """llm_select の出力から，最初に現れる整数を 0 始まりの候補の番号にして返す（範囲外・整数が無ければ None）．"""
+    found = re.search(r"\d+", llm_output)
+    if found is None:
+        return None
+    index = int(found.group()) - 1
+    return index if 0 <= index < n_candidates else None
 
 
 def extract_choice(llm_output: str) -> str | None:

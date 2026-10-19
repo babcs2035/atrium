@@ -28,6 +28,7 @@ from atrium.arrays import F32Array, I64Array
 from atrium.central_eval import QUERY_CHUNK, top_k_indices
 from atrium.config import AtriumConfig
 from atrium.paths import DatasetPaths
+from atrium.verdict import make_verdict
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,8 @@ TIE_ATOL = 1e-6
 SOURCE_JOIN = "+"
 RECEIVER_REQUESTER = "requester"
 RECEIVER_GPU = "delegate_gpu"
-ANSWER_MODE_DELEGATE = "delegate_gpu"
+# 検索した断片を GPU の専門家へ渡して答えさせる answer_mode（owner_answer は p0007 I2．委託の経路は B4 と同じ）
+ANSWER_MODES_DELEGATE = frozenset({"delegate_gpu", "owner_answer"})
 # 持ち主の特定（top-1・AUC）を読む p0006 の結果の中の場所（hybrid_summary・n30・test・全問）
 ATTRIBUTION_PATH = ("hypotheses", "chosen", "n30", "hybrid_summary", "test", "all")
 
@@ -126,13 +128,13 @@ def summarize_condition(
         exposed = r["docs_exposed_by_source"]
         qi = qindex[r["qid"]]
         ids = exposed_ids_of_row(exposed, qi, tops)
-        receiver = RECEIVER_GPU if r["answer_mode"] == ANSWER_MODE_DELEGATE else RECEIVER_REQUESTER
+        receiver = RECEIVER_GPU if r["answer_mode"] in ANSWER_MODES_DELEGATE else RECEIVER_REQUESTER
         by_receiver[receiver].update(ids)
         n_recorded += sum(exposed.values())
         n_rebuilt += len(ids)
         n_count_match += len(ids) == sum(exposed.values())
         # B1 だけが統合後の top_doc_ids を持つ．再構成した集合に全て含まれるかを見る（B4 には ID が無い）
-        if r["answer_mode"] != ANSWER_MODE_DELEGATE and r.get("top_doc_ids"):
+        if r["answer_mode"] not in ANSWER_MODES_DELEGATE and r.get("top_doc_ids"):
             n_with_top += 1
             missing = set(r["top_doc_ids"]) - set(ids)
             n_contained += not missing
@@ -290,7 +292,7 @@ def evaluate(
             "central": {"distinct_docs": n_total, "fraction": 1.0},
             "conditions": conditions,
         },
-        "verdict": {"verdict_original": verdict, "verdict_revised": None},
+        "verdict": make_verdict(verdict),
         "sim_vs_live": {
             "note": "オフラインで再構成した値と，実機の results.jsonl の記録（journal の 1 問あたり外に出た文書）の照合",
             "conditions": sim_vs_live,

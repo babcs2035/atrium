@@ -144,8 +144,8 @@ deploy_expert() {
   fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate"
-  # 宿る型は全ての専門家が，委託（B4）は GPU の専門家だけが自分の LLM で答える
-  if [ "$ANSWER_MODE" = local_answer ] || { [ "$ANSWER_MODE" = delegate_gpu ] && [ "$role" = node_gpu ]; }; then
+  # 宿る型は全ての専門家が，委託（B4．p0007 の owner_answer も同じ経路）は GPU の専門家だけが自分の LLM で答える
+  if [ "$ANSWER_MODE" = local_answer ] || { { [ "$ANSWER_MODE" = delegate_gpu ] || [ "$ANSWER_MODE" = owner_answer ]; } && [ "$role" = node_gpu ]; }; then
     preload_ollama_model "$host" "exec -T node" "$model"
   fi
   prune_old_images "$host"
@@ -166,6 +166,10 @@ deploy_requester() {
   # gold_context（p0006 C0．評価専用）は正解のメールの本文を質問者が読むので，受信箱の chunk（本文）だけを配る（埋め込みは配らない）
   if [ "$ANSWER_MODE" = gold_context ]; then
     nrsync -a --include='*/' --include='chunk/***' --exclude='*' "$DS_DIR/corpus/" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/corpus/"
+  fi
+  # routing=central_local（p0007 I4）は質問者が全メールの 1 つの索引を作るので，受信箱の chunk（本文）と埋め込みを配る
+  if [ "$ROUTING" = central_local ]; then
+    nrsync -a --include='*/' --include='chunk/***' --include='emb/***' --exclude='*' "$DS_DIR/corpus/" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/corpus/"
   fi
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
   nrsync -az "artifacts/$DATASET/placement.json" "$(ssh_dest "$host"):$REMOTE_DIR/placement.json"
