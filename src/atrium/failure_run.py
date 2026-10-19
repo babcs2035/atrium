@@ -34,7 +34,6 @@ import json
 import logging
 import multiprocessing as mp
 import random
-import signal
 import statistics
 import time
 from collections.abc import Mapping, Sequence
@@ -457,8 +456,9 @@ async def run_fault(
     detect: dict[str, asyncio.Task[float | None]] = {}
     try:
         await asyncio.sleep(params.baseline_s)
-        stop = await injector.stop(hosts)
+        # 止める操作の途中で中断されても再開できるよう，操作の前に印を付ける（再開は止まっていないノードに対しては何もしない）
         stopped = True
+        stop = await injector.stop(hosts)
         t0 = stop.acked_at
         detect = {
             h: asyncio.create_task(
@@ -767,8 +767,3 @@ async def run_failure_command(
             for injector in injectors.values():
                 if injector.name == "availability":
                     await injector.start(sorted(url_of_host))
-
-
-def install_sigterm_cancel(task: asyncio.Task[Any]) -> None:
-    """SIGTERM（docker stop）を受けたら実行を中断させる（run_fault の finally が止めたノードを再開する）．"""
-    asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, task.cancel)

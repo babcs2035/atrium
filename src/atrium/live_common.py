@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import signal
 import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -37,3 +38,8 @@ def load_test_questions(paths: DatasetPaths) -> tuple[list[Question], dict[str, 
 def is_hit(record: Mapping[str, Any], doc_id: str) -> bool:
     """質問者の結果の 1 行が，正解のメール doc_id を上位の文脈に含み，失敗していないか（「答えられる」状態の判定）．"""
     return record.get("error") is None and doc_id in record.get("top_doc_ids", [])
+
+
+def install_sigterm_cancel(task: asyncio.Task[Any]) -> None:
+    """SIGTERM（docker stop）を受けたら task を中断させる（finally で，止めたノードの再開・離脱させたノードの復帰をさせてから終わるため）．"""
+    asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, task.cancel)

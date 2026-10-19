@@ -181,7 +181,8 @@ def cmd_freshness_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
 def cmd_failure_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """障害の測定（p0007 I6）．止めたノードは（途中で失敗・SIGTERM でも）再開する．verdict_original が成立しなくても終了コードは 0．"""
     from atrium.dynamics import DEFAULT_SEED
-    from atrium.failure_run import FailureParams, install_sigterm_cancel, run_failure_command
+    from atrium.failure_run import FailureParams, run_failure_command
+    from atrium.live_common import install_sigterm_cancel
 
     params = FailureParams(
         ks=tuple(int(k) for k in args.ks.split(",")),
