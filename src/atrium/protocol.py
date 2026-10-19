@@ -218,6 +218,8 @@ class SummaryRequest(_Model):
     term_size: int = Field(ge=1)
     n_centroids: int = Field(ge=1)
     seed: int
+    # 受信箱ごとに使うメールの数の上限（動作確認用．None は全て．上限を付けた要約は，オフラインの要約と等価ではない）
+    max_docs_per_inbox: int | None = Field(default=None, ge=1)
 
 
 class InboxCenters(_Model):

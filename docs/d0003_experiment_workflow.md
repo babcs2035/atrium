@@ -306,12 +306,16 @@ bash scripts/tasks/live_run.sh failure_run p0007_e1_smoke --ks 1,3 --modes avail
 ### 7.3 参加（`join-run`．E2）
 
 ```bash
-# 本番（約 25 分．最初のメンバー 27 台の公開情報の作成が準備に数分，感度は 3 通りの質問の流れ）
+# 本番（約 1 時間．最初のメンバー 27 台が同時に公開情報を作る準備で 20〜30 分，加わる 3 台の公開情報の作成で 20〜30 分，感度は 3 通りの質問の流れ）
 bash scripts/tasks/live_run.sh join_run p0007_e2_join --n-devices 3 --delays 0,10,100
-# 小さな確認（1 台．感度は L = 0 だけ）
-bash scripts/tasks/live_run.sh join_run p0007_e2_smoke --n-devices 1 --delays 0 --stream-questions 60
+# 動作確認（数分．最初のメンバーを 3 台，公開情報に使うメールを受信箱ごとに 40 通に絞る．本番の測定ではない）
+bash scripts/tasks/live_run.sh join_run p0007_e2_smoke --n-devices 1 --delays 0,10 --stream-questions 80 \
+  --initial-devices 3 --summary-max-docs 40
 ```
 
+- **デバイスの CPU での公開情報の作成は長い**：本文の埋め込み（arctic-embed-m）を i5-8350U の CPU で全メール（1 台に約 2,400 通）に対して行うので，1 台あたり 20 分前後かかる
+  （煙試験で 120 秒の打ち切りを超えた．打ち切りは `SUMMARY_TIMEOUT_S` = 1 時間）．同じノードへ要求を重ねると遅くなる（同じノードで 2 つの作成が走ると約 2 倍）．
+  これが P2P の参加の時間の主な費用で，GPU のデバイスも CPU で作る（既存機材の費用の測定のため）．
 - 加えるデバイスはホストの無作為抽出（種 12．3 台 = 15 受信箱）．測定の始めに `/v1/admin/availability` で離脱させ，参加の時刻に有効にする
   （**既存の churn の再生は `experiment.churn`・retrieval_only・CHURN_ROUTINGS を要求し，hybrid_probe の要約の配布を持たないので，代替として availability API で後から有効化する**．ノードの起動・索引の読み込みの時間は含まない）．
 - P2P：参加の時刻 t0 から，(a) 有効になる（`up_s`），(b) デバイスが自分のメールだけから公開情報（hybrid の要約．語の統計と本文の重心）を作る（`/v1/admin/summary`．デバイスの CPU．`device_*_s` に内訳），

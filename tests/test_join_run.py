@@ -116,3 +116,11 @@ async def test_join_run_measures_p2p_and_central_and_the_notice_delay(
     assert await alive_hosts(cluster.client, cluster.placement) == sorted(url_of_host)
     # 質問者は最終のメンバー表（全受信箱）で終わる
     assert {s.source for s in cluster.requester.sources} == set(INBOXES)
+
+
+def test_smoke_option_keeps_only_the_first_initial_devices(cluster: MiniCluster) -> None:
+    plan = plan_join(cluster.placement, INBOXES, 1, 12, initial_devices=2)
+    assert len(plan.initial_placement.nodes) == 2
+    initial_shards = {sid for n in plan.initial_placement.nodes for sid in n.shard_ids}
+    assert set(plan.initial_inboxes) == initial_shards
+    assert plan.joiner_hosts == plan_join(cluster.placement, INBOXES, 1, 12).joiner_hosts

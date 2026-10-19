@@ -191,6 +191,8 @@ def cmd_join_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         stream_questions=args.stream_questions,
         max_tries_per_inbox=args.max_tries_per_inbox,
         seed=DEFAULT_SEED,
+        initial_devices=args.initial_devices,
+        summary_max_docs=args.summary_max_docs,
     )
 
     async def main() -> dict[str, Any]:
@@ -1042,6 +1044,18 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=50,
         help="1 つの受信箱で答えられるまで試す質問の最大の数",
+    )
+    p.add_argument(
+        "--initial-devices",
+        type=int,
+        default=None,
+        help="動作確認用：最初のメンバーを先頭から数台だけにする（本番は省略）",
+    )
+    p.add_argument(
+        "--summary-max-docs",
+        type=int,
+        default=None,
+        help="動作確認用：公開情報に使うメールを受信箱ごとに先頭から数通だけにする（本番は省略．付けると要約はオフラインと等価でない）",
     )
     p.set_defaults(func=cmd_join_run)
 

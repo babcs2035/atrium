@@ -252,7 +252,7 @@ def register_admin_docs_api(
         total_start = time.perf_counter()
         loaded, _ = embedder_loaded()
         inboxes = {
-            store.spec.source: [d["content"] for d in store.export(None)]
+            store.spec.source: [d["content"] for d in store.export(None)][: req.max_docs_per_inbox]
             for shard_id in stores
             for store in [faiss_store(shard_id)]
         }

@@ -87,6 +87,8 @@ DEFAULT_DELAYS = (0, 10, 100)
 TERM_SIZE = 64000
 # 質問者が公開情報を作るデバイスの並行数の上限（最初のメンバー全員の要約を集める準備で使う）
 SUMMARY_CONCURRENCY = 30
+# 公開情報の作成の要求の打ち切り（秒）．デバイスの CPU で全メールの本文を埋め込むので数分かかる（実機の煙試験で 120 秒を超えた）
+SUMMARY_TIMEOUT_S = 3600.0
 CENTRAL_TOP_K = 5
 
 
@@ -101,6 +103,9 @@ class JoinParams:
     # 1 つの受信箱で，答えられるまで質問を試す最大の数
     max_tries_per_inbox: int = 50
     seed: int = DEFAULT_SEED
+    # 動作確認用（本番は None）．最初のメンバーを先頭から数台だけにする／公開情報に使うメールを受信箱ごとに先頭から数通だけにする
+    initial_devices: int | None = None
+    summary_max_docs: int | None = None
 
 
 @dataclass(frozen=True)
@@ -114,7 +119,11 @@ class JoinPlan:
 
 
 def plan_join(
-    placement: Placement, source_order: Sequence[str], n_devices: int, seed: int
+    placement: Placement,
+    source_order: Sequence[str],
+    n_devices: int,
+    seed: int,
+    initial_devices: int | None = None,
 ) -> JoinPlan:
     """加えるデバイスをホストの無作為抽出（種つき）で決め，最初のメンバーの配置（残りのノード）と受信箱を求める．
 
@@ -123,6 +132,8 @@ def plan_join(
     joiners = choose_names([n.host for n in placement.nodes], n_devices, seed)
     shard_of = {sid for n in placement.nodes if n.host in joiners for sid in n.shard_ids}
     initial_nodes = [n for n in placement.nodes if n.host not in joiners]
+    if initial_devices is not None:
+        initial_nodes = initial_nodes[:initial_devices]
     initial_shards = {sid for n in initial_nodes for sid in n.shard_ids}
     return JoinPlan(
         joiner_hosts=joiners,
@@ -210,16 +221,21 @@ def summary_from_response(response: SummaryResponse) -> DeviceSummary:
     )
 
 
-async def fetch_summary(ctx: JoinContext, host: str) -> tuple[DeviceSummary, dict[str, Any]]:
-    """デバイスに公開情報を作らせて受け取る．（公開情報，所要時間・大きさの記録）を返す．"""
+async def fetch_summary(
+    ctx: JoinContext, host: str, max_docs: int | None = None
+) -> tuple[DeviceSummary, dict[str, Any]]:
+    """デバイスに公開情報を作らせて受け取る．（公開情報，所要時間・大きさの記録）を返す．max_docs は動作確認用．"""
     request = SummaryRequest(
-        term_size=TERM_SIZE, n_centroids=BODY_CENTROIDS, seed=ctx.cfg.experiment.seed
+        term_size=TERM_SIZE,
+        n_centroids=BODY_CENTROIDS,
+        seed=ctx.cfg.experiment.seed,
+        max_docs_per_inbox=max_docs,
     )
     begin = time.perf_counter()
     response = await ctx.client.post(
         f"{ctx.url_of_host[host]}/v1/admin/summary",
         json=request.model_dump(),
-        timeout=RETRIEVE_TIMEOUT_S,
+        timeout=SUMMARY_TIMEOUT_S,
     )
     response.raise_for_status()
     rtt_s = time.perf_counter() - begin
@@ -292,14 +308,14 @@ async def admit_device(ctx: JoinContext, host: str, summary: DeviceSummary) -> t
     return profile_s, time.perf_counter() - begin
 
 
-async def collect_initial_members(ctx: JoinContext) -> dict[str, Any]:
+async def collect_initial_members(ctx: JoinContext, params: JoinParams) -> dict[str, Any]:
     """最初のメンバー（加わらないデバイス）の公開情報とプロファイルを集め，質問者のメンバー表を作る（準備．時間は主の測定に含めない）．"""
     semaphore = asyncio.Semaphore(SUMMARY_CONCURRENCY)
     hosts = [n.host for n in ctx.plan.initial_placement.nodes]
 
     async def one(host: str) -> tuple[DeviceSummary, dict[str, Any]]:
         async with semaphore:
-            return await fetch_summary(ctx, host)
+            return await fetch_summary(ctx, host, params.summary_max_docs)
 
     fetched = await asyncio.gather(*(one(h) for h in hosts))
     shards = await discover_shards(ctx.client, ctx.plan.initial_placement)
@@ -354,7 +370,7 @@ async def measure_p2p_join(ctx: JoinContext, params: JoinParams) -> dict[str, An
     async def join_one(host: str) -> dict[str, Any]:
         await set_available(ctx, [host], True)
         up_s = time.perf_counter() - origin
-        summary, cost = await fetch_summary(ctx, host)
+        summary, cost = await fetch_summary(ctx, host, params.summary_max_docs)
         published_s = time.perf_counter() - origin
         profile_s, assemble_s = await admit_device(ctx, host, summary)
         member_s = time.perf_counter() - origin
@@ -562,7 +578,7 @@ async def run_join(
     """準備（最初のメンバーの公開情報）→ 参加前の確認 → P2P の参加 → 中央の参加 → 通知の遅れの感度，を流し，結果を書く．"""
     await set_available(ctx, ctx.plan.joiner_hosts, False)
     try:
-        setup = await collect_initial_members(ctx)
+        setup = await collect_initial_members(ctx, params)
         initial = make_router_and_sources(ctx, ctx.state)
         pre = await pre_join_hit_rate(ctx)
         p2p = await measure_p2p_join(ctx, params)
@@ -596,6 +612,9 @@ async def run_join(
                 "joiner_hosts": ctx.plan.joiner_hosts,
                 "joiner_inboxes": ctx.plan.joiner_inboxes,
                 "n_initial_devices": len(ctx.plan.initial_placement.nodes),
+                # 動作確認の設定（None 以外なら本番の測定ではない）
+                "smoke_initial_devices": params.initial_devices,
+                "smoke_summary_max_docs": params.summary_max_docs,
             },
             "setup": setup,
             "pre_join": pre,
@@ -656,7 +675,7 @@ async def run_join_command(
     placement = read_placement(placement_path)
     e = cfg.data.require_enronqa()
     questions, gold = load_test_questions(paths)
-    plan = plan_join(placement, e.sources, params.n_devices, params.seed)
+    plan = plan_join(placement, e.sources, params.n_devices, params.seed, params.initial_devices)
     out_dir.mkdir(parents=True, exist_ok=True)
     async with build_http_client(cfg.experiment.http_pool, placement) as client:
         requester = Requester(

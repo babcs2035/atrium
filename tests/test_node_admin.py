@@ -156,3 +156,20 @@ def test_hash_embedder_is_deterministic_and_unit_length() -> None:
     assert np.allclose(np.linalg.norm(a, axis=1), 1.0)
     assert np.array_equal(a[:1], HashEmbedder().encode_texts(["x"]))
     assert a.shape == (2, DIM)
+
+
+async def test_summary_is_built_on_the_node_from_its_own_mails_and_can_be_limited(
+    cfg: AtriumConfig, root: Path
+) -> None:
+    """公開情報（語の統計と受信箱の重心）をデバイスが自分のメールだけから作る．動作確認用に使うメールの数を絞れる．"""
+    body = {"term_size": 1000, "n_centroids": 4, "seed": 12}
+    async with _client(enron_cfg(cfg, [INBOX]), root, HashEmbedder()) as client:
+        full = (await client.post("/v1/admin/summary", json=body)).json()
+        limited = (
+            await client.post("/v1/admin/summary", json={**body, "max_docs_per_inbox": 3})
+        ).json()
+    assert full["n_docs"] == 6 and limited["n_docs"] == 3
+    assert full["device"] == "cpu" and full["embed_s"] >= 0 and full["total_s"] >= full["embed_s"]
+    assert [i["inbox"] for i in full["inboxes"]] == [INBOX]
+    assert len(full["inboxes"][0]["centers"]) == 4 and len(full["inboxes"][0]["centers"][0]) == 8
+    assert "mail" in full["terms"] and len(full["terms"]) == len(full["dfs"])
