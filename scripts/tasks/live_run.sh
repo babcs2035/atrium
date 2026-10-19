@@ -20,7 +20,8 @@ RDIR="$REMOTE_DIR/results/$RUN_ID"
 
 # 制御点での状態: running（実行中）／終了コード（.exit の中身）／none（未起動，または印を残さずに止まった）
 remote_state() {
-  ssh "$CONTROL" "if pgrep -f 'scripts/remote/$SCRIPT.sh $RUN_ID ' > /dev/null; then echo running; \
+  # 先頭の [s] は，この pgrep を実行するシェル自身の引数に一致しないための印（正規表現の [s] は s に一致し，文字列 "[s]" には一致しない）
+  ssh "$CONTROL" "if pgrep -f '[s]cripts/remote/$SCRIPT.sh $RUN_ID ' > /dev/null; then echo running; \
     elif [ -f $RDIR/.exit ]; then cat $RDIR/.exit; else echo none; fi"
 }
 

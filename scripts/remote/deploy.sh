@@ -123,6 +123,17 @@ preload_ollama_model() {
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose $compose_cmd python -c '$PRELOAD_PY' $model $LLM_NUM_CTX"
 }
 
+# send_embed_model <host>: EnronQA の埋め込みモデル（arctic-embed-m-v1.5）の必要なファイルだけを hf-cache へ配る（p0007 I5〜I7）．
+# キャッシュ全体は onnx・gguf を含めて 2.6 GB あり，30 台へ送ると時間がかかる．snapshots の実体（シンボリックリンクの先）だけを送る
+# （固定のリビジョンの snapshots/<rev>/ を直接読むので blobs は要らない）．約 440 MB
+EMBED_MODEL_CACHE="$DATA_DIR/.cache/huggingface/hub/models--Snowflake--snowflake-arctic-embed-m-v1.5"
+send_embed_model() {
+  local host=$1 dest="$REMOTE_DIR/hf-cache/hub/models--Snowflake--snowflake-arctic-embed-m-v1.5"
+  nssh "$host" "mkdir -p $dest/snapshots $dest/refs"
+  nrsync -aL --exclude onnx/ --exclude gguf/ "$EMBED_MODEL_CACHE/snapshots/" "$(ssh_dest "$host"):$dest/snapshots/"
+  nrsync -a "$EMBED_MODEL_CACHE/refs/" "$(ssh_dest "$host"):$dest/refs/"
+}
+
 deploy_expert() {
   local host=$1
   local shard_ids=${SHARDS_OF[$host]}
@@ -137,10 +148,7 @@ deploy_expert() {
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
   # cluster.node_admin（p0007 I5〜I7）：ノードがその場でメールを埋め込めるよう，埋め込みモデルを hf-cache へ配る．
   # compose が ./hf-cache を読み取り専用で bind mount するので，docker に root 所有で作らせないよう先に作る
-  if [ -n "$NODE_ADMIN" ]; then
-    nssh "$host" "mkdir -p $REMOTE_DIR/hf-cache/hub"
-    nrsync -a "$DATA_DIR"/.cache/huggingface/hub/models--Snowflake--snowflake-arctic-embed-m-v1.5 "$(ssh_dest "$host"):$REMOTE_DIR/hf-cache/hub/"
-  fi
+  if [ -n "$NODE_ADMIN" ]; then send_embed_model "$host"; fi
   # GPU を持つ専門家（nvidia-smi で判定）は Ollama を GPU で動かし，llm.expert_model_gpu を使う
   local role=node model=$EXPERT_MODEL
   if has_gpu "$host"; then role=node_gpu model=$EXPERT_MODEL_GPU; fi
@@ -196,9 +204,7 @@ deploy_requester() {
     [ -d "$m" ] && hf_models+=("$m")
   done
   # cluster.node_admin：central_local の追加・参加の測定で，質問者もメールを埋め込む（arctic-embed-m-v1.5）
-  if [ -n "$NODE_ADMIN" ]; then
-    hf_models+=("$DATA_DIR"/.cache/huggingface/hub/models--Snowflake--snowflake-arctic-embed-m-v1.5)
-  fi
+  if [ -n "$NODE_ADMIN" ]; then send_embed_model "$host"; fi
   if [ "${#hf_models[@]}" -gt 0 ]; then
     nrsync -a "${hf_models[@]}" "$(ssh_dest "$host"):$REMOTE_DIR/hf-cache/hub/"
   fi
