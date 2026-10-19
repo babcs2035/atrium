@@ -7,6 +7,7 @@
     node                      専門家ノードを起動する（コンテナ内）
     run                       質問者として実験を行う（コンテナ内）
     freshness-run             新しいメールが答えに使えるようになるまでの時間を実機で測る（EnronQA．p0007 I5．質問者のコンテナ）
+    join-run                  途中で加わるデバイスが答えに加わるまでの時間を P2P と中央で比べる（EnronQA．p0007 I7．質問者のコンテナ）
     failure-run               k 台の停止・コンテナの停止と再開・中央の再起動で，答えられる割合の時間積分を比べる（EnronQA．p0007 I6．質問者のコンテナ）
     freshness-accuracy        freshness-run の新しいメールについての質問の正答率を条件ごとに出す（採点の後．p0007 I5．操作端末）
     data {medrag,feb4rag} STEP   データ中継点での準備（コンテナ内）
@@ -175,6 +176,37 @@ def cmd_freshness_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         )
     )
     print(json.dumps(verdict, indent=1, ensure_ascii=False))
+    return 0
+
+
+def cmd_join_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """参加の測定（p0007 I7）．測定の後は全てのノードを有効にして終える．verdict_original が成立しなくても終了コードは 0．"""
+    from atrium.dynamics import DEFAULT_SEED
+    from atrium.join_run import JoinParams, parse_delays, run_join_command
+    from atrium.live_common import install_sigterm_cancel
+
+    params = JoinParams(
+        n_devices=args.n_devices,
+        delays=parse_delays(args.delays),
+        stream_questions=args.stream_questions,
+        max_tries_per_inbox=args.max_tries_per_inbox,
+        seed=DEFAULT_SEED,
+    )
+
+    async def main() -> dict[str, Any]:
+        current = asyncio.current_task()
+        if current is not None:
+            install_sigterm_cancel(current)
+        return await run_join_command(
+            cfg,
+            Path(args.data_dir),
+            Path(args.placement),
+            Path(args.out_dir),
+            args.ollama_url,
+            params,
+        )
+
+    print(json.dumps(asyncio.run(main()), indent=1, ensure_ascii=False))
     return 0
 
 
@@ -979,6 +1011,37 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-routed", action="store_true", help="設定の routing を通した質問の時間を測らない"
     )
     p.set_defaults(func=cmd_freshness_run)
+
+    p = sub.add_parser(
+        "join-run",
+        help="途中で加わるデバイスが答えに加わるまでの時間を P2P と中央で比べる（p0007 I7）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--placement", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument("--ollama-url", default="http://localhost:11434")
+    p.add_argument(
+        "--n-devices",
+        type=int,
+        default=3,
+        help="最初は外し，途中で加えるデバイスの数（3 台 = 15 受信箱）",
+    )
+    p.add_argument(
+        "--delays", default="0,10,100", help="参加の通知の遅れ L_join（問．カンマ区切り．0 が主）"
+    )
+    p.add_argument(
+        "--stream-questions",
+        type=int,
+        default=None,
+        help="通知の遅れの感度の質問の流れの長さの上限",
+    )
+    p.add_argument(
+        "--max-tries-per-inbox",
+        type=int,
+        default=50,
+        help="1 つの受信箱で答えられるまで試す質問の最大の数",
+    )
+    p.set_defaults(func=cmd_join_run)
 
     p = sub.add_parser(
         "failure-run", help="障害のときに答えられる割合の時間積分を P2P と中央で比べる（p0007 I6）"

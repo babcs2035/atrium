@@ -366,7 +366,11 @@ class Requester:
     _embed_lock: threading.Lock = field(default_factory=threading.Lock)
 
     def __post_init__(self) -> None:
-        """シャード → ノード URL の表を作る．"""
+        """シャード → ノード URL の表などを作る．"""
+        self._rebuild_tables()
+
+    def _rebuild_tables(self) -> None:
+        """配置・データ源から，シャード → ノード URL の表などを作る（途中で加わるデバイスを載せるときも呼ぶ）．"""
         self._url_of_shard = self.placement.url_of_shard()
         # device_probe：データ源 → それを持つノードの URL（EnronQA は 1 データ源 1 シャード．複数のシャードの
         # データ源は 1 台に決まらないので，device_probe では使えない）
@@ -377,6 +381,13 @@ class Requester:
         }
         # churn を指定した実験では，離脱したノードの失敗を問の失敗にせず，返事のあった分で続ける
         self._tolerant = self.cfg.experiment.churn is not None or self.tolerate_node_failures
+
+    def admit(self, placement: Placement, sources: list[SourceProfile], router: Router) -> None:
+        """途中で加わったデバイス（受信箱）をメンバー表に載せる（p0007 I7）．配置・データ源・ルーターを差し替え，対応表を作り直す．"""
+        self.placement = placement
+        self.sources = sources
+        self.router = router
+        self._rebuild_tables()
 
     def _routable_sources(self) -> list[SourceProfile]:
         """メンバー表で見えているデータ源（全てのシャードのノードが見えているもの）．"""

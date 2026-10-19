@@ -18,12 +18,12 @@ from atrium.failure_run import (
     FailureParams,
     central_hit_rate,
     measure_central_restart,
-    node_alive,
     predict_fault_hit_rate,
     redundancy_estimate,
     run_failure,
     run_fault,
 )
+from tests.failure_helpers import alive_hosts
 from tests.live_fixtures import ENCODER, MiniCluster, build_cluster
 
 
@@ -49,7 +49,7 @@ def _params(**changes: float) -> FailureParams:
 
 
 async def _alive_hosts(cluster: MiniCluster) -> list[str]:
-    return [n.host for n in cluster.placement.nodes if await node_alive(cluster.client, n.url)]
+    return await alive_hosts(cluster.client, cluster.placement)
 
 
 async def _fake_control_host(

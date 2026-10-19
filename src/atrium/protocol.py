@@ -212,6 +212,38 @@ class EmbedderLoadResponse(_Model):
     warm_s: float
 
 
+class SummaryRequest(_Model):
+    """p0007 I7：デバイスに，自分のメールだけから公開情報（hybrid_probe の要約）を作らせる．"""
+
+    term_size: int = Field(ge=1)
+    n_centroids: int = Field(ge=1)
+    seed: int
+
+
+class InboxCenters(_Model):
+    """受信箱 1 個の本文の重心（行が重心）．"""
+
+    inbox: str
+    centers: list[list[float]]
+
+
+class SummaryResponse(_Model):
+    """デバイスの公開情報（語の文書頻度の上位 term_size 語・語数の合計・受信箱ごとの重心）と，作るのにかかった時間（秒．デバイスの CPU）．"""
+
+    node_id: str
+    terms: list[str]
+    dfs: list[int]
+    total_terms: int
+    n_docs: int
+    inboxes: list[InboxCenters]
+    tokenize_s: float
+    embed_s: float
+    kmeans_s: float
+    total_s: float
+    embedder: str
+    device: str
+
+
 class Problem(_Model):
     """RFC 9457 の problem details．"""
 

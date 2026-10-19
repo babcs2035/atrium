@@ -299,3 +299,23 @@ bash scripts/tasks/live_run.sh failure_run p0007_e1_smoke --ks 1,3 --modes avail
   `sim_vs_live.json`：止めている間の答えられた割合の予測（平常の割合 × 正解の受信箱が動いている割合）と実測．
 - 失敗時：`ctl/ack` が出ずに `TimeoutError` なら `failure_run.sh` の watcher が動いていない（`results/<run_id>/start.log`）．`node_admin` でなければ管理 API が無く availability が 404．
 
+### 7.3 参加（`join-run`．E2）
+
+```bash
+# 本番（約 25 分．最初のメンバー 27 台の公開情報の作成が準備に数分，感度は 3 通りの質問の流れ）
+bash scripts/tasks/live_run.sh join_run p0007_e2_join --n-devices 3 --delays 0,10,100
+# 小さな確認（1 台．感度は L = 0 だけ）
+bash scripts/tasks/live_run.sh join_run p0007_e2_smoke --n-devices 1 --delays 0 --stream-questions 60
+```
+
+- 加えるデバイスはホストの無作為抽出（種 12．3 台 = 15 受信箱）．測定の始めに `/v1/admin/availability` で離脱させ，参加の時刻に有効にする
+  （**既存の churn の再生は `experiment.churn`・retrieval_only・CHURN_ROUTINGS を要求し，hybrid_probe の要約の配布を持たないので，代替として availability API で後から有効化する**．ノードの起動・索引の読み込みの時間は含まない）．
+- P2P：参加の時刻 t0 から，(a) 有効になる（`up_s`），(b) デバイスが自分のメールだけから公開情報（hybrid の要約．語の統計と本文の重心）を作る（`/v1/admin/summary`．デバイスの CPU．`device_*_s` に内訳），
+  (c) 質問者がプロファイルを取り，全デバイスの公開情報から CORI の重みを作り直してルーターを差し替える（メンバー表に載る．`member_s`），(d) その受信箱の質問に答えられる（`answers[].answer_s`）．
+  公開情報の大きさは `payload_bytes`（JSON）・`published_bytes`（`advert_bytes` と同じ数え方）．デバイスの外へ出たメールは 0 通．
+- 中央：同じ t0 から，加わる受信箱の全メールを持ち主のデバイスから取り出し（`transfer_bytes`・`transfer_s`），質問者が埋め込み（`embed_s`），索引に足し（`add_s`），質問に答えられるまで．
+- 判定（事前登録）：P2P の答えられるまでの時間（受信箱ごと）の中央値が中央より短い，または中央の 1.25 倍以内で転送量が小さい（`verdict.json` の `branch`）．
+- 通知の遅れ L_join（`delays`）：質問の流れ（加わる受信箱の全質問と，同数の他の質問を混ぜたもの）の中で，質問者が加わったデバイスの公開情報を使い始めるのを L 問遅らせたときの，通知の前後の hit と，各受信箱が最初に答えられた位置．
+- `sim_vs_live.json`：参加前の hit（予測 0）と実測，組み立てた要約とオフラインの `build-summary` の要約の probe の候補の一致率（配置が違えば null）．
+- 失敗時：途中で止まっても `atrium join-run` と `join_run.sh` が全ノードを有効にし直す．直らなければ `curl -X POST http://<host>:8100/v1/admin/availability -d '{"up": true}' -H 'content-type: application/json'`．
+

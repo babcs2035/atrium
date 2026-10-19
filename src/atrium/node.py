@@ -8,7 +8,8 @@
 - 参加・離脱の再生（/v1/admin/availability．EQ7b）: experiment.churn を指定した実験でだけ有効になり，離脱中は
   /healthz 以外の要求を 503 で拒否する．
 - 管理 API（p0007 I5．cluster.node_admin の実験でだけ有効）: メールの非表示（/v1/admin/docs/hide）・追加（/v1/admin/docs/add．
-  ノードがその場で埋め込みを作り索引に足す）・取り出し（/v1/admin/docs/export）・埋め込みモデルの読み込み（/v1/admin/embedder/load）．
+  ノードがその場で埋め込みを作り索引に足す）・取り出し（/v1/admin/docs/export）・埋め込みモデルの読み込み（/v1/admin/embedder/load）・
+  公開情報（hybrid_probe の要約）の作成（/v1/admin/summary．p0007 I7．デバイスの CPU で自分のメールだけから作る）．
   参加・離脱の切り替え（/v1/admin/availability）も node_admin で有効になる．
 - 生存確認（/healthz）: プロセスの CPU 時間の累計（Iteration 8）とデバイス全体の CPU 時間の累計（Iteration 9）も返す
   （質問者・負荷試験が専門家の側の CPU 使用率を測る）．
@@ -57,6 +58,7 @@ from atrium.protocol import (
     GenerateResponse,
     HideDocsRequest,
     HideDocsResponse,
+    InboxCenters,
     LlmUsage,
     NewMail,
     ProbeRequest,
@@ -66,6 +68,8 @@ from atrium.protocol import (
     RetrieveRequest,
     RetrieveResponse,
     ShardProfile,
+    SummaryRequest,
+    SummaryResponse,
 )
 from atrium.store import FaissShardStore, MailDoc, RetrievedDoc, ShardStore, load_shard
 
@@ -238,6 +242,42 @@ def register_admin_docs_api(
             shard_id=req.shard_id,
             docs=[NewMail(doc_id=d["id"], title=d["title"], content=d["content"]) for d in docs],
             duration_s=time.perf_counter() - start,
+        )
+
+    @app.post("/v1/admin/summary", dependencies=dependencies)
+    def build_summary(req: SummaryRequest) -> SummaryResponse:
+        """デバイスの公開情報（hybrid_probe の要約）を，デバイスの CPU で自分のメールだけから作る（p0007 I7）．"""
+        from atrium.device_summary import summarize_device
+
+        total_start = time.perf_counter()
+        loaded, _ = embedder_loaded()
+        inboxes = {
+            store.spec.source: [d["content"] for d in store.export(None)]
+            for shard_id in stores
+            for store in [faiss_store(shard_id)]
+        }
+
+        def embed(texts: Sequence[str]) -> F32Array:
+            with encode_lock:
+                return loaded.encode_texts(texts)
+
+        summary = summarize_device(inboxes, embed, req.term_size, req.n_centroids, req.seed)
+        return SummaryResponse(
+            node_id=node_id,
+            terms=summary.terms,
+            dfs=summary.dfs,
+            total_terms=summary.total_terms,
+            n_docs=summary.n_docs,
+            inboxes=[
+                InboxCenters(inbox=inbox, centers=[[float(x) for x in row] for row in centers])
+                for inbox, centers in summary.centers.items()
+            ],
+            tokenize_s=summary.tokenize_s,
+            embed_s=summary.embed_s,
+            kmeans_s=summary.kmeans_s,
+            total_s=time.perf_counter() - total_start,
+            embedder=loaded.name,
+            device=EMBED_DEVICE,
         )
 
     logger.info("node %s: admin docs API enabled", node_id)
