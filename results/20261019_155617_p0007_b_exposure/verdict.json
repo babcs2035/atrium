@@ -1,0 +1,18 @@
+{
+ "verdict_original": {
+  "hypothesis": "H-B: P2P の重複なしの露出が全メールの 50% 未満",
+  "threshold": 0.5,
+  "p2p_conditions": [
+   "p4_1",
+   "p4_3"
+  ],
+  "fractions": {
+   "p4_1": 0.27346418695440006,
+   "p4_3": 0.1786179038117443
+  },
+  "basis": "bounds",
+  "reconstructed_fractions_all_below_threshold": true,
+  "verdict": "supported"
+ },
+ "verdict_revised": null
+}

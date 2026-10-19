@@ -1,0 +1,50 @@
+{
+ "note": "オフラインで再構成した値と，実機の results.jsonl の記録（journal の 1 問あたり外に出た文書）の照合",
+ "conditions": {
+  "c1": {
+   "offline_mean_docs_exposed_per_query": 750.0,
+   "live_recorded_mean_docs_exposed_per_query": 750.0,
+   "journal_docs_per_query": 750.0,
+   "count_match_rate": 1.0,
+   "top_doc_ids_containment": 0.9979591836734694,
+   "top_doc_ids_containment_tie_aware": 1.0,
+   "valid": false
+  },
+  "c3": {
+   "offline_mean_docs_exposed_per_query": 10.0,
+   "live_recorded_mean_docs_exposed_per_query": 10.0,
+   "journal_docs_per_query": 10.0,
+   "count_match_rate": 1.0,
+   "top_doc_ids_containment": 0.9979591836734694,
+   "top_doc_ids_containment_tie_aware": 1.0,
+   "valid": false
+  },
+  "p4_1": {
+   "offline_mean_docs_exposed_per_query": 10.0,
+   "live_recorded_mean_docs_exposed_per_query": 10.0,
+   "journal_docs_per_query": 10.0,
+   "count_match_rate": 1.0,
+   "top_doc_ids_containment": 0.9979591836734694,
+   "top_doc_ids_containment_tie_aware": 1.0,
+   "valid": false
+  },
+  "p4_3": {
+   "offline_mean_docs_exposed_per_query": 6.5476190476190474,
+   "live_recorded_mean_docs_exposed_per_query": 6.5476190476190474,
+   "journal_docs_per_query": null,
+   "count_match_rate": 1.0,
+   "top_doc_ids_containment": null,
+   "top_doc_ids_containment_tie_aware": null,
+   "valid": true
+  },
+  "c2": {
+   "offline_mean_docs_exposed_per_query": 5.0,
+   "live_recorded_mean_docs_exposed_per_query": 5.0,
+   "journal_docs_per_query": 5.0,
+   "count_match_rate": 1.0,
+   "top_doc_ids_containment": 0.9942176870748299,
+   "top_doc_ids_containment_tie_aware": 1.0,
+   "valid": false
+  }
+ }
+}

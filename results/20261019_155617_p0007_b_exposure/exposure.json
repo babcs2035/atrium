@@ -1,0 +1,172 @@
+{
+ "n_total_docs": 73772,
+ "n_test": 2940,
+ "k_per_inbox": 5,
+ "central": {
+  "distinct_docs": 73772,
+  "fraction": 1.0
+ },
+ "conditions": {
+  "c1": {
+   "n_questions": 2940,
+   "n_skipped": 0,
+   "distinct_docs": 64783,
+   "fraction": 0.8781516022339099,
+   "distinct_docs_by_receiver": {
+    "requester": 64783,
+    "delegate_gpu": 0
+   },
+   "mean_docs_exposed_per_query": 750.0,
+   "mean_query_recipients": 30.0,
+   "mean_probe_recipients": 0.0,
+   "mean_shards_queried": 150.0,
+   "mean_delegate_gpus": 0.0,
+   "bounds": {
+    "lower_docs": 11901,
+    "upper_docs": 73772
+   },
+   "validation": {
+    "mean_docs_recorded_per_query": 750.0,
+    "count_match_rate": 1.0,
+    "top_doc_ids_containment": 0.9979591836734694,
+    "top_doc_ids_containment_tie_aware": 1.0,
+    "valid": false
+   },
+   "run": "p0006_c1_all_pernode",
+   "routing": "all",
+   "answer_mode": "snippet_return",
+   "advert_bytes": 0,
+   "owner_attribution": null
+  },
+  "c3": {
+   "n_questions": 2940,
+   "n_skipped": 0,
+   "distinct_docs": 20251,
+   "fraction": 0.2745079433931573,
+   "distinct_docs_by_receiver": {
+    "requester": 20251,
+    "delegate_gpu": 0
+   },
+   "mean_docs_exposed_per_query": 10.0,
+   "mean_query_recipients": 30.0,
+   "mean_probe_recipients": 30.0,
+   "mean_shards_queried": 2.0,
+   "mean_delegate_gpus": 0.0,
+   "bounds": {
+    "lower_docs": 12005,
+    "upper_docs": 28291
+   },
+   "validation": {
+    "mean_docs_recorded_per_query": 10.0,
+    "count_match_rate": 1.0,
+    "top_doc_ids_containment": 0.9979591836734694,
+    "top_doc_ids_containment_tie_aware": 1.0,
+    "valid": false
+   },
+   "run": "20261009_eq5_b1_flood",
+   "routing": "flood_score",
+   "answer_mode": "snippet_return",
+   "advert_bytes": 0,
+   "owner_attribution": null
+  },
+  "p4_1": {
+   "n_questions": 2940,
+   "n_skipped": 0,
+   "distinct_docs": 20174,
+   "fraction": 0.27346418695440006,
+   "distinct_docs_by_receiver": {
+    "requester": 20174,
+    "delegate_gpu": 0
+   },
+   "mean_docs_exposed_per_query": 10.0,
+   "mean_query_recipients": 16.0,
+   "mean_probe_recipients": 16.0,
+   "mean_shards_queried": 2.0,
+   "mean_delegate_gpus": 0.0,
+   "bounds": {
+    "lower_docs": 11961,
+    "upper_docs": 28154
+   },
+   "validation": {
+    "mean_docs_recorded_per_query": 10.0,
+    "count_match_rate": 1.0,
+    "top_doc_ids_containment": 0.9979591836734694,
+    "top_doc_ids_containment_tie_aware": 1.0,
+    "valid": false
+   },
+   "run": "p0006_p4_hybrid_probe_b1",
+   "routing": "hybrid_probe",
+   "answer_mode": "snippet_return",
+   "advert_bytes": 29727744,
+   "owner_attribution": {
+    "top1": 0.7258396161754627,
+    "auc": 0.974758337075465
+   }
+  },
+  "p4_3": {
+   "n_questions": 2940,
+   "n_skipped": 0,
+   "distinct_docs": 13177,
+   "fraction": 0.1786179038117443,
+   "distinct_docs_by_receiver": {
+    "requester": 0,
+    "delegate_gpu": 13177
+   },
+   "mean_docs_exposed_per_query": 6.5476190476190474,
+   "mean_query_recipients": 16.0,
+   "mean_probe_recipients": 16.0,
+   "mean_shards_queried": 2.0,
+   "mean_delegate_gpus": 1.2829931972789115,
+   "bounds": {
+    "lower_docs": 0,
+    "upper_docs": 18348
+   },
+   "validation": {
+    "mean_docs_recorded_per_query": 6.5476190476190474,
+    "count_match_rate": 1.0,
+    "top_doc_ids_containment": null,
+    "top_doc_ids_containment_tie_aware": null,
+    "valid": true
+   },
+   "run": "p0006_p4_hybrid_probe_b4",
+   "routing": "hybrid_probe",
+   "answer_mode": "delegate_gpu",
+   "advert_bytes": 29727744,
+   "owner_attribution": {
+    "top1": 0.7258396161754627,
+    "auc": 0.974758337075465
+   }
+  },
+  "c2": {
+   "n_questions": 2940,
+   "n_skipped": 0,
+   "distinct_docs": 10826,
+   "fraction": 0.14674944423358455,
+   "distinct_docs_by_receiver": {
+    "requester": 10826,
+    "delegate_gpu": 0
+   },
+   "mean_docs_exposed_per_query": 5.0,
+   "mean_query_recipients": 1.0,
+   "mean_probe_recipients": 0.0,
+   "mean_shards_queried": 1.0,
+   "mean_delegate_gpus": 0.0,
+   "bounds": {
+    "lower_docs": 10821,
+    "upper_docs": 13784
+   },
+   "validation": {
+    "mean_docs_recorded_per_query": 5.0,
+    "count_match_rate": 1.0,
+    "top_doc_ids_containment": 0.9942176870748299,
+    "top_doc_ids_containment_tie_aware": 1.0,
+    "valid": false
+   },
+   "run": "20261009_eq5_b1",
+   "routing": "oracle",
+   "answer_mode": "snippet_return",
+   "advert_bytes": 0,
+   "owner_attribution": null
+  }
+ }
+}
