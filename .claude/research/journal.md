@@ -3,6 +3,10 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0007 P0：退行ゲート R3〜R5（2026-10-19）
+
+オフライン（制御点 1 台）で実行し，3 つとも通過した．R3：flood_score hit@1 0.72245・hit@2 0.80408，multi_centroid 0.34864・0.44014（`results/p0007_r3_advert_eval`．term_sketch だけ 0.2915 対 0.2918 でハッシュの種の揺れ）．R4：既存の 5 点の hit と要求数が一致（`results/p0007_r4_frontier`）．R5：hybrid_probe・term_probe の選択が `offline_selection.json` と全問一致（`results/p0007_r5_selection`．要約の再計算は一時ディレクトリで行い，既存の要約は上書きしていない）．R5 は実機では動かしていない．`mise run check` も通過（545 件）．
+
 ## p0007 B：露出（事前登録．2026-10-19．`plans/p0007_p2p_vs_central.md` §6.1・I1）
 
 評価の前に，判定の規則と「外に出た」の定義を固定する．評価は新しい CLI `atrium exposure-eval`（制御点のコンテナ．`results/<ts>_p0007_b_exposure/`）で行い，既存の `results/` は読み取りのみである．
