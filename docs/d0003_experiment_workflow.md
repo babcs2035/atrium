@@ -274,3 +274,28 @@ bash scripts/tasks/live_run.sh freshness_run p0007_c_smoke --intervals 0,5,inf -
   `uv run atrium freshness-accuracy --run-dir results/<run_id>` で条件ごとの正答率（`accuracy.json`）を出す．
 - 失敗時：`pre_arrival_hit_rate` が 0 でない（外した直後にメールが見つかる）なら外し方か質問の誤りで，結果を使わない．`/v1/admin/embedder/load` が 501 なら deploy が `node_admin` でない．
 
+### 7.2 障害（`failure-run`．E1）
+
+```bash
+# 本番（約 40 分．止め方 2 種 × k 4 通り × 約 90 秒 ＋ 中央の再起動）
+bash scripts/tasks/live_run.sh failure_run p0007_e1_failure --ks 1,3,6,10 --modes availability,container
+# 小さな確認（availability だけ．k = 1・3）
+bash scripts/tasks/live_run.sh failure_run p0007_e1_smoke --ks 1,3 --modes availability --down-s 15 --baseline-s 5 --post-s 10
+```
+
+- 止めるノードは `host` の一覧から種 12 で k 台を選ぶ（`choose_names`）．質問は 1 問ずつ流し続け，答えられた割合（正解のメールが上位 5 通に入った割合）を時間の関数にする．
+  時刻 0 は止める操作が終わった時刻．止める前（`--baseline-s`）・止めている間（`--down-s`）・再開と窓の終わりのあと（`--post-s`）を測る．
+- 止め方：`availability` は `/v1/admin/availability`（プロセスは生きていて 503）．`container` は `docker compose stop node` と `start node`
+  （node サービスだけ．**データ・イメージ・Ollama は消さない**）．質問者のコンテナは ssh できないので，`failure_run.sh` が `results/<run_id>/ctl/req/` の頼みを
+  `scripts/remote/failure_control.sh` の決まり（許可のホストの node サービスの stop・start だけ）で ssh で実行する．
+  **止めたノードは必ず再開する**：(1) `atrium failure-run` は途中で失敗・SIGTERM でも再開してから終わる，(2) `failure_run.sh` は終了時に `ctl/stopped.txt` に残ったホストを全て再開する
+  （再開できないホストがあれば終了コード 1 と，手で再開するコマンドを出す）．万一止まったままのときは，ノードで `cd <remote_dir> && docker compose start node`．
+- 検出：生存の確認（`/v1/profile`）を `--poll-interval-s` ごとに繰り返し，止めた直後から最初に失敗するまでの時間（`detection_s`）．実際の質問が最初に失敗したノードに当たるまでの時間も `first_failed_request_s` に残す．
+  `docker compose stop` ではホストが到達できたままなので接続は即座に拒否される．応答の無いデバイスへの要求の打ち切り（`RETRIEVE_TIMEOUT_S` = 120 秒）は測っていない（限界）．
+- 再開：再開の頼みから `/v1/profile` が返事をするまでの時間（`ready_s`．コンテナの起動・索引の読み込みを含む）．
+- 中央：中央の索引を持つ子プロセスを強制終了し，起動し直して最初の質問に答えるまでの時間（`restart_to_answer_s`．インタプリタの起動・import・索引の読み込みを含む．`index_load` が `central_index` と同じ内訳）．
+  冗長化（2 台）は `central.redundancy` に切り替え時間の見込み（検出の測定値＋操作 0 秒の仮定）とデータ複製の費用を残す．2 台目は立てない．
+- 判定（事前登録）：窓 W = max(中央の再起動の時間, 止めておく時間) の中の答えられた割合の時間積分が，測った全ての（止め方，k）で P2P > 中央．`verdict.json` の `rows` に値が並ぶ．
+  `sim_vs_live.json`：止めている間の答えられた割合の予測（平常の割合 × 正解の受信箱が動いている割合）と実測．
+- 失敗時：`ctl/ack` が出ずに `TimeoutError` なら `failure_run.sh` の watcher が動いていない（`results/<run_id>/start.log`）．`node_admin` でなければ管理 API が無く availability が 404．
+

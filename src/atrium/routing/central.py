@@ -108,6 +108,15 @@ class CentralIndex:
         """今の全文書の埋め込み（行は doc_ids と同じ順．追加の予約領域は含まない）．"""
         return self._buffer[: self._n]
 
+    def size_bytes(self) -> int:
+        """索引の大きさ（埋め込みと，文書の ID・題・本文のバイト数）．複製の費用の見積もりに使う．"""
+        text = sum(
+            len(t.encode("utf-8"))
+            for texts in (self.doc_ids, self._titles, self._contents)
+            for t in texts
+        )
+        return int(self.emb.nbytes) + text
+
     @property
     def n_docs(self) -> int:
         """索引の文書の数．"""

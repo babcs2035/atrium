@@ -141,6 +141,7 @@ async def build_cluster(
     inboxes: Sequence[str] = INBOXES,
     n_nodes: int = 2,
     docs_per_inbox: int = DOCS_PER_INBOX,
+    tolerate_node_failures: bool = False,
 ) -> MiniCluster:
     """受信箱を n_nodes 台のノードへ均等に配り，質問（メールごとに 1 問．正解はそのメール）と質問者を作る．"""
     cfg = enron_cfg(cfg, inboxes)
@@ -208,6 +209,7 @@ async def build_cluster(
         embedder=StubEmbedder(vectors),
         client=client,
         ollama_url="http://ollama",
+        tolerate_node_failures=tolerate_node_failures,
     )
     return MiniCluster(
         cfg=cfg,

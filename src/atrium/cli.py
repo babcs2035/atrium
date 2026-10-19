@@ -7,6 +7,7 @@
     node                      専門家ノードを起動する（コンテナ内）
     run                       質問者として実験を行う（コンテナ内）
     freshness-run             新しいメールが答えに使えるようになるまでの時間を実機で測る（EnronQA．p0007 I5．質問者のコンテナ）
+    failure-run               k 台の停止・コンテナの停止と再開・中央の再起動で，答えられる割合の時間積分を比べる（EnronQA．p0007 I6．質問者のコンテナ）
     freshness-accuracy        freshness-run の新しいメールについての質問の正答率を条件ごとに出す（採点の後．p0007 I5．操作端末）
     data {medrag,feb4rag} STEP   データ中継点での準備（コンテナ内）
     embed-plan                MedRAG の埋め込みを複数の GPU で分担する表を作る（コンテナ内）
@@ -174,6 +175,41 @@ def cmd_freshness_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         )
     )
     print(json.dumps(verdict, indent=1, ensure_ascii=False))
+    return 0
+
+
+def cmd_failure_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """障害の測定（p0007 I6）．止めたノードは（途中で失敗・SIGTERM でも）再開する．verdict_original が成立しなくても終了コードは 0．"""
+    from atrium.dynamics import DEFAULT_SEED
+    from atrium.failure_run import FailureParams, install_sigterm_cancel, run_failure_command
+
+    params = FailureParams(
+        ks=tuple(int(k) for k in args.ks.split(",")),
+        modes=tuple(args.modes.split(",")),
+        baseline_s=args.baseline_s,
+        down_s=args.down_s,
+        post_s=args.post_s,
+        bin_s=args.bin_s,
+        poll_interval_s=args.poll_interval_s,
+        central_questions=args.central_questions,
+        seed=DEFAULT_SEED,
+    )
+
+    async def main() -> dict[str, Any]:
+        current = asyncio.current_task()
+        if current is not None:
+            install_sigterm_cancel(current)
+        return await run_failure_command(
+            cfg,
+            Path(args.config),
+            Path(args.data_dir),
+            Path(args.placement),
+            Path(args.out_dir),
+            args.ollama_url,
+            params,
+        )
+
+    print(json.dumps(asyncio.run(main()), indent=1, ensure_ascii=False))
     return 0
 
 
@@ -942,6 +978,35 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-routed", action="store_true", help="設定の routing を通した質問の時間を測らない"
     )
     p.set_defaults(func=cmd_freshness_run)
+
+    p = sub.add_parser(
+        "failure-run", help="障害のときに答えられる割合の時間積分を P2P と中央で比べる（p0007 I6）"
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--placement", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument("--ollama-url", default="http://localhost:11434")
+    p.add_argument(
+        "--ks",
+        default="1,3,6,10",
+        help="止めるノードの数 k（カンマ区切り．ホストの無作為抽出は種 12）",
+    )
+    p.add_argument(
+        "--modes",
+        default="availability,container",
+        help="止め方：availability（/v1/admin/availability）・container（docker compose stop/start．failure_run.sh が要る）",
+    )
+    p.add_argument("--baseline-s", type=float, default=15.0, help="止める前に測る時間（秒）")
+    p.add_argument("--down-s", type=float, default=45.0, help="止めておく時間（秒）")
+    p.add_argument(
+        "--post-s", type=float, default=30.0, help="再開と窓の終わりのあとに測る時間（秒）"
+    )
+    p.add_argument("--bin-s", type=float, default=5.0, help="答えられた割合を数える区間の幅（秒）")
+    p.add_argument("--poll-interval-s", type=float, default=0.2, help="生存の確認の間隔（秒）")
+    p.add_argument(
+        "--central-questions", type=int, default=200, help="中央の答えられた割合を測る質問の数"
+    )
+    p.set_defaults(func=cmd_failure_run)
 
     p = sub.add_parser(
         "freshness-accuracy", help="freshness-run の新しいメールについての質問の正答率（採点の後）"

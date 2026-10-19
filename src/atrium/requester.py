@@ -361,6 +361,8 @@ class Requester:
     gold_docs: dict[str, SourcedDoc] = field(default_factory=dict)
     # routing=central_local（p0007 I4）：質問者が持つ全メールの 1 つの索引．他の方式では None
     central_index: CentralIndex | None = None
+    # p0007 I6：churn を指定しなくても，止まったノードの失敗を問の失敗にせず，返事のあった分で続ける（failure-run）
+    tolerate_node_failures: bool = False
     _embed_lock: threading.Lock = field(default_factory=threading.Lock)
 
     def __post_init__(self) -> None:
@@ -374,7 +376,7 @@ class Requester:
             if len(s.shard_ids) == 1
         }
         # churn を指定した実験では，離脱したノードの失敗を問の失敗にせず，返事のあった分で続ける
-        self._tolerant = self.cfg.experiment.churn is not None
+        self._tolerant = self.cfg.experiment.churn is not None or self.tolerate_node_failures
 
     def _routable_sources(self) -> list[SourceProfile]:
         """メンバー表で見えているデータ源（全てのシャードのノードが見えているもの）．"""

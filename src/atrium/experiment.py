@@ -109,10 +109,12 @@ async def build_requester(
     placement: Placement,
     client: httpx.AsyncClient,
     ollama_url: str,
+    tolerate_node_failures: bool = False,
 ) -> tuple[Requester, list[SourceProfile], float]:
     """シャードを発見して質問者を組み立てる．（質問者，データ源，発見にかかった秒数）を返す．
 
     複数の質問者のプロセス（atrium.requester_procs）では，各プロセスがこれを自分の client で呼ぶ．
+    tolerate_node_failures は，止まったノードの失敗を問の失敗にしない（p0007 I6 の failure-run．churn の指定が無くても）．
     """
     dataset = cfg.experiment.dataset
     paths = dataset_paths(data_dir, dataset)
@@ -151,6 +153,7 @@ async def build_requester(
         embedder=_make_embedder(cfg, data_dir, sources),
         client=client,
         ollama_url=ollama_url,
+        tolerate_node_failures=tolerate_node_failures,
         reranker=CrossEncoderReranker() if cfg.retrieval.merge == "cross_encoder" else None,
         rm_qrels=load_rm_qrels(paths.rm_qrels) if cfg.retrieval.merge == "qrels_oracle" else {},
         gold_docs=(
