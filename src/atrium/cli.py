@@ -1077,9 +1077,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="止め方：availability（/v1/admin/availability）・container（docker compose stop/start．failure_run.sh が要る）",
     )
     p.add_argument("--baseline-s", type=float, default=15.0, help="止める前に測る時間（秒）")
-    p.add_argument("--down-s", type=float, default=45.0, help="止めておく時間（秒）")
     p.add_argument(
-        "--post-s", type=float, default=30.0, help="再開と窓の終わりのあとに測る時間（秒）"
+        "--down-s",
+        type=float,
+        default=45.0,
+        help="復旧の操作（P2P は再開，中央は再起動）を始めるまでの時間（秒）",
+    )
+    p.add_argument("--post-s", type=float, default=30.0, help="復旧のあとに測る時間（秒）")
+    p.add_argument("--stream-parallel", type=int, default=4, help="質問を流し続ける本数")
+    p.add_argument(
+        "--answer-deadline-s",
+        type=float,
+        default=5.0,
+        help="1 問が答えられたとみなされる時間の上限（秒）",
     )
     p.add_argument("--bin-s", type=float, default=5.0, help="答えられた割合を数える区間の幅（秒）")
     p.add_argument("--poll-interval-s", type=float, default=0.2, help="生存の確認の間隔（秒）")
