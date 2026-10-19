@@ -63,7 +63,7 @@ class ShardStore(Protocol):
         query_id: str | None,
         query_text: str | None = None,
     ) -> list[RetrievedDoc]:
-        """上位 k 件の断片をスコアの降順で返す（query_text は fusion=rrf の BM25 だけが使う）．"""
+        """上位 k 件の断片をスコアの降順で返す（query_text は fusion=rrf の BM25 だけが使う．無ければ密ベクトルのみ）．"""
         ...
 
 
@@ -175,7 +175,8 @@ class FaissShardStore:
         if len(embedding) != self.spec.dim:
             raise ValueError(f"embedding dim {len(embedding)} != {self.spec.dim}")
         query = np.asarray(embedding, dtype=np.float32).reshape(1, -1)
-        if self._bm25 is not None:
+        # query_text が無い検索（ルーティングの probe）は，fusion=rrf でも密ベクトルのみ（ルーティングは変えない）
+        if self._bm25 is not None and query_text is not None:
             return self._search_rrf(k, query, query_text)
         # FAISS の検索自体はスレッド安全だが，OpenMP のスレッドを奪い合うと遅くなるので直列にする
         with self._lock:
@@ -192,15 +193,15 @@ class FaissShardStore:
             )
         return docs
 
-    def _search_rrf(self, k: int, query: F32Array, query_text: str | None) -> list[RetrievedDoc]:
+    def _search_rrf(self, k: int, query: F32Array, query_text: str) -> list[RetrievedDoc]:
         """全断片の内積と BM25 の得点から RRF で上位 k 件を選ぶ．score は内積（受信箱をまたぐ統合の比べ方を変えない）．
 
         文脈の並びは従来どおり内積の降順にする（RRF が変えるのは，どの断片が上位 k 件に入るかだけ）．
         """
         from atrium.routing.advert import tokenize
 
-        if query_text is None or self._bm25 is None:
-            raise ValueError("fusion=rrf requires the query text")
+        if self._bm25 is None:
+            raise ValueError("fusion=rrf requires the BM25 index")
         n = self._index.ntotal
         with self._lock:
             scores, ids = self._index.search(query, n)

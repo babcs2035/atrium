@@ -221,6 +221,9 @@ def create_app(
     @app.post("/v1/retrieve", dependencies=up_only)
     def retrieve(req: RetrieveRequest) -> RetrieveResponse:
         start = time.perf_counter()
+        if cfg.retrieval.fusion == "rrf" and req.query_text is None:
+            # 質問者が query_text を付け忘れると，黙って密ベクトルのみの検索になるので拒否する
+            raise NodeError(400, "Invalid retrieval request", "fusion=rrf requires query_text")
         docs = search(store_of(req.shard_id), req.k, req.embedding, req.query_id, req.query_text)
         return RetrieveResponse(
             shard_id=req.shard_id,
