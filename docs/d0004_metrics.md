@@ -372,6 +372,18 @@ Iteration 18 と同じ採点・時刻表・質問の順番・メンバー表（`
 `c1_equivalence` は，C1（`routing: all`・`snippet_return`）の `top_doc_ids` と 1 索引の上位 K 通の一致で，`set_agreement`（集合として）・`ordered_agreement`（順序も）・`tie_aware_agreement`（同点の重複メールの入れ替えを許す）・欠け・失敗の数と，閾値 0.999 での判定を持つ．
 `runs` は実行ごとの Recall@K と，1 問あたりの質問を受け取ったデバイスの数・外へ出た文書の数・問い合わせたシャードの数．`central_one_time_docs` は中央に集める場合に一度きり外へ出る文書の数．
 
+### 露出（`atrium exposure-eval`．p0007 B）
+
+制御点のコンテナで流す（`scripts/remote/exposure_eval.sh <out_name> <p2p,...> <name>=<run>[:<1 問あたりの値>] ...`）．実機のノードは使わない．
+「外に出た文書」は，持ち主のデバイスが受信箱のメール本文をそのデバイス以外へ渡した文書である．B1 は選ばれた各受信箱が返した断片（統合で落ちたものを含む）が質問者へ，B4 は GPU の無いノードが委託先の GPU へ渡した文脈が出る（GPU のあるノードが自分で答えれば 0）．
+`results.jsonl` の `docs_exposed_by_source` は数だけで ID を持たない（B1 の `top_doc_ids` は統合後の 5 通）ので，受信箱ごとの密ベクトルの内積の上位 5 通を埋め込みから再計算して ID を復元する．
+出力は次の 4 つ．
+
+- `exposure.json`：条件ごとに，重複なしの文書の数・全メールに対する割合（`distinct_docs`・`fraction`），受け手別の数（`distinct_docs_by_receiver`），1 問あたりの平均（外に出た文書・質問を受け取ったデバイス・probe の受け手・問い合わせた受信箱・委託先 GPU），公開情報の大きさ（`advert_bytes`）と持ち主の特定率（`owner_attribution`），下限・上限（`bounds`），再構成の妥当性（`validation`）．中央に集める場合は `central`（最初に 100%）．
+- `verdict.json`：H-B（P2P の全ての条件で割合が 0.5 未満）の `verdict_original`．再構成の妥当性（件数の一致と，記録の `top_doc_ids` の包含 ≥ 0.999）が崩れた条件があれば，下限・上限で判定する．事後に基準を見直した場合だけ `verdict_revised` を出す（見直さなければ null）．
+- `sim_vs_live.json`：再構成した 1 問あたりの文書の数と，実機の記録・journal の値の照合．
+- `analysis_report.md`：上の表．
+
 ### 汎用のルーティング方式のフロンティア（`atrium frontier-eval`・`atrium frontier-verdict`．p0006 P2・P3）
 
 `frontier-eval` は制御点のコンテナで流す（`scripts/remote/frontier_eval.sh <out_name> <placement_run|-> [methods] [--dataset ...]`）．

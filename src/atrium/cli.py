@@ -26,6 +26,7 @@
     churn-budget-eval         device_probe の D を変え，補う変種と補わない構成を同じ問い合わせの数で比べる（EnronQA．Iteration 19．制御点のコンテナ）
     loso DATASET --split S    E2 の leave-one-source-out の評価（p0003．操作端末）
     central-eval              中央集約ベースラインの検索の精度と C1 の実機との一致（EnronQA．p0006 P1．制御点のコンテナ）
+    exposure-eval             条件ごとの，デバイスの外に出た文書の重複なしの数と H-B の判定（EnronQA．p0007 B．制御点のコンテナ）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
     owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
     header-eval               持ち主推定の入力からヘッダーを除いた測り直しと質問の人名の集計（EnronQA．Iteration 2．制御点のコンテナ）
@@ -548,6 +549,28 @@ def cmd_central_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_exposure_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """条件ごとの外に出た文書の重複なしの数を数え，H-B を判定して 4 つの出力を書く（p0007 B）．"""
+    from atrium import exposure_eval
+
+    runs = {name: Path(path) for name, path in (spec.split("=", 1) for spec in args.run)}
+    expected = {
+        name: float(value)
+        for name, value in (spec.split("=", 1) for spec in args.expected_per_query)
+    }
+    result = exposure_eval.evaluate(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        runs,
+        args.p2p,
+        expected,
+        Path(args.attribution_metrics),
+    )
+    exposure_eval.write_outputs(Path(args.out_dir), result)
+    print(exposure_eval.render_report(result))
+    return 0
+
+
 def cmd_newcomer_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """150 人での新参者の評価（p0005 T3）を行い，metrics.json と analysis_report.md を書く．"""
     from atrium import newcomer_eval
@@ -1003,6 +1026,40 @@ def build_parser() -> argparse.ArgumentParser:
         help="Recall と露出を並べる実行（繰り返せる）",
     )
     p.set_defaults(func=cmd_central_eval)
+
+    p = sub.add_parser(
+        "exposure-eval",
+        help="条件ごとの外に出た文書の重複なしの数と H-B の判定（EnronQA．p0007 B）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--run",
+        action="append",
+        required=True,
+        metavar="NAME=DIR",
+        help="数える実行（繰り返せる）",
+    )
+    p.add_argument(
+        "--p2p",
+        action="append",
+        required=True,
+        metavar="NAME",
+        help="H-B の判定に使う P2P の条件（--run の NAME．繰り返せる）",
+    )
+    p.add_argument(
+        "--expected-per-query",
+        action="append",
+        default=[],
+        metavar="NAME=N",
+        help="journal の 1 問あたり外に出た文書（実機の記録との照合用．繰り返せる）",
+    )
+    p.add_argument(
+        "--attribution-metrics",
+        required=True,
+        help="持ち主の特定率を読む p0006 の metrics.json（results/p0006_p2_iter2/metrics.json）",
+    )
+    p.set_defaults(func=cmd_exposure_eval)
 
     p = sub.add_parser("churn-live-report", help="EQ7b の実機の実行を集めて EQ7a と比べる")
     p.add_argument(

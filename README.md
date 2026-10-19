@@ -56,7 +56,7 @@ mise run check         # テスト・lint・型検査
 - データ準備の各段は冪等であり，`mise run setup` を再び実行しても，終わっている段は飛ばされる．
 - 2 つの実行の正答率は `uv run atrium compare results/<A> results/<B>`（McNemar の正確検定）で比べる．
 - EnronQA の自由記述の回答は，実験の後に判定モデルで採点する（[docs/d0003_experiment_workflow.md](docs/d0003_experiment_workflow.md) §5）．
-- 実機を使わない評価（`atrium advert-eval`・`owner-eval`・`newcomer-eval`・`central-eval`・`churn-eval`・`churn-cascade-eval`・`churn-join-eval`・`churn-leave-eval`・`churn-refill-eval`・`churn-budget-eval`・`loso`）の流し方は [docs/d0003_experiment_workflow.md](docs/d0003_experiment_workflow.md) §6，指標は [docs/d0004_metrics.md](docs/d0004_metrics.md) にある．
+- 実機を使わない評価（`atrium advert-eval`・`owner-eval`・`newcomer-eval`・`central-eval`・`exposure-eval`・`churn-eval`・`churn-cascade-eval`・`churn-join-eval`・`churn-leave-eval`・`churn-refill-eval`・`churn-budget-eval`・`loso`）の流し方は [docs/d0003_experiment_workflow.md](docs/d0003_experiment_workflow.md) §6，指標は [docs/d0004_metrics.md](docs/d0004_metrics.md) にある．
 
 手順の詳細・所要時間・失敗時の確認先は [docs/d0003_experiment_workflow.md](docs/d0003_experiment_workflow.md) にある．
 
