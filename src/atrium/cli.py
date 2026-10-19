@@ -753,10 +753,15 @@ def cmd_metrics(args: argparse.Namespace, cfg: AtriumConfig) -> int:
 
 def cmd_compare(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """2 つの実行の正答を McNemar 検定で比べる．--out-dir を付けると，A（P2P）− B（中央）の精度の判定を verdict.json にも書く（p0007 I9）．"""
-    from atrium.analysis import compare_runs, read_results
+    from atrium.analysis import compare_runs, merge_judgements, read_results
 
-    rows_a = read_results(Path(args.run_a) / "results.jsonl")
-    rows_b = read_results(Path(args.run_b) / "results.jsonl")
+    # EnronQA の正誤は judgements.jsonl（atrium judge の採点）にあり，results.jsonl の行には無い（analyze と同じく付ける）
+    rows_ab = []
+    for run in (args.run_a, args.run_b):
+        rows = read_results(Path(run) / "results.jsonl")
+        judgements = Path(run) / "judgements.jsonl"
+        rows_ab.append(merge_judgements(rows, judgements) if judgements.exists() else rows)
+    rows_a, rows_b = rows_ab
     print(json.dumps(compare_runs(rows_a, rows_b), indent=1))
     if args.out_dir is None:
         return 0

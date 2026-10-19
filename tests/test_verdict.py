@@ -158,3 +158,27 @@ def test_compare_command_without_out_dir_only_prints_the_mcnemar_result(
     assert main(["compare", str(tmp_path / "a"), str(tmp_path / "b")]) == 0
     printed = json.loads(capsys.readouterr().out)
     assert printed["mcnemar_p"] == 1.0 and not (tmp_path / "verdict.json").exists()
+
+
+def test_compare_command_reads_correctness_from_judgements_jsonl(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """EnronQA の results.jsonl は正誤を持たず，採点は judgements.jsonl にある（回帰：実機の実行で no paired questions になった）．"""
+    a, b = pair_with_gap(60, 20)
+    for name, rows in (("a", a), ("b", b)):
+        (tmp_path / name).mkdir()
+        (tmp_path / name / "results.jsonl").write_text(
+            "".join(json.dumps({"qid": r["qid"], "error": None}) + "\n" for r in rows),
+            encoding="utf-8",
+        )
+        (tmp_path / name / "judgements.jsonl").write_text(
+            "".join(
+                json.dumps({"qid": r["qid"], "correct": r["correct"], "answer_overlap_lcs": 0.0})
+                + "\n"
+                for r in rows
+            ),
+            encoding="utf-8",
+        )
+    assert main(["compare", str(tmp_path / "a"), str(tmp_path / "b")]) == 0
+    printed = json.loads(capsys.readouterr().out)
+    assert (printed["only_a_correct"], printed["only_b_correct"]) == (60, 20)
