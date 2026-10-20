@@ -69,23 +69,41 @@ def read_image_git_head() -> str:
     return IMAGE_GIT_HEAD_FILE.read_text(encoding="utf-8").strip()
 
 
-def build_http_client(http_pool: HttpPool, placement: Placement) -> httpx.AsyncClient:
-    """質問者の HTTP クライアントを作る．池の持ち方だけを変え，要求の内容と宛先は変えない．"""
+def build_http_client(
+    http_pool: HttpPool, placement: Placement, keepalive_expiry_s: float | None = 5.0
+) -> httpx.AsyncClient:
+    """質問者の HTTP クライアントを作る．池の持ち方だけを変え，要求の内容と宛先は変えない．
+
+    keepalive_expiry_s は待機中の接続を捨てるまでの秒数（既定 5.0 は httpx の既定と同じ）．ノード（uvicorn）が待機中の接続を
+    閉じる 5 秒と同じなので，同じ時刻に作った接続の束が閉じた直後に再利用されて ReadError になる（p0007 C の freshness-run）．
+    その測定では 5 秒より短くして，閉じられる前に質問者側で捨てる．
+    """
     if http_pool == "shared":
-        return httpx.AsyncClient(limits=httpx.Limits(max_connections=MAX_CONNECTIONS))
+        return httpx.AsyncClient(
+            limits=httpx.Limits(
+                max_connections=MAX_CONNECTIONS, keepalive_expiry=keepalive_expiry_s
+            )
+        )
     if http_pool == "shared_unlimited":
-        return httpx.AsyncClient(limits=httpx.Limits(max_connections=None))
+        return httpx.AsyncClient(
+            limits=httpx.Limits(max_connections=None, keepalive_expiry=keepalive_expiry_s)
+        )
     # per_node：origin（scheme・host・port）ごとの mounts で別の AsyncHTTPTransport（別の池）へ振り分ける．
     # mounts に無い宛先（質問者の Ollama など）は既定の池（shared と同じ上限）に行く
     mounts: dict[str, httpx.AsyncBaseTransport] = {
         origin: httpx.AsyncHTTPTransport(
-            limits=httpx.Limits(max_connections=MAX_CONNECTIONS_PER_NODE)
+            limits=httpx.Limits(
+                max_connections=MAX_CONNECTIONS_PER_NODE, keepalive_expiry=keepalive_expiry_s
+            )
         )
         for origin in {
             str(httpx.URL(node.url).copy_with(path="/")).rstrip("/") for node in placement.nodes
         }
     }
-    return httpx.AsyncClient(limits=httpx.Limits(max_connections=MAX_CONNECTIONS), mounts=mounts)
+    return httpx.AsyncClient(
+        limits=httpx.Limits(max_connections=MAX_CONNECTIONS, keepalive_expiry=keepalive_expiry_s),
+        mounts=mounts,
+    )
 
 
 def _make_embedder(

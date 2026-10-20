@@ -434,6 +434,9 @@ p0007 A4 から，bm25_probe のために `bm25_stats.npz`（各デバイスが�
 | `sim_vs_live.json` | 中央：予定の待ち時間（T の倍数まで待つだけの予測）と実測の中央値・比．P2P：デバイスが報告した埋め込み＋追加の時間と，実測の答えられるまでの時間 |
 | `<条件>/results.jsonl` | 届いてから 1 秒後の質問の結果（`p2p`・`central_T<秒>`）．`atrium judge` で採点し，`atrium freshness-accuracy --run-dir` が条件ごとの `accuracy.json` を作る |
 
+集計（`results/p0007_c_live/c_report.py`．`results/p0007_c_verdict/`）：`c_summary.json`・`c_tables.md`（P2P direct・routed と中央 T ごとの p50・p95，デバイスの種類ごとの埋め込み，転送の大きさ，T ごとの正答率と P2P との McNemar の検定）・`verdict.json`（`verdict_original` は主の実行，`verdict_revised` は繰り返しの上限を 2 秒にした測り直し）・`sim_vs_live.json`．
+`p2p.direct` などの `p50`・`p95` は打ち切り（無限大）を含む全メールの値，判定は P2P で答えられ中央のどれかの有限の T で答えられたメールだけの値である．
+
 ### 障害（`atrium failure-run`．p0007 I6）
 
 k 台の停止（availability API・コンテナの停止と再開）と，中央の索引を持つプロセスの再起動で，答えられた割合の時間積分を比べる（§7.2）．

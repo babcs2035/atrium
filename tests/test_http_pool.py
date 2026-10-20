@@ -8,7 +8,12 @@ import httpx
 import pytest
 
 from atrium.config import AtriumConfig
-from atrium.experiment import MAX_CONNECTIONS, MAX_CONNECTIONS_PER_NODE, build_http_client
+from atrium.experiment import (
+    MAX_CONNECTIONS,
+    MAX_CONNECTIONS_PER_NODE,
+    HttpPool,
+    build_http_client,
+)
 from atrium.manifest import NodeAssignment, Placement
 
 NODE_URLS = ["http://192.168.13.100:8000", "http://192.168.13.101:8000"]
@@ -68,3 +73,21 @@ async def test_per_node_sends_unmounted_destinations_to_the_default_pool() -> No
         default = client._transport_for_url(httpx.URL(OLLAMA_URL))  # noqa: SLF001
         assert default is client._transport  # noqa: SLF001
         assert _pool_limit(default) == MAX_CONNECTIONS
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("http_pool", ["shared", "shared_unlimited", "per_node"])
+async def test_keepalive_expiry_defaults_to_httpx_default_and_can_be_shortened(
+    http_pool: HttpPool,
+) -> None:
+    """既定は httpx の既定（5 秒）のまま．freshness-run は，ノードが閉じる 5 秒より短くして閉じた直後の再利用を避ける（p0007 C）．"""
+
+    def expiry(client: httpx.AsyncClient) -> float | None:
+        node_transport = client._transport_for_url(httpx.URL(f"{NODE_URLS[0]}/v1/probe"))  # noqa: SLF001
+        assert isinstance(node_transport, httpx.AsyncHTTPTransport)
+        return node_transport._pool._keepalive_expiry  # noqa: SLF001
+
+    async with build_http_client(http_pool, _placement()) as default_client:
+        assert expiry(default_client) == 5.0
+    async with build_http_client(http_pool, _placement(), keepalive_expiry_s=2.0) as short_client:
+        assert expiry(short_client) == 2.0

@@ -260,7 +260,17 @@ bash scripts/tasks/live_run.sh <freshness_run|failure_run|join_run> <run_id> [�
 bash scripts/tasks/live_run.sh freshness_run p0007_c_freshness --intervals 0,60,600,inf --arrival-gap-s 0.5
 # 小さな確認（20 通だけ．判定の符号検定は 5 通以上が要る）
 bash scripts/tasks/live_run.sh freshness_run p0007_c_smoke --intervals 0,5,inf --n-arrivals 20
+# 測定の道具の負荷を抑えた本番（p0007 C の測り直し．下の注意）．routed を含めて，繰り返しを 2 秒で打ち切る
+bash scripts/tasks/live_run.sh freshness_run p0007_c_freshness_quiet --intervals 0,60,600,inf --arrival-gap-s 0.5 --poll-timeout-s 2
 ```
+
+- **`--poll-timeout-s`（既定 30 秒）に注意**：答えられないメール（持ち主の上位 5 通に入らない 11%，routed では 30%）は，上限まで間隔 0 で検索を繰り返す．
+  既定のままだと 289 通の本番では，この繰り返しが 1 プロセスのノードを占有して，答えられるメールの時間も届いた順に伸びる（先頭 40 通の p50 0.6 秒が最後の 40 通で 7 秒．p0007 C の主の実行）．
+  答えられるメールは全て 1 回目の検索で答えられるので，2 秒にすれば時間は変わらず負荷が下がる（p50 0.39 秒）．
+- 質問者の HTTP クライアントは，待機中の接続を 2 秒で捨てる（`CLIENT_KEEPALIVE_EXPIRY_S`）．ノード（uvicorn）が閉じる 5 秒と同じ httpx の既定では，同じ時刻に作った接続の束が閉じた直後に再利用されて `ReadError` になり，測定が止まった．
+- 時間と正答率は別の実行で測る（`answer_mode: retrieval_only` と `snippet_return`）．`snippet_return` の実行では，質問者が生成を順に待つので中央の転送の壁時計が遅れる．
+  イベントは予定の時刻の順に処理するので，どの質問がどの時点の索引を見るかは変わらない．この実行は `--no-routed --poll-timeout-s 2` で流し，**時間は使わず正答率だけを使う**（routed の繰り返しが生成を呼ぶため）．
+- 3 回の実行の集計は `uv run python results/p0007_c_live/c_report.py`（`results/p0007_c_verdict/`）．
 
 - test の正解メールの 10%（種 12）を実験の開始時に持ち主の索引から外し，途中で 1 通ずつ届ける．**届けなかったメールは P2P・中央とも外したまま**にする．
 - P2P：持ち主のデバイスが CPU で埋め込み（`embed_s`），索引に足し（`add_s`），足した直後から持ち主のデバイスへ質問を繰り返す．

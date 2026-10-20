@@ -1,0 +1,32 @@
+{
+ "central_T0": {
+  "n": 289,
+  "n_failed": 0,
+  "n_correct": 192,
+  "accuracy": 0.6643598615916955
+ },
+ "central_T60": {
+  "n": 289,
+  "n_failed": 0,
+  "n_correct": 57,
+  "accuracy": 0.1972318339100346
+ },
+ "central_T600": {
+  "n": 289,
+  "n_failed": 0,
+  "n_correct": 54,
+  "accuracy": 0.18685121107266436
+ },
+ "central_Tinf": {
+  "n": 289,
+  "n_failed": 0,
+  "n_correct": 54,
+  "accuracy": 0.18685121107266436
+ },
+ "p2p": {
+  "n": 289,
+  "n_failed": 0,
+  "n_correct": 189,
+  "accuracy": 0.6539792387543253
+ }
+}

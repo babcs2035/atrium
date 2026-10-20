@@ -62,7 +62,7 @@ from atrium.protocol import (
     RetrieveRequest,
     RetrieveResponse,
 )
-from atrium.requester import RETRIEVE_TIMEOUT_S, Requester
+from atrium.requester import RETRIEVE_TIMEOUT_S, Requester, post_with_retry
 from atrium.routing.central import CentralIndex
 from atrium.verdict import write_verdict
 
@@ -74,6 +74,8 @@ SIM_VS_LIVE_FILE = "sim_vs_live.json"
 RESULTS = "results.jsonl"
 # 既定の中央の転送の間隔 T（秒）．plans/p0007 §6.4
 DEFAULT_INTERVALS = (0.0, 60.0, 600.0, math.inf)
+# 質問者の待機中の接続を捨てるまでの秒数．ノードが閉じる 5 秒より短くして，閉じた直後の再利用による ReadError を避ける
+CLIENT_KEEPALIVE_EXPIRY_S = 2.0
 # 同時に流す検索の数の上限（実験の開始前の確認で使う）
 PRECHECK_CONCURRENCY = 8
 
@@ -164,10 +166,12 @@ async def owner_retrieval_hit(ctx: FreshnessContext, arrival: Arrival) -> bool:
         query_id=question.source_qid,
         query_text=question.question if ctx.cfg.retrieval.fusion == "rrf" else None,
     )
-    response = await ctx.client.post(
+    # 待機中の接続をノードが閉じた直後の再利用で起きる ReadError（本番の 1 回目で 1 件発生し，測定全体が止まった）は送り直す
+    response = await post_with_retry(
+        ctx.client,
         f"{ctx.url_of_inbox[arrival.inbox]}/v1/retrieve",
-        json=body.model_dump(),
-        timeout=RETRIEVE_TIMEOUT_S,
+        body.model_dump(),
+        RETRIEVE_TIMEOUT_S,
     )
     response.raise_for_status()
     docs = RetrieveResponse.model_validate_json(response.content).docs
@@ -351,10 +355,11 @@ async def flush_to_central(
         by_inbox.setdefault(a.inbox, []).append(a.doc_id)
 
     async def export(inbox: str, doc_ids: list[str]) -> tuple[ExportDocsResponse, int]:
-        response = await ctx.client.post(
+        response = await post_with_retry(
+            ctx.client,
             f"{ctx.url_of_inbox[inbox]}/v1/admin/docs/export",
-            json=ExportDocsRequest(shard_id=inbox, doc_ids=doc_ids).model_dump(),
-            timeout=RETRIEVE_TIMEOUT_S,
+            ExportDocsRequest(shard_id=inbox, doc_ids=doc_ids).model_dump(),
+            RETRIEVE_TIMEOUT_S,
         )
         response.raise_for_status()
         return ExportDocsResponse.model_validate_json(response.content), len(response.content)
@@ -619,7 +624,9 @@ async def run_freshness_command(
     questions, gold = load_test_questions(paths)
     held, arrivals = plan_arrivals(questions, gold, params)
     out_dir.mkdir(parents=True, exist_ok=True)
-    async with build_http_client(cfg.experiment.http_pool, placement) as client:
+    async with build_http_client(
+        cfg.experiment.http_pool, placement, keepalive_expiry_s=CLIENT_KEEPALIVE_EXPIRY_S
+    ) as client:
         requester, sources, _ = await build_requester(cfg, data_dir, placement, client, ollama_url)
         e = cfg.data.require_enronqa()
         inboxes = sorted({a.inbox for a in arrivals})

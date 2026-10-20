@@ -130,3 +130,6 @@
 | `p0007_d_smoke_semi_p8_r0`，`p0007_d_smoke2_semi_p30_r0`，`p0007_d_smoke2_semi_p4_r0` | 準集権の動作確認（150 問．本番の数値ではない）．`p0007_d_smoke2_semi_p30_r0` の開始前の標本は，アイドル電力の基準（DETR が始まる前） | 失敗 0 | 同上 |
 | `p0007_d_live` | D の連続実行のスクリプト（`d_chain.sh`・`make_specs.py`・`make_specs_clean.py`・`gpu_apps_snapshot.sh`），予定（`specs*.txt`），集計（`d_report.py`），連続実行の記録（`chain*.log`） | 63 + 9 + 3 実行 | 同上 |
 | `20261020_p0007_d_r3_advert_eval`，`20261020_p0007_d_r4_frontier`，`20261020_p0007_d_r5_selection` | D の退行ゲート R3〜R5（オフライン） | 全て通過 | 同上 |
+| `p0007_c_freshness`，`p0007_c_freshness_quiet`，`p0007_c_freshness_acc` | C の実機（`freshness-run`．後から届くメール 289 通・T ∈ {0, 60, 600, ∞}）：主の実行（事前登録の規則．`retrieval_only`・hybrid_probe・繰り返しの上限 30 秒），事後の測り直し（繰り返しの上限 2 秒），新しいメールについての正答率の実行（`snippet_return`・採点済み・`sanitize_results.py` 済み．時間は使わない） | 主：P2P direct p50 3.18 秒（`verdict_original` 不成立）．測り直し：p50 0.394 秒・p95 1.43 秒（`verdict_revised` 成立）．中央 T = 0 は p50 0.040 秒，T = 60・600 は 39・534 秒．正答率 P2P 0.654・T = 0 0.664・T ≥ 60 0.19〜0.20 | p0007 C：新しいメールへの追従の結果と判定 |
+| `p0007_c_verdict` | C の集計：`verdict.json`（`verdict_original`・`verdict_revised`），`c_summary.json`・`c_tables.md`，`sim_vs_live.json` | 同上 | 同上 |
+| `p0007_c_live` | C の集計のスクリプト（`c_report.py`） | - | 同上 |

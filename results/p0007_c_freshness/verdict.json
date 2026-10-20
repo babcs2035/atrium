@@ -1,0 +1,130 @@
+{
+ "verdict_original": {
+  "hypothesis": "P2P の答えられるまでの時間の p50 < 1 秒，かつ中央の T >= 60 秒より有意に短い（対にした片側の符号検定）",
+  "p2p": {
+   "n": 213,
+   "n_censored": 0,
+   "p50": 3.1811057729646564,
+   "p95": 8.647473102901131,
+   "max": 17.307557470165193
+  },
+  "p50_limit_s": 1.0,
+  "p50_below_limit": false,
+  "alpha": 0.05,
+  "comparisons": {
+   "60": {
+    "n_less": 210,
+    "n_greater": 3,
+    "n_tied": 0,
+    "p": 1.2236201297903582e-58,
+    "central": {
+     "n": 213,
+     "n_censored": 0,
+     "p50": 38.83224643114954,
+     "p95": 59.52767792530358,
+     "max": 61.97493796609342
+    },
+    "significantly_shorter": true
+   },
+   "600": {
+    "n_less": 212,
+    "n_greater": 1,
+    "n_tied": 0,
+    "p": 1.6256411980740775e-62,
+    "central": {
+     "n": 213,
+     "n_censored": 0,
+     "p50": 533.6174145746045,
+     "p95": 599.1117904018611,
+     "max": 605.0173611450009
+    },
+    "significantly_shorter": true
+   },
+   "inf": {
+    "n_less": 213,
+    "n_greater": 0,
+    "n_tied": 0,
+    "p": 7.596454196607839e-65,
+    "central": {
+     "n": 213,
+     "n_censored": 213,
+     "p50": null,
+     "p95": null,
+     "max": null
+    },
+    "significantly_shorter": true
+   }
+  },
+  "holds": false,
+  "eligibility": {
+   "n_arrivals": 289,
+   "n_compared": 213,
+   "rule": "P2P（direct）で答えられ，かつ中央の有限の T のどれかで答えられたメールだけを比べる"
+  }
+ },
+ "verdict_revised": {
+  "note": "事後の見直し（測定の道具の負荷を除いた測り直し．results/p0007_c_freshness_quiet）",
+  "reason": "主の実行（original）の P2P の答えられるまでの時間は，届いたメールの順に単調に伸びた（先頭 40 通の p50 は 0.6 秒，最後の 40 通は 7 秒．答えられるのは全て 1 回目の検索）．原因は，答えられないメールを 30 秒間，間隔 0 で繰り返し検索する測定の道具（direct 33 通・routed 85 通）が，1 プロセスのノードを占有したことで，デバイスの性能ではない．繰り返しの上限を 2 秒にして測り直した（`--poll-timeout-s 2`）．判定の規則・メールの集合・中央の条件は同じ．目標に届かなかったことではなく，測定の道具が測る量に与えた負荷を根拠とする事後の見直し",
+  "hypothesis": "P2P の答えられるまでの時間の p50 < 1 秒，かつ中央の T >= 60 秒より有意に短い（対にした片側の符号検定）",
+  "p2p": {
+   "n": 213,
+   "n_censored": 0,
+   "p50": 0.3940878673456609,
+   "p95": 1.428008884191513,
+   "max": 1.7465708209201694
+  },
+  "p50_limit_s": 1.0,
+  "p50_below_limit": true,
+  "alpha": 0.05,
+  "comparisons": {
+   "60": {
+    "n_less": 212,
+    "n_greater": 1,
+    "n_tied": 0,
+    "p": 1.6256411980740775e-62,
+    "central": {
+     "n": 213,
+     "n_censored": 0,
+     "p50": 39.292564041912556,
+     "p95": 59.97206696495414,
+     "max": 61.967151765245944
+    },
+    "significantly_shorter": true
+   },
+   "600": {
+    "n_less": 212,
+    "n_greater": 1,
+    "n_tied": 0,
+    "p": 1.6256411980740775e-62,
+    "central": {
+     "n": 213,
+     "n_censored": 0,
+     "p50": 533.5970893162303,
+     "p95": 599.0907247252762,
+     "max": 605.0003790622577
+    },
+    "significantly_shorter": true
+   },
+   "inf": {
+    "n_less": 213,
+    "n_greater": 0,
+    "n_tied": 0,
+    "p": 7.596454196607839e-65,
+    "central": {
+     "n": 213,
+     "n_censored": 213,
+     "p50": null,
+     "p95": null,
+     "max": null
+    },
+    "significantly_shorter": true
+   }
+  },
+  "holds": true,
+  "eligibility": {
+   "n_arrivals": 289,
+   "n_compared": 213,
+   "rule": "P2P（direct）で答えられ，かつ中央の有限の T のどれかで答えられたメールだけを比べる"
+  }
+ }
+}
