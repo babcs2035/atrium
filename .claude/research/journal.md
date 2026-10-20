@@ -3,6 +3,43 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0007 A4（事前登録）：持ち主の特定に BM25 を使う Router `bm25_probe` の実機での評価（2026-10-20．`plans/p0007_p2p_vs_central.md` §6.2・A3 の続き）
+
+実機を動かす前に，構成・判定の規則・併記する量・照合の規則を固定する．A3（オフライン．`results/20261020_p0007_a3_offline`）で選んだ設定をそのまま実機に載せ，test を見て設定を選ばない（D・m・重みは A3 の事前登録の値のまま．実機の値を見て変えない）．
+
+**構成**（共通：EnronQA・llama3.1:8b・温度 0・`parallel: 30`・`http_pool: per_node`・種 12・`question_split: test`・全 2,940 問．判定は qwen3:8b）
+
+| 条件 | run_id | 設定 |
+|---|---|---|
+| P2P-BM25（本実験） | `p0007_a4_p2p_bm25` | `routing: bm25_probe`（1 段目は hybrid_probe の要約で上位 D = 24 台．`routing.bm25_probe_d.enronqa: 24`）・`routing.bm25_weight: 2.0`・IDF は published（hybrid_probe が公開済みの語の文書頻度の合計から作る．追加の公開なし）・`answer_mode: owner_answer`・`answer.owner_m: 3`・`answer.aggregate: abstain`（A1 の選択）・`retrieval.fusion: rrf`（A2） |
+| 選択の確認（先に流す） | `p0007_a4_sel300` | 同じ Router・`answer_mode: retrieval_only`・`question_limit: 2`（受信箱ごとの先頭 2 問 = 300 問．m = `routing.top_m` = 2）．実機の選択がオフラインと一致することを確かめてから，上の test の連続実行に進む |
+
+**Router の定義**（A3 の `bm25_fuse`・published・wb = 2 と同じ式）：1 段目は hybrid_probe（V = 64,000・w = 0.5）の要約の得点で上位 D 台を選び，その全受信箱へ probe を送る．probe の要求は質問の埋め込みと，質問の語（`tokenize` で分け，重複を除く）ごとの IDF・長さの平均を載せ，ノードは (1) 受信箱の中の密ベクトルの最高の内積，(2) 受信箱の中の BM25 の最大（本文だけ．質問者から渡された IDF・長さの平均で採点）を返す．質問者は答えた受信箱の中で (1)(2) をそれぞれ標準化（平均・母標準偏差．分母に 1e-9）し，`z(dense) + 2 × z(bm25)` の上位 m = 3 を本照会の先（回答する受信箱）とする．
+- IDF = log(1 + (N − df + 0.5) / (df + 0.5))．df は，各デバイスが公開した語の文書頻度（上位 64,000 語）の合計（公開されなかった語は 0）．要約の語彙に無い語（3 文字未満・数字・機能語）は df = N（IDF ≈ 0）．N（= 73,772 のうち本文が空でないメールの数）と長さの平均（本文の語数．フィルタ前）は `atrium build-summary` が成果物に足す（全デバイスの n_docs と語数の合計から求まる値で，個々のデバイスを特定しない）．
+- **汎用性（§3.3）**：ノードの `content` はヘッダー（Subject・Sender・Recipients）と区切り線の後に本文が続く形であることを確認した．**probe の BM25 は区切り線より後の本文だけで作る**（ノードに専用の転置索引を足す．A3 のオフラインと同じ入力）．A2 の受信箱の中の RRF の BM25（本照会の側）と密ベクトルの埋め込みは，従来どおり `content` 全体を使う（A2・C1-RRF と同じ条件のまま変えない）．
+- A3 の案との違い（記録）：probe の要求に質問文と N は載せない．ノードの採点に必要なのは語ごとの IDF と長さの平均だけで，N は IDF に既に含まれ，質問文は語から再構成できる以上の情報を足さないため，露出を増やさない最小の形にした．
+
+**判定の規則**（§4.2．最初の基準．test の評価の前に固定）：A1・A2 と同じ．
+- H-A1‴（主）：P2P-BM25 − C1-RRF（`results/p0007_a2_c1_rrf`．正答率 0.7653）の正答率の差の 95% 信頼区間（対応ありのブートストラップ 10,000 回・種 12）の下端が −0.02 より大きければ非劣性．
+- H-A2‴：McNemar の正確検定（両側 5%）で P2P-BM25 が C1-RRF より有意に高ければ優越．
+- 公平性（§3.2）：比べる相手は C1-RRF（中央にも A2 の同じ改良を入れた条件）．中央の索引は全体の BM25 と密ベクトルの RRF で，質問者の側に持ち主の情報は無い．
+- 出力：`atrium compare results/p0007_a4_p2p_bm25 results/p0007_a2_c1_rrf --out-dir results/p0007_a4_verdict_c1rrf`．`verdict_original` はこの規則の判定で，書き換えない．基準の見直し（`verdict_revised`）は §4.4 の 2 に従う．
+
+**併記（判定に使わない）**：
+- P2P-RRF（A2．`results/p0007_a2_p2p_rrf_r2`．hybrid_probe D = 16・同じ答え方・fusion rrf．正答率 0.6769）との差（`--out-dir results/p0007_a4_verdict_vs_p2p_rrf`）．Router だけが違う比較で，Router の効果の記述．
+- 持ち主の受信箱が候補 3 つに入る割合（A2 は 0.8391．A3 のオフライン test の hit@3 は 0.9364），入った問・入らなかった問の正答率，採った回答が持ち主のものだった割合，UNKNOWN の割合．
+- 費用：1 問あたりの要求数（予測 D + m = 27）・生成回数（予測 3）・外に出た文書の数・e2e の p50・p95・処理量（A2 の P2P-RRF 18.5 / 57.9 秒・1.23 問/秒）．probe の要求の大きさ（質問者から 1 ノードへ・応答）も `probe_bytes` で記録する．
+- 公開情報の大きさ（`advert_bytes`．published は hybrid_probe と同じ 29,727,744 byte．追加は N と長さの平均だけ）と露出（持ち主の特定 top-1 0.726・AUC 0.975．A3 で hybrid_probe と同じ）への影響．
+- ノードの費用：probe 用の転置索引の構築時間とメモリの増分（CPU の専門家の最大のノード）．
+
+**見込み（A3 の記述．検証対象）**：持ち主が候補に入る割合が 0.8391 → 約 0.936 になり，入った問・入らなかった問の正答率を A2 と同じと仮定すると，P2P-BM25 の正答率は約 0.738（C1-RRF との差 約 −0.027）．**非劣性（下端 > −0.02）には届かない見込み**である．この見込みを外れても（届いても）規則は変えない．
+
+**照合（`sim_vs_live.json`．§10）**：実機の選択（`selected_sources`・`owner_answer.candidate_sources`）と，オフラインの `bm25_probe`（`atrium build-summary` が同じ関数 `frontier_methods` で求めた `offline_selection.json` の `bm25_probe`（m = 2）・`bm25_probe_m3`（m = 3）．bm25_fuse・published・wb = 2・D = 24）の一致率を，retrieval_only の 300 問と owner_answer の 2,940 問の全問で出す．期待は ≥ 0.999（同点を許す：集合が違うとき，違う受信箱の標準化後の得点が同じ（差が 1e-5 以内）なら一致とみなす）．届かなければ原因を調べて 1 回だけ直し，同点以外で届かなければ §12 の 2 で止まる．
+
+**実装の範囲**：`routing: bm25_probe`・`routing.bm25_probe_d`・`routing.bm25_weight`（追加のキー．既定は今の挙動）・プロトコル（probe の要求に `bm25`，応答に `bm25`．省略時は従来と同じ本文）・ノードの probe 用の本文だけの索引・`build-summary` の成果物の追加ファイル．既存の routing・answer_mode の挙動と既定値は変えない．退行ゲート R3〜R5 と `mise run check` を commit の前に通す．
+**回答の保存**：`sanitize_results.py` を通し，`answer`・`final_answer`・`node_answers` にメール本文（区切り線・ヘッダー行）が無いかを点検してから commit する．
+**実行**：連続実行（`p0007_a2_live/a2_chain.sh` と同じ形．deploy → start → analyze）．実機の連続実行の間は commit しない．実験の後に `mise run stop`．実験の失敗（ノードの不調・時間切れ）は原因を調べて 1 回だけ直して流し直す．非劣性が不成立でも止まらない．
+
 ## p0007 I5・I6・I7：新しいメールの追従・障害・参加の実機での測定の実装（2026-10-20．オフラインの単体試験と，実機の小さな動作確認まで）
 
 **範囲**：`atrium freshness-run`（I5）・`failure-run`（I6）・`join-run`（I7）と，ノードの管理 API・`scripts/remote/{freshness,failure,join}_run.sh`・`scripts/tasks/live_run.sh` を作った．**31 台の本番の測定は流していない**（実機は制御点の `p0007_*_smoke` の小さな実行と，退行の確認だけ）．流し方は `docs/d0003_experiment_workflow.md` の §7，出力の書式は `docs/d0004_metrics.md`．既存の answer_mode・routing・CLI の挙動と既定値は変えていない（追加のみ．`cluster.node_admin` の既定は false）．commit：`206754a`（I5）・`d655324`・`aa4738d`（I6）・`fee9fcf`（I7）と，実機の動作確認で見つけた不具合の修正 `bc0ff2b`・`75b82dd`・`ce05915`・`e13d7f4`・`16228b7`．
