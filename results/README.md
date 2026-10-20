@@ -118,3 +118,4 @@
 | `p0007_a2_verdict_rrf`，`p0007_a2_verdict_vs_c1`，`p0007_a2_verdict_vs_p2p_norrf`，`p0007_a2_verdict_c1rrf_vs_c1` | A2 の `verdict.json`（主：P2P-RRF − C1-RRF．他は RRF の効果と参考） | 主 −0.0884（−0.1054〜−0.0714）・非劣性・優越とも不成立 | 同上 |
 | `p0007_a2_live` | A2 の連続実行のスクリプト・条件・ログと，ノードの BM25 の索引の費用の測定（`bm25_cost.jsonl`） | CPU の専門家 +150〜159 MB・+3.8〜4.3 秒 | 同上 |
 | `20261020_p0007_a2_r3_advert_eval`，`20261020_p0007_a2_r4_frontier`，`20261020_p0007_a2_r5_selection` | A2 の退行ゲート R3〜R5（オフライン） | 全て通過 | 同上 |
+| `20261020_p0007_a3_offline` | A3 のオフラインのゲート：`frontier-eval`（hybrid_probe の 1 段目 + probe の得点を BM25 にする `bm25_probe`・語の数を増やす `hybrid_xl`）と，表（`table.md`）・`verdict.json`（`verdict_original` のみ）．R4 の 5 点も同じ実行で一致 | hit@3 0.8391 → 0.9364（+0.0973，要求数 19 → 27）．ゲート通過 | p0007 A3：持ち主の特定のオフラインのゲートの結果 |

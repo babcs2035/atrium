@@ -1,0 +1,111 @@
+{
+ "verdict_original": {
+  "rule": "test hit@3 gain over hybrid_probe D=16 >= 0.05 and requests <= 1.5x hybrid_probe",
+  "baseline": {
+   "params": {
+    "V": 64000,
+    "w": 0.5,
+    "D": 16
+   },
+   "hit@2": 0.8017006802721088,
+   "hit@3": 0.8391156462585034,
+   "requests_m3": 19.0
+  },
+  "min_gain": 0.05,
+  "primary_m3": {
+   "m": 3,
+   "max_requests": 28.5,
+   "by_family": {
+    "bm25_shared": {
+     "params": {
+      "V": 64000,
+      "w": 0.5,
+      "D": 24,
+      "idf": "exact"
+     },
+     "dev_hit": 0.9182496607869742,
+     "test_hit": 0.9231292517006803,
+     "gain_over_hybrid_probe": 0.08401360544217684,
+     "requests": 27.0,
+     "passed": true
+    },
+    "bm25_fuse": {
+     "params": {
+      "V": 64000,
+      "w": 0.5,
+      "D": 24,
+      "idf": "exact",
+      "wb": 2.0
+     },
+     "dev_hit": 0.9277476255088195,
+     "test_hit": 0.9363945578231293,
+     "gain_over_hybrid_probe": 0.09727891156462587,
+     "requests": 27.0,
+     "passed": true
+    },
+    "hybrid_xl": {
+     "params": {
+      "V": 128000,
+      "w": 0.5,
+      "D": 24
+     },
+     "dev_hit": 0.8341248303934871,
+     "test_hit": 0.8425170068027211,
+     "gain_over_hybrid_probe": 0.003401360544217691,
+     "requests": 27.0,
+     "passed": false
+    }
+   },
+   "selected_family": "bm25_fuse",
+   "passed": true
+  },
+  "secondary_m2_not_used_for_verdict": {
+   "m": 2,
+   "max_requests": 27.0,
+   "by_family": {
+    "bm25_shared": {
+     "params": {
+      "V": 64000,
+      "w": 0.5,
+      "D": 24,
+      "idf": "published"
+     },
+     "dev_hit": 0.8945047489823609,
+     "test_hit": 0.8959183673469387,
+     "gain_over_hybrid_probe": 0.09421768707482991,
+     "requests": 26.0,
+     "passed": true
+    },
+    "bm25_fuse": {
+     "params": {
+      "V": 64000,
+      "w": 0.5,
+      "D": 24,
+      "idf": "exact",
+      "wb": 2.0
+     },
+     "dev_hit": 0.905359565807327,
+     "test_hit": 0.9159863945578232,
+     "gain_over_hybrid_probe": 0.11428571428571432,
+     "requests": 26.0,
+     "passed": true
+    },
+    "hybrid_xl": {
+     "params": {
+      "V": 128000,
+      "w": 0.5,
+      "D": 24
+     },
+     "dev_hit": 0.7961329715061058,
+     "test_hit": 0.8003401360544218,
+     "gain_over_hybrid_probe": -0.0013605442176870541,
+     "requests": 26.0,
+     "passed": false
+    }
+   },
+   "selected_family": "bm25_fuse",
+   "passed": true
+  },
+  "passed": true
+ }
+}

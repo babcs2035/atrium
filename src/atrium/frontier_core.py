@@ -25,6 +25,8 @@ SPLITS = ("dev", "test")
 RANK_CHUNK = 128
 # 質問を受け取るデバイスの要求数の p95
 REQUEST_PERCENTILE = 95
+# m に依らず併記する hit@k の k（p0007 A3：m = 2 の実行から，m = 3 の hit@3 も読めるようにする）
+HIT3_K = 3
 
 
 @dataclass(frozen=True)
@@ -76,10 +78,13 @@ class Selection:
     """方式が 1 つの split の全質問に対して決めた，probe する受信箱と追加の要求．
 
     candidates が None のときは，direct（1 段目の得点）の上位 m 個をそのまま選ぶ（probe をしない）．
+    second は，probe の返す得点（2 段目）を既定の検索器の最大得点（FrontierData.second）から差し替える (質問, 受信箱) の行列
+    （BM25 など，デバイスの中の検索を変える方式が使う．候補以外の受信箱の値は使われない）．
     """
 
     candidates: BoolMat | None
     direct: F32Array | None = None
+    second: F32Array | None = None
     extra_requests: F64Array | None = None
     extra_round_trips: F64Array | None = None
 
@@ -135,6 +140,7 @@ class PerQuery:
 
     hit1: F64Array
     hit_m: F64Array
+    hit3: F64Array
     recall_m: F64Array
     requests: F64Array
     round_trips: F64Array
@@ -150,7 +156,8 @@ def evaluate_selection(data: FrontierData, sel: Selection, split: str) -> PerQue
         probed = np.zeros(scores.shape[0])
         base_trips = 1.0
     else:
-        scores = np.where(sel.candidates, data.second[split], -np.inf).astype(np.float32)
+        second = data.second[split] if sel.second is None else sel.second
+        scores = np.where(sel.candidates, second, -np.inf).astype(np.float32)
         probed = devices_mask(sel.candidates, data.device_of_source).sum(axis=1).astype(np.float64)
         base_trips = 2.0
     n_q = scores.shape[0]
@@ -164,6 +171,7 @@ def evaluate_selection(data: FrontierData, sel: Selection, split: str) -> PerQue
     return PerQuery(
         hit1=np.asarray((finite & (ranks <= 1) & rel).any(axis=1), dtype=np.float64),
         hit_m=np.asarray(in_m.any(axis=1), dtype=np.float64),
+        hit3=np.asarray((finite & (ranks <= HIT3_K) & rel).any(axis=1), dtype=np.float64),
         recall_m=np.asarray(in_m.sum(axis=1) / n_rel, dtype=np.float64),
         requests=probed + extra + m,
         round_trips=base_trips + extra_trips,
@@ -228,9 +236,13 @@ def make_row(
             f"hit@{data.m}": float(per_query.hit_m[mask].mean()),
             f"source_recall@{data.m}": float(per_query.recall_m[mask].mean()),
         }
+        if data.m != HIT3_K:
+            row[f"hit@{HIT3_K}"] = float(per_query.hit3[mask].mean())
         if with_ci:
             row["hit@1_ci95"] = bootstrap_ci(per_query.hit1[mask], data.seed)
             row[f"hit@{data.m}_ci95"] = bootstrap_ci(per_query.hit_m[mask], data.seed)
             row[f"source_recall@{data.m}_ci95"] = bootstrap_ci(per_query.recall_m[mask], data.seed)
+            if data.m != HIT3_K:
+                row[f"hit@{HIT3_K}_ci95"] = bootstrap_ci(per_query.hit3[mask], data.seed)
         rows.append(row)
     return rows

@@ -6,6 +6,8 @@
 - F2 adaptive_cutoff：1 段目の得点の分布から，問ごとに probe の台数を決める（Rank-S・Taily 型の打ち切り）．
 - F3 hierarchy：デバイスを g 個のグループに分け，グループの代表が束ねた要約で 2 段に選ぶ（DNS 型）．
 - F4 overlay_walk：各デバイスは近傍 d 台の要約だけを持ち，質問を転送する（DRAG 型）．
+- A3（p0007）bm25_probe：1 段目は hybrid_probe と同じで，probe の得点を BM25（全体で文書頻度を共有）にする（単独・密ベクトルとの足し合わせ）．
+  hybrid_xl：hybrid_probe の語の数 V を増やしたもの．
 
 要約（F1〜F4）は p0006 §3.2 により，文書の本文（ヘッダーを除く）から作る埋め込み・語の統計だけを使い，メールの付属情報は使わない．
 """
@@ -54,6 +56,13 @@ HYBRID_TERM_SIZES = (16000, 64000)
 HYBRID_WEIGHTS = (0.5, 1.0, 2.0)
 # 質問ごと・デバイス間の標準化で，得点が一定のときに 0 割りしないための下限
 Z_EPSILON = 1e-9
+# A3：bm25_probe の 1 段目 = hybrid_probe の設定（語の数 V，重心の重み w）．密ベクトルとの足し合わせの BM25 側の重み
+BM25_FIRST_STAGE = (64000, 0.5)
+FUSE_BM25_WEIGHTS = (1.0, 2.0)
+# A3 (b)：語の数を増やした設定（0 は語彙の全て）
+XL_TERM_SIZES = (128000, 0)
+# BM25 の得点を一度に作る質問の数（質問 × 文書の密な行列がメモリに収まる大きさ）
+BM25_CHUNK = 256
 # 打ち切り（F2）の格子
 GAP_DELTAS = (0.01, 0.02, 0.03, 0.05, 0.08)
 SOFTMAX_TAUS = (0.01, 0.02, 0.05)
@@ -417,6 +426,8 @@ def cori_weights(data: FrontierData, size: int) -> Any:
     pub = csr_matrix(
         (published_df, (published_rows, published_cols)), shape=df.shape, dtype=np.float64
     )
+    # 公開した文書頻度そのもの（A3 の bm25_probe が，追加の公開なしに IDF を作るために読む）
+    data.cache[f"published_df_{size}"] = pub
     # cf = その語を公開したデバイスの数
     cf = np.asarray((pub > 0).sum(axis=0)).ravel()
     t = pub.copy()
@@ -536,42 +547,44 @@ def zscore_rows(scores: F32Array) -> F32Array:
     return out
 
 
-def build_hybrid_summary(data: FrontierData) -> list[Config]:
-    """語の統計（CORI）と本文の重心（multi_centroid_body のデバイス最大）を，質問ごとに標準化して重み付きで足す．"""
+def hybrid_first_stage(
+    data: FrontierData, size: int, w: float
+) -> tuple[Callable[[str], F32Array], Callable[[ProbeDocs], F32Array], int]:
+    """語の統計（CORI．公開する語は V = size）と本文の重心を足したデバイスの得点・出どころの採点・公開情報の大きさ．
+
+    hybrid_summary と，その 1 段目を使う A3 の方式（bm25_probe・term_xl）が共有する．
+    """
     centers = source_centers(data, "body")
     centroid_bytes = sum(c.shape[0] * c.shape[1] * FLOAT32_BYTES for c in centers)
-    device_of_source = data.device_of_source
+    weights, cf = cori_weights(data, size)
+    advert = int(size * TERM_ENTRY_BYTES * data.n_devices) + centroid_bytes
+
+    def dscores(split: str) -> F32Array:
+        key = f"cori_{size}_{split}"
+        if key not in data.cache:
+            data.cache[key] = cori_scores(
+                term_index(data)["vocab"], weights, cf, data.q_tokens[split]
+            )
+        fused: F32Array = zscore_rows(data.cache[key]) + w * zscore_rows(
+            device_first_stage(data, split, "body")
+        )
+        return fused
+
+    def attribute(probes: ProbeDocs) -> F32Array:
+        terms = zscore_rows(cori_scores(term_index(data)["vocab"], weights, cf, probes.tokens))
+        emb = zscore_rows(aggregate_max(multi_scores(probes.emb, centers), data.device_of_source))
+        fused: F32Array = terms + w * emb
+        return fused
+
+    return dscores, attribute, advert
+
+
+def build_hybrid_summary(data: FrontierData) -> list[Config]:
+    """語の統計（CORI）と本文の重心（multi_centroid_body のデバイス最大）を，質問ごとに標準化して重み付きで足す．"""
     configs = []
     for size in HYBRID_TERM_SIZES:
-        weights, cf = cori_weights(data, size)
-        advert = int(size * TERM_ENTRY_BYTES * data.n_devices) + centroid_bytes
         for w in HYBRID_WEIGHTS:
-
-            def dscores(
-                split: str, size: int = size, w: float = w, weights: Any = weights, cf: Any = cf
-            ) -> F32Array:
-                key = f"cori_{size}_{split}"
-                if key not in data.cache:
-                    data.cache[key] = cori_scores(
-                        term_index(data)["vocab"], weights, cf, data.q_tokens[split]
-                    )
-                fused: F32Array = zscore_rows(data.cache[key]) + w * zscore_rows(
-                    device_first_stage(data, split, "body")
-                )
-                return fused
-
-            def attribute(
-                probes: ProbeDocs, w: float = w, weights: Any = weights, cf: Any = cf
-            ) -> F32Array:
-                terms = zscore_rows(
-                    cori_scores(term_index(data)["vocab"], weights, cf, probes.tokens)
-                )
-                emb = zscore_rows(
-                    aggregate_max(multi_scores(probes.emb, centers), device_of_source)
-                )
-                fused: F32Array = terms + w * emb
-                return fused
-
+            dscores, attribute, advert = hybrid_first_stage(data, size, w)
             for d in d_grid(data.n_devices):
 
                 def select(
@@ -589,6 +602,186 @@ def build_hybrid_summary(data: FrontierData) -> list[Config]:
                         attribute,
                     )
                 )
+    return configs
+
+
+# ── A3 持ち主の特定：probe の得点を BM25（全体で文書頻度を共有）にする ─────────────────────────
+
+
+def bm25_index(data: FrontierData) -> dict[str, Any]:
+    """本文の BM25 の重みの元（文書 × 語の疎行列．IDF を掛ける前）と語彙・文書頻度・受信箱ごとの先頭の文書の番号を作る．
+
+    文書の並びは受信箱の順（受信箱ごとの最大を reduceat で取るため）．語は `tokenize` の出力のまま（ノードの BM25 と同じ．
+    CORI の `filter_terms` は使わない）．長さの平均は全体で 1 つ（受信箱ごとの統計は使わない）．
+    """
+    if "bm25_index" in data.cache:
+        cached: dict[str, Any] = data.cache["bm25_index"]
+        return cached
+    from collections import Counter
+
+    from scipy.sparse import csr_matrix
+
+    from atrium.hybrid import BM25_B, BM25_K1, MIN_DOC_LENGTH
+
+    if data.summary_tokens is None:
+        raise ValueError("this dataset has no body tokens")
+    vocab: dict[str, int] = {}
+    rows: list[int] = []
+    cols: list[int] = []
+    counts: list[float] = []
+    lengths: list[int] = []
+    starts: list[int] = []
+    doc = 0
+    for docs in data.summary_tokens:
+        if not docs:
+            raise ValueError("every inbox needs at least one body document")
+        starts.append(doc)
+        for toks in docs:
+            lengths.append(max(MIN_DOC_LENGTH, len(toks)))
+            for term, c in Counter(toks).items():
+                rows.append(doc)
+                cols.append(vocab.setdefault(term, len(vocab)))
+                counts.append(float(c))
+            doc += 1
+    tf = csr_matrix((np.asarray(counts, dtype=np.float64), (rows, cols)), shape=(doc, len(vocab)))
+    doc_len = np.asarray(lengths, dtype=np.float64)
+    norm = BM25_K1 * (1 - BM25_B + BM25_B * doc_len / doc_len.mean())
+    base = tf.copy()
+    base.data = (
+        tf.data * (BM25_K1 + 1) / (tf.data + norm[np.repeat(np.arange(doc), np.diff(tf.indptr))])
+    )
+    out = {
+        "base": base.astype(np.float32).tocsr(),
+        "vocab": vocab,
+        "df": np.bincount(np.asarray(cols), minlength=len(vocab)).astype(np.float64),
+        "starts": np.asarray(starts, dtype=np.int64),
+        "n_docs": doc,
+    }
+    data.cache["bm25_index"] = out
+    return out
+
+
+def bm25_idf(data: FrontierData, kind: str) -> F32Array:
+    """語ごとの IDF．exact は全デバイスの文書頻度の合計（集約が要る）．published は各デバイスが既に公開した語の統計
+    （CORI の上位 V 語）の合計だけで作る（追加の公開なし．公開されなかった語は df = 0，CORI の語彙に無い語（短い語・数字・機能語）は df = N で IDF ≈ 0）．
+    """
+    idx = bm25_index(data)
+    n = idx["n_docs"]
+    if kind == "exact":
+        df = idx["df"]
+    else:
+        pub = data.cache[f"published_df_{BM25_FIRST_STAGE[0]}"]
+        pub_sum = np.asarray(pub.sum(axis=0)).ravel()
+        cori_vocab = term_index(data)["vocab"]
+        df = np.full(len(idx["vocab"]), float(n))
+        for term, j in idx["vocab"].items():
+            cj = cori_vocab.get(term)
+            if cj is not None:
+                df[j] = pub_sum[cj]
+    out: F32Array = np.log(1 + (n - df + 0.5) / (df + 0.5)).astype(np.float32)
+    return out
+
+
+def bm25_scores(data: FrontierData, split: str, kind: str) -> F32Array:
+    """(質問, 受信箱) の BM25 の得点（受信箱の中の文書の最大．IDF は kind）．質問の語は重複を除く．"""
+    key = f"bm25_{kind}_{split}"
+    if key in data.cache:
+        cached: F32Array = data.cache[key]
+        return cached
+    from scipy.sparse import csr_matrix
+
+    idx = bm25_index(data)
+    weights_t = idx["base"].multiply(bm25_idf(data, kind)[None, :]).tocsr().T.tocsr()
+    vocab = idx["vocab"]
+    tokens = data.q_tokens[split]
+    out = np.zeros((len(tokens), data.n_sources), dtype=np.float32)
+    for lo in range(0, len(tokens), BM25_CHUNK):
+        part = tokens[lo : lo + BM25_CHUNK]
+        rows = [i for i, toks in enumerate(part) for t in set(toks) if t in vocab]
+        cols = [vocab[t] for toks in part for t in set(toks) if t in vocab]
+        q = csr_matrix(
+            (np.ones(len(rows), dtype=np.float32), (rows, cols)), shape=(len(part), len(vocab))
+        )
+        dense = (q @ weights_t).toarray()
+        out[lo : lo + len(part)] = np.maximum.reduceat(dense, idx["starts"], axis=1)
+    data.cache[key] = out
+    return out
+
+
+def zscore_masked(scores: F32Array, mask: BoolMat) -> F32Array:
+    """質問ごとに，mask の列（probe に答えた受信箱）の中だけで標準化する．"""
+    n = np.maximum(mask.sum(axis=1, keepdims=True), 1)
+    mean = (scores * mask).sum(axis=1, keepdims=True) / n
+    std = np.sqrt((((scores - mean) ** 2) * mask).sum(axis=1, keepdims=True) / n)
+    out: F32Array = ((scores - mean) / (std + Z_EPSILON)).astype(np.float32)
+    return out
+
+
+def build_bm25_probe(data: FrontierData) -> list[Config]:
+    """A3：hybrid_probe（V = 64,000・w = 0.5）の 1 段目で上位 D 台を選び，probe の得点を BM25（全体の文書頻度を共有）にする．
+
+    second = bm25 は BM25 のみ，fuse は，密ベクトルの得点と BM25 を，答えた受信箱の中で標準化して重み wb（BM25 側）で足す．
+    要求数は D + m で hybrid_probe と同じ（probe の要求に質問文と質問の語の IDF を載せるだけ）．公開情報の大きさは，
+    exact のとき全語彙の（語，文書頻度）の表（質問者が持つ）を加える．
+    """
+    size, w = BM25_FIRST_STAGE
+    dscores, attribute, advert = hybrid_first_stage(data, size, w)
+    table_bytes = len(bm25_index(data)["vocab"]) * TERM_ENTRY_BYTES
+    variants: list[tuple[str, float]] = [("bm25", 0.0)] + [("fuse", wb) for wb in FUSE_BM25_WEIGHTS]
+    configs = []
+    for kind in ("exact", "published"):
+        for second, wb in variants:
+            for d in d_grid(data.n_devices):
+
+                def select(
+                    split: str, d: int = d, kind: str = kind, second: str = second, wb: float = wb
+                ) -> Selection:
+                    mask = top_devices(dscores(split), d, data.device_of_source)
+                    bm25 = bm25_scores(data, split, kind)
+                    if second == "bm25":
+                        return Selection(candidates=mask, second=bm25)
+                    fused = zscore_masked(data.second[split], mask) + wb * zscore_masked(bm25, mask)
+                    return Selection(candidates=mask, second=fused.astype(np.float32))
+
+                params: dict[str, Any] = {"V": size, "w": w, "D": d, "idf": kind}
+                if second == "fuse":
+                    params["wb"] = wb
+                configs.append(
+                    Config(
+                        "bm25_shared" if second == "bm25" else "bm25_fuse",
+                        "bm25_probe",
+                        params,
+                        advert + (table_bytes if kind == "exact" else 0),
+                        select,
+                        attribute,
+                    )
+                )
+    return configs
+
+
+def build_hybrid_xl(data: FrontierData) -> list[Config]:
+    """A3 (b)：hybrid_probe の語の数 V を，64,000 より増やした設定（V = 0 は語彙の全て）．"""
+    configs = []
+    for size in XL_TERM_SIZES:
+        v = size or len(term_index(data)["vocab"])
+        dscores, attribute, advert = hybrid_first_stage(data, v, BM25_FIRST_STAGE[1])
+        for d in d_grid(data.n_devices):
+
+            def select(
+                split: str, d: int = d, dscores: Callable[[str], F32Array] = dscores
+            ) -> Selection:
+                return reach_selection(top_devices(dscores(split), d, data.device_of_source))
+
+            configs.append(
+                Config(
+                    "hybrid_xl",
+                    "hybrid_xl",
+                    {"V": v, "w": BM25_FIRST_STAGE[1], "D": d},
+                    advert,
+                    select,
+                    attribute,
+                )
+            )
     return configs
 
 
@@ -858,6 +1051,8 @@ BUILDERS: dict[str, Callable[[FrontierData], list[Config]]] = {
     "term_stats": build_term_stats,
     "term_stats_large": build_term_stats_large,
     "hybrid_summary": build_hybrid_summary,
+    "bm25_probe": build_bm25_probe,
+    "hybrid_xl": build_hybrid_xl,
     "adaptive_cutoff": build_adaptive_cutoff,
     "hierarchy": build_hierarchy,
     "overlay_walk": build_overlay_walk,

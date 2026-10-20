@@ -14,6 +14,7 @@ from atrium.frontier_core import (
 )
 from atrium.frontier_methods import (
     adaptive_device_mask,
+    build_bm25_probe,
     build_device_probe,
     build_flood,
     build_hybrid_summary,
@@ -25,6 +26,7 @@ from atrium.frontier_methods import (
     sample_device_scores,
     term_index,
     walk_visited,
+    zscore_masked,
     zscore_rows,
 )
 
@@ -240,3 +242,59 @@ def test_contributing_shards_marks_the_shards_that_supply_the_global_top() -> No
     top[0, 0, :] = np.linspace(1.0, 0.8, MEDRAG_TOP)  # シャード 0 だけが上位 15 件を埋める
     top[0, 2, 0] = 0.1
     assert contributing_shards(top).tolist() == [[True, False, False]]
+
+
+def _wrong_dense_data() -> FrontierData:
+    """密ベクトルの得点は正解の受信箱を最下位にする（BM25 だけが正解の受信箱を当てられる）合成データ．"""
+    data = _data()
+    wrong = np.full((4, 6), 0.9, dtype=np.float32)
+    for q in range(4):
+        wrong[q, q] = 0.1
+    data.second = {"dev": wrong, "test": wrong}
+    return data
+
+
+def test_selection_second_replaces_the_probe_score_and_hit3_is_reported() -> None:
+    data = _wrong_dense_data()
+    everyone = np.ones((4, 6), dtype=bool)
+    dense = evaluate_selection(data, Selection(candidates=everyone), "test")
+    assert dense.hit1.tolist() == [0.0] * 4
+    assert dense.hit3.tolist() == [0.0] * 4  # 正解は 6 受信箱のうち最下位
+    gold_first = np.full((4, 6), 0.0, dtype=np.float32)
+    gold_first[np.arange(4), np.arange(4)] = 1.0
+    replaced = evaluate_selection(data, Selection(candidates=everyone, second=gold_first), "test")
+    assert replaced.hit1.tolist() == [1.0] * 4
+    assert replaced.requests.tolist() == dense.requests.tolist()
+
+
+def test_bm25_probe_finds_the_gold_inbox_that_the_dense_score_misses_at_the_same_requests() -> None:
+    data = _wrong_dense_data()
+    configs = {
+        (c.family, c.params["idf"], c.params["D"], c.params.get("wb")): c
+        for c in build_bm25_probe(data)
+    }
+    for kind in ("exact", "published"):
+        bm25 = evaluate_selection(
+            data, configs[("bm25_shared", kind, 3, None)].select("test"), "test"
+        )
+        assert bm25.hit1.tolist() == [1.0] * 4
+        assert bm25.requests.tolist() == [3 + 2] * 4  # D + m．BM25 は要求数を増やさない
+    fused = evaluate_selection(data, configs[("bm25_fuse", "exact", 3, 2.0)].select("test"), "test")
+    assert fused.hit1.tolist() == [1.0] * 4  # BM25 の重み 2 が，密ベクトルの誤りに勝つ
+
+
+def test_bm25_probe_adds_the_idf_table_only_for_exact_statistics() -> None:
+    data = _data()
+    by_kind = {c.params["idf"]: c for c in build_bm25_probe(data) if c.family == "bm25_shared"}
+    assert by_kind["exact"].advert_bytes > by_kind["published"].advert_bytes
+    (hybrid,) = [
+        c for c in build_hybrid_summary(data) if c.params == {"V": 64000, "w": 0.5, "D": 3}
+    ]
+    assert by_kind["published"].advert_bytes == hybrid.advert_bytes
+
+
+def test_zscore_masked_ignores_the_unmasked_columns() -> None:
+    scores = np.array([[1.0, 3.0, 100.0]], dtype=np.float32)
+    mask = np.array([[True, True, False]])
+    z = zscore_masked(scores, mask)
+    assert z[0, :2].tolist() == [-1.0, 1.0]
