@@ -1,0 +1,10 @@
+[2026-10-20_09:41:25] BEGIN p0007_a4_sel300 experiment.dataset=enronqa experiment.answer_mode=retrieval_only experiment.parallel=30 experiment.http_pool=per_node experiment.routing=bm25_probe experiment.question_split=test experiment.question_limit=2 retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=abstain
+[09:43:51] p0007_a4_sel300 deployed
+[09:45:23] p0007_a4_sel300 start=0 inner=0
+[09:45:26] p0007_a4_sel300 analyze=0
+[2026-10-20_09:45:26] ALL DONE
+[2026-10-20_09:45:51] BEGIN p0007_a4_p2p_bm25 experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=abstain experiment.routing=bm25_probe experiment.question_split=test experiment.question_limit=null retrieval.fusion=rrf
+[09:48:31] p0007_a4_p2p_bm25 deployed
+[11:59:58] p0007_a4_p2p_bm25 start=2 inner=2
+[12:00:01] p0007_a4_p2p_bm25 analyze=0
+[2026-10-20_12:00:01] ALL DONE

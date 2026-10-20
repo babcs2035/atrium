@@ -1,0 +1,1 @@
+p0007_a4_sel300 experiment.dataset=enronqa experiment.answer_mode=retrieval_only experiment.parallel=30 experiment.http_pool=per_node experiment.routing=bm25_probe experiment.question_split=test experiment.question_limit=2 retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=abstain

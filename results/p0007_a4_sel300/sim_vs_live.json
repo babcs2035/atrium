@@ -1,0 +1,10 @@
+{
+ "note": "p0007 A4 の選択の確認（retrieval_only・300 問・m = 2）",
+ "selection_agreement": {
+  "run": "p0007_a4_sel300",
+  "n": 300,
+  "strict": 1.0,
+  "tie_aware": 1.0,
+  "offline": "offline_selection.json の bm25_probe"
+ }
+}

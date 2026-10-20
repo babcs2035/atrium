@@ -1,0 +1,1 @@
+p0007_a4_p2p_bm25 experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node answer.owner_m=3 answer.aggregate=abstain experiment.routing=bm25_probe experiment.question_split=test experiment.question_limit=null retrieval.fusion=rrf

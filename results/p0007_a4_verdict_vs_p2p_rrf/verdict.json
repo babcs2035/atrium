@@ -1,0 +1,31 @@
+{
+ "verdict_original": {
+  "hypothesis": "H-A1 非劣性（差の 95% 信頼区間の下端 > -margin）・H-A2 優越（McNemar の正確検定）",
+  "n_shared": 2940,
+  "accuracy_p2p": 0.7153061224489796,
+  "accuracy_central": 0.6768707482993197,
+  "difference": 0.03843537414965986,
+  "ci95": [
+   0.025510204081632654,
+   0.05136054421768708
+  ],
+  "bootstrap": {
+   "samples": 10000,
+   "seed": 12,
+   "paired": true
+  },
+  "non_inferiority": {
+   "margin": 0.02,
+   "holds": true
+  },
+  "superiority": {
+   "mcnemar_p": 9.01374514158809e-09,
+   "alpha": 0.05,
+   "only_p2p_correct": 249,
+   "only_central_correct": 136,
+   "holds": true
+  },
+  "verdict": "superior"
+ },
+ "verdict_revised": null
+}

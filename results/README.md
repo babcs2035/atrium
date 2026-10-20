@@ -119,3 +119,8 @@
 | `p0007_a2_live` | A2 の連続実行のスクリプト・条件・ログと，ノードの BM25 の索引の費用の測定（`bm25_cost.jsonl`） | CPU の専門家 +150〜159 MB・+3.8〜4.3 秒 | 同上 |
 | `20261020_p0007_a2_r3_advert_eval`，`20261020_p0007_a2_r4_frontier`，`20261020_p0007_a2_r5_selection` | A2 の退行ゲート R3〜R5（オフライン） | 全て通過 | 同上 |
 | `20261020_p0007_a3_offline` | A3 のオフラインのゲート：`frontier-eval`（hybrid_probe の 1 段目 + probe の得点を BM25 にする `bm25_probe`・語の数を増やす `hybrid_xl`）と，表（`table.md`）・`verdict.json`（`verdict_original` のみ）．R4 の 5 点も同じ実行で一致 | hit@3 0.8391 → 0.9364（+0.0973，要求数 19 → 27）．ゲート通過 | p0007 A3：持ち主の特定のオフラインのゲートの結果 |
+| `p0007_a4_p2p_bm25`，`p0007_a4_sel300` | A4 の実機：bm25_probe（D = 24・published の IDF・wb = 2）・owner_answer・m = 3・abstain・`retrieval.fusion: rrf` の test 2,940 問と，選択の確認の retrieval_only 300 問（m = 2）．`sim_vs_live.json` を含む | 0.7153．選択の一致 300/300・2,940/2,940 | p0007 A4：bm25_probe の実機での評価の結果と判定 |
+| `p0007_a4_verdict_c1rrf`，`p0007_a4_verdict_vs_p2p_rrf` | A4 の `verdict.json`（主：P2P-BM25 − C1-RRF．記述：P2P-BM25 − P2P-RRF） | 主 −0.0500（−0.0667〜−0.0337）・非劣性・優越とも不成立．P2P-RRF に +0.0384（p = 9e-9） | 同上 |
+| `p0007_a4_build_summary` | A4 の制御点での `build-summary`：`bm25_stats.npz` を足した要約と同時に作ったオフラインの選択（`offline_selection.json` の `bm25_probe`・`bm25_probe_m3`）と得点（`bm25_probe_fused.npz`） | 持ち主が候補 3 つに入る割合（オフライン）0.9320 | 同上 |
+| `p0007_a4_live` | A4 の連続実行のスクリプト・条件・ログ，照合（`sim_vs_live.py`），記述の集計（`a4_report.py`・`a4_report.json`），ノードの probe 用の索引の費用（`probe_cost.jsonl`） | CPU の専門家 +54 MB・+約 3 秒 | 同上 |
+| `20261020_p0007_a4_r3_advert_eval`，`20261020_p0007_a4_r4_frontier`，`20261020_p0007_a4_r5_selection` | A4 の退行ゲート R3〜R5（オフライン） | 全て通過 | 同上 |

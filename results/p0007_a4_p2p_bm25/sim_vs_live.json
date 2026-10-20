@@ -1,0 +1,76 @@
+{
+ "note": "p0007 A4（bm25_probe）のオフラインの予測と実機の値．§10（K4）",
+ "selection_agreement": {
+  "retrieval_only_300_m2": {
+   "run": "p0007_a4_sel300",
+   "n": 300,
+   "strict": 1.0,
+   "tie_aware": 1.0,
+   "offline": "offline_selection.json の bm25_probe"
+  },
+  "owner_answer_2940_m3": {
+   "run": "p0007_a4_p2p_bm25",
+   "n": 2940,
+   "strict": 1.0,
+   "tie_aware": 1.0,
+   "offline": "offline_selection.json の bm25_probe_m3"
+  },
+  "comment": "実機の上位 m 受信箱は，オフライン（frontier_methods の bm25_fuse・published・wb = 2・D = 24）と全問で一致した（同点を許す必要も生じていない）．ノードの BM25 は本文だけ・質問者から渡された IDF と長さの平均（float64）で，オフラインは float32 の疎行列積．期待 ≥ 0.999 を満たす"
+ },
+ "owner_in_candidates": {
+  "offline_a3_test_hit_at_3_published": 0.9319727891156463,
+  "offline_a3_test_hit_at_3_exact_headline": 0.9363945578231293,
+  "live": 0.9319727891156463,
+  "match": true,
+  "comment": "事前登録の見込みに使った 0.9364 は exact の IDF の値．実機の published の設定に対応するオフラインの値は 0.9320 で，実機はそれと小数 7 桁まで一致した"
+ },
+ "requests_and_generations_per_question": {
+  "predicted_requests": 27,
+  "live_requests": 27.0,
+  "predicted_generations": 3,
+  "live_generations": 3.0
+ },
+ "accuracy": {
+  "a3_forecast": 0.738,
+  "live": 0.7153061224489796,
+  "comment": "A3 の見込み（持ち主が候補に入った問・入らなかった問の正答率を A2 と同じと仮定して hit@3 を入れ替える）0.738 に対し，実測は 0.7153（−0.023）．新しく候補に入った問が難しく，入った問の正答率が A2 の 0.7775 から 0.7507 に下がり，入らなかった問は 0.152 から 0.230 に上がった（候補に入らなくても答えられる問が残る問に偏った）．仮定の外れ"
+ },
+ "throughput_q_per_s": {
+  "p2p_bm25": 0.3712,
+  "p2p_rrf_a2": 1.2587,
+  "p2p_a1": 0.495,
+  "predicted_ratio_by_inverse_requests_vs_a2": 0.7037,
+  "observed_ratio_vs_a2": 0.2949,
+  "predicted_ratio_by_inverse_requests_vs_a1": 0.7037,
+  "observed_ratio_vs_a1": 0.7499,
+  "generation_decode_s_mean": {
+   "p2p_bm25": 2.689,
+   "p2p_rrf_a2": 0.528,
+   "p2p_a1": 2.226
+  },
+  "comment": "要求数の逆数（19/27 = 0.704）からの予測は，A1 に対しては当たる（実測 0.750）が，A2 に対しては外れる（実測 0.295）．3 回の生成が処理量を決め，同じ生成回数・ほぼ同じ文脈の長さ（3,064 対 3,018 トークン）で 1 回の生成の decode の時間が A2 では 0.53 秒，A4・A1 では 2.7・2.2 秒と実行ごとに 4 倍違った．A2 の速さは Router に因らない実行ごとの環境（GPU のノードの速さ）の揺れと見られる（原因は未検証）．処理量の比較は同じ時間帯に交互に流した条件の間でしか言えない"
+ },
+ "probe_request_bytes": {
+  "embedding_json_bytes": 16251,
+  "bm25_payload_mean_bytes": 643,
+  "bm25_payload_p95_bytes": 954,
+  "bm25_payload_max_bytes": 1772,
+  "mean_query_terms": 21.2,
+  "probe_response_bytes_mean": 9253,
+  "hybrid_probe_response_bytes_mean_a2": 3640,
+  "comment": "要求の増分は平均 643 byte（埋め込みの JSON 16,251 byte の 4%）．応答は 24 台分の bm25 を足して平均 9.3 KB（A2 は 16 台で 3.6 KB）"
+ },
+ "node_cost": {
+  "source": "results/p0007_a4_live/probe_cost.jsonl",
+  "cpu_expert_192.168.13.100": {
+   "rss_delta_mb": "174 → 228.5 (+54)",
+   "load_s": "3.6〜4.6 → 6.9〜7.4",
+   "probe_bm25_ms_mean": 0.47
+  },
+  "gpu_expert_192.168.15.100": {
+   "rss_delta_mb": "34 → 49.5 (+15)",
+   "load_s": "0.36〜0.41 → 0.64",
+   "probe_bm25_ms_mean": 0.14
+  }
+ }
+}
