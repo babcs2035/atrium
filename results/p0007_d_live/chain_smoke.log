@@ -1,0 +1,8 @@
+[2026-10-20_13:32:22] BEGIN p0007_d_smoke_semi_p8_r0 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=gpu_nodes experiment.question_limit=1 experiment.parallel=8
+[13:35:13] p0007_d_smoke_semi_p8_r0 deployed (p0007_d_smoke_semi_r0)
+[13:37:05] p0007_d_smoke_semi_p8_r0 start=0 inner=0
+[13:37:28] p0007_d_smoke_semi_p8_r0 energy fetched
+[2026-10-20_13:37:28] BEGIN p0007_d_smoke_semi_p4_r0 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=gpu_nodes experiment.question_limit=1 experiment.parallel=4
+key not found: experiment.central_generation
+[13:37:28] p0007_d_smoke_semi_p4_r0 SETCFG FAILED
+[2026-10-20_13:37:28] ALL DONE

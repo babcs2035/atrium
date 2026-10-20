@@ -1,0 +1,66 @@
+{
+ "sensitivity_posthoc": {
+  "hypothesis": "負荷の優位：parallel 30 で P2P（bm25_probe・owner_answer）の処理量の 3 回の範囲が中央（central_local・B1・rrf）より上で重ならない",
+  "L1_p2p_vs_central_throughput": "below",
+  "L1_load_advantage": false,
+  "L1_prime_p2p_ref_vs_central_throughput": "missing",
+  "L1_prime_p2p_vs_p2p_ref_throughput": "missing",
+  "p95_p2p_vs_central": "above",
+  "p95_p2p_advantage": false,
+  "L2_semi_vs_p2p_throughput": "above",
+  "L2_semi_vs_central_throughput": "above",
+  "writing": "準集権は P2P より処理量が高い（P2P は 1 問あたり 3 回生成する分の費用を払う）",
+  "ranges_parallel_30": {
+   "central": {
+    "throughput_qps": {
+     "min": 0.5220156320227887,
+     "median": 0.5247784710785318,
+     "max": 0.5350376528227344,
+     "n": 3
+    },
+    "e2e_p95_s": {
+     "min": 68.64326835684479,
+     "median": 79.7330473699607,
+     "max": 79.92305338138249,
+     "n": 3
+    }
+   },
+   "central_norrf": {
+    "throughput_qps": null,
+    "e2e_p95_s": null
+   },
+   "semi": {
+    "throughput_qps": {
+     "min": 0.6658741352552074,
+     "median": 0.7473251618210531,
+     "max": 0.9559365977542174,
+     "n": 3
+    },
+    "e2e_p95_s": {
+     "min": 132.37450331663715,
+     "median": 197.1836926209042,
+     "max": 230.57376592233783,
+     "n": 3
+    }
+   },
+   "p2p": {
+    "throughput_qps": {
+     "min": 0.48116489741935264,
+     "median": 0.4857982203603042,
+     "max": 0.49706982714281994,
+     "n": 3
+    },
+    "e2e_p95_s": {
+     "min": 140.88911316674205,
+     "median": 153.48645701399073,
+     "max": 175.87038864190694,
+     "n": 3
+    }
+   },
+   "p2p_ref": {
+    "throughput_qps": null,
+    "e2e_p95_s": null
+   }
+  }
+ }
+}

@@ -1,0 +1,61 @@
+{
+  "192.168.15.100": {
+    "cpu_joules": null,
+    "duration_s": 316.22777700424194,
+    "gpu_joules": 25127.155586268902
+  },
+  "192.168.15.101": {
+    "cpu_joules": null,
+    "duration_s": 315.6854178905487,
+    "gpu_joules": 40483.75271153331
+  },
+  "192.168.15.102": {
+    "cpu_joules": null,
+    "duration_s": 315.4784960746765,
+    "gpu_joules": 18124.017217125893
+  },
+  "192.168.15.103": {
+    "cpu_joules": null,
+    "duration_s": 315.4795036315918,
+    "gpu_joules": 21009.17644317746
+  },
+  "192.168.15.104": {
+    "cpu_joules": null,
+    "duration_s": 316.1394245624542,
+    "gpu_joules": 16615.939204468727
+  },
+  "192.168.15.105": {
+    "cpu_joules": null,
+    "duration_s": 315.7619729042053,
+    "gpu_joules": 21362.564280331135
+  },
+  "192.168.15.106": {
+    "cpu_joules": null,
+    "duration_s": 315.6135845184326,
+    "gpu_joules": 16381.314649642705
+  },
+  "192.168.15.107": {
+    "cpu_joules": null,
+    "duration_s": 316.0960958003998,
+    "gpu_joules": 23176.94571997762
+  },
+  "192.168.15.108": {
+    "cpu_joules": null,
+    "duration_s": 315.9044146537781,
+    "gpu_joules": 26684.84521376133
+  },
+  "192.168.15.109": {
+    "cpu_joules": null,
+    "duration_s": 315.6652548313141,
+    "gpu_joules": 39912.64942065477
+  },
+  "total": {
+    "cpu_joules": null,
+    "gpu_joules": 252587.51618139268
+  },
+  "wafl-ctrl5": {
+    "cpu_joules": null,
+    "duration_s": 316.4192774295807,
+    "gpu_joules": 3709.155734450817
+  }
+}

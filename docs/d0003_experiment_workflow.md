@@ -328,3 +328,24 @@ bash scripts/tasks/live_run.sh join_run p0007_e2_smoke --n-devices 1 --delays 0,
 - `sim_vs_live.json`：参加前の hit（予測 0）と実測，組み立てた要約とオフラインの `build-summary` の要約の probe の候補の一致率（配置が違えば null）．
 - 失敗時：途中で止まっても `atrium join-run` と `join_run.sh` が全ノードを有効にし直す．直らなければ `curl -X POST http://<host>:8100/v1/admin/availability -d '{"up": true}' -H 'content-type: application/json'`．
 
+## 8. 負荷・エネルギーの測定（p0007 D．`results/p0007_d_live/`）
+
+条件（`central`・`central_norrf`・`semi`・`p2p`・`p2p_ref`）× parallel × 3 回を，ブロックランダム化して流す．中央（`routing: central_local`）の生成を GPU の専門家 10 台へ分ける準集権は
+`experiment.central_generation: gpu_nodes`（[d0002](d0002_configuration.md)）．
+
+```bash
+python3 results/p0007_d_live/make_specs.py > results/p0007_d_live/specs.txt      # 3 ブロックの順序（種 12）と各実行の設定
+nohup bash results/p0007_d_live/d_chain.sh results/p0007_d_live/chain.log results/p0007_d_live/specs.txt > results/p0007_d_live/chain.nohup 2>&1 &
+uv run python results/p0007_d_live/d_report.py --out-dir results/p0007_d_verdict     # 3 回の範囲・判定（verdict_original）・K3/K4・エネルギー
+mise run stop
+```
+
+- `d_chain.sh`：条件が替わる行の前に `mise run deploy`（ノードを作り直す），同じ条件の中は `scripts/remote/sync_config.sh` で config.yaml だけを配り直す
+  （`mise run start` が配った設定の一致を確かめるため．ノードが読まない `experiment.parallel`・`question_limit` だけが違うときに限る）．
+  各実行の前後に `scripts/remote/energy_log.sh` で GPU 11 台の電力を記録し（アイドルを前後に約 20 秒），`gpu_apps_snapshot.sh` で他の利用者の GPU の使用を残す．
+  `results/<run_id>/run_meta.json` が無い行だけ流す（再開できる）．実行の間は commit しない（イメージの git のコミットが変わると start が止まる）．
+- **GPU の PC は他の研究と共有されうる**：`gpu_apps_pre.txt`・`gpu_apps_post.txt` に ollama 以外の GPU プロセス（使用率）が出ていたら，その実行の処理量・decode・エネルギーは共有の影響を含む．
+  エネルギーの事前登録の主（11 台の合計）も他の利用者の電力を含むので，使う GPU だけの増分（`d_report.py` の `net_j_per_q_used_gpu`・`est_gross_j_per_q_used_gpu`）を併用する．
+- エネルギーは GPU の消費電力だけ（RAPL は全台で読めない）．CPU の専門家の電力は測れない．
+- `energy_log.sh` の記録は制御点自身の `$REMOTE_DIR/energy/<run_id>/` にも置かれる．`mise` のタスクの同期（`sync_to_control`）がこれを消さないよう `--exclude /energy/` を付けてある．
+

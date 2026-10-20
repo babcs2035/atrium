@@ -1,0 +1,37 @@
+[2026-10-21_01:34:21] BEGIN p0007_dc_p2p_p30_c1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer answer.owner_m=3 answer.aggregate=abstain retrieval.fusion=rrf experiment.central_generation=requester experiment.parallel=30 experiment.question_limit=2
+[01:36:50] p0007_dc_p2p_p30_c1 deployed (p0007_dc_p2p_c1)
+[01:48:52] p0007_dc_p2p_p30_c1 start=0 inner=0
+[01:49:18] p0007_dc_p2p_p30_c1 energy fetched
+[2026-10-21_01:49:18] BEGIN p0007_dc_semi_p30_c1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=gpu_nodes experiment.parallel=30 experiment.question_limit=2
+[01:51:57] p0007_dc_semi_p30_c1 deployed (p0007_dc_semi_c1)
+[01:59:56] p0007_dc_semi_p30_c1 start=0 inner=0
+[02:00:21] p0007_dc_semi_p30_c1 energy fetched
+[2026-10-21_02:00:21] BEGIN p0007_dc_central_p30_c1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=requester experiment.parallel=30 experiment.question_limit=2
+[02:02:54] p0007_dc_central_p30_c1 deployed (p0007_dc_central_c1)
+[02:13:55] p0007_dc_central_p30_c1 start=0 inner=0
+[02:14:20] p0007_dc_central_p30_c1 energy fetched
+[2026-10-21_02:14:20] BEGIN p0007_dc_semi_p30_c2 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=gpu_nodes experiment.parallel=30 experiment.question_limit=2
+[02:16:55] p0007_dc_semi_p30_c2 deployed (p0007_dc_semi_c2)
+[02:25:54] p0007_dc_semi_p30_c2 start=0 inner=0
+[02:26:20] p0007_dc_semi_p30_c2 energy fetched
+[2026-10-21_02:26:20] BEGIN p0007_dc_p2p_p30_c2 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer answer.owner_m=3 answer.aggregate=abstain retrieval.fusion=rrf experiment.central_generation=requester experiment.parallel=30 experiment.question_limit=2
+[02:29:02] p0007_dc_p2p_p30_c2 deployed (p0007_dc_p2p_c2)
+[02:41:03] p0007_dc_p2p_p30_c2 start=0 inner=0
+[02:41:29] p0007_dc_p2p_p30_c2 energy fetched
+[2026-10-21_02:41:29] BEGIN p0007_dc_central_p30_c2 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=requester experiment.parallel=30 experiment.question_limit=2
+[02:44:04] p0007_dc_central_p30_c2 deployed (p0007_dc_central_c2)
+[02:55:02] p0007_dc_central_p30_c2 start=0 inner=0
+[02:55:28] p0007_dc_central_p30_c2 energy fetched
+[2026-10-21_02:55:28] BEGIN p0007_dc_p2p_p30_c3 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer answer.owner_m=3 answer.aggregate=abstain retrieval.fusion=rrf experiment.central_generation=requester experiment.parallel=30 experiment.question_limit=2
+[02:58:00] p0007_dc_p2p_p30_c3 deployed (p0007_dc_p2p_c3)
+[03:10:02] p0007_dc_p2p_p30_c3 start=0 inner=0
+[03:10:27] p0007_dc_p2p_p30_c3 energy fetched
+[2026-10-21_03:10:27] BEGIN p0007_dc_central_p30_c3 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=requester experiment.parallel=30 experiment.question_limit=2
+[03:12:59] p0007_dc_central_p30_c3 deployed (p0007_dc_central_c3)
+[03:23:58] p0007_dc_central_p30_c3 start=0 inner=0
+[03:24:24] p0007_dc_central_p30_c3 energy fetched
+[2026-10-21_03:24:24] BEGIN p0007_dc_semi_p30_c3 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=gpu_nodes experiment.parallel=30 experiment.question_limit=2
+[03:27:02] p0007_dc_semi_p30_c3 deployed (p0007_dc_semi_c3)
+[03:34:00] p0007_dc_semi_p30_c3 start=0 inner=0
+[03:34:26] p0007_dc_semi_p30_c3 energy fetched
+[2026-10-21_03:34:26] ALL DONE

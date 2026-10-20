@@ -1,0 +1,105 @@
+{
+ "K3_gpu_scaling": {
+  "30": {
+   "semi_over_central": 1.424077402194378,
+   "efficiency_vs_10_gpus": 0.1424077402194378,
+   "same_block_ratios": [
+    {
+     "rep": 1,
+     "ratio": 1.431614526417915
+    },
+    {
+     "rep": 2,
+     "ratio": 1.2688670971709146
+    },
+    {
+     "rep": 3,
+     "ratio": 1.786671634624064
+    }
+   ]
+  }
+ },
+ "K4_predictions": [
+  {
+   "cond": "semi",
+   "parallel": 30,
+   "model": "generation_bound",
+   "predicted_qps": 5.247784710785318,
+   "actual_qps_median": 0.7473251618210531,
+   "actual_over_predicted": 0.1424077402194378,
+   "within_20pct": false
+  },
+  {
+   "cond": "p2p",
+   "parallel": 30,
+   "model": "generation_bound",
+   "predicted_qps": 1.7492615702617726,
+   "actual_qps_median": 0.4857982203603042,
+   "actual_over_predicted": 0.2777161681357955,
+   "within_20pct": false
+  }
+ ],
+ "decode_drift_by_condition": {
+  "central": {
+   "decode_s_per_token_min": 0.039330053509079525,
+   "decode_s_per_token_max": 0.04109162875301168,
+   "max_over_min": 1.0447895460789416
+  },
+  "semi": {
+   "decode_s_per_token_min": 0.05275448195301322,
+   "decode_s_per_token_max": 0.07335450628065691,
+   "max_over_min": 1.3904886099723526
+  },
+  "p2p": {
+   "decode_s_per_token_min": 0.04557279812861962,
+   "decode_s_per_token_max": 0.05719098523302636,
+   "max_over_min": 1.2549368829979861
+  }
+ },
+ "external_gpu_use": {
+  "central": {
+   "n_runs": 3,
+   "n_with_snapshot": 3,
+   "n_active_at_pre_or_post": 3,
+   "n_idle_power_suspect": 3
+  },
+  "central_norrf": {
+   "n_runs": 0,
+   "n_with_snapshot": 0,
+   "n_active_at_pre_or_post": 0,
+   "n_idle_power_suspect": 0
+  },
+  "semi": {
+   "n_runs": 3,
+   "n_with_snapshot": 3,
+   "n_active_at_pre_or_post": 3,
+   "n_idle_power_suspect": 3
+  },
+  "p2p": {
+   "n_runs": 3,
+   "n_with_snapshot": 3,
+   "n_active_at_pre_or_post": 3,
+   "n_idle_power_suspect": 2
+  },
+  "p2p_ref": {
+   "n_runs": 0,
+   "n_with_snapshot": 0,
+   "n_active_at_pre_or_post": 0,
+   "n_idle_power_suspect": 0
+  }
+ },
+ "K4_selection_agreement": {
+  "p2p_ref": {
+   "offline_key": "hybrid_probe",
+   "n": 0,
+   "same": 0,
+   "agreement": null
+  },
+  "p2p": {
+   "offline_key": "bm25_probe_m3",
+   "n": 900,
+   "same": 900,
+   "agreement": 1.0
+  }
+ }
+}

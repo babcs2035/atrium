@@ -1,0 +1,34 @@
+# 1792512401 2026-10-21T01:06:41
+== wafl-ctrl5
+13.16 W, 9 %, 8873 MiB
+pid=703371  8758 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.100
+133.34 W, 74 %, 4588 MiB
+pid=1650022  4548 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.101
+136.46 W, 91 %, 4859 MiB
+pid=1394214  4842 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.102
+37.68 W, 0 %, 4798 MiB
+pid=1424845  4724 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.103
+128.40 W, 95 %, 4654 MiB
+pid=1428664  4614 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.104
+124.86 W, 100 %, 4967 MiB
+pid=1341876  4950 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.105
+133.83 W, 93 %, 5087 MiB
+pid=1354630  5070 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.106
+12.66 W, 0 %, 4921 MiB
+pid=1351231  4912 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.107
+22.22 W, 0 %, 4691 MiB
+pid=1335312  4682 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.108
+16.43 W, 0 %, 4545 MiB
+pid=2932092  4528 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.109
+16.05 W, 0 %, 5053 MiB
+pid=2931371  5036 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 

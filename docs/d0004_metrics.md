@@ -15,6 +15,8 @@
 | `placement.json` | start | この実行の配置（どのホストがどのシャードを持っていたか．委託先の対応 `delegate_of` を含む） |
 | `judgements.jsonl` | `atrium judge` | EnronQA の回答の採点（§3．Git で追跡する．本文は含まない） |
 | `e0/<host>/`，`e0_summary.md` | start / analyze | E0 の実測値とその表（§4） |
+| `energy/<host>.csv` | `scripts/remote/energy_log.sh`（p0007 D） | GPU の消費電力の 1 秒ごとの記録（`unix_time,gpu_w,rapl_uj`．書式と積分は `atrium.energy`）．実行の前後に約 20 秒のアイドルを含む．Git で追跡する |
+| `gpu_apps_pre.txt`，`gpu_apps_post.txt` | `results/p0007_d_live/gpu_apps_snapshot.sh` | 実行の前後の，GPU を持つ 11 台の電力・使用率・メモリと GPU を使うプロセス（他の利用者の使用の記録．p0007 D） |
 
 git のコミットは，未コミットの変更があると末尾に `-dirty` が付く．
 

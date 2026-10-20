@@ -1,0 +1,9 @@
+[2026-10-20_13:43:57] BEGIN p0007_d_smoke2_semi_p30_r0 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=gpu_nodes experiment.question_limit=1 experiment.parallel=30
+[13:46:23] p0007_d_smoke2_semi_p30_r0 deployed (p0007_d_smoke2_semi_r0)
+[13:48:14] p0007_d_smoke2_semi_p30_r0 start=0 inner=0
+[13:48:37] p0007_d_smoke2_semi_p30_r0 energy fetched
+[2026-10-20_13:48:37] BEGIN p0007_d_smoke2_semi_p4_r0 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=central_local experiment.answer_mode=snippet_return answer.owner_m=2 answer.aggregate=max_score retrieval.fusion=rrf experiment.central_generation=gpu_nodes experiment.question_limit=1 experiment.parallel=4
+[13:48:39] p0007_d_smoke2_semi_p4_r0 config synced
+[13:50:30] p0007_d_smoke2_semi_p4_r0 start=0 inner=0
+[13:50:53] p0007_d_smoke2_semi_p4_r0 energy fetched
+[2026-10-20_13:50:53] ALL DONE

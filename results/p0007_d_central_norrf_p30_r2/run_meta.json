@@ -1,0 +1,610 @@
+{
+ "run_id": "p0007_d_central_norrf_p30_r2",
+ "git_head": "eb13b00a5f87-dirty",
+ "dataset": "enronqa",
+ "routing": "central_local",
+ "answer_mode": "snippet_return",
+ "evaluation_only": false,
+ "merge": "score",
+ "advert_bytes": 0,
+ "question_split": "test",
+ "n_questions": 300,
+ "n_skipped_on_resume": 0,
+ "n_nodes": 30,
+ "discovery_s": 0.0,
+ "sources": [],
+ "config": {
+  "experiment": {
+   "kind": "e1_routing",
+   "dataset": "enronqa",
+   "routing": "central_local",
+   "answer_mode": "snippet_return",
+   "question_limit": 2,
+   "question_split": "test",
+   "parallel": 30,
+   "seed": 12,
+   "http_pool": "per_node",
+   "requester_procs": 1,
+   "node_workers": 1,
+   "probe_body": "per_request",
+   "sniffio_lookup": "search",
+   "pool_assign": "stock",
+   "retrieve_body": "per_request",
+   "churn": null,
+   "central_generation": "requester"
+  },
+  "retrieval": {
+   "k_ret": 50,
+   "k_rerank": 15,
+   "merge": "score",
+   "query_embedding": {
+    "medrag": "live",
+    "feb4rag": "cached",
+    "enronqa": "cached"
+   },
+   "fusion": "none",
+   "fusion_depth": 50
+  },
+  "routing": {
+   "random_k": {
+    "medrag": 3,
+    "feb4rag": 9,
+    "enronqa": 2
+   },
+   "ragroute_threshold": 0.5,
+   "top_m": {
+    "enronqa": 2,
+    "medrag": 3
+   },
+   "probe_k": {
+    "enronqa": 75
+   },
+   "probe_d": {
+    "enronqa": 30
+   },
+   "term_probe_d": {
+    "enronqa": 24
+   },
+   "hybrid_probe_d": {
+    "enronqa": 16
+   },
+   "summary_weight": 0.5,
+   "bm25_probe_d": {
+    "enronqa": 24
+   },
+   "bm25_weight": 2.0
+  },
+  "llm": {
+   "ollama_version": "0.35.1",
+   "requester_model": "llama3.1:8b",
+   "expert_model": "qwen3:0.6b",
+   "expert_model_gpu": "llama3.1:8b",
+   "num_predict": 2048,
+   "num_ctx": 16384,
+   "think": false,
+   "temperature": 0.0,
+   "requester_num_parallel": 2,
+   "timeout_s": 1800.0
+  },
+  "local_answer": {
+   "k_context": 15,
+   "aggregate": "vote",
+   "timeout_s": 1800.0
+  },
+  "answer": {
+   "owner_m": 2,
+   "aggregate": "max_score"
+  },
+  "e0": {
+   "hosts": [
+    "192.168.14.108",
+    "192.168.14.109"
+   ],
+   "iperf_pairs": [
+    [
+     "192.168.14.108",
+     "192.168.14.109"
+    ],
+    [
+     "192.168.14.108",
+     "192.168.13.100"
+    ]
+   ],
+   "gguf_models": [
+    {
+     "name": "qwen3-0.6b",
+     "repo": "unsloth/Qwen3-0.6B-GGUF",
+     "file": "Qwen3-0.6B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-1.7b",
+     "repo": "unsloth/Qwen3-1.7B-GGUF",
+     "file": "Qwen3-1.7B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-4b",
+     "repo": "unsloth/Qwen3-4B-GGUF",
+     "file": "Qwen3-4B-Q4_K_M.gguf"
+    },
+    {
+     "name": "qwen3-8b",
+     "repo": "unsloth/Qwen3-8B-GGUF",
+     "file": "Qwen3-8B-Q4_K_M.gguf"
+    }
+   ],
+   "faiss_vectors": [
+    1000000,
+    2000000,
+    3000000
+   ],
+   "faiss_queries": 20
+  },
+  "cluster": {
+   "control": "wafl-ctrl5",
+   "ssh_user": "denjo",
+   "remote_dir": "/home/denjo/workspace/ktakahashi/atrium",
+   "data_dir": "/home/denjo/atrium-data",
+   "registry_port": 5000,
+   "node_port": 8100,
+   "requester": {
+    "host": "wafl-ctrl5",
+    "ssh_user": null
+   },
+   "requester_llm": null,
+   "experts": [
+    {
+     "host": "192.168.13.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.13.109",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.14.109",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.109",
+     "ssh_user": null
+    }
+   ],
+   "gpu_workers": [
+    {
+     "host": "192.168.15.100",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.101",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.102",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.103",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.104",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.105",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.106",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.107",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.108",
+     "ssh_user": null
+    },
+    {
+     "host": "192.168.15.109",
+     "ssh_user": null
+    }
+   ],
+   "shard_budget_gb": 6.0,
+   "node_admin": false
+  },
+  "data": {
+   "medrag": {
+    "sources": [
+     "pubmed",
+     "statpearls",
+     "textbooks",
+     "wikipedia"
+    ],
+    "article_encoder": "ncbi/MedCPT-Article-Encoder",
+    "query_encoder": "ncbi/MedCPT-Query-Encoder",
+    "embed_batch_size": 128,
+    "embed_precision": "fp16_autocast",
+    "medrag_commit": "7599a728a28789fd601728c08d313b1148051f41",
+    "mirage_url": "https://raw.githubusercontent.com/Teddy-XiongGZ/MIRAGE/main/benchmark.json",
+    "statpearls_url": "https://ftp.ncbi.nlm.nih.gov/pub/litarch/3d/12/statpearls_NBK430685.tar.gz",
+    "descriptions": {
+     "pubmed": "PubMed abstracts: titles and abstracts of biomedical research articles.",
+     "statpearls": "StatPearls: clinical decision support articles for medical professionals.",
+     "textbooks": "Medical textbooks widely used by USMLE examinees (18 books).",
+     "wikipedia": "General-domain Wikipedia articles."
+    }
+   },
+   "feb4rag": {
+    "sources": [
+     "arguana",
+     "climate-fever",
+     "dbpedia-entity",
+     "fever",
+     "fiqa",
+     "hotpotqa",
+     "msmarco",
+     "nfcorpus",
+     "nq",
+     "scidocs",
+     "scifact",
+     "trec-covid",
+     "webis-touche2020"
+    ],
+    "feb4rag_commit": "b0fe9e19eddac3586fd54d30aebbb5d3d0d72118",
+    "beir_hf_repo": "BeIR/{name}",
+    "centroid_sample": 2000,
+    "centroid_sample_overrides": {
+     "trec-covid": 500
+    }
+   },
+   "enronqa": {
+    "sources": [
+     "allen-p",
+     "arnold-j",
+     "arora-h",
+     "badeer-r",
+     "bailey-s",
+     "bass-e",
+     "baughman-d",
+     "beck-s",
+     "benson-r",
+     "blair-l",
+     "brawner-s",
+     "buy-r",
+     "campbell-l",
+     "carson-m",
+     "cash-m",
+     "causholli-m",
+     "corman-s",
+     "crandell-s",
+     "cuilla-m",
+     "dasovich-j",
+     "davis-d",
+     "dean-c",
+     "delainey-d",
+     "derrick-j",
+     "dickson-s",
+     "donoho-l",
+     "donohoe-t",
+     "dorland-c",
+     "ermis-f",
+     "farmer-d",
+     "fischer-m",
+     "forney-j",
+     "fossum-d",
+     "gang-l",
+     "gay-r",
+     "geaccone-t",
+     "germany-c",
+     "gilbertsmith-d",
+     "giron-d",
+     "griffith-j",
+     "grigsby-m",
+     "guzman-m",
+     "haedicke-m",
+     "hain-m",
+     "harris-s",
+     "hayslett-r",
+     "heard-m",
+     "hendrickson-s",
+     "hernandez-j",
+     "hodge-j",
+     "holst-k",
+     "horton-s",
+     "hyatt-k",
+     "hyvl-d",
+     "jones-t",
+     "kaminski-v",
+     "kean-s",
+     "keavey-p",
+     "keiser-k",
+     "king-j",
+     "kitchen-l",
+     "kuykendall-t",
+     "lavorato-j",
+     "lay-k",
+     "lenhart-m",
+     "lewis-a",
+     "linder-e",
+     "lokay-m",
+     "lokey-t",
+     "love-p",
+     "lucci-p",
+     "maggi-m",
+     "mann-k",
+     "martin-t",
+     "may-l",
+     "mccarty-d",
+     "mcconnell-m",
+     "mckay-b",
+     "mckay-j",
+     "mclaughlin-e",
+     "merriss-s",
+     "meyers-a",
+     "mims-thurston-p",
+     "motley-m",
+     "neal-s",
+     "nemec-g",
+     "panus-s",
+     "parks-j",
+     "pereira-s",
+     "perlingiere-d",
+     "phanis-s",
+     "pimenov-v",
+     "platter-p",
+     "presto-k",
+     "quenet-j",
+     "quigley-d",
+     "rapp-b",
+     "reitmeyer-j",
+     "richey-c",
+     "ring-a",
+     "ring-r",
+     "rodrique-r",
+     "rogers-b",
+     "ruscitti-k",
+     "sager-e",
+     "saibi-e",
+     "salisbury-h",
+     "sanchez-m",
+     "sanders-r",
+     "scholtes-d",
+     "schoolcraft-d",
+     "schwieger-j",
+     "scott-s",
+     "semperger-c",
+     "shackleton-s",
+     "shankman-j",
+     "shapiro-r",
+     "shively-h",
+     "skilling-j",
+     "slinger-r",
+     "smith-m",
+     "solberg-g",
+     "south-s",
+     "staab-t",
+     "stclair-c",
+     "steffes-j",
+     "stepenovitch-j",
+     "stokley-c",
+     "storey-g",
+     "sturm-f",
+     "swerzbin-m",
+     "symes-k",
+     "taylor-m",
+     "tholt-j",
+     "thomas-p",
+     "townsend-j",
+     "tycholiz-b",
+     "ward-k",
+     "watson-k",
+     "weldon-c",
+     "whalley-g",
+     "whalley-l",
+     "white-s",
+     "whitt-m",
+     "williams-j",
+     "williams-w3",
+     "wolfe-j",
+     "ybarbo-p",
+     "zipper-a",
+     "zufferli-j"
+    ],
+    "hf_repo": "MichaelR207/enron_qa_0922",
+    "hf_revision": "c0b3a9190fd970e83cfbe7d399a08860e43e221e",
+    "encoder": "Snowflake/snowflake-arctic-embed-m-v1.5",
+    "embed_batch_size": 64,
+    "test_per_inbox": 20,
+    "dev_per_inbox": 20,
+    "train_per_inbox": 40,
+    "duplicate_jaccard": 0.9,
+    "k_context": 5,
+    "owner_probe_per_inbox": 10,
+    "card_subjects": 40,
+    "term_sketch_size": 200,
+    "n_centroids": 32,
+    "ragroute_negatives": 10,
+    "judge_model": "qwen3:8b",
+    "judge_reference_model": "qwen3:14b",
+    "judge_validate_n": 500,
+    "judge_kappa_n": 300
+   }
+  }
+ },
+ "started_at": 1792495901.6302567,
+ "http_pool": "per_node",
+ "requester_procs": 1,
+ "probe_body": "per_request",
+ "retrieve_body": "per_request",
+ "sniffio_lookup": "search",
+ "sniffio_installed": false,
+ "pool_assign": "stock",
+ "httpcore_version": "1.0.9",
+ "central_index": {
+  "n_docs": 73772,
+  "n_inboxes": 150,
+  "read_docs_s": 0.7086669756099582,
+  "read_emb_s": 0.18430657871067524,
+  "total_s": 0.9191038720309734,
+  "bm25_s": 0.0
+ },
+ "requester_cpu_user_s": 201.621703,
+ "requester_cpu_sys_s": 0.27133699999999994,
+ "requester_cpu_s": 201.89303999999998,
+ "requester_cpu_util": 0.3880768565041184,
+ "requester_cpu_util_per_proc": [
+  0.3880768565041184
+ ],
+ "requester_parallel_per_proc": [
+  30
+ ],
+ "expert_cpu_util": {
+  "192.168.13.100": 0.000986980882536004,
+  "192.168.13.101": 0.0009793309704604338,
+  "192.168.13.102": 0.0009492268301573384,
+  "192.168.13.103": 0.000984499796098843,
+  "192.168.13.104": 0.0010017485848058624,
+  "192.168.13.105": 0.0010018596162879884,
+  "192.168.13.106": 0.0009726689738901772,
+  "192.168.13.107": 0.0009898364020455627,
+  "192.168.13.108": 0.0009935281916180578,
+  "192.168.13.109": 0.000991737275320667,
+  "192.168.14.100": 0.0009876062940823338,
+  "192.168.14.101": 0.0010376541743519511,
+  "192.168.14.102": 0.0009888227080452467,
+  "192.168.14.103": 0.0009737075679444964,
+  "192.168.14.104": 0.0009634430156451171,
+  "192.168.14.105": 0.000965611917222702,
+  "192.168.14.106": 0.0009402397905638535,
+  "192.168.14.107": 0.0010195711338818786,
+  "192.168.14.108": 0.0008773957333285855,
+  "192.168.14.109": 0.0009877035934364848,
+  "192.168.15.100": 0.00036061012669191085,
+  "192.168.15.101": 0.0005260815845102065,
+  "192.168.15.102": 0.0003513208649515187,
+  "192.168.15.103": 0.0006336128982997449,
+  "192.168.15.104": 0.0005735460217056586,
+  "192.168.15.105": 0.00033470772729891094,
+  "192.168.15.106": 0.00042736912250148506,
+  "192.168.15.107": 0.0006323822485949796,
+  "192.168.15.108": 0.0011301405752657707,
+  "192.168.15.109": 0.001049797761921684
+ },
+ "expert_cpu_util_max": 0.0011301405752657707,
+ "expert_cpu_util_median": 0.0009765192692024651,
+ "control_cpu_busy": 0.23543985516426316,
+ "control_cpu_softirq": 0.0003672208119588905,
+ "requester_tcp": {
+  "RetransSegs": 0,
+  "TCPSynRetrans": 0,
+  "TCPTimeouts": 0
+ },
+ "finished_at": 1792496421.9817104,
+ "failures": 0
+}
