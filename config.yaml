@@ -10,6 +10,7 @@ experiment:
   dataset: medrag
   # ragroute / all / random / none（RAGRoute の 4 方式）．そのほかの方式は docs/d0002_configuration.md を参照
   # （central_local：質問者が全メールの 1 つの索引を持ち，ノードに問い合わせない．p0007．answer_mode は snippet_return）
+  # （bm25_probe：hybrid_probe と同じ要約の上位 D 台へ probe を送り，probe の得点を密ベクトルと本文の BM25 にする．p0007 A4）
   routing: all
   # snippet_return: 断片返却型 ／ local_answer: 宿る型 ／ retrieval_only: LLM を呼ばず検索まで ／
   # owner_answer: 選んだ各受信箱が自分の上位 5 通だけで答えて統合（p0007．answer 節を参照）
@@ -98,6 +99,12 @@ routing:
     enronqa: 16
   # hybrid_probe の併用の重み（本文の重心側）
   summary_weight: 0.5
+  # bm25_probe（p0007 A4）が probe を送るデバイスの数 D（A3 の事前登録の規則で dev から選んだ値．要約は hybrid_probe と同じ
+  # <data_dir>/enronqa/summary/．BM25 の統計の追加ファイルは atrium build-summary が作る）と，probe の得点
+  # z(密ベクトル) + w × z(BM25) の BM25 側の重み w
+  bm25_probe_d:
+    enronqa: 24
+  bm25_weight: 2.0
 
 llm:
   # 各ノードで使う Ollama のバージョン（イメージは制御点の registry の mirror/ から取得する）

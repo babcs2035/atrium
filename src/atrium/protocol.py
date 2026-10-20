@@ -40,19 +40,31 @@ class RetrieveResponse(_Model):
     duration_s: float
 
 
+class Bm25Query(_Model):
+    """bm25_probe（p0007 A4）の probe に載せる，質問の語の統計．ノードはこれだけで受信箱の中の BM25 を採点できる．"""
+
+    # 質問の語（重複を除く）→ 全体で共有した IDF（質問者が，各デバイスの公開済みの文書頻度の合計から作る）
+    idf: dict[str, float]
+    # 全体で共有した文書の長さ（本文の語数）の平均
+    avg_doc_len: float = Field(gt=0)
+
+
 class ProbeRequest(_Model):
     """flood_score の 1 段目の要求．ノードは各シャードの最高の検索スコアだけを返す（本文は返さない）．"""
 
     shard_ids: list[str]
     embedding: list[float]
+    # bm25_probe だけが付ける（省略なら従来と同じ要求）
+    bm25: Bm25Query | None = None
 
 
 class ProbeResponse(_Model):
-    """シャード ID → 最高の検索スコア．"""
+    """シャード ID → 最高の検索スコア．bm25_probe では，シャード ID → 受信箱の中の本文の BM25 の最大も返す．"""
 
     node_id: str
     scores: dict[str, float]
     duration_s: float
+    bm25: dict[str, float] | None = None
 
 
 class AnswerRequest(_Model):

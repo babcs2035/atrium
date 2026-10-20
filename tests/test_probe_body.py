@@ -17,9 +17,13 @@ from tests.test_requester import DIM, _cfg, _questions, _requester, corpus  # no
 
 
 def _httpx_json_body(shard_ids: list[str], embedding: list[float]) -> bytes:
-    """per_request の経路が実際に送る本文（ProbeRequest → model_dump → httpx の json=）．"""
+    """per_request の経路が実際に送る本文（ProbeRequest → model_dump(exclude_none=True) → httpx の json=）．
+
+    exclude_none は，bm25_probe だけが付ける bm25 のキーを，付けない方式の本文から省いて従来と同じ本文にするため．"""
     req = ProbeRequest(shard_ids=shard_ids, embedding=embedding)
-    return httpx.Request("POST", "http://node/v1/probe", json=req.model_dump()).content
+    return httpx.Request(
+        "POST", "http://node/v1/probe", json=req.model_dump(exclude_none=True)
+    ).content
 
 
 def _pre_encoded_body(shard_ids: list[str], embedding: list[float]) -> bytes:

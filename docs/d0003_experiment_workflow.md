@@ -205,7 +205,7 @@ bash scripts/tasks/remote.sh newcomer_eval <out_name> <reference_run> [n_newcome
 bash scripts/tasks/remote.sh central_eval <out_name> <c1_run> [<name>=<run> ...]  # 中央集約ベースライン（p0006 P1．c1_run は routing=all・snippet_return の実行）
 bash scripts/tasks/remote.sh exposure_eval <out_name> <p2p,...> <name>=<run>[:<1 問あたりの値>] ...  # 外に出た文書の重複なしの数と H-B の判定（p0007 B．p2p は判定に使う条件の name）
 bash scripts/tasks/remote.sh frontier_eval <out_name> <placement_run|-> [methods] [--dataset enronqa|feb4rag|medrag]  # 汎用のルーティング方式のフロンティア（p0006 P2・P3．FeB4RAG・MedRAG は配置が要らないので - を渡す）
-bash scripts/tasks/remote.sh build_summary <out_name> <placement_run>  # term_probe・hybrid_probe の要約とオフラインの選択（p0006 P4）
+bash scripts/tasks/remote.sh build_summary <out_name> <placement_run>  # term_probe・hybrid_probe・bm25_probe の要約とオフラインの選択（p0006 P4・p0007 A4．bm25_probe の前に，同じ要約の bm25_stats.npz を作るため必ず流す）
 # 3. 結果を操作端末へ取得する
 rsync -az wafl-ctrl5:<remote_dir>/results/<out_name>/ results/<out_name>/
 ```

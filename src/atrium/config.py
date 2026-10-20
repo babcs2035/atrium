@@ -29,6 +29,8 @@ RoutingName = Literal[
     "device_probe",
     "term_probe",
     "hybrid_probe",
+    # p0007 A4：1 段目は hybrid_probe と同じ要約の上位 D 台．probe の得点は，密ベクトルと本文の BM25（全体で共有した IDF）の標準化の和（atrium.routing.summary）
+    "bm25_probe",
     # p0007 I4：質問者が全メールの 1 つの索引を持ち，ノードに問い合わせずに上位 k 通を取る（中央集約．atrium.routing.central）
     "central_local",
 ]
@@ -213,6 +215,10 @@ class RoutingConfig(_Strict):
     hybrid_probe_d: dict[DatasetName, int] = Field(default_factory=dict)
     # hybrid_probe の併用の重み（本文の重心側．P2 の格子で最良の 0.5）
     summary_weight: float = Field(default=0.5, gt=0)
+    # bm25_probe（p0007 A4）が probe を送るデバイスの数 D．A3 の事前登録の規則で dev から選んだ値（要約は hybrid_probe と同じ）
+    bm25_probe_d: dict[DatasetName, int] = Field(default_factory=dict)
+    # bm25_probe の probe の得点 z(密ベクトル) + w × z(BM25) の BM25 側の重み w（A3 の事前登録の wb = 2）
+    bm25_weight: float = Field(default=2.0, gt=0)
 
 
 class LlmConfig(_Strict):

@@ -4,7 +4,8 @@
 
 - 断片返却型（/v1/retrieve）: 検索した断片をそのまま返す．
 - 宿る型（/v1/answer）: 断片を自分の LLM（同じホストの Ollama）に渡し，回答文だけを返す．
-- flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．
+- flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．routing=bm25_probe（p0007 A4）では，
+  要求の `bm25`（質問の語ごとの IDF・長さの平均）で採点した，受信箱の中の本文の BM25 の最大も返す．
 - 参加・離脱の再生（/v1/admin/availability．EQ7b）: experiment.churn を指定した実験でだけ有効になり，離脱中は
   /healthz 以外の要求を 503 で拒否する．
 - 管理 API（p0007 I5．cluster.node_admin の実験でだけ有効）: メールの非表示（/v1/admin/docs/hide）・追加（/v1/admin/docs/add．
@@ -424,10 +425,22 @@ def create_app(
     def probe(req: ProbeRequest) -> ProbeResponse:
         start = time.perf_counter()
         scores: dict[str, float] = {}
+        bm25: dict[str, float] | None = None if req.bm25 is None else {}
         for shard_id in req.shard_ids:
-            docs = search(store_of(shard_id), 1, req.embedding, None, None)
+            store = store_of(shard_id)
+            docs = search(store, 1, req.embedding, None, None)
             scores[shard_id] = docs[0].score if docs else float("-inf")
-        return ProbeResponse(node_id=node_id, scores=scores, duration_s=time.perf_counter() - start)
+            if bm25 is not None and req.bm25 is not None:
+                # routing=bm25_probe（p0007 A4）：受信箱の中の本文の BM25 の最大（質問者から渡された統計で採点する）
+                if not isinstance(store, FaissShardStore):
+                    raise NodeError(400, "Invalid probe request", "bm25 needs a faiss shard")
+                try:
+                    bm25[shard_id] = store.probe_bm25(req.bm25.idf, req.bm25.avg_doc_len)
+                except ValueError as exc:
+                    raise NodeError(400, "Invalid probe request", str(exc)) from exc
+        return ProbeResponse(
+            node_id=node_id, scores=scores, bm25=bm25, duration_s=time.perf_counter() - start
+        )
 
     @app.post("/v1/answer", dependencies=up_only)
     async def answer(req: AnswerRequest) -> AnswerResponse:
@@ -542,7 +555,12 @@ def main(
 
     cfg = load_config(config_path)
     stores = {
-        sid: load_shard(shards_dir / sid, cfg.retrieval.fusion, cfg.retrieval.fusion_depth)
+        sid: load_shard(
+            shards_dir / sid,
+            cfg.retrieval.fusion,
+            cfg.retrieval.fusion_depth,
+            cfg.experiment.routing == "bm25_probe",
+        )
         for sid in shard_ids
     }
     workers = cfg.experiment.node_workers
@@ -601,7 +619,12 @@ def serve_one_worker(args: WorkerArgs) -> None:
     )
     cfg = load_config(args.config_path)
     stores = {
-        sid: load_shard(args.shards_dir / sid, cfg.retrieval.fusion, cfg.retrieval.fusion_depth)
+        sid: load_shard(
+            args.shards_dir / sid,
+            cfg.retrieval.fusion,
+            cfg.retrieval.fusion_depth,
+            cfg.experiment.routing == "bm25_probe",
+        )
         for sid in args.shard_ids
     }
     app = create_app(args.node_id, stores, cfg, args.ollama_url, expert_model=args.expert_model)

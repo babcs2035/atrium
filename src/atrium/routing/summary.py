@@ -6,6 +6,10 @@
 
 - term_probe：CORI 型の語の統計の得点で上位 D 台．
 - hybrid_probe：語の統計の得点と，本文の重心のデバイスごとの最大を，質問ごとにデバイス間で標準化して weight（重心側）で足した得点で上位 D 台．
+- bm25_probe（p0007 A4）：1 段目は hybrid_probe と同じ．probe に答えた受信箱の中で，密ベクトルの最高の内積と，本文の BM25 の最大
+  （質問者が probe の要求に載せた IDF・長さの平均で，ノードが採点する）をそれぞれ標準化して `z(dense) + w × z(bm25)` の上位 m 個を選ぶ．
+  IDF は，各デバイスが hybrid_probe で既に公開した語の文書頻度の合計（published）から作る（追加の公開なし．
+  成果物の `bm25_stats.npz`）．オフラインの評価（frontier_methods の bm25_fuse・published）と同じ式．
 成果物の公開情報（語の統計・重心）は，デバイスが質問者へ一度だけ公開するものとして，ここでは質問者が読み込む．
 その送信の費用と待ち時間は実機で測っていない（質問ごとの要求数には含まれない）．
 """
@@ -20,7 +24,8 @@ from typing import Any, Literal
 
 import numpy as np
 
-from atrium.arrays import F32Array
+from atrium.arrays import F32Array, F64Array
+from atrium.protocol import Bm25Query
 from atrium.routing import RoutingQuery, SourceProfile
 from atrium.routing.advert import top_m
 
@@ -29,10 +34,29 @@ META_FILE = "meta.json"
 VOCAB_FILE = "vocab.json"
 WEIGHTS_FILE = "weights.npz"
 CENTERS_FILE = "centers.npz"
+BM25_STATS_FILE = "bm25_stats.npz"
 FLOAT32_BYTES = 4
 # 語の統計の 1 組（語の番号と文書頻度）を float32 の 2 個として数える（frontier_methods と同じ）
 TERM_ENTRY_BYTES = 8
 Mode = Literal["term", "hybrid"]
+
+
+@dataclass(frozen=True)
+class Bm25Stats:
+    """bm25_probe の IDF の元（全デバイスが公開済みの文書頻度の合計と，全体の文書の数・長さの平均）．"""
+
+    # 要約の語彙の番号 → 各デバイスが公開した（上位 term_size 語の）文書頻度の合計．公開されなかった語は 0
+    published_df: np.ndarray[Any, Any]
+    # 全メール（本文が空でないもの）の数
+    n_docs: int
+    # 全メールの本文の語数（`tokenize` で分けた数．フィルタ前）の平均
+    avg_doc_len: float
+
+    def idf_of(self, vocab: Mapping[str, int], term: str) -> float:
+        """語の IDF = log(1 + (N − df + 0.5) / (df + 0.5)）．要約の語彙に無い語（短い語・数字・機能語）は df = N（IDF ≈ 0）．"""
+        j = vocab.get(term)
+        df = float(self.n_docs) if j is None else float(self.published_df[j])
+        return float(np.log(1 + (self.n_docs - df + 0.5) / (df + 0.5)))
 
 
 @dataclass(frozen=True)
@@ -46,6 +70,8 @@ class SummaryArtifact:
     centers: list[F32Array]
     term_size: int
     names: list[str]
+    # bm25_probe だけが使う（成果物に bm25_stats.npz が無ければ None．hybrid_probe・term_probe は使わない）
+    bm25: Bm25Stats | None = None
 
 
 def write_summary(
@@ -57,8 +83,9 @@ def write_summary(
     cf: np.ndarray[Any, Any],
     centers: list[F32Array],
     term_size: int,
+    bm25: Bm25Stats | None = None,
 ) -> None:
-    """要約の成果物を書く（デバイスの並びは groups の順．データ源の並びは names の順）．"""
+    """要約の成果物を書く（デバイスの並びは groups の順．データ源の並びは names の順．bm25 があれば bm25_stats.npz も書く）．"""
     from scipy import sparse
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -76,6 +103,13 @@ def write_summary(
         flat=np.concatenate(centers).astype(np.float32),
         lens=np.asarray([len(c) for c in centers]),
     )
+    if bm25 is not None:
+        np.savez(
+            out_dir / BM25_STATS_FILE,
+            published_df=bm25.published_df,
+            n_docs=np.asarray(bm25.n_docs),
+            avg_doc_len=np.asarray(bm25.avg_doc_len),
+        )
 
 
 def load_summary(summary_dir: Path) -> SummaryArtifact:
@@ -86,6 +120,14 @@ def load_summary(summary_dir: Path) -> SummaryArtifact:
     terms = json.loads((summary_dir / VOCAB_FILE).read_text(encoding="utf-8"))
     centers_file = np.load(summary_dir / CENTERS_FILE)
     flat, lens = centers_file["flat"], centers_file["lens"]
+    bm25: Bm25Stats | None = None
+    if (summary_dir / BM25_STATS_FILE).exists():
+        stats = np.load(summary_dir / BM25_STATS_FILE)
+        bm25 = Bm25Stats(
+            published_df=stats["published_df"],
+            n_docs=int(stats["n_docs"]),
+            avg_doc_len=float(stats["avg_doc_len"]),
+        )
     return SummaryArtifact(
         groups=meta["groups"],
         vocab={t: i for i, t in enumerate(terms)},
@@ -94,6 +136,7 @@ def load_summary(summary_dir: Path) -> SummaryArtifact:
         centers=list(np.split(flat, np.cumsum(lens)[:-1])),
         term_size=int(meta["term_size"]),
         names=list(meta["names"]),
+        bm25=bm25,
     )
 
 
@@ -177,3 +220,68 @@ class SummaryProbeRouter:
         if self.mode == "term":
             return terms
         return terms + sum(c.shape[0] * c.shape[1] * FLOAT32_BYTES for c in self._artifact.centers)
+
+
+class Bm25ProbeRouter(SummaryProbeRouter):
+    """bm25_probe（p0007 A4）：1 段目は hybrid_probe と同じ．probe の得点を，密ベクトルと本文の BM25 の標準化の和にする．"""
+
+    def __init__(
+        self,
+        m: int,
+        probe_d: int,
+        artifact: SummaryArtifact,
+        encoder: str,
+        weight: float,
+        bm25_weight: float,
+    ) -> None:
+        """hybrid_probe と同じ引数に，probe の得点の BM25 側の重みを足す（要約に bm25_stats.npz が無ければ拒否する）．"""
+        super().__init__("hybrid", m, probe_d, artifact, encoder, weight)
+        if artifact.bm25 is None:
+            raise ValueError(
+                "the summary has no bm25_stats.npz; rerun atrium build-summary (routing=bm25_probe)"
+            )
+        self.name = "bm25_probe"
+        self._bm25_weight = bm25_weight
+        self._stats: Bm25Stats = artifact.bm25
+
+    def bm25_query(self, query: RoutingQuery) -> Bm25Query:
+        """probe の要求に載せる，質問の語（重複を除く）ごとの IDF と，長さの平均．"""
+        vocab = self._artifact.vocab
+        return Bm25Query(
+            idf={t: self._stats.idf_of(vocab, t) for t in sorted(set(query.tokens))},
+            avg_doc_len=self._stats.avg_doc_len,
+        )
+
+    def select_among(
+        self,
+        candidates: Sequence[str],
+        probe_scores: Mapping[str, float],
+        bm25_scores: Mapping[str, float] | None = None,
+    ) -> list[str]:
+        """probe に答えた候補の中で，密ベクトルと BM25 の得点をそれぞれ標準化し（平均・母標準偏差），`z(dense) + w × z(bm25)` の上位 m 個を返す．
+
+        答えなかった候補（得点が無い・有限でない）は標準化に含めず，選ばれない．
+        """
+        from atrium.frontier_methods import Z_EPSILON
+
+        if bm25_scores is None:
+            raise ValueError("bm25_probe needs the BM25 scores of the probe responses")
+        answered = [
+            c
+            for c in candidates
+            if np.isfinite(probe_scores.get(c, float("-inf"))) and c in bm25_scores
+        ]
+        fused: dict[str, float] = {}
+        if answered:
+            dense = np.asarray([probe_scores[c] for c in answered], dtype=np.float64)
+            bm25 = np.asarray([bm25_scores[c] for c in answered], dtype=np.float64)
+
+            def z(values: F64Array) -> F64Array:
+                standardized: F64Array = (values - values.mean()) / (values.std() + Z_EPSILON)
+                return standardized
+
+            fused = dict(
+                zip(answered, (z(dense) + self._bm25_weight * z(bm25)).tolist(), strict=True)
+            )
+        scores = [fused.get(c, float("-inf")) for c in candidates]
+        return top_m(candidates, scores, self.m)

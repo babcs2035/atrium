@@ -19,7 +19,7 @@
     probe-reach               centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA．Iteration 4．制御点のコンテナ）
     device-probe-eval         device_probe の D ごとの hit@m と D の選択（EnronQA．Iteration 7．制御点のコンテナ）
     frontier-eval             汎用のルーティング方式のフロンティア評価（EnronQA．p0006 P2．制御点のコンテナ）
-    build-summary             term_probe・hybrid_probe の要約の成果物とオフラインの選択を作る（EnronQA．p0006 P4．制御点のコンテナ）
+    build-summary             term_probe・hybrid_probe・bm25_probe の要約の成果物とオフラインの選択を作る（EnronQA．p0006 P4・p0007 A4．制御点のコンテナ）
     frontier-verdict          複数のデータの frontier.json から汎用の判定を出す（p0006 §7.3．操作端末）
     node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
@@ -435,7 +435,7 @@ def cmd_frontier_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
 
 
 def cmd_build_summary(args: argparse.Namespace, cfg: AtriumConfig) -> int:
-    """term_probe・hybrid_probe の要約の成果物と，オフラインの選択を作る（p0006 P4）．"""
+    """term_probe・hybrid_probe・bm25_probe の要約の成果物と，オフラインの選択を作る（p0006 P4・p0007 A4）．"""
     from atrium import summary_build
     from atrium.manifest import read_placement
 
@@ -1174,7 +1174,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser(
         "build-summary",
-        help="term_probe・hybrid_probe の要約の成果物とオフラインの選択を作る（EnronQA．p0006 P4）",
+        help="term_probe・hybrid_probe・bm25_probe の要約の成果物とオフラインの選択を作る（EnronQA．p0006 P4・p0007 A4）",
     )
     p.add_argument("--data-dir", required=True)
     p.add_argument("--placement", required=True, help="配置（results/<run>/placement.json）")

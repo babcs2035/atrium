@@ -26,7 +26,7 @@ Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLA
 |---|---|---|
 | `kind` | `e0_measure` / `e1_routing` | E0（実機の実測）か，連合 RAG の実行か |
 | `dataset` | `medrag` / `feb4rag` / `enronqa` | MIRAGE ＋ MedRAG コーパス（4 データ源）か，FeB4RAG（13 エンジン）か，EnronQA（150 人の受信箱．p0004） |
-| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid`，Iteration 1 で `centroid_probe`，Iteration 7 で `device_probe`，p0006 P4 で `term_probe`・`hybrid_probe`，p0007 I4 で `central_local` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5）．`central_local`（p0007 I4．EnronQA の `answer_mode: snippet_return`・`requester_procs: 1` だけ）は質問者が全 73,772 通の 1 つの索引を持ち，ノードに問い合わせずに上位 5 通を取って質問者の LLM が答える（B1 相当）．索引は `atrium.central_eval` と同じ作り（fp32 の内積・同点は行の番号の小さい方）で，質問者の起動時に作る．その秒数は `run_meta.json` の `central_index`（`total_s`・`read_docs_s`・`read_emb_s`・`n_docs`．`retrieval.fusion: rrf` のときの BM25 の索引の秒数 `bm25_s` は `total_s` に含む）に残る．deploy が質問者へ受信箱の chunk と埋め込みを配る．C1 との文書 ID の一致は `atrium central-local-eval` で確かめる |
+| `routing` | `ragroute` / `all` / `random` / `none`，p0004 で `oracle` / `flood_score` / `card_sim` / `term_sketch` / `centroid_sim` / `multi_centroid`，Iteration 1 で `centroid_probe`，Iteration 7 で `device_probe`，p0006 P4 で `term_probe`・`hybrid_probe`，p0007 A4 で `bm25_probe`，p0007 I4 で `central_local` | 問い合わせ先の選び方（RAGRoute の 4 方式と，公開情報を使う方式．[d0001](d0001_architecture.md) §5）．`central_local`（p0007 I4．EnronQA の `answer_mode: snippet_return`・`requester_procs: 1` だけ）は質問者が全 73,772 通の 1 つの索引を持ち，ノードに問い合わせずに上位 5 通を取って質問者の LLM が答える（B1 相当）．索引は `atrium.central_eval` と同じ作り（fp32 の内積・同点は行の番号の小さい方）で，質問者の起動時に作る．その秒数は `run_meta.json` の `central_index`（`total_s`・`read_docs_s`・`read_emb_s`・`n_docs`．`retrieval.fusion: rrf` のときの BM25 の索引の秒数 `bm25_s` は `total_s` に含む）に残る．deploy が質問者へ受信箱の chunk と埋め込みを配る．C1 との文書 ID の一致は `atrium central-local-eval` で確かめる |
 | `answer_mode` | `retrieval_only` / `snippet_return` / `local_answer` / `snippet_return_small` / `delegate_gpu` / `gold_context` / `owner_answer` | LLM を呼ばず検索まで／断片返却型／宿る型／断片返却型で質問者が専門家と同じ小型のモデルを使う（B3．p0004）／GPU の無い専門家が対応づけた GPU の専門家に断片を渡して答えさせる（B4．p0004）／検索もルーティングもせず，正解のメール 1 通だけを文脈にして質問者が答える（C0．p0006．評価専用で EnronQA のみ．`run_meta.json` に `evaluation_only: true`．deploy が受信箱の chunk（本文）を質問者へ配る）／Router が選んだ上位 m 受信箱が，それぞれ自分の上位 5 通だけで 8B が答え，`answer.aggregate` で 1 つに統合する（p0007 I2．EnronQA のみ．GPU の無い専門家は B4 と同じく対応づけた GPU に断片を渡して答えさせる．詳細は下の `answer`） |
 | `question_limit` | 整数または `null` | 各問題集の先頭からこの数だけを使う（動作確認用） |
 | `question_split` | `test`（既定）/ `dev` | 流す質問の分割（p0007 A1）．`dev` は `dev_questions.jsonl`（設定の選択用．EnronQA のみ．`churn` とは併用できない）．`question_limit` は選んだ分割の中で各受信箱（問題集）の先頭からの数．`run_meta.json` に `question_split` が残る．採点（`judge.sh`）は dev の質問にも使える．`analyze` の `test` 欄は dev の実行では空になるので `all` 欄を見る |
@@ -75,6 +75,8 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | `term_probe_d.enronqa` | 24 | `term_probe`（p0006 P4）が probe を送るデバイスの数 D．本文の語の文書頻度（CORI）の得点の上位 D 台．frontier-eval の dev の規則（dev の hit@2 が 0.78 以上になる最小の要求数）で選んだ値．要約は `atrium build-summary` が作った `<data_dir>/enronqa/summary/` を質問者が読む |
 | `hybrid_probe_d.enronqa` | 16 | `hybrid_probe`（p0006 P4）が probe を送るデバイスの数 D．語の統計と本文の重心を質問ごとに標準化して足した得点の上位 D 台．選び方は `term_probe_d` と同じ |
 | `summary_weight` | 0.5 | `hybrid_probe` で，本文の重心の得点（標準化後）に掛ける重み（frontier-eval の格子 0.5・1・2 で最良） |
+| `bm25_probe_d.enronqa` | 24 | `bm25_probe`（p0007 A4）が probe を送るデバイスの数 D．1 段目は `hybrid_probe` と同じ要約の上位 D 台．A3 の事前登録の規則（dev の hit@3 が最大で，要求数が `hybrid_probe` の 1.5 倍以下）で選んだ値．既定の config は 24 |
+| `bm25_weight` | 2.0 | `bm25_probe` の probe の得点 `z(密ベクトル) + w × z(BM25)` の BM25 側の重み w（A3 の格子 1・2 で dev が最良の 2）．標準化は probe に答えた受信箱の中（平均・母標準偏差）で行う |
 | `top_m.medrag` | 3 | MedRAG で `card_sim`（E2 の `desc_sim`）が問い合わせるデータ源の数（p0003 S5）．4 源の `train`・`val` で F1 が最大の k（候補 {1, 2, 3}）．MedRAG のデータ源は広告を持たないので，質問者が起動時に自己紹介文を MedCPT の文書側で埋め込んで付ける |
 
 ## llm
@@ -113,6 +115,9 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 回答の本文は，採った 1 つ（`answer`・`final_answer`）だけを残す（候補の回答にはメールの引用が混ざりうるため）．commit の前に `scripts/tasks/sanitize_results.py` を通す．
 
 ```yaml
+# 例：bm25_probe（D = 24．p0007 A4）．probe に質問の語ごとの IDF・長さの平均を載せ，ノードが本文だけの BM25 も返す．
+# 要約（<data_dir>/enronqa/summary/）に bm25_stats.npz が要る（atrium build-summary が作る）．ノードは起動時に本文だけの転置索引を作る
+#   experiment: {routing: bm25_probe, answer_mode: owner_answer, dataset: enronqa}
 # 例：hybrid_probe（D = 16）の上位 3 受信箱が答え，UNKNOWN を許して統合する
 experiment: {routing: hybrid_probe, answer_mode: owner_answer, dataset: enronqa}
 answer: {owner_m: 3, aggregate: abstain}

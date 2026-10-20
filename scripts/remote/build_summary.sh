@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 制御点で term_probe・hybrid_probe の要約の成果物とオフラインの選択を作る（p0006 P4．`atrium build-summary`）．
+# 制御点で term_probe・hybrid_probe・bm25_probe の要約の成果物とオフラインの選択を作る（p0006 P4・p0007 A4．`atrium build-summary`）．
 #
 # 使い方（操作端末から，イメージを publish した後に
 # `bash scripts/tasks/remote.sh build_summary <out_name> <placement_run>` を実行し，results/<out_name> を rsync で取得する）:

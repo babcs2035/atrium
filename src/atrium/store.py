@@ -11,6 +11,9 @@
 retrieval.fusion=rrf（p0007 A2）のときは，起動時に全断片の本文を 1 回読んで BM25 の転置索引（`atrium.hybrid.Bm25Index`．
 そのシャードだけの統計）を作り，検索で BM25 と密ベクトルの RRF の上位を返す（本文そのものは載せない）．
 
+routing=bm25_probe（p0007 A4）のノードは，上の RRF 用とは別に，メールの本文（区切り線より後．ヘッダーは使わない．p0007 §3.3）だけの
+転置索引を作り，質問者から渡された語ごとの IDF と長さの平均（全体で共有した統計）で，受信箱の中の BM25 の最大を返す（`probe_bm25`）．
+
 本文は全件をメモリに載せず，行の先頭のバイト位置だけを持って必要な行を読み出す
 （PubMed のシャードは本文だけで数 GB あり，L480 の 16 GB に索引と同居させるため）．
 
@@ -28,7 +31,7 @@ import json
 import logging
 import threading
 import time
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -118,12 +121,15 @@ class FaissShardStore:
         spec: ShardSpec,
         fusion: FusionName = "none",
         fusion_depth: int = 50,
+        body_bm25_probe: bool = False,
     ) -> None:
-        """シャードを読み込み，索引を組み立てる（fusion=rrf なら BM25 の索引も作る）．"""
+        """シャードを読み込み，索引を組み立てる（fusion=rrf なら BM25 の索引も，body_bm25_probe なら本文だけの probe 用の索引も作る）．"""
         self.spec = spec
         self._fusion = fusion
         self._fusion_depth = fusion_depth
         self._bm25: Bm25Index | None = None
+        self._probe_bm25: Bm25Index | None = None
+        self._body_bm25_probe = body_bm25_probe
         self.bm25_build_s = 0.0
         self._dir = shard_dir
         self._lock = threading.Lock()
@@ -153,35 +159,66 @@ class FaissShardStore:
             self._offsets.append(offsets)
             self._file_starts[i + 1] = self._file_starts[i] + chunk.n_docs
         self._base_rows = int(self._index.ntotal)
-        if fusion == "rrf":
+        if fusion == "rrf" or body_bm25_probe:
             self._build_bm25()
         logger.info(
-            "loaded shard %s (%d docs, fusion=%s, bm25 build %.2f s)",
+            "loaded shard %s (%d docs, fusion=%s, body_bm25_probe=%s, bm25 build %.2f s)",
             spec.shard_id,
             self._index.ntotal,
             fusion,
+            body_bm25_probe,
             self.bm25_build_s,
         )
 
+    def _contents(self) -> Iterator[str]:
+        """全断片（足したメールを含む）の `content` を行の順に読む（索引の行の番号と同じ並び）．"""
+        for chunk in self.spec.files:
+            with (self._dir / "chunk" / f"{chunk.name}.jsonl").open("rb") as f:
+                for line in f:
+                    if line.strip():
+                        yield json.loads(line)["content"]
+        for doc in self._extra:
+            yield doc["content"]
+
     def _build_bm25(self) -> None:
-        """全断片の本文を先頭から 1 回読み，そのシャードだけの統計で BM25 の索引を作る（本文は索引に残さない）．"""
+        """全断片の本文を先頭から読み，BM25 の索引を作る（本文は索引に残さない）．
+
+        fusion=rrf の索引は `content` 全体・そのシャードだけの統計（A2．従来どおり）．body_bm25_probe の索引は本文だけで，
+        外部の統計で採点するために出現数と文書の長さも残す．所要時間は両方の合計を bm25_build_s に入れる．
+        """
+        from atrium.device_summary import body_of
         from atrium.routing.advert import tokenize
 
         start = time.perf_counter()
-
-        def token_lists() -> Iterator[list[str]]:
-            for chunk in self.spec.files:
-                with (self._dir / "chunk" / f"{chunk.name}.jsonl").open("rb") as f:
-                    for line in f:
-                        if line.strip():
-                            yield tokenize(json.loads(line)["content"])
-            for doc in self._extra:
-                yield tokenize(doc["content"])
-
-        self._bm25 = Bm25Index(token_lists())
-        if self._bm25.n_docs != self._index.ntotal:
-            raise ValueError(f"bm25 docs {self._bm25.n_docs} != index docs {self._index.ntotal}")
+        if self._fusion == "rrf":
+            self._bm25 = Bm25Index(tokenize(content) for content in self._contents())
+            if self._bm25.n_docs != self._index.ntotal:
+                raise ValueError(
+                    f"bm25 docs {self._bm25.n_docs} != index docs {self._index.ntotal}"
+                )
+        if self._body_bm25_probe:
+            self._probe_bm25 = Bm25Index(
+                (tokenize(body_of(content)) for content in self._contents()), keep_counts=True
+            )
+            if self._probe_bm25.n_docs != self._index.ntotal:
+                raise ValueError(
+                    f"probe bm25 docs {self._probe_bm25.n_docs} != index docs {self._index.ntotal}"
+                )
         self.bm25_build_s = time.perf_counter() - start
+
+    def probe_bm25(self, idf_of_term: Mapping[str, float], avg_doc_len: float) -> float:
+        """質問者から渡された語ごとの IDF・長さの平均（全体で共有した統計）で，受信箱の中の本文の BM25 の最大を返す（外した文書は除く）．
+
+        質問の語が 1 つも当たらなければ 0．body_bm25_probe=True のシャードだけが使える．
+        """
+        if self._probe_bm25 is None:
+            raise ValueError("this shard was loaded without the body BM25 probe index")
+        scores = self._probe_bm25.scores_with_idf(idf_of_term, avg_doc_len)
+        with self._lock:
+            hidden = np.fromiter(self._hidden, dtype=np.int64, count=len(self._hidden))
+        if hidden.size:
+            scores[hidden] = 0.0
+        return float(scores.max()) if scores.size else 0.0
 
     def _read_doc(self, global_idx: int) -> dict[str, str]:
         if global_idx >= self._base_rows:
@@ -322,7 +359,7 @@ class FaissShardStore:
                 rows.setdefault(doc.doc_id, []).append(first + offset)
         add_s = time.perf_counter() - start
         bm25_s = 0.0
-        if self._fusion == "rrf":
+        if self._fusion == "rrf" or self._body_bm25_probe:
             self._build_bm25()
             bm25_s = self.bm25_build_s
         return AddTiming(add_s=add_s, bm25_s=bm25_s)
@@ -379,11 +416,18 @@ class SearchResultsShardStore:
         return docs
 
 
-def load_shard(shard_dir: Path, fusion: FusionName = "none", fusion_depth: int = 50) -> ShardStore:
-    """shard.json の kind に応じてシャードを読み込む（fusion は faiss のシャードだけで有効．他の kind では指定を拒否する）．"""
+def load_shard(
+    shard_dir: Path,
+    fusion: FusionName = "none",
+    fusion_depth: int = 50,
+    body_bm25_probe: bool = False,
+) -> ShardStore:
+    """shard.json の kind に応じてシャードを読み込む（fusion・body_bm25_probe は faiss のシャードだけで有効．他の kind では指定を拒否する）．"""
     spec = ShardSpec.model_validate_json((shard_dir / SHARD_SPEC_FILENAME).read_text("utf-8"))
     if spec.kind == "faiss":
-        return FaissShardStore(shard_dir, spec, fusion, fusion_depth)
+        return FaissShardStore(shard_dir, spec, fusion, fusion_depth, body_bm25_probe)
     if fusion != "none":
         raise ValueError(f"retrieval.fusion={fusion} supports only faiss shards, not {spec.kind}")
+    if body_bm25_probe:
+        raise ValueError(f"routing=bm25_probe supports only faiss shards, not {spec.kind}")
     return SearchResultsShardStore(shard_dir, spec)

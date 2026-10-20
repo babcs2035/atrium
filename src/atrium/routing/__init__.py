@@ -229,6 +229,26 @@ def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = 
             cfg.data.require_enronqa().encoder,
             cfg.routing.summary_weight,
         )
+    if name == "bm25_probe":
+        from atrium.routing.summary import SUMMARY_DIRNAME, Bm25ProbeRouter, load_summary
+
+        if (
+            dataset != "enronqa"
+            or dataset not in cfg.routing.top_m
+            or dataset not in cfg.routing.bm25_probe_d
+        ):
+            raise ValueError(
+                f"routing={name} requires dataset=enronqa and routing.top_m.{dataset}, "
+                f"routing.bm25_probe_d.{dataset}"
+            )
+        return Bm25ProbeRouter(
+            cfg.answer.owner_m if owner else cfg.routing.top_m[dataset],
+            cfg.routing.bm25_probe_d[dataset],
+            load_summary(router_dir.parent / SUMMARY_DIRNAME),
+            cfg.data.require_enronqa().encoder,
+            cfg.routing.summary_weight,
+            cfg.routing.bm25_weight,
+        )
     if name in by_name:
         if dataset not in cfg.routing.top_m:
             raise ValueError(f"routing={name} requires routing.top_m.{dataset}")

@@ -60,6 +60,7 @@ from atrium.merge import (
 from atrium.protocol import (
     AnswerRequest,
     AnswerResponse,
+    Bm25Query,
     DocOut,
     ProbeRequest,
     ProbeResponse,
@@ -71,7 +72,7 @@ from atrium.protocol import (
 from atrium.routing import Router, RoutingQuery, SourceProfile
 from atrium.routing.advert import CentroidProbeRouter, DeviceProbeRouter, tokenize
 from atrium.routing.central import CentralIndex, inbox_of_doc
-from atrium.routing.summary import SummaryProbeRouter
+from atrium.routing.summary import Bm25ProbeRouter, SummaryProbeRouter
 from atrium.store import RetrievedDoc
 
 logger = logging.getLogger(__name__)
@@ -854,11 +855,15 @@ class Requester:
         record: dict[str, Any],
         targets: Sequence[str] | None = None,
         encoded_embeddings: dict[str, bytes] | None = None,
+        bm25: Bm25Query | None = None,
+        bm25_out: dict[str, float] | None = None,
     ) -> dict[str, float]:
         """probe（/v1/probe）の 1 段目：クエリ埋め込みを送り，データ源ごとの最高の検索スコアを集める．
 
         targets を省略すると，flood_score と同じく全ノードの全シャードへ送る．centroid_probe は，候補のデータ源の名前を
         渡し，そのシャードを持つノードにだけ，候補のシャードの shard_ids で送る．
+        bm25（bm25_probe．p0007 A4）を渡すと，質問の語の統計を要求に載せ，ノードが返した受信箱の中の BM25 の最大を bm25_out
+        （データ源の名前 → BM25 の最大）に集める．返す値は従来どおり密ベクトルの最高の検索スコア．
         """
         target_set = None if targets is None else set(targets)
         source_of_shard = {
@@ -879,17 +884,24 @@ class Requester:
             shard_ids = [sid for sid in node.shard_ids if sid in source_of_shard]
             encoder = source_of_shard[shard_ids[0]].encoder
             body: dict[str, Any] | bytes
+            # bm25 は bm25_probe だけが付ける．付けないときは従来と同じ本文（キーを省く）にする
+            bm25_part = (
+                b"" if bm25 is None else b',"bm25":' + encode_json_like_httpx(bm25.model_dump())
+            )
             if encoder in encoded_embeddings:
                 body = (
                     b'{"shard_ids":'
                     + encode_json_like_httpx(shard_ids)
                     + b',"embedding":'
                     + encoded_embeddings[encoder]
+                    + bm25_part
                     + b"}"
                 )
             else:
-                req = ProbeRequest(shard_ids=shard_ids, embedding=embeddings[encoder].tolist())
-                body = req.model_dump()
+                req = ProbeRequest(
+                    shard_ids=shard_ids, embedding=embeddings[encoder].tolist(), bm25=bm25
+                )
+                body = req.model_dump(exclude_none=True)
             response = await post_with_retry(
                 self.client, f"{node.url}/v1/probe", body, RETRIEVE_TIMEOUT_S
             )
@@ -921,6 +933,14 @@ class Requester:
             for sid, score in resp.scores.items():
                 name = source_of_shard[sid].source
                 best[name] = max(best.get(name, float("-inf")), score)
+            if bm25 is not None and bm25_out is not None:
+                if resp.bm25 is None:
+                    raise ValueError(
+                        f"node {resp.node_id} returned no BM25 scores for a bm25 probe"
+                    )
+                for sid, score in resp.bm25.items():
+                    name = source_of_shard[sid].source
+                    bm25_out[name] = max(bm25_out.get(name, float("-inf")), score)
         return best
 
     def _route(
@@ -971,9 +991,23 @@ class Requester:
         else:
             candidates = router.candidates(query, sources)
         first_stage_s = time.perf_counter() - start
-        probe_scores = await self._probe(embeddings, record, candidates, encoded_embeddings)
-        start = time.perf_counter()
-        selected = router.select_among(candidates, probe_scores)
+        if isinstance(router, Bm25ProbeRouter):
+            # bm25_probe：probe に質問の語の統計を載せ，密ベクトルと BM25 の 2 つの得点で上位 m 個を選ぶ
+            bm25_scores: dict[str, float] = {}
+            probe_scores = await self._probe(
+                embeddings,
+                record,
+                candidates,
+                encoded_embeddings,
+                bm25=router.bm25_query(query),
+                bm25_out=bm25_scores,
+            )
+            start = time.perf_counter()
+            selected = router.select_among(candidates, probe_scores, bm25_scores)
+        else:
+            probe_scores = await self._probe(embeddings, record, candidates, encoded_embeddings)
+            start = time.perf_counter()
+            selected = router.select_among(candidates, probe_scores)
         record["timings"]["route_s"] = first_stage_s + (time.perf_counter() - start)
         return selected
 

@@ -656,6 +656,8 @@ def bm25_index(data: FrontierData) -> dict[str, Any]:
         "df": np.bincount(np.asarray(cols), minlength=len(vocab)).astype(np.float64),
         "starts": np.asarray(starts, dtype=np.int64),
         "n_docs": doc,
+        # 実機の bm25_probe の質問者・ノードが使う，全体で共有した長さの平均（build-summary が成果物に書く）
+        "avg_doc_len": float(doc_len.mean()),
     }
     data.cache["bm25_index"] = out
     return out

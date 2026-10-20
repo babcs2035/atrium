@@ -407,6 +407,9 @@ hit は既存の評価と同じ規則（正解より得点が高いか同点の�
 制御点のコンテナで流す（`scripts/remote/build_summary.sh <out_name> <placement_run>`）．配置ごとの要約（語の統計の CORI 重みと本文の重心）を `<data_dir>/enronqa/summary/` に書き（既存の成果物とは別の新しいサブディレクトリ），
 `results/<out_name>/offline_selection.json` に，test の質問ごとの「選ばれるデータ源」（`frontier-eval` と同じ関数で求めたもの）を書く．
 実機の `retrieval_only` の `selected_sources` との一致率（集合として．閾値 0.999）で，質問者の選択がオフラインの評価と同じかを確かめる．
+p0007 A4 から，bm25_probe のために `bm25_stats.npz`（各デバイスが公開済みの語の文書頻度の合計・文書の数・長さの平均．個々のデバイスの値は含まない）も要約に書き，
+`offline_selection.json` に `bm25_probe`（m = `routing.top_m`）と `bm25_probe_m3`（m = 3．owner_answer の A4）を足す．`bm25_probe_fused.npz` は bm25_probe の probe の得点（同点を許す照合用．
+候補でない受信箱は −inf）．既存のファイル（語の統計・重心）と `term_probe`・`hybrid_probe` の選択は変わらない．
 
 ### EnronQA の参加・離脱の実機の再生（`atrium churn-live-report`．p0004 EQ7b）
 
