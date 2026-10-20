@@ -47,6 +47,9 @@ experiment:
   retrieve_body: per_request
   # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
   churn: null
+  # routing=central_local の生成の置き場所（p0007 D）．requester：質問者の LLM で答える（中央）／
+  # gpu_nodes：質問者の索引の上位 5 通と質問を，GPU の専門家（wafl500〜509）の /v1/generate へラウンドロビンで送って答えさせる（準集権）
+  central_generation: requester
 
 retrieval:
   # 各データ源（シャードではなくデータ源）から取得する件数（RAGRoute の K）

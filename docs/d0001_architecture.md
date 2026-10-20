@@ -148,6 +148,7 @@ curl -s http://192.168.13.100:8100/v1/retrieve -H 'content-type: application/jso
      `abstain` は `/v1/answer` の `allow_unknown` で UNKNOWN を許すプロンプトに切り替える．
    - `routing: central_local`（p0007 I4）：ルーティングも `/v1/*` も使わず，質問者が起動時に作った全メールの 1 つの索引（`atrium.routing.central.CentralIndex`）から
      上位 5 通を取り，質問者の LLM が答える（B1 相当）．ノードを発見しないので，ノードが止まっていても流せる．
+     `experiment.central_generation: gpu_nodes`（準集権．p0007 D）では，索引と検索は同じまま，上位 5 通と質問を GPU の専門家（`placement.delegate_of` の委託先）の `/v1/generate` へラウンドロビンで 1 台に送って答えさせる（このときだけノードが生成で使われる）．
 4. 結果を `results.jsonl` に 1 行で追記する（書式は [d0004_metrics.md](d0004_metrics.md)）．
 
 ## 5. ルーティング方式

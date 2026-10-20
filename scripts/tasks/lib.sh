@@ -24,11 +24,13 @@ log() { echo "[$(date +%H:%M:%S)] $*"; }
 sync_to_control() {
   ssh "$CONTROL" "mkdir -p $REMOTE_DIR/artifacts"
   # results/ と artifacts/ は制御点側で作られるので，--delete の対象から外す（除外した名前は消されない）．
-  # 制御点が質問者を兼ねるため，deploy が REMOTE_DIR の直下に置く質問者の資材も消さない
+  # 制御点が質問者を兼ねるため，deploy が REMOTE_DIR の直下に置く質問者の資材も消さない．
+  # energy/ は energy_log.sh（p0007 K5）の記録の置き場で，次の mise タスクの同期に消されると制御点自身の GPU の記録が失われる
   rsync -az --delete \
     --exclude .git/ --exclude .venv/ --exclude .claude/ --exclude results/ --exclude artifacts/ \
     --exclude /data/ --exclude /hf-cache/ --exclude /ollama/ \
     --exclude /compose.yml --exclude /placement.json \
+    --exclude /energy/ \
     --exclude __pycache__/ --exclude .mypy_cache/ --exclude .ruff_cache/ --exclude .pytest_cache/ \
     ./ "$CONTROL:$REMOTE_DIR/"
 }

@@ -61,6 +61,8 @@ def shell_variables(raw: dict[str, Any]) -> dict[str, str]:
         "DATASET": exp["dataset"],
         "ROUTING": exp["routing"],
         "ANSWER_MODE": exp["answer_mode"],
+        # p0007 D：central_local の生成の置き場所（requester / gpu_nodes．省略は requester）
+        "CENTRAL_GENERATION": exp.get("central_generation", "requester"),
         "OLLAMA_TAG": llm["ollama_version"],
         "REQUESTER_MODEL": llm["requester_model"],
         "REQUESTER_NUM_PARALLEL": str(llm["requester_num_parallel"]),

@@ -153,13 +153,17 @@ deploy_expert() {
   local role=node model=$EXPERT_MODEL
   if has_gpu "$host"; then role=node_gpu model=$EXPERT_MODEL_GPU; fi
   render_compose "$host" "$role" --node-id "$host" --shard-ids "$shard_ids"
-  if [ "$ANSWER_MODE" != "retrieval_only" ] && [ "$ANSWER_MODE" != "snippet_return" ] && [ "$ANSWER_MODE" != "gold_context" ]; then
+  # 準集権（p0007 D．central_generation=gpu_nodes）は snippet_return でも GPU の専門家が /v1/generate で答えるので，モデルを配って読み込む
+  local node_answers=""
+  if [ "$ANSWER_MODE" != "retrieval_only" ] && [ "$ANSWER_MODE" != "snippet_return" ] && [ "$ANSWER_MODE" != "gold_context" ]; then node_answers=1; fi
+  if [ "$CENTRAL_GENERATION" = gpu_nodes ] && [ "$role" = node_gpu ]; then node_answers=1; fi
+  if [ -n "$node_answers" ]; then
     send_ollama_model "$host" "$model"
   fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose pull -q"
   nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate"
   # 宿る型は全ての専門家が，委託（B4．p0007 の owner_answer も同じ経路）は GPU の専門家だけが自分の LLM で答える
-  if [ "$ANSWER_MODE" = local_answer ] || { { [ "$ANSWER_MODE" = delegate_gpu ] || [ "$ANSWER_MODE" = owner_answer ]; } && [ "$role" = node_gpu ]; }; then
+  if [ "$ANSWER_MODE" = local_answer ] || { { [ "$ANSWER_MODE" = delegate_gpu ] || [ "$ANSWER_MODE" = owner_answer ] || [ "$CENTRAL_GENERATION" = gpu_nodes ]; } && [ "$role" = node_gpu ]; }; then
     preload_ollama_model "$host" "exec -T node" "$model"
   fi
   prune_old_images "$host"

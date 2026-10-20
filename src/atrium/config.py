@@ -122,6 +122,9 @@ class ExperimentConfig(_Strict):
     retrieve_body: Literal["per_request", "pre_encoded"] = "per_request"
     # EQ7b．指定すると質問を 1 問ずつ順に流し，離脱したノードがあっても返事のあった分で続ける
     churn: ChurnConfig | None = None
+    # p0007 D（準集権）．routing=central_local の生成の置き場所．requester：質問者の LLM で答える（従来．中央）／
+    # gpu_nodes：質問者の索引の上位 k 通と質問を，GPU の専門家（placement.delegate_of の委託先）の /v1/generate へラウンドロビンで 1 台に送って答えさせる
+    central_generation: Literal["requester", "gpu_nodes"] = "requester"
 
     @model_validator(mode="after")
     def _check_requester_procs(self) -> ExperimentConfig:
@@ -167,6 +170,8 @@ class ExperimentConfig(_Strict):
                 raise ValueError(
                     "routing=central_local requires experiment.requester_procs = 1 and no churn"
                 )
+        elif self.central_generation != "requester":
+            raise ValueError("experiment.central_generation requires routing=central_local")
         return self
 
     @model_validator(mode="after")
@@ -463,6 +468,20 @@ class AtriumConfig(_Strict):
         """管理 API の状態（離脱・外したメール・足したメール）はプロセスごとに持つので，node_admin は 1 プロセスのノードに限る．"""
         if self.cluster.node_admin and self.experiment.node_workers != 1:
             raise ValueError("cluster.node_admin requires experiment.node_workers = 1")
+        return self
+
+    @model_validator(mode="after")
+    def _check_central_generation_model(self) -> AtriumConfig:
+        """準集権（central_generation=gpu_nodes）は，中央と同じモデルで生成する比較なので，GPU の専門家のモデルが質問者のモデルと違う設定を拒否する．"""
+        gpu_model = self.llm.expert_model_gpu or self.llm.expert_model
+        if (
+            self.experiment.central_generation == "gpu_nodes"
+            and gpu_model != self.llm.requester_model
+        ):
+            raise ValueError(
+                "experiment.central_generation=gpu_nodes requires llm.expert_model_gpu "
+                "(or expert_model) to equal llm.requester_model"
+            )
         return self
 
     @model_validator(mode="after")

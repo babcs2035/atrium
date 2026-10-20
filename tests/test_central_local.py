@@ -13,8 +13,9 @@ from atrium.arrays import F32Array
 from atrium.benchmarks import Question
 from atrium.central_eval import dense_top_k, judge_equivalence
 from atrium.config import AtriumConfig, ExperimentConfig
-from atrium.manifest import Placement
+from atrium.manifest import NodeAssignment, Placement
 from atrium.paths import dataset_paths
+from atrium.protocol import GenerateRequest
 from atrium.requester import Requester
 from atrium.routing import make_router
 from atrium.routing.central import CentralIndex, CentralLocalRouter, inbox_of_doc
@@ -202,3 +203,120 @@ def test_strict_failure_caused_only_by_ties_switches_to_the_tie_aware_judgement(
 def test_failure_that_ties_do_not_explain_is_not_equivalent() -> None:
     verdict = judge_equivalence(0.99, 0.995)
     assert (verdict["verdict"], verdict["switched_to_tie_aware"]) == ("not_equivalent", False)
+
+
+# ── 準集権（central_generation=gpu_nodes．p0007 D） ─────────────────────────
+
+
+def semi_central_cfg(cfg: AtriumConfig) -> AtriumConfig:
+    """central_local の索引のまま，生成を GPU のノードへ分ける設定．"""
+    config = central_cfg(cfg)
+    return config.model_copy(
+        update={
+            "experiment": config.experiment.model_copy(update={"central_generation": "gpu_nodes"})
+        }
+    )
+
+
+async def test_semi_central_sends_the_top_five_to_gpu_nodes_round_robin_and_not_to_the_requester_llm(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    embs, doc_ids = write_corpus(tmp_path)
+    config = semi_central_cfg(cfg)
+    index = CentralIndex.from_corpus(config, dataset_paths(tmp_path, "enronqa"))
+    query = np.random.default_rng(5).normal(size=DIM).astype(np.float32)
+    generate_calls: list[tuple[str, GenerateRequest]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        # 質問者の Ollama（/api/chat）には届かない．届けば KeyError で問が失敗する
+        assert request.url.path == "/v1/generate"
+        generate_calls.append(
+            (request.url.host, GenerateRequest.model_validate_json(request.content))
+        )
+        usage = {
+            "prompt_tokens": 7,
+            "output_tokens": 3,
+            "prefill_s": 0.5,
+            "decode_s": 0.25,
+            "total_s": 0.75,
+        }
+        return httpx.Response(
+            200,
+            json={"node_id": request.url.host, "answer": "Answer: gpu", "llm": usage},
+        )
+
+    placement = Placement(
+        dataset="enronqa",
+        nodes=[
+            NodeAssignment(host=h, url=f"http://{h}:8000", shard_ids=[])
+            for h in ("cpu", "gpu-b", "gpu-a")
+        ],
+        # 委託先の重複は除き，ホスト名順に並べる（gpu-a → gpu-b → gpu-a ...）
+        delegate_of={"cpu": "gpu-b", "gpu-a": "gpu-a", "gpu-b": "gpu-b"},
+    )
+    requester = Requester(
+        cfg=config,
+        placement=placement,
+        sources=[],
+        router=CentralLocalRouter(),
+        embedder=StubEmbedder(query, config.data.require_enronqa().encoder),
+        client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+        ollama_url="http://ollama",
+        central_index=index,
+    )
+
+    records = [
+        await requester.process(Question(f"enronqa/test/{i}-0", "alice", "who?", {}, "central"))
+        for i in range(3)
+    ]
+
+    top = dense_top_k(query[None, :], np.concatenate(list(embs.values())), K)[0]
+    assert [r["error"] for r in records] == [None, None, None]
+    assert [host for host, _ in generate_calls] == ["gpu-a", "gpu-b", "gpu-a"]
+    # 送る文書は索引の上位 5 通で，中央と同じ文面の質問になる
+    assert [d.doc_id for d in generate_calls[0][1].docs] == [doc_ids[i] for i in top]
+    assert generate_calls[0][1].question == "who?" and generate_calls[0][1].allow_unknown is False
+    first = records[0]
+    assert first["final_answer"] == "gpu" and first["generated_by"] == "gpu-a"
+    assert (first["query_recipients"], first["docs_sent_to_generator"]) == (1, K)
+    assert first["top_doc_ids"] == [doc_ids[i] for i in top]
+    assert (first["prompt_tokens"], first["output_tokens"]) == (7, 3)
+    assert first["llm"] == {"prefill_s": 0.5, "decode_s": 0.25}
+
+
+async def test_semi_central_without_gpu_nodes_fails_the_question_instead_of_answering_locally(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    write_corpus(tmp_path)
+    config = semi_central_cfg(cfg)
+    requester = Requester(
+        cfg=config,
+        placement=Placement(dataset="enronqa", nodes=[]),
+        sources=[],
+        router=CentralLocalRouter(),
+        embedder=StubEmbedder(np.ones(DIM, np.float32), config.data.require_enronqa().encoder),
+        client=httpx.AsyncClient(transport=ollama_mock(lambda body: "Answer: local")),
+        ollama_url="http://ollama",
+        central_index=CentralIndex.from_corpus(config, dataset_paths(tmp_path, "enronqa")),
+    )
+
+    record = await requester.process(Question("enronqa/test/0-0", "alice", "who?", {}, "central"))
+
+    assert record["error"] is not None and "GPU nodes" in str(record["error"])
+
+
+def test_central_generation_is_limited_to_central_local(cfg: AtriumConfig) -> None:
+    base = {**cfg.experiment.model_dump(), "routing": "flood_score", "dataset": "enronqa"}
+    with pytest.raises(ValueError, match="central_generation requires routing=central_local"):
+        ExperimentConfig.model_validate({**base, "central_generation": "gpu_nodes"})
+
+
+def test_semi_central_requires_the_gpu_nodes_to_use_the_requester_model(cfg: AtriumConfig) -> None:
+    config = semi_central_cfg(cfg)
+    different = config.llm.model_copy(update={"expert_model_gpu": "other:1b"})
+    with pytest.raises(ValueError, match="requires llm.expert_model_gpu"):
+        type(config).model_validate({**config.model_dump(), "llm": different.model_dump()})
+
+
+def test_central_generation_defaults_to_the_requester(cfg: AtriumConfig) -> None:
+    assert cfg.experiment.central_generation == "requester"

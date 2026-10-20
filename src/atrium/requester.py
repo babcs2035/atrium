@@ -11,6 +11,7 @@
    - owner_answer（p0007）: 選んだ各データ源（受信箱）へ /v1/answer を 1 つずつ送り，その受信箱の上位 k 通だけで答えさせ，
      answer.aggregate の規則で 1 つの回答に統合する．
    - routing=central_local（p0007）: ノードに問い合わせず，質問者が持つ全メールの 1 つの索引から上位 k 通を取って質問者の LLM が答える．
+     experiment.central_generation=gpu_nodes（準集権）では，答えるのを GPU のノードの /v1/generate に分ける（索引は質問者が持ったまま）．
 4. 計測値（各段の所要時間・受信バイト数・デバイス外へ出た断片数）とともに results.jsonl へ追記する．
 """
 
@@ -62,6 +63,8 @@ from atrium.protocol import (
     AnswerResponse,
     Bm25Query,
     DocOut,
+    GenerateRequest,
+    GenerateResponse,
     ProbeRequest,
     ProbeResponse,
     ProfileResponse,
@@ -365,6 +368,8 @@ class Requester:
     # p0007 I6：churn を指定しなくても，止まったノードの失敗を問の失敗にせず，返事のあった分で続ける（failure-run）
     tolerate_node_failures: bool = False
     _embed_lock: threading.Lock = field(default_factory=threading.Lock)
+    # experiment.central_generation=gpu_nodes：次に生成を頼む GPU のノードの番号（ラウンドロビン．イベントループの中だけで進める）
+    _next_generator: int = 0
 
     def __post_init__(self) -> None:
         """シャード → ノード URL の表などを作る．"""
@@ -819,7 +824,49 @@ class Requester:
         record["query_recipients"] = 0
         record["contributing_sources"] = contributing_sources(docs)
         record["top_doc_ids"] = [d.doc.doc_id for d in docs]
+        if self.cfg.experiment.central_generation == "gpu_nodes":
+            return await self._generate_on_gpu_node(question, docs, record)
         return await self._generate(question, docs, record, self.cfg.llm.requester_model)
+
+    async def _generate_on_gpu_node(
+        self, question: Question, docs: list[SourcedDoc], record: dict[str, Any]
+    ) -> str | None:
+        """準集権（p0007 D．central_generation=gpu_nodes）：索引の上位 k 通と質問を，GPU のノードの /v1/generate へ送って答えさせる．
+
+        送り先は placement.delegate_of の委託先（B4 と同じ GPU のノード）をホスト名順に並べたものへのラウンドロビン．
+        プロンプト・モデル・温度はノードが B4 の委託先と同じ関数で作る（中央の `_generate` と同じ文面）．
+        ノードへ出る文書は 1 問あたり k 通で，記録の docs_sent_to_generator に残す．
+        """
+        url_of_host = {n.host: n.url for n in self.placement.nodes}
+        generators = sorted(set(self.placement.delegate_of.values()))
+        if not generators:
+            raise RuntimeError("central_generation=gpu_nodes requires GPU nodes in the placement")
+        host = generators[self._next_generator % len(generators)]
+        self._next_generator += 1
+        body = GenerateRequest(
+            dataset=self.cfg.experiment.dataset,
+            question=question.question,
+            options=question.options,
+            docs=[d.doc for d in docs],
+        )
+        start = time.perf_counter()
+        response = await self.client.post(
+            f"{url_of_host[host]}/v1/generate",
+            json=body.model_dump(),
+            timeout=self.cfg.local_answer.timeout_s,
+        )
+        response.raise_for_status()
+        generated = GenerateResponse.model_validate_json(response.content)
+        record["timings"]["generate_s"] = time.perf_counter() - start
+        record["query_recipients"] = 1
+        record["docs_sent_to_generator"] = len(docs)
+        record["generated_by"] = generated.node_id
+        record["answer"] = generated.answer
+        record["prompt_tokens"] = generated.llm.prompt_tokens
+        record["output_tokens"] = generated.llm.output_tokens
+        record["llm"] = {"prefill_s": generated.llm.prefill_s, "decode_s": generated.llm.decode_s}
+        record["final_answer"] = prompts.extract_free_answer(generated.answer)
+        return None
 
     async def _generate(
         self, question: Question, docs: list[SourcedDoc], record: dict[str, Any], model: str
