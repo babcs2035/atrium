@@ -591,6 +591,18 @@ def summarize_fault(
         "fault_hit_rate": float(np.mean(during)) if during else None,
         # 止めている間の質問のうち，正解の受信箱が止まったノードにあった割合（オフラインの予測の入力）
         "fault_gold_down_share": float(np.mean(stream_down)) if stream_down else None,
+        # 診断用：質問ごとの記録（t0 からの秒・答えられたか・時間切れか・正解の受信箱が止まったノードにあるか・待ち時間）．
+        # 時間切れ・失敗検出の弱さの原因を，層ごとに数えるために残す（メール本文は含まない）
+        "questions": [
+            {
+                "t_s": t,
+                "hit": bool(r["hit"]),
+                "timed_out": bool(r["timed_out"]),
+                "gold_down": r["bank"] in down_inboxes,
+                "e2e_s": r["e2e_s"],
+            }
+            for t, r in zip(rel, rows, strict=True)
+        ],
         "bin_s": params.bin_s,
         "bin_start_s": -params.baseline_s,
         "rates": filled,

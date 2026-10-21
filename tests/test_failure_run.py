@@ -137,6 +137,13 @@ async def test_fault_lowers_the_answered_rate_to_the_offline_prediction_and_node
     # 窓 [0, 1.6] の積分は，全問に答えられる場合（1.6）より小さい（止まっている 0.8 秒の間，止まった半分の分だけ減る）
     assert 0.8 < result["integral"] < 1.6
     assert result["integral_relative"] == pytest.approx(result["integral"] / 1.6)
+    # 診断用の質問ごとの記録：質問の数と一致し，止めている間の「正解が止まった側」の割合が集計と同じ
+    questions = result["questions"]
+    assert len(questions) == result["n_questions"]
+    during = [q for q in questions if 0 <= q["t_s"] < params.down_s]
+    assert sum(q["gold_down"] for q in during) / len(during) == pytest.approx(
+        result["fault_gold_down_share"]
+    )
     assert await _alive_hosts(cluster) == ["node-0", "node-1"]
 
 
