@@ -1,3 +1,2 @@
-# p0007 A5 の test（dev で規則を選んで事前登録に追記した後）と，P4 の天井 oracle-RRF（持ち主の受信箱だけ・RRF・通常のプロンプト・B4 と同じ委託の経路）
+# p0007 A5 の test（dev で選んだ規則 R3 を事前登録に追記した後）
 p0007_a5_test experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=3 answer.aggregate=abstain answer.save_candidates=true experiment.routing=bm25_probe experiment.question_split=test
-p0007_a5_oracle_rrf experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=1 answer.aggregate=max_score answer.save_candidates=false experiment.routing=oracle experiment.question_split=test

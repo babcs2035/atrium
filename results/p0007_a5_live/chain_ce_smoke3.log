@@ -1,0 +1,9 @@
+[2026-10-21_18:01:29] ce_chain: stop before patching
+[18:01:33] ce_chain: requester_llm=192.168.15.109, removed from experts and gpu_workers
+[2026-10-21_18:01:33] BEGIN p0007_a5_c1_rrf_ce_smoke_dev_r3 experiment.dataset=enronqa experiment.answer_mode=snippet_return experiment.parallel=30 experiment.http_pool=per_node experiment.routing=central_local experiment.requester_procs=1 experiment.question_split=dev experiment.question_limit=1 retrieval.fusion=rrf retrieval.merge=cross_encoder
+[18:03:57] p0007_a5_c1_rrf_ce_smoke_dev_r3 deployed
+[18:19:33] p0007_a5_c1_rrf_ce_smoke_dev_r3 start=0 inner=0
+[18:19:35] p0007_a5_c1_rrf_ce_smoke_dev_r3 analyze=0
+[2026-10-21_18:19:35] ALL DONE
+[18:19:35] ce_chain: stop after the run
+[2026-10-21_18:19:37] ce_chain: done

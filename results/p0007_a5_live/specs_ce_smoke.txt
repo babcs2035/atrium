@@ -1,0 +1,2 @@
+# p0007 A5：C1-RRF-CE の動作確認（dev の受信箱ごとの先頭 1 問 = 150 問．再ランクと 8B が同じ RTX 3060 で動くときの時間・メモリの確認．判定に使わない）
+p0007_a5_c1_rrf_ce_smoke_dev_r2 experiment.dataset=enronqa experiment.answer_mode=snippet_return experiment.parallel=30 experiment.http_pool=per_node experiment.routing=central_local experiment.requester_procs=1 experiment.question_split=dev experiment.question_limit=1 retrieval.fusion=rrf retrieval.merge=cross_encoder

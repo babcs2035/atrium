@@ -1,0 +1,10 @@
+[2026-10-21_17:31:50] BEGIN p0007_a5_c1_rrf_ce_smoke_dev experiment.dataset=enronqa experiment.answer_mode=snippet_return experiment.parallel=30 experiment.http_pool=per_node experiment.routing=central_local experiment.requester_procs=1 experiment.question_split=dev experiment.question_limit=1 retrieval.fusion=rrf retrieval.merge=cross_encoder
+[17:34:26] p0007_a5_c1_rrf_ce_smoke_dev deployed
+[17:35:56] p0007_a5_c1_rrf_ce_smoke_dev start=2 inner=2
+[17:35:58] p0007_a5_c1_rrf_ce_smoke_dev analyze=0
+[2026-10-21_17:35:58] ALL DONE
+[2026-10-21_17:39:24] BEGIN p0007_a5_c1_rrf_ce_smoke_dev_r2 experiment.dataset=enronqa experiment.answer_mode=snippet_return experiment.parallel=30 experiment.http_pool=per_node experiment.routing=central_local experiment.requester_procs=1 experiment.question_split=dev experiment.question_limit=1 retrieval.fusion=rrf retrieval.merge=cross_encoder
+[17:41:52] p0007_a5_c1_rrf_ce_smoke_dev_r2 deployed
+[18:00:30] p0007_a5_c1_rrf_ce_smoke_dev_r2 start=2 inner=2
+[18:00:32] p0007_a5_c1_rrf_ce_smoke_dev_r2 analyze=0
+[2026-10-21_18:00:32] ALL DONE

@@ -1,0 +1,2 @@
+# p0007 A5 の C1-RRF-CE（選んだ規則 R3 が cross-encoder を使うので，中央にも同じ再ランクを入れた主の比べる相手．ce_chain.sh で流す）
+p0007_a5_c1_rrf_ce experiment.dataset=enronqa experiment.answer_mode=snippet_return experiment.parallel=30 experiment.http_pool=per_node experiment.routing=central_local experiment.requester_procs=1 experiment.question_split=test experiment.question_limit=null retrieval.fusion=rrf retrieval.merge=cross_encoder

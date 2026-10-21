@@ -1,0 +1,5 @@
+[2026-10-21_15:52:46] BEGIN p0007_a5_dev experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=3 answer.aggregate=abstain answer.save_candidates=true experiment.routing=bm25_probe experiment.question_split=dev
+[16:04:02] p0007_a5_dev deployed
+[16:50:53] p0007_a5_dev start=0 inner=0
+[16:50:55] p0007_a5_dev analyze=0
+[2026-10-21_16:50:55] ALL DONE
