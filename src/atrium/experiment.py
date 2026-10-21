@@ -148,6 +148,8 @@ async def build_requester(
             client=client,
             ollama_url=ollama_url,
             central_index=central,
+            # retrieval.merge=cross_encoder（p0007 A5 の C1-RRF-CE）：索引の上位を再ランクする
+            reranker=CrossEncoderReranker() if cfg.retrieval.merge == "cross_encoder" else None,
         )
         return requester, [], 0.0
     start = time.perf_counter()

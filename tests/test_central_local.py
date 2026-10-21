@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 
 import httpx
@@ -14,6 +15,7 @@ from atrium.benchmarks import Question
 from atrium.central_eval import dense_top_k, judge_equivalence
 from atrium.config import AtriumConfig, ExperimentConfig
 from atrium.manifest import NodeAssignment, Placement
+from atrium.merge import SourcedDoc
 from atrium.paths import dataset_paths
 from atrium.protocol import GenerateRequest
 from atrium.requester import Requester
@@ -144,6 +146,54 @@ async def test_central_local_answers_from_the_top_five_without_contacting_any_no
         0,
     )
     assert record["selected_sources"] == []
+
+
+class ReverseReranker:
+    """候補の順を逆にする再ランク（cross-encoder の代わり．受け取った候補の数を記録する）．"""
+
+    def __init__(self) -> None:
+        """受け取った候補の数の記録．"""
+        self.pool_sizes: list[int] = []
+
+    def rerank(self, query: str, docs: Sequence[SourcedDoc], k: int) -> list[SourcedDoc]:
+        """逆順の上位 k 件．"""
+        self.pool_sizes.append(len(docs))
+        return list(reversed(docs))[:k]
+
+
+async def test_central_local_with_cross_encoder_reranks_the_top_k_ret_and_answers_from_the_top_five(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    """retrieval.merge=cross_encoder（p0007 A5 の C1-RRF-CE）：索引の上位 retrieval.k_ret 通を再ランクし，その上位 5 通で答える．"""
+    embs, doc_ids = write_corpus(tmp_path)
+    base = central_cfg(cfg)
+    config = base.model_copy(
+        update={
+            "retrieval": base.retrieval.model_copy(update={"merge": "cross_encoder", "k_ret": 12})
+        }
+    )
+    index = CentralIndex.from_corpus(config, dataset_paths(tmp_path, "enronqa"))
+    query = np.random.default_rng(5).normal(size=DIM).astype(np.float32)
+    reranker = ReverseReranker()
+    requester = Requester(
+        cfg=config,
+        placement=Placement(dataset="enronqa", nodes=[]),
+        sources=[],
+        router=CentralLocalRouter(),
+        embedder=StubEmbedder(query, config.data.require_enronqa().encoder),
+        client=httpx.AsyncClient(transport=ollama_mock(lambda _: "Answer: central")),
+        ollama_url="http://ollama",
+        central_index=index,
+        reranker=reranker,
+    )
+
+    record = await requester.process(Question("enronqa/test/0-0", "alice", "who?", {}, "central"))
+
+    pool = dense_top_k(query[None, :], np.concatenate(list(embs.values())), 12)[0]
+    assert record["error"] is None
+    assert reranker.pool_sizes == [12] and record["rerank_pool"] == 12
+    assert record["top_doc_ids"] == [doc_ids[i] for i in reversed(pool)][:K]
+    assert "rerank_s" in record["timings"]
 
 
 def test_inbox_is_the_first_component_of_the_document_id() -> None:

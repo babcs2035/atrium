@@ -824,16 +824,19 @@ class Requester:
         """routing=central_local（p0007 I4）：質問者の 1 つの索引から上位 k 通を取り，質問者の LLM で答える（B1 相当）．
 
         ノードには問い合わせない．メールは起動の前に質問者へ集めてあるので，質問ごとに外へ出る文書は 0 とする
-        （集める一度きりの量は run_meta の central_index に残す）．
+        （集める一度きりの量は run_meta の central_index に残す）．retrieval.merge=cross_encoder なら，上位 retrieval.k_ret 通を
+        bge-reranker-v2-m3 で並べ替えた上位 k 通（再ランクの順）を文脈にする（p0007 A5 の C1-RRF-CE）．
         """
         if self.central_index is None:
             raise RuntimeError("routing=central_local requires a central index")
         encoder = self.cfg.data.require_enronqa().encoder
+        # retrieval.merge=cross_encoder（p0007 A5 の C1-RRF-CE）：索引の上位 retrieval.k_ret 通を再ランクして上位 k 通にする
+        rerank = self.cfg.retrieval.merge == "cross_encoder"
         start = time.perf_counter()
         found = await asyncio.to_thread(
             self.central_index.search,
             embeddings[encoder],
-            self._k_ret(),
+            self.cfg.retrieval.k_ret if rerank else self._k_ret(),
             question.question if self.cfg.retrieval.fusion == "rrf" else None,
         )
         record["timings"]["retrieve_s"] = time.perf_counter() - start
@@ -845,6 +848,11 @@ class Requester:
             )
             for d in found
         ]
+        if rerank:
+            start = time.perf_counter()
+            record["rerank_pool"] = len(docs)
+            docs = await asyncio.to_thread(self._merge, question, docs)
+            record["timings"]["rerank_s"] = time.perf_counter() - start
         record["selected_sources"] = []
         record["n_shards_queried"] = 0
         record["query_recipients"] = 0
