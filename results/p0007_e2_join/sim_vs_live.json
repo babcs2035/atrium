@@ -1,0 +1,12 @@
+{
+ "pre_join": {
+  "predicted_hit_rate": 0.0,
+  "live_hit_rate": 0.0
+ },
+ "candidate_agreement_with_offline_summary": 0.9766666666666667,
+ "delay_zero_vs_main": {
+  "inboxes_answered_main": 15,
+  "inboxes_answered_stream_l0": 15
+ },
+ "causes": "候補の不一致は，デバイスの CPU と GPU の埋め込みの丸め（重心が僅かに違う）と，公開情報の作り直しで CORI の cf・長さの平均が変わる分"
+}

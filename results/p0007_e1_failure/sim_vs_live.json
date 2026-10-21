@@ -1,0 +1,62 @@
+{
+ "rows": [
+  {
+   "mode": "availability",
+   "k": 1,
+   "predicted_fault_hit_rate": 0.7182903800632996,
+   "live_fault_hit_rate": 0.7068273092369478,
+   "difference": -0.011463070826351784
+  },
+  {
+   "mode": "availability",
+   "k": 3,
+   "predicted_fault_hit_rate": 0.6668145191099283,
+   "live_fault_hit_rate": 0.6666666666666666,
+   "difference": -0.00014785244326165348
+  },
+  {
+   "mode": "availability",
+   "k": 6,
+   "predicted_fault_hit_rate": 0.6119480519480519,
+   "live_fault_hit_rate": 0.5938775510204082,
+   "difference": -0.01807050092764373
+  },
+  {
+   "mode": "availability",
+   "k": 10,
+   "predicted_fault_hit_rate": 0.49036755858236264,
+   "live_fault_hit_rate": 0.4911242603550296,
+   "difference": 0.0007567017726669567
+  },
+  {
+   "mode": "container",
+   "k": 1,
+   "predicted_fault_hit_rate": 0.6756782127100347,
+   "live_fault_hit_rate": 0.3283582089552239,
+   "difference": -0.3473200037548108
+  },
+  {
+   "mode": "container",
+   "k": 3,
+   "predicted_fault_hit_rate": 0.6081081081081081,
+   "live_fault_hit_rate": 0.13513513513513514,
+   "difference": -0.47297297297297297
+  },
+  {
+   "mode": "container",
+   "k": 6,
+   "predicted_fault_hit_rate": 0.6697530864197532,
+   "live_fault_hit_rate": 0.05555555555555555,
+   "difference": -0.6141975308641976
+  },
+  {
+   "mode": "container",
+   "k": 10,
+   "predicted_fault_hit_rate": 0.3734567901234568,
+   "live_fault_hit_rate": 0.027777777777777776,
+   "difference": -0.345679012345679
+  }
+ ],
+ "max_abs_difference": 0.6141975308641976,
+ "causes": "予測は正解の受信箱が止まった質問だけが答えられないとする．実機では，止まったノードに probe・本照会を送る質問も時間切れで答えられず（要求を送る先は正解の受信箱とは限らない），予測より低くなる．質問の数が少ないと割合が揺れる"
+}

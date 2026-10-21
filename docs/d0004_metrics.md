@@ -443,7 +443,7 @@ k 台の停止（availability API・コンテナの停止と再開）と，中�
 
 | ファイル | 内容 |
 |---|---|
-| `failure.json` | `central.restart`：`restart_to_answer_s`（インタプリタの起動・import・索引の読み込みを含む）・`index_load`（`central_index` と同じ内訳）・`index_bytes`．`central.redundancy`：切り替え時間の見込みとデータ複製の費用．`p2p[]`（止め方 × k）：`detection_s`（生存の確認が最初に失敗するまで）・`ready_s`（再開の頼みから返事をするまで）・`first_failed_request_s`・`n_timeouts`（`answer_deadline_s` で打ち切った質問）・`baseline_hit_rate`・`fault_hit_rate`・`rates`（`bin_s` ごとの答えられた割合）・`integral`（窓 W = down_s ＋ 中央の再起動 ＋ post_s の積分．割合 × 秒）・`central_integral` |
+| `failure.json` | `central.restart`：`restart_to_answer_s`（インタプリタの起動・import・索引の読み込みを含む）・`index_load`（`central_index` と同じ内訳）・`index_bytes`．`central.redundancy`：切り替え時間の見込みとデータ複製の費用．`p2p[]`（止め方 × k）：`detection_s`（生存の確認が最初に失敗するまで）・`ready_s`（再開の頼みから返事をするまで）・`first_failed_request_s`・`n_timeouts`（`answer_deadline_s` で打ち切った質問）・`baseline_hit_rate`・`fault_hit_rate`・`questions`（質問ごとの診断用の記録：`t_s`・`hit`・`timed_out`・`gold_down`・`e2e_s`．メール本文は含まない）・`rates`（`bin_s` ごとの答えられた割合）・`integral`（窓 W = down_s ＋ 中央の再起動 ＋ post_s の積分．割合 × 秒）・`central_integral` |
 | `verdict.json` | `verdict_original`：測った全ての（止め方，k）で P2P の積分 > 中央の積分 |
 | `sim_vs_live.json` | 止めている間の答えられた割合の予測（平常の割合 × 正解の受信箱が動いている割合）と実測 |
 

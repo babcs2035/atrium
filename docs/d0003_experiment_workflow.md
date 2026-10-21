@@ -311,6 +311,9 @@ bash scripts/tasks/live_run.sh failure_run p0007_e1_smoke --ks 1,3 --modes avail
 - 判定（事前登録）：窓 W = `--down-s` ＋ 中央の再起動の時間 ＋ `--post-s` の中の答えられた割合の時間積分が，測った全ての（止め方，k）で P2P > 中央（中央は `--down-s` ＋ 再起動の時間まで 0）．
   `verdict.json` の `rows` に値が並ぶ．中央の再起動の時間は索引がページキャッシュにある温かい状態の値（コンテナの中の子プロセス）で，ディスクから読み直すと長くなる（限界）．
   `sim_vs_live.json`：止めている間の答えられた割合の予測（平常の割合 × 正解の受信箱が動いている割合）と実測．
+- 診断：`failure.json` の `p2p[].questions`（質問ごとの記録）を，止めている間（`0 <= t_s < down_s`）の時間切れか否かで分けると，container の停止で割合が下がる原因を切り分けられる
+  （`results/p0007_e_live/e_report.py` の `diag_rows`．p0007 E の結果：時間切れの質問が下がりの全てで，時間内に答えた質問の割合は平常と同じ）．
+  集計は `uv run python results/p0007_e_live/e_report.py`（`results/p0007_e_verdict/`）．本番の実測の値（p0007 E）は journal の「p0007 E：障害と参加の結果と判定」．
 - 失敗時：`ctl/ack` が出ずに `TimeoutError` なら `failure_run.sh` の watcher が動いていない（`results/<run_id>/start.log`）．`node_admin` でなければ管理 API が無く availability が 404．
 
 ### 7.3 参加（`join-run`．E2）
@@ -336,6 +339,8 @@ bash scripts/tasks/live_run.sh join_run p0007_e2_smoke --n-devices 1 --delays 0,
 - 判定（事前登録）：P2P の答えられるまでの時間（受信箱ごと）の中央値が中央より短い，または中央の 1.25 倍以内で転送量が小さい（`verdict.json` の `branch`）．
 - 通知の遅れ L_join（`delays`）：質問の流れ（加わる受信箱の全質問と，同数の他の質問を混ぜたもの）の中で，質問者が加わったデバイスの公開情報を使い始めるのを L 問遅らせたときの，通知の前後の hit と，各受信箱が最初に答えられた位置．
 - `sim_vs_live.json`：参加前の hit（予測 0）と実測，組み立てた要約とオフラインの `build-summary` の要約の probe の候補の一致率（配置が違えば null）．
+- 本番の所要（p0007 E2）：約 1 時間 36 分．最初のメンバー 27 台の公開情報の作成を含む準備が約 1 時間（デバイスの p50 1,085 秒），加わる 3 台は同時に作り，
+  i5-8350U のノードで 1,281〜1,499 秒（1 通 0.49〜0.52 秒），GPU の PC の CPU で 313 秒（1 通 0.15 秒）．中央は 3 台を順に転送・埋め込みして 132 秒．
 - 失敗時：途中で止まっても `atrium join-run` と `join_run.sh` が全ノードを有効にし直す．直らなければ `curl -X POST http://<host>:8100/v1/admin/availability -d '{"up": true}' -H 'content-type: application/json'`．
 
 ## 8. 負荷・エネルギーの測定（p0007 D．`results/p0007_d_live/`）

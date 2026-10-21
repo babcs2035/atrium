@@ -1,0 +1,57 @@
+{
+ "verdict_original": {
+  "hypothesis": "全ての k で，同じ窓の答えられた割合の時間積分が P2P > 中央",
+  "rows": [
+   {
+    "k": "availability:k=1",
+    "p2p_integral": 53.743290031204246,
+    "central_integral": 22.8,
+    "p2p_larger": true
+   },
+   {
+    "k": "availability:k=3",
+    "p2p_integral": 51.95228351494777,
+    "central_integral": 22.8,
+    "p2p_larger": true
+   },
+   {
+    "k": "availability:k=6",
+    "p2p_integral": 48.81551248519273,
+    "central_integral": 22.8,
+    "p2p_larger": true
+   },
+   {
+    "k": "availability:k=10",
+    "p2p_integral": 44.02828172656839,
+    "central_integral": 22.8,
+    "p2p_larger": true
+   },
+   {
+    "k": "container:k=1",
+    "p2p_integral": 35.41040185057757,
+    "central_integral": 22.8,
+    "p2p_larger": true
+   },
+   {
+    "k": "container:k=3",
+    "p2p_integral": 28.567610851908324,
+    "central_integral": 22.8,
+    "p2p_larger": true
+   },
+   {
+    "k": "container:k=6",
+    "p2p_integral": 25.286267232161563,
+    "central_integral": 22.8,
+    "p2p_larger": true
+   },
+   {
+    "k": "container:k=10",
+    "p2p_integral": 23.76954763835231,
+    "central_integral": 22.8,
+    "p2p_larger": true
+   }
+  ],
+  "holds": true
+ },
+ "verdict_revised": null
+}

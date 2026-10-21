@@ -1,0 +1,480 @@
+{
+ "plan": {
+  "joiner_hosts": [
+   "192.168.13.103",
+   "192.168.13.105",
+   "192.168.15.106"
+  ],
+  "joiner_inboxes": [
+   "arnold-j",
+   "bailey-s",
+   "blair-l",
+   "donohoe-t",
+   "gang-l",
+   "jones-t",
+   "panus-s",
+   "perlingiere-d",
+   "reitmeyer-j",
+   "ring-a",
+   "sanchez-m",
+   "semperger-c",
+   "swerzbin-m",
+   "taylor-m",
+   "williams-j"
+  ],
+  "n_initial_devices": 27,
+  "smoke_initial_devices": null,
+  "smoke_summary_max_docs": null
+ },
+ "setup": {
+  "n_devices": 27,
+  "device_total_s_p50": 1085.055254954379,
+  "published_bytes_total": 18173864
+ },
+ "pre_join": {
+  "n_questions": 300,
+  "hit_rate": 0.0
+ },
+ "p2p": {
+  "devices": [
+   {
+    "host": "192.168.13.103",
+    "rtt_s": 1499.0425190068781,
+    "device_total_s": 1498.9600673941895,
+    "device_tokenize_s": 0.3659881451167166,
+    "device_embed_s": 1493.2222096920013,
+    "device_kmeans_s": 0.12422869773581624,
+    "device": "cpu",
+    "n_docs": 2913,
+    "payload_bytes": 2738478,
+    "published_bytes": 684168,
+    "up_s": 0.03976204805076122,
+    "published_s": 1499.0993982991204,
+    "profile_s": 0.05393669521436095,
+    "assemble_s": 0.5788576290942729,
+    "member_s": 1499.7322062100284,
+    "answers": [
+     {
+      "inbox": "panus-s",
+      "answer_s": 1500.0546285132878,
+      "tries": 1
+     },
+     {
+      "inbox": "reitmeyer-j",
+      "answer_s": 1500.1149733420461,
+      "tries": 1
+     },
+     {
+      "inbox": "ring-a",
+      "answer_s": 1500.114990589209,
+      "tries": 1
+     },
+     {
+      "inbox": "sanchez-m",
+      "answer_s": 1500.066444416996,
+      "tries": 1
+     },
+     {
+      "inbox": "taylor-m",
+      "answer_s": 1500.1636802670546,
+      "tries": 2
+     }
+    ]
+   },
+   {
+    "host": "192.168.13.105",
+    "rtt_s": 1281.4842917523347,
+    "device_total_s": 1281.400873186998,
+    "device_tokenize_s": 0.2767234346829355,
+    "device_embed_s": 1275.7628406640142,
+    "device_kmeans_s": 0.0980279827490449,
+    "device": "cpu",
+    "n_docs": 2611,
+    "payload_bytes": 2690137,
+    "published_bytes": 631536,
+    "up_s": 0.035243917256593704,
+    "published_s": 1281.5366214741953,
+    "profile_s": 0.054716306272894144,
+    "assemble_s": 0.5787159572355449,
+    "member_s": 1282.1700698020868,
+    "answers": [
+     {
+      "inbox": "bailey-s",
+      "answer_s": 1282.6870587291196,
+      "tries": 1
+     },
+     {
+      "inbox": "donohoe-t",
+      "answer_s": 1282.6955572692677,
+      "tries": 1
+     },
+     {
+      "inbox": "gang-l",
+      "answer_s": 1282.6953014801256,
+      "tries": 1
+     },
+     {
+      "inbox": "jones-t",
+      "answer_s": 1282.7508789803833,
+      "tries": 1
+     },
+     {
+      "inbox": "swerzbin-m",
+      "answer_s": 1282.7981959390454,
+      "tries": 2
+     }
+    ]
+   },
+   {
+    "host": "192.168.15.106",
+    "rtt_s": 313.02008705819026,
+    "device_total_s": 312.94530505128205,
+    "device_tokenize_s": 0.1823521638289094,
+    "device_embed_s": 307.51993433898315,
+    "device_kmeans_s": 0.017100179102271795,
+    "device": "cpu",
+    "n_docs": 2094,
+    "payload_bytes": 2827721,
+    "published_bytes": 665752,
+    "up_s": 0.021316197235137224,
+    "published_s": 313.0571779543534,
+    "profile_s": 0.0395053350366652,
+    "assemble_s": 0.5489158509299159,
+    "member_s": 313.6456220331602,
+    "answers": [
+     {
+      "inbox": "arnold-j",
+      "answer_s": 313.9860335220583,
+      "tries": 1
+     },
+     {
+      "inbox": "blair-l",
+      "answer_s": 313.98411046434194,
+      "tries": 1
+     },
+     {
+      "inbox": "perlingiere-d",
+      "answer_s": 313.9909011423588,
+      "tries": 1
+     },
+     {
+      "inbox": "semperger-c",
+      "answer_s": 313.9885806310922,
+      "tries": 1
+     },
+     {
+      "inbox": "williams-j",
+      "answer_s": 313.99106867518276,
+      "tries": 1
+     }
+    ]
+   }
+  ],
+  "answer_s": [
+   1500.0546285132878,
+   1500.1149733420461,
+   1500.114990589209,
+   1500.066444416996,
+   1500.1636802670546,
+   1282.6870587291196,
+   1282.6955572692677,
+   1282.6953014801256,
+   1282.7508789803833,
+   1282.7981959390454,
+   313.9860335220583,
+   313.98411046434194,
+   313.9909011423588,
+   313.9885806310922,
+   313.99106867518276
+  ],
+  "answer_summary": {
+   "n": 15,
+   "n_censored": 0,
+   "p50": 1282.6955572692677,
+   "p95": 1500.1636802670546,
+   "max": 1500.1636802670546
+  },
+  "member_s_summary": {
+   "n": 3,
+   "n_censored": 0,
+   "p50": 1282.1700698020868,
+   "p95": 1499.7322062100284,
+   "max": 1499.7322062100284
+  },
+  "payload_bytes": 8256336,
+  "published_bytes": 1981456,
+  "exposed_mails": 0
+ },
+ "central": {
+  "devices": [
+   {
+    "host": "192.168.13.103",
+    "n_mails": 2913,
+    "transfer_bytes": 6341993,
+    "transfer_s": 0.42262391187250614,
+    "embed_s": 50.871293113101274,
+    "add_s": 0.0014683757908642292,
+    "indexed_s": 131.80934409610927,
+    "answers": [
+     {
+      "inbox": "panus-s",
+      "answer_s": 131.81736385729164,
+      "tries": 1
+     },
+     {
+      "inbox": "reitmeyer-j",
+      "answer_s": 131.8255031700246,
+      "tries": 1
+     },
+     {
+      "inbox": "ring-a",
+      "answer_s": 131.83319274242967,
+      "tries": 1
+     },
+     {
+      "inbox": "sanchez-m",
+      "answer_s": 131.84084433922544,
+      "tries": 1
+     },
+     {
+      "inbox": "taylor-m",
+      "answer_s": 131.85568147804588,
+      "tries": 2
+     }
+    ]
+   },
+   {
+    "host": "192.168.13.105",
+    "n_mails": 2611,
+    "transfer_bytes": 5052973,
+    "transfer_s": 0.37494865199550986,
+    "embed_s": 44.84739624615759,
+    "add_s": 0.0010913368314504623,
+    "indexed_s": 80.89523133914918,
+    "answers": [
+     {
+      "inbox": "bailey-s",
+      "answer_s": 80.90293074818328,
+      "tries": 1
+     },
+     {
+      "inbox": "donohoe-t",
+      "answer_s": 80.91040534805506,
+      "tries": 1
+     },
+     {
+      "inbox": "gang-l",
+      "answer_s": 80.91769372904673,
+      "tries": 1
+     },
+     {
+      "inbox": "jones-t",
+      "answer_s": 80.92488274630159,
+      "tries": 1
+     },
+     {
+      "inbox": "swerzbin-m",
+      "answer_s": 80.93212064309046,
+      "tries": 1
+     }
+    ]
+   },
+   {
+    "host": "192.168.15.106",
+    "n_mails": 2094,
+    "transfer_bytes": 4234845,
+    "transfer_s": 0.1875270646996796,
+    "embed_s": 35.78929408779368,
+    "add_s": 0.025023236870765686,
+    "indexed_s": 36.00533443316817,
+    "answers": [
+     {
+      "inbox": "arnold-j",
+      "answer_s": 36.01286357734352,
+      "tries": 1
+     },
+     {
+      "inbox": "blair-l",
+      "answer_s": 36.020783187355846,
+      "tries": 1
+     },
+     {
+      "inbox": "perlingiere-d",
+      "answer_s": 36.02815762441605,
+      "tries": 1
+     },
+     {
+      "inbox": "semperger-c",
+      "answer_s": 36.03526403522119,
+      "tries": 1
+     },
+     {
+      "inbox": "williams-j",
+      "answer_s": 36.042481371201575,
+      "tries": 1
+     }
+    ]
+   }
+  ],
+  "answer_s": [
+   131.81736385729164,
+   131.8255031700246,
+   131.83319274242967,
+   131.84084433922544,
+   131.85568147804588,
+   80.90293074818328,
+   80.91040534805506,
+   80.91769372904673,
+   80.92488274630159,
+   80.93212064309046,
+   36.01286357734352,
+   36.020783187355846,
+   36.02815762441605,
+   36.03526403522119,
+   36.042481371201575
+  ],
+  "answer_summary": {
+   "n": 15,
+   "n_censored": 0,
+   "p50": 80.91769372904673,
+   "p95": 131.85568147804588,
+   "max": 131.85568147804588
+  },
+  "transfer_bytes": 15629811,
+  "exposed_mails": 7618
+ },
+ "delays": [
+  {
+   "delay_questions": 0,
+   "n_stream": 600,
+   "joiner_questions_before_notice": 0,
+   "joiner_hits_before_notice": 0,
+   "joiner_questions_after_notice": 300,
+   "joiner_hits_after_notice": 212,
+   "hit_rate_after_notice": 0.7066666666666667,
+   "first_hit_position": {
+    "arnold-j": 1,
+    "donohoe-t": 2,
+    "swerzbin-m": 7,
+    "taylor-m": 11,
+    "ring-a": 17,
+    "blair-l": 32,
+    "williams-j": 38,
+    "sanchez-m": 39,
+    "gang-l": 46,
+    "perlingiere-d": 54,
+    "reitmeyer-j": 55,
+    "panus-s": 59,
+    "bailey-s": 61,
+    "jones-t": 69,
+    "semperger-c": 86
+   },
+   "first_hit_s": {
+    "arnold-j": 0.13756902236491442,
+    "donohoe-t": 0.19512892700731754,
+    "swerzbin-m": 0.4955126973800361,
+    "taylor-m": 0.7455394780263305,
+    "ring-a": 1.10750075802207,
+    "blair-l": 2.0159017420373857,
+    "williams-j": 2.3798303911462426,
+    "sanchez-m": 2.443450840190053,
+    "gang-l": 2.8889541910029948,
+    "perlingiere-d": 3.384561979211867,
+    "reitmeyer-j": 3.446326311212033,
+    "panus-s": 3.6968393363058567,
+    "bailey-s": 3.8209295659326017,
+    "jones-t": 4.314498347230256,
+    "semperger-c": 5.362913370132446
+   },
+   "n_inboxes_never_answered": 0
+  },
+  {
+   "delay_questions": 10,
+   "n_stream": 600,
+   "joiner_questions_before_notice": 4,
+   "joiner_hits_before_notice": 0,
+   "joiner_questions_after_notice": 296,
+   "joiner_hits_after_notice": 209,
+   "hit_rate_after_notice": 0.706081081081081,
+   "first_hit_position": {
+    "taylor-m": 11,
+    "ring-a": 17,
+    "swerzbin-m": 18,
+    "blair-l": 32,
+    "williams-j": 38,
+    "sanchez-m": 39,
+    "gang-l": 46,
+    "arnold-j": 52,
+    "perlingiere-d": 54,
+    "reitmeyer-j": 55,
+    "panus-s": 59,
+    "bailey-s": 61,
+    "jones-t": 69,
+    "donohoe-t": 80,
+    "semperger-c": 86
+   },
+   "first_hit_s": {
+    "taylor-m": 0.7340062968432903,
+    "ring-a": 1.1026867758482695,
+    "swerzbin-m": 1.1623086319305003,
+    "blair-l": 2.024850112851709,
+    "williams-j": 2.3895669910125434,
+    "sanchez-m": 2.4532125708647072,
+    "gang-l": 2.8823090996593237,
+    "arnold-j": 3.2517404849641025,
+    "perlingiere-d": 3.3723051720298827,
+    "reitmeyer-j": 3.434488980099559,
+    "panus-s": 3.6884682099334896,
+    "bailey-s": 3.8117751427926123,
+    "jones-t": 4.308501103892922,
+    "donohoe-t": 4.9891218189150095,
+    "semperger-c": 5.3562327809631824
+   },
+   "n_inboxes_never_answered": 0
+  },
+  {
+   "delay_questions": 100,
+   "n_stream": 600,
+   "joiner_questions_before_notice": 47,
+   "joiner_hits_before_notice": 0,
+   "joiner_questions_after_notice": 253,
+   "joiner_hits_after_notice": 175,
+   "hit_rate_after_notice": 0.691699604743083,
+   "first_hit_position": {
+    "gang-l": 102,
+    "perlingiere-d": 105,
+    "semperger-c": 110,
+    "panus-s": 111,
+    "blair-l": 122,
+    "williams-j": 124,
+    "donohoe-t": 126,
+    "sanchez-m": 129,
+    "arnold-j": 130,
+    "jones-t": 138,
+    "reitmeyer-j": 155,
+    "ring-a": 170,
+    "swerzbin-m": 171,
+    "bailey-s": 180,
+    "taylor-m": 292
+   },
+   "first_hit_s": {
+    "gang-l": 6.219747570808977,
+    "perlingiere-d": 6.396113533060998,
+    "semperger-c": 6.696049155201763,
+    "panus-s": 6.756888568866998,
+    "blair-l": 7.416430529206991,
+    "williams-j": 7.53454068209976,
+    "donohoe-t": 7.655834000092,
+    "sanchez-m": 7.835185343865305,
+    "arnold-j": 7.89491693302989,
+    "jones-t": 8.38081113807857,
+    "reitmeyer-j": 9.406603537965566,
+    "ring-a": 10.300501797813922,
+    "swerzbin-m": 10.359655354171991,
+    "bailey-s": 10.898764755111188,
+    "taylor-m": 17.674901138991117
+   },
+   "n_inboxes_never_answered": 0
+  }
+ ]
+}

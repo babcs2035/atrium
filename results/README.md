@@ -133,3 +133,8 @@
 | `p0007_c_freshness`，`p0007_c_freshness_quiet`，`p0007_c_freshness_acc` | C の実機（`freshness-run`．後から届くメール 289 通・T ∈ {0, 60, 600, ∞}）：主の実行（事前登録の規則．`retrieval_only`・hybrid_probe・繰り返しの上限 30 秒），事後の測り直し（繰り返しの上限 2 秒），新しいメールについての正答率の実行（`snippet_return`・採点済み・`sanitize_results.py` 済み．時間は使わない） | 主：P2P direct p50 3.18 秒（`verdict_original` 不成立）．測り直し：p50 0.394 秒・p95 1.43 秒（`verdict_revised` 成立）．中央 T = 0 は p50 0.040 秒，T = 60・600 は 39・534 秒．正答率 P2P 0.654・T = 0 0.664・T ≥ 60 0.19〜0.20 | p0007 C：新しいメールへの追従の結果と判定 |
 | `p0007_c_verdict` | C の集計：`verdict.json`（`verdict_original`・`verdict_revised`），`c_summary.json`・`c_tables.md`，`sim_vs_live.json` | 同上 | 同上 |
 | `p0007_c_live` | C の集計のスクリプト（`c_report.py`） | - | 同上 |
+| `p0007_e1_failure` | E1 の実機（`failure-run`．k ∈ {1, 3, 6, 10}・止め方 availability と container・中央の再起動．down 45 秒・post 30 秒）：`failure.json`・`verdict.json`（`verdict_original`）・`sim_vs_live.json` | 窓の積分は全 8 条件で P2P > 中央（`verdict_original` 成立．ただし中央が 45 秒止まる仮定）．中央の再起動 1.44 秒（温かい）．container の停止中の割合は平常 0.74 から 0.33（k = 1）〜0.03（k = 10）．availability は 0.71〜0.49 で予測と一致 | p0007 E：障害と参加の結果と判定 |
+| `p0007_e1_diag_container` | E1 の診断（container の再実行．質問ごとの記録 `questions` つき．判定に使わない） | 時間切れの割合 k = 1 で 0.52（無作為な probe 集合のモデル 0.53）．時間内に答えた質問の割合は平常と同じ | 同上 |
+| `p0007_e2_join` | E2 の実機（`join-run`．3 台 = 15 受信箱が途中で加わる．L_join ∈ {0, 10, 100}）：`join.json`・`verdict.json`（`verdict_original`）・`sim_vs_live.json` | P2P の答えられるまで p50 1,283 秒（要約の作成 313〜1,499 秒）・中央 81 秒．転送量 P2P 8.26 MB・中央 15.63 MB．`verdict_original` 不成立（時間で 15.9 倍） | 同上 |
+| `p0007_e_verdict` | E の集計：`e_summary.json`・`e_tables.md`・`sim_vs_live.json`（K4．E1 の予測と実測・container の時間切れのモデル） | 同上 | 同上 |
+| `p0007_e_live` | E の集計のスクリプト（`e_report.py`） | - | 同上 |

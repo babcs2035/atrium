@@ -1,0 +1,34 @@
+{
+ "rows": [
+  {
+   "mode": "container",
+   "k": 1,
+   "predicted_fault_hit_rate": 0.6814394286237524,
+   "live_fault_hit_rate": 0.34328358208955223,
+   "difference": -0.33815584653420017
+  },
+  {
+   "mode": "container",
+   "k": 3,
+   "predicted_fault_hit_rate": 0.6068645332449013,
+   "live_fault_hit_rate": 0.13513513513513514,
+   "difference": -0.47172939810976616
+  },
+  {
+   "mode": "container",
+   "k": 6,
+   "predicted_fault_hit_rate": 0.5856760374832665,
+   "live_fault_hit_rate": 0.1111111111111111,
+   "difference": -0.47456492637215536
+  },
+  {
+   "mode": "container",
+   "k": 10,
+   "predicted_fault_hit_rate": 0.37267080745341613,
+   "live_fault_hit_rate": 0.027777777777777776,
+   "difference": -0.34489302967563834
+  }
+ ],
+ "max_abs_difference": 0.47456492637215536,
+ "causes": "予測は正解の受信箱が止まった質問だけが答えられないとする．実機では，止まったノードに probe・本照会を送る質問も時間切れで答えられず（要求を送る先は正解の受信箱とは限らない），予測より低くなる．質問の数が少ないと割合が揺れる"
+}
