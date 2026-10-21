@@ -138,3 +138,4 @@
 | `p0007_e2_join` | E2 の実機（`join-run`．3 台 = 15 受信箱が途中で加わる．L_join ∈ {0, 10, 100}）：`join.json`・`verdict.json`（`verdict_original`）・`sim_vs_live.json` | P2P の答えられるまで p50 1,283 秒（要約の作成 313〜1,499 秒）・中央 81 秒．転送量 P2P 8.26 MB・中央 15.63 MB．`verdict_original` 不成立（時間で 15.9 倍） | 同上 |
 | `p0007_e_verdict` | E の集計：`e_summary.json`・`e_tables.md`・`sim_vs_live.json`（K4．E1 の予測と実測・container の時間切れのモデル） | 同上 | 同上 |
 | `p0007_e_live` | E の集計のスクリプト（`e_report.py`） | - | 同上 |
+| （`results/` の実行ではない）p0007 の最終報告 | F：`docs/d0007_p2p_vs_central_report.md`（総合の判定・実機の知見 K1〜K5・限界・今後）と，図 `docs/figures/p0007_{accuracy_cost,load,time}.svg`（`scripts/tasks/p0007_figure.py` が上の実行から作る） | 精度で非劣性不成立（−0.0500）．総合は交換関係 | p0007 のまとめ |
