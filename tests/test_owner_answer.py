@@ -164,8 +164,15 @@ def test_selected_index_is_zero_based_and_rejects_out_of_range(
 class Harness:
     """3 台の専門家（node-a・b・c．それぞれ受信箱 a・b・c）と質問者．回答は node ごとに指定する．"""
 
-    def __init__(self, cfg: AtriumConfig, root: Path, replies: dict[str, str]) -> None:
-        """root に各受信箱のシャードを作る．replies は node 名 → その node の LLM の出力．"""
+    def __init__(
+        self,
+        cfg: AtriumConfig,
+        root: Path,
+        replies: dict[str, str],
+        logprobs: dict[str, list[float]] | None = None,
+    ) -> None:
+        """root に各受信箱のシャードを作る．replies は node 名 → その node の LLM の出力，logprobs はその対数確率の列．"""
+        self.logprobs = logprobs or {}
         self.node_prompts: dict[str, list[str]] = {n: [] for n in replies}
         self.requester_prompts: list[str] = []
         self.requester_reply = "1"
@@ -187,7 +194,7 @@ class Harness:
                 self.node_prompts[node].append(json.dumps(body))
                 return text
 
-            routes[f"ollama-{node}"] = ollama_mock(reply)
+            routes[f"ollama-{node}"] = ollama_mock(reply, self.logprobs.get(node, ()))
         llm_client = httpx.AsyncClient(transport=HostDispatchTransport(routes))
         apps = {
             node: create_app(
@@ -246,12 +253,20 @@ class StubEmbedder:
         return {"enc": np.array([1.0, 0.0, 0.0, 0.0], np.float32)}
 
 
-def owner_cfg(cfg: AtriumConfig, aggregate: str, owner_m: int = 3) -> AtriumConfig:
+def owner_cfg(
+    cfg: AtriumConfig, aggregate: str, owner_m: int = 3, save_candidates: bool = False
+) -> AtriumConfig:
     """owner_answer・EnronQA の設定（ノードの回答は 1 文で，選択の LLM は requester_model）．"""
     changed = with_experiment(cfg, dataset="enronqa", answer_mode="owner_answer", routing="all")
     return changed.model_copy(
         update={
-            "answer": cfg.answer.model_copy(update={"aggregate": aggregate, "owner_m": owner_m})
+            "answer": cfg.answer.model_copy(
+                update={
+                    "aggregate": aggregate,
+                    "owner_m": owner_m,
+                    "save_candidates": save_candidates,
+                }
+            )
         }
     )
 
@@ -421,3 +436,100 @@ def test_owner_answer_requires_enronqa(cfg: AtriumConfig) -> None:
 
 def test_default_answer_settings_keep_the_existing_behavior(cfg: AtriumConfig) -> None:
     assert (cfg.answer.owner_m, cfg.answer.aggregate) == (2, "max_score")
+    assert cfg.answer.save_candidates is False
+
+
+# ── answer.save_candidates（p0007 A5）：全候補の回答と選び方の特徴量 ──────────────────────
+
+
+async def test_save_candidates_keeps_every_candidate_answer_with_its_features(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    replies = {"node-a": "Answer: UNKNOWN", "node-b": "Answer: BETA", "node-c": "Answer: GAMMA"}
+    harness = Harness(
+        owner_cfg(cfg, "abstain", save_candidates=True),
+        tmp_path,
+        replies,
+        logprobs={"node-a": [-0.1, -0.3], "node-b": [-1.0, -2.0, -3.0], "node-c": [-0.5]},
+    )
+    requester = harness.requester()
+    await harness.discover(requester)
+
+    record = await requester.process(QUESTION)
+
+    info = record["owner_answer"]
+    assert isinstance(info, dict)
+    cands = info["candidates"]
+    assert [c["source"] for c in cands] == ["a", "b", "c"]
+    assert [c["answer"] for c in cands] == ["UNKNOWN", "BETA", "GAMMA"]
+    assert [c["unknown"] for c in cands] == [True, False, False]
+    assert [c["avg_logprob"] for c in cands] == pytest.approx([-0.2, -2.0, -0.5])
+    assert [c["n_logprob_tokens"] for c in cands] == [2, 3, 1]
+    # 文脈の文書 ID（本文ではない）と，密ベクトルの最高得点（実機の abstain が使う得点）
+    assert cands[0]["context_doc_ids"] == ["a-00/f/0"]
+    assert [c["top_score"] for c in cands] == [a["top_score"] for a in record["node_answers"]]  # type: ignore[index]
+    # fusion=none の受信箱は BM25・RRF の得点を持たず，AllRouter は probe を送らない
+    assert all(c["bm25_max"] is None and c["rrf_max"] is None for c in cands)
+    assert all(c["probe_fused"] is None for c in cands)
+    # 統合の結果は save_candidates に依らない
+    assert info["chosen_source"] == "b"
+
+
+async def test_save_candidates_reads_the_log_probability_from_the_delegate_gpu_node(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    harness = Harness(
+        owner_cfg(cfg, "abstain", 2, save_candidates=True),
+        tmp_path,
+        {"node-a": "Answer: CPU", "node-b": "Answer: GPU"},
+        logprobs={"node-a": [-9.0], "node-b": [-0.25, -0.75]},
+    )
+    requester = harness.requester()
+    await harness.discover(requester)
+    requester.placement = requester.placement.model_copy(
+        update={"delegate_of": {"node-a": "node-b"}}
+    )
+
+    record = await requester.process(QUESTION)
+
+    cands = record["owner_answer"]["candidates"]  # type: ignore[index]
+    # 受信箱 a の回答は委託先（node-b の GPU）が作るので，その対数確率になる
+    assert [c["avg_logprob"] for c in cands] == pytest.approx([-0.5, -0.5])
+    assert harness.node_prompts["node-a"] == []
+
+
+async def test_without_save_candidates_nodes_are_not_asked_for_features(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    replies = {"node-a": "Answer: ALPHA", "node-b": "Answer: BETA"}
+    record, harness = await run_one(owner_cfg(cfg, "abstain", 2), tmp_path, replies)
+    assert "candidates" not in record["owner_answer"]  # type: ignore[operator]
+    assert all('"logprobs"' not in p for prompts in harness.node_prompts.values() for p in prompts)
+
+
+async def test_answer_response_without_features_is_unchanged(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    """with_features の無い要求の応答は，追加の欄（features・avg_logprob）を含まない（従来の応答と同じ）．"""
+    harness = Harness(owner_cfg(cfg, "abstain", 2), tmp_path, {"node-a": "Answer: A"})
+    harness.requester()
+    app = harness._apps["node-a"]
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://n") as c:
+        answer = await c.post(
+            "/v1/answer",
+            json={
+                "dataset": "enronqa",
+                "question": "q?",
+                "options": {},
+                "shard_ids": ["a-00"],
+                "k": 5,
+                "embedding": [1.0, 0.0, 0.0, 0.0],
+            },
+        )
+        generated = await c.post(
+            "/v1/generate",
+            json={"dataset": "enronqa", "question": "q?", "options": {}, "docs": []},
+        )
+    assert answer.status_code == 200 and "features" not in answer.json()
+    assert generated.status_code == 200
+    assert "avg_logprob" not in generated.json() and "n_logprob_tokens" not in generated.json()

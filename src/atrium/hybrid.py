@@ -107,11 +107,10 @@ def ranked_indices(scores: F64Array, depth: int) -> I64Array:
     return np.asarray(order, dtype=np.int64)
 
 
-def rrf_top_k(dense: F64Array, bm25: F64Array, k: int, depth: int) -> list[int]:
-    """密ベクトルの得点 dense と BM25 の得点 bm25（どちらも文書の番号に対応）から，RRF で統合した上位 k 通の番号を返す．
+def rrf_scores(dense: F64Array, bm25: F64Array, depth: int) -> dict[int, float]:
+    """文書の番号 → RRF の得点 = Σ 1 / (RRF_K + 順位)（順位は 1 始まり）．
 
-    RRF の得点 = Σ 1 / (RRF_K + 順位)（順位は 1 始まり．密ベクトルの上位 depth 通と，BM25 の得点が正の上位 depth 通の
-    どちらかに入る文書だけが候補．片方にしか入らない文書はその項が 0）．同点は密ベクトルの得点の高い方，それも同点なら番号の小さい方．
+    密ベクトルの上位 depth 通と，BM25 の得点が正の上位 depth 通のどちらかに入る文書だけを含む（片方にしか入らない文書はその項が 0）．
     """
     dense_top = ranked_indices(dense, depth)
     bm25_top = ranked_indices(bm25, depth)
@@ -121,4 +120,13 @@ def rrf_top_k(dense: F64Array, bm25: F64Array, k: int, depth: int) -> list[int]:
     for ranking in (dense_top, bm25_top):
         for rank, doc in enumerate(ranking.tolist(), start=1):
             fused[doc] = fused.get(doc, 0.0) + 1.0 / (RRF_K + rank)
+    return fused
+
+
+def rrf_top_k(dense: F64Array, bm25: F64Array, k: int, depth: int) -> list[int]:
+    """密ベクトルの得点 dense と BM25 の得点 bm25（どちらも文書の番号に対応）から，RRF で統合した上位 k 通の番号を返す．
+
+    得点は `rrf_scores`．同点は密ベクトルの得点の高い方，それも同点なら番号の小さい方．
+    """
+    fused = rrf_scores(dense, bm25, depth)
     return sorted(fused, key=lambda d: (-fused[d], -dense[d], d))[:k]

@@ -148,6 +148,9 @@ answer:
   # 候補の回答の統合の規則．max_score：検索の最高得点の候補／abstain：UNKNOWN を許し，UNKNOWN でない回答のうち得点最高（全て UNKNOWN なら max_score）／
   # agree：正規化した文字列の一致の票数（同票は得点）／llm_select：質問者の LLM が 1 つを選ぶ
   aggregate: max_score
+  # p0007 A5：true なら全候補の回答と候補ごとの選び方の特徴量（密ベクトル・probe・受信箱の中の BM25 と RRF の最大・生成の対数確率の平均・
+  # 文脈の文書 ID）を results の owner_answer.candidates に残す（commit の前に sanitize_results.py を通す）．false は従来どおり
+  save_candidates: false
 
 e0:
   # 実測の対象ホスト（GPU なしの専門家の代表）と，RTT・スループットを測る相手

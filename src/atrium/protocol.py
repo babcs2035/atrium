@@ -81,6 +81,8 @@ class AnswerRequest(_Model):
     delegate_url: str | None = None
     # owner_answer の abstain（p0007 I2）：答えがメールに無ければ UNKNOWN と答えさせるプロンプトを使う
     allow_unknown: bool = False
+    # answer.save_candidates（p0007 A5）：候補の選び方の特徴量（AnswerFeatures）も返させる．false なら従来と同じ応答
+    with_features: bool = False
 
 
 class GenerateRequest(_Model):
@@ -91,6 +93,8 @@ class GenerateRequest(_Model):
     options: dict[str, str]
     docs: list[DocOut]
     allow_unknown: bool = False
+    # p0007 A5：生成したトークンの対数確率の平均も返させる
+    logprobs: bool = False
 
 
 class LlmUsage(_Model):
@@ -101,6 +105,19 @@ class LlmUsage(_Model):
     prefill_s: float
     decode_s: float
     total_s: float
+
+
+class AnswerFeatures(_Model):
+    """p0007 A5：owner_answer の候補を選ぶための特徴量（with_features の要求にだけ付ける．本文は含めない）．"""
+
+    # 文脈にした文書の ID（内積の降順．後から cross-encoder の得点を求めるのに使う）
+    context_doc_ids: list[str]
+    # 受信箱の中の BM25（その受信箱だけの統計）の最大と，RRF の得点の最大（retrieval.fusion=rrf のときだけ．それ以外は None）
+    bm25_max: float | None = None
+    rrf_max: float | None = None
+    # 生成したトークンの対数確率の平均と，その数（Ollama が返さなければ None と 0）
+    avg_logprob: float | None = None
+    n_logprob_tokens: int = 0
 
 
 class AnswerResponse(_Model):
@@ -117,6 +134,8 @@ class AnswerResponse(_Model):
     # B4 で回答を作った委託先のノードと，そこへ渡した断片の数（委託しなければ None と 0）
     delegated_to: str | None = None
     docs_sent: int = 0
+    # with_features の要求にだけ付ける（p0007 A5）
+    features: AnswerFeatures | None = None
 
 
 class GenerateResponse(_Model):
@@ -125,6 +144,9 @@ class GenerateResponse(_Model):
     node_id: str
     answer: str
     llm: LlmUsage
+    # logprobs の要求にだけ付ける（p0007 A5）
+    avg_logprob: float | None = None
+    n_logprob_tokens: int = 0
 
 
 class ShardProfile(_Model):

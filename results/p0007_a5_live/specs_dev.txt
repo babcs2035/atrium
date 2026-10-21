@@ -1,0 +1,2 @@
+# p0007 A5 の dev：A4 と同じ構成（bm25_probe D=24・owner_answer m=3・abstain・rrf）に answer.save_candidates を足し，dev の全 2,948 問を流す
+p0007_a5_dev experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=3 answer.aggregate=abstain answer.save_candidates=true experiment.routing=bm25_probe experiment.question_split=dev

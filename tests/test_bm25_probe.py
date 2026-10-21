@@ -478,3 +478,53 @@ async def test_live_selection_equals_the_offline_bm25_fuse_selection(
         assert sorted(record["selected_sources"]) == sorted(expected[i]), f"question {i}"
         # 本照会の前の probe は，上位 D 台のデバイスにだけ送る
         assert record["probe_recipients"] == probe_devices
+        # answer.save_candidates が既定（false）なら，probe の得点は記録に足さない（従来の記録のまま）
+        assert "probe_selected_scores" not in record
+
+
+async def test_save_candidates_records_the_fused_probe_scores_of_the_selected_inboxes(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    """answer.save_candidates（p0007 A5）では，選んだ受信箱の probe の得点（密ベクトル・BM25・融合得点）を残す．
+    融合得点はオフラインの bm25_fuse の得点と同じ（候補の選び方の特徴量 R1 の照合）．"""
+    data = _data()
+    q_emb = (
+        np.random.default_rng(7).normal(size=(len(data.q_tokens["test"]), DIM)).astype(np.float32)
+    )
+    second = np.stack(
+        [(q_emb @ e.astype(np.float16).astype(np.float32).T).max(axis=1) for e in data.summary_emb],
+        axis=1,
+    )
+    data = dataclasses.replace(
+        data, q_emb={"dev": q_emb, "test": q_emb}, second={"dev": second, "test": second}
+    )
+    (offline,) = [
+        c
+        for c in build_bm25_probe(data)
+        if c.params == {"V": 64000, "w": 0.5, "D": 2, "idf": "published", "wb": 2.0}
+    ]
+    selection = offline.select("test")
+    _, artifact = _artifact(tmp_path / "summary", data)
+    router = Bm25ProbeRouter(2, 2, artifact, ENCODER, 0.5, BM25_WEIGHT)
+    base = with_experiment(cfg, dataset="enronqa", answer_mode="retrieval_only")
+    saving = base.model_copy(
+        update={"answer": base.answer.model_copy(update={"save_candidates": True})}
+    )
+    questions = [
+        Question(f"enron/q{q}", "enron", " ".join(data.q_tokens["test"][q]), {}, None)
+        for q in range(len(data.q_tokens["test"]))
+    ]
+    requester = await _requester_with_one_node_per_device(
+        saving,
+        tmp_path / "shards",
+        data,
+        router,
+        {q.qid: q_emb[i] for i, q in enumerate(questions)},
+    )
+    column = {name: i for i, name in enumerate(data.names)}
+    for i, question in enumerate(questions):
+        record = await requester.process(question)
+        scores = record["probe_selected_scores"]
+        assert sorted(scores) == sorted(record["selected_sources"])
+        for source, s in scores.items():
+            assert s["fused"] == pytest.approx(float(selection.second[i, column[source]]), abs=1e-6)

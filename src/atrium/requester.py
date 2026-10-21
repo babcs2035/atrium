@@ -312,13 +312,20 @@ class CrossEncoderReranker:
         )
         self._lock = threading.Lock()
 
+    def scores(self, query: str, texts: Sequence[str]) -> list[float]:
+        """質問と各文（`<題>\\n<本文>`）の関連度（p0007 A5 の候補の特徴量も同じ得点を使う）．"""
+        if not texts:
+            return []
+        pairs = [(query, text) for text in texts]
+        with self._lock:
+            out = self._model.predict(pairs, batch_size=self.BATCH, convert_to_numpy=True)
+        return [float(s) for s in np.asarray(out).reshape(-1)]
+
     def rerank(self, query: str, docs: Sequence[SourcedDoc], k: int) -> list[SourcedDoc]:
         """クロスエンコーダのスコアで上位 k 件を返す．"""
         if not docs:
             return []
-        pairs = [(query, f"{d.doc.title}\n{d.doc.content}".strip()) for d in docs]
-        with self._lock:
-            scores = self._model.predict(pairs, batch_size=self.BATCH, convert_to_numpy=True)
+        scores = self.scores(query, [f"{d.doc.title}\n{d.doc.content}".strip() for d in docs])
         order = np.argsort(-np.asarray(scores))[:k]
         return [docs[int(i)] for i in order]
 
@@ -672,9 +679,12 @@ class Requester:
         GPU の無いノードは B4 と同じ経路で，検索した断片を対応づけた GPU のノードへ渡して答えさせる．
         回答の本文は，採った 1 つ（answer・final_answer）だけを record に残す（候補の回答にはメールの引用が混ざりうるので，
         残りは UNKNOWN かどうかと得点などの数だけを残す．採った回答は commit の前に sanitize_results.py を通す）．
+        answer.save_candidates（p0007 A5）のときだけ，全候補の回答（"Answer:" の後ろ）と選び方の特徴量を owner_answer.candidates
+        に残す（統合の規則をオフラインで比べるため．commit の前に sanitize_results.py が候補の回答も整形する）．
         """
         rule = self.cfg.answer.aggregate
         allow_unknown = rule == "abstain"
+        save_candidates = self.cfg.answer.save_candidates
         profiles = [self._profile(name) for name in selected]
         urls = []
         for profile in profiles:
@@ -695,6 +705,7 @@ class Requester:
                 query_id=question.source_qid,
                 delegate_url=delegate_url_of.get(url),
                 allow_unknown=allow_unknown,
+                with_features=save_candidates,
             )
             response = await self.client.post(
                 f"{url}/v1/answer", json=req.model_dump(), timeout=self.cfg.local_answer.timeout_s
@@ -758,6 +769,21 @@ class Requester:
             "vote_groups": [list(g) for g in choice.vote_groups],
             **select_info,
         }
+        if save_candidates:
+            probe = record.get("probe_selected_scores", {})
+            record["owner_answer"]["candidates"] = [
+                {
+                    "source": c.source,
+                    "answer": c.answer,
+                    "unknown": c.unknown,
+                    "top_score": c.top_score,
+                    "probe_dense": probe.get(c.source, {}).get("dense"),
+                    "probe_bm25": probe.get(c.source, {}).get("bm25"),
+                    "probe_fused": probe.get(c.source, {}).get("fused"),
+                    **(a.features.model_dump() if a.features is not None else {}),
+                }
+                for c, (a, _) in zip(candidates, answers, strict=True)
+            ]
 
     async def _choose_owner_answer(
         self,
@@ -1051,6 +1077,18 @@ class Requester:
             )
             start = time.perf_counter()
             selected = router.select_among(candidates, probe_scores, bm25_scores)
+            if self.cfg.answer.save_candidates:
+                # p0007 A5：選んだ受信箱の probe の得点（密ベクトル・BM25・融合得点）を，候補の選び方の特徴量として残す
+                # probe に答えた受信箱が m 個に満たないと，答えなかった受信箱も選ばれうる（その得点は None）
+                fused = router.fused_scores(candidates, probe_scores, bm25_scores)
+                record["probe_selected_scores"] = {
+                    s: {
+                        "dense": probe_scores.get(s),
+                        "bm25": bm25_scores.get(s),
+                        "fused": fused.get(s),
+                    }
+                    for s in selected
+                }
         else:
             probe_scores = await self._probe(embeddings, record, candidates, encoded_embeddings)
             start = time.perf_counter()

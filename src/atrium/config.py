@@ -263,6 +263,10 @@ class AnswerConfig(_Strict):
     # 候補の回答の統合の規則．max_score：検索の最高得点の候補／abstain：UNKNOWN を許し，UNKNOWN でない回答のうち得点最高
     # （全て UNKNOWN なら max_score）／agree：正規化した文字列の一致の票数（同票は得点）／llm_select：質問者の LLM が 1 つを選ぶ
     aggregate: AggregateName = "max_score"
+    # p0007 A5：全候補の回答（"Answer:" の後ろだけ．commit の前に sanitize_results.py で整形する）と，候補ごとの選び方の特徴量
+    # （密ベクトルの最高得点・probe の得点・受信箱の中の BM25 と RRF の最大・生成の対数確率の平均・文脈の文書 ID）を
+    # results の owner_answer.candidates に残す．false（既定）は従来どおり採った 1 つの回答だけを残す
+    save_candidates: bool = False
 
 
 class GgufModel(_Strict):

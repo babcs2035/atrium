@@ -39,9 +39,9 @@ from typing import Protocol
 import faiss
 import numpy as np
 
-from atrium.arrays import F32Array, I64Array
+from atrium.arrays import F32Array, F64Array, I64Array
 from atrium.config import FusionName
-from atrium.hybrid import Bm25Index, rrf_top_k
+from atrium.hybrid import Bm25Index, rrf_scores, rrf_top_k
 from atrium.manifest import SHARD_SPEC_FILENAME, ShardSpec
 
 logger = logging.getLogger(__name__)
@@ -266,11 +266,8 @@ class FaissShardStore:
             )
         return docs
 
-    def _search_rrf(self, k: int, query: F32Array, query_text: str) -> list[RetrievedDoc]:
-        """全断片の内積と BM25 の得点から RRF で上位 k 件を選ぶ．score は内積（受信箱をまたぐ統合の比べ方を変えない）．
-
-        文脈の並びは従来どおり内積の降順にする（RRF が変えるのは，どの断片が上位 k 件に入るかだけ）．
-        """
+    def _dense_and_bm25(self, query: F32Array, query_text: str) -> tuple[F64Array, F64Array]:
+        """全断片の内積と，その受信箱だけの統計の BM25 の得点（どちらも索引の行の番号に対応）．"""
         from atrium.routing.advert import tokenize
 
         if self._bm25 is None:
@@ -280,7 +277,30 @@ class FaissShardStore:
             scores, ids = self._index.search(query, n)
         dense = np.zeros(n, dtype=np.float64)
         dense[ids[0]] = scores[0]
-        bm25_scores = self._bm25.scores(tokenize(query_text))
+        return dense, self._bm25.scores(tokenize(query_text))
+
+    def fusion_maxima(self, embedding: list[float], query_text: str) -> tuple[float, float]:
+        """p0007 A5：受信箱の中の（BM25 の最大，RRF の得点の最大）．外した文書は除く．fusion=rrf のシャードだけが使える．
+
+        検索（`_search_rrf`）と同じ得点の作り方で，owner_answer の候補を選ぶ特徴量にする（検索の結果は変えない）．
+        """
+        query = np.asarray(embedding, dtype=np.float32).reshape(1, -1)
+        dense, bm25_scores = self._dense_and_bm25(query, query_text)
+        if self._hidden:
+            visible = np.setdiff1d(np.arange(len(dense)), np.fromiter(self._hidden, dtype=np.int64))
+            dense, bm25_scores = dense[visible], bm25_scores[visible]
+        if dense.size == 0:
+            return 0.0, 0.0
+        fused = rrf_scores(dense, bm25_scores, self._fusion_depth)
+        return float(bm25_scores.max()), max(fused.values(), default=0.0)
+
+    def _search_rrf(self, k: int, query: F32Array, query_text: str) -> list[RetrievedDoc]:
+        """全断片の内積と BM25 の得点から RRF で上位 k 件を選ぶ．score は内積（受信箱をまたぐ統合の比べ方を変えない）．
+
+        文脈の並びは従来どおり内積の降順にする（RRF が変えるのは，どの断片が上位 k 件に入るかだけ）．
+        """
+        dense, bm25_scores = self._dense_and_bm25(query, query_text)
+        n = len(dense)
         if self._hidden:
             # 外した行は順位づけの対象から除く（残した行の番号へ対応づけ直す）
             visible = np.setdiff1d(np.arange(n), np.fromiter(self._hidden, dtype=np.int64))

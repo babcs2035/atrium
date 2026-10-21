@@ -5,6 +5,7 @@
 # 使い方（操作端末の `bash scripts/tasks/judge.sh` から呼ばれる）:
 #   bash scripts/remote/judge.sh up <model>                 # 判定モデルの Ollama を全 GPU で起動する
 #   bash scripts/remote/judge.sh run <run_id>...            # 実行の回答を採点し，results/<run_id>/judgements.jsonl を書く
+#   bash scripts/remote/judge.sh run-candidates <run_id>... # 上に加え，owner_answer の全候補を採点し candidate_judgements.jsonl も書く（p0007 A5）
 #   bash scripts/remote/judge.sh validate <out_name>        # 付属の別解・誤答で判定モデルを検証する（results/<out_name>）
 #   bash scripts/remote/judge.sh kappa <out_name> <run_id>... # 参照モデルで採点し直して κ を出す（先に up で参照モデルを起動する）
 #   bash scripts/remote/judge.sh down                       # 判定モデルの Ollama を止めて消す
@@ -12,7 +13,7 @@
 # GPU の PC は専門家（experts）でもあるので，up はその PC の専門家のコンテナを止める．実験の後に使う．
 source "$(dirname "$0")/lib.sh"
 
-ACTION=${1:?usage: judge.sh up|run|validate|kappa|down ...}
+ACTION=${1:?usage: judge.sh up|run|run-candidates|validate|kappa|down ...}
 shift
 NAME=atrium-judge-ollama
 IMAGE="localhost:$REGISTRY_PORT/mirror/ollama:$OLLAMA_TAG"
@@ -69,12 +70,15 @@ case "$ACTION" in
     # shellcheck disable=SC2086
     run_parallel judge-up up_worker $GPU_WORKERS
     ;;
-  run)
-    [ "$#" -gt 0 ] || { echo "usage: judge.sh run <run_id>..." >&2; exit 1; }
+  run | run-candidates)
+    [ "$#" -gt 0 ] || { echo "usage: judge.sh $ACTION <run_id>..." >&2; exit 1; }
     runs=()
     for run in "$@"; do runs+=(--run-dir "/results/$run"); done
+    # run-candidates（p0007 A5）：owner_answer の全候補も採点し，candidate_judgements.jsonl も書く
+    extra=()
+    [ "$ACTION" = run-candidates ] && extra=(--with-candidates)
     # shellcheck disable=SC2046
-    judge_container judge --data-dir /data $(ollama_urls) "${runs[@]}"
+    judge_container judge --data-dir /data $(ollama_urls) "${runs[@]}" "${extra[@]}"
     ;;
   validate)
     OUT=${1:?usage: judge.sh validate <out_name>}

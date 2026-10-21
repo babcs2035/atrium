@@ -39,6 +39,8 @@
     body-advert-eval          公開情報をヘッダーを除いた本文から作り直した RQ-A の測り直し（EnronQA．Iteration 3．制御点のコンテナ）
     churn-live-report  EQ7b の実機の実行を集めて EQ7a と比べる（操作端末）
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
+    select-features           owner_answer の候補ごとの cross-encoder の得点を後から求める（EnronQA．p0007 A5．GPU のある操作端末）
+    select-eval               owner_answer の候補の選び方の規則をオフラインに適用・評価する（EnronQA．p0007 A5．操作端末）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
 """
 
@@ -759,7 +761,9 @@ def cmd_judge(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     paths = dataset_paths(Path(args.data_dir), "enronqa")
     if args.cmd == "judge":
         for run_dir in args.run_dir:
-            summary = judge.judge_run(cfg, paths, Path(run_dir), args.ollama_url, e.judge_model)
+            summary = judge.judge_run(
+                cfg, paths, Path(run_dir), args.ollama_url, e.judge_model, args.with_candidates
+            )
             print(run_dir, json.dumps(summary))
         return 0
     out_dir = Path(args.out_dir)
@@ -906,6 +910,59 @@ def cmd_compare(args: argparse.Namespace, cfg: AtriumConfig) -> int:
             "reason": args.revised_reason,
         }
     print(json.dumps(verdict.write_verdict(Path(args.out_dir), original, revised), indent=1))
+    return 0
+
+
+def cmd_select_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """owner_answer の候補ごとの cross-encoder の得点を <run_dir>/ce_features.jsonl に書く（p0007 A5）．"""
+    from atrium.analysis import read_results
+    from atrium.data_enronqa import read_inbox
+    from atrium.judge import question_texts
+    from atrium.requester import CrossEncoderReranker
+    from atrium.select_eval import CE_FEATURES, cross_encoder_features
+
+    run_dir = Path(args.run_dir)
+    paths = dataset_paths(Path(args.data_dir), "enronqa")
+    rows = [r for r in read_results(run_dir / "results.jsonl") if r.get("error") is None]
+    inboxes = {
+        str(c["source"])
+        for r in rows
+        for c in (r.get("owner_answer") or {}).get("candidates") or []
+    }
+    # 再ランク（retrieval.merge=cross_encoder）と同じ「題 + 改行 + 本文」を cross-encoder に渡す
+    text_of = {
+        d["id"]: f"{d['title']}\n{d['content']}".strip()
+        for inbox in sorted(inboxes)
+        for d in read_inbox(paths, inbox)
+    }
+    features = cross_encoder_features(
+        rows, question_texts(paths), text_of, CrossEncoderReranker().scores
+    )
+    with (run_dir / CE_FEATURES).open("w", encoding="utf-8") as f:
+        for item in features:
+            f.write(json.dumps(item) + "\n")
+    print(json.dumps({"run": run_dir.name, "n_candidates": len(features)}))
+    return 0
+
+
+def cmd_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """候補の選び方の規則ごとの正答率・区分・上限を select_eval.json に書く（--apply で 1 つの規則の正誤も書く）．"""
+    from atrium.select_eval import CE_FEATURES, SELECT_EVAL, evaluate, write_derived_run
+
+    run_dir = Path(args.run_dir)
+    rules = [r.strip() for r in args.rules.split(",") if r.strip()]
+    report, outcomes = evaluate(run_dir, rules, run_dir / CE_FEATURES)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / SELECT_EVAL).write_text(json.dumps(report, indent=1), encoding="utf-8")
+    print(json.dumps({r: v["accuracy"] for r, v in report["per_rule"].items()}, indent=1))
+    print(json.dumps({"selected_rule": report["selected_rule"]}))
+    if args.apply is not None:
+        if args.derived_run is None:
+            raise SystemExit("--apply requires --derived-run")
+        if args.apply not in outcomes:
+            raise SystemExit(f"rule {args.apply} was not evaluated (missing ce_features.jsonl?)")
+        write_derived_run(run_dir, outcomes[args.apply], args.apply, Path(args.derived_run))
     return 0
 
 
@@ -1489,6 +1546,12 @@ def build_parser() -> argparse.ArgumentParser:
             p.add_argument("--run-dir", action="append", required=True)
         if name != "judge":
             p.add_argument("--out-dir", required=True)
+        else:
+            p.add_argument(
+                "--with-candidates",
+                action="store_true",
+                help="owner_answer の全候補も採点し candidate_judgements.jsonl を書く（p0007 A5）",
+            )
         p.set_defaults(func=cmd_judge)
 
     p = sub.add_parser("check-data", help="設定がラベルを作ったときと同じかを確かめる")
@@ -1525,6 +1588,31 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--revised-reason", default=None, help="見直しの理由（結果とは独立の根拠）")
     p.set_defaults(func=cmd_compare)
+
+    p = sub.add_parser(
+        "select-features",
+        help="owner_answer の候補ごとの cross-encoder の得点を ce_features.jsonl に書く（p0007 A5）",
+    )
+    p.add_argument("--run-dir", required=True, help="answer.save_candidates の実行")
+    p.add_argument(
+        "--data-dir", required=True, help="enronqa/ を含むデータの置き場所（本文を読む）"
+    )
+    p.set_defaults(func=cmd_select_features)
+
+    p = sub.add_parser(
+        "select-eval",
+        help="owner_answer の候補の選び方の規則をオフラインに適用・評価する（p0007 A5）",
+    )
+    p.add_argument(
+        "--run-dir", required=True, help="answer.save_candidates・候補ごとの判定の済んだ実行"
+    )
+    p.add_argument("--out-dir", required=True, help="select_eval.json の出力先")
+    p.add_argument("--rules", default="R0,R1,R2,R3,R4,R5,R6", help="評価する規則（, 区切り）")
+    p.add_argument(
+        "--apply", default=None, help="正誤を書き出す 1 つの規則（atrium compare の入力）"
+    )
+    p.add_argument("--derived-run", default=None, help="--apply の正誤の出力先（実行の形）")
+    p.set_defaults(func=cmd_select_eval)
 
     p = sub.add_parser("e0", help="E0 の実測と集約")
     p.add_argument("what", choices=["faiss", "medcpt", "summarize"])

@@ -3,6 +3,8 @@
 使い方（commit の前に，EnronQA の実行ごとに 1 回）:
     uv run python scripts/tasks/sanitize_results.py results/<run_id> [...]
 `final_answer` は，メール本文を出力した行だけを省略の印にする．`gold`・`top_doc_ids` などの他のフィールドと判定は変えない．冪等．
+`answer.save_candidates`（p0007 A5）の実行の `owner_answer.candidates[].answer`（各候補の "Answer:" の後ろ）も，`final_answer` と
+同じ規則で整形する（採点の後に通す．候補ごとの判定 candidate_judgements.jsonl は変えない）．
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from pathlib import Path
 ECHOED_CONTEXT = re.compile(r"Emails:.*\n={5,}\n(?=Question:)", re.DOTALL)
 OMITTED = "Emails: [omitted: email bodies are not stored in results/]\n"
 SEPARATOR = "====="
+ECHOED_FINAL = "[omitted: the model echoed email bodies instead of answering]"
 
 
 def sanitize_answer(answer: str) -> str:
@@ -44,8 +47,15 @@ def sanitize_file(path: Path) -> int:
         final = row.get("final_answer")
         if isinstance(final, str) and SEPARATOR in final:
             # 答えの代わりに文脈を出力した行（判定は不正解）．判定済みなので，本文を残さない印に置き換える
-            row["final_answer"] = "[omitted: the model echoed email bodies instead of answering]"
+            row["final_answer"] = ECHOED_FINAL
             changed += 1
+        owner = row.get("owner_answer")
+        candidates = owner.get("candidates") if isinstance(owner, dict) else None
+        for cand in candidates if isinstance(candidates, list) else []:
+            text = cand.get("answer")
+            if isinstance(text, str) and SEPARATOR in text:
+                cand["answer"] = ECHOED_FINAL
+                changed += 1
     path.write_text(
         "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"
     )

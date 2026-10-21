@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 import httpx
@@ -117,21 +117,28 @@ class HostDispatchTransport(httpx.AsyncBaseTransport):
         return await self._routes[request.url.host].handle_async_request(request)
 
 
-def ollama_mock(reply: Callable[[dict[str, object]], str]) -> httpx.MockTransport:
-    """Ollama の /api/chat を模したトランスポート．reply は要求の JSON から生成文を返す．"""
+def ollama_mock(
+    reply: Callable[[dict[str, object]], str], logprobs: Sequence[float] = ()
+) -> httpx.MockTransport:
+    """Ollama の /api/chat を模したトランスポート．reply は要求の JSON から生成文を返す．
+
+    要求に `logprobs: true` があれば，Ollama 0.35 と同じ形でトークンごとの対数確率 logprobs を返す（無ければ返さない）．
+    """
 
     def handler(request: httpx.Request) -> httpx.Response:
         body = json.loads(request.content)
-        return httpx.Response(
-            200,
-            json={
-                "message": {"role": "assistant", "content": reply(body)},
-                "prompt_eval_count": 100,
-                "eval_count": 20,
-                "prompt_eval_duration": 1_000_000,
-                "eval_duration": 2_000_000,
-                "total_duration": 3_000_000,
-            },
-        )
+        payload: dict[str, object] = {
+            "message": {"role": "assistant", "content": reply(body)},
+            "prompt_eval_count": 100,
+            "eval_count": 20,
+            "prompt_eval_duration": 1_000_000,
+            "eval_duration": 2_000_000,
+            "total_duration": 3_000_000,
+        }
+        if body.get("logprobs"):
+            payload["logprobs"] = [
+                {"token": f"t{i}", "logprob": v, "bytes": []} for i, v in enumerate(logprobs)
+            ]
+        return httpx.Response(200, json=payload)
 
     return httpx.MockTransport(handler)

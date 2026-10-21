@@ -111,9 +111,13 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 |---|---|---|
 | `owner_m` | 2 | 候補にする受信箱の数 m．`owner_answer` では Router がこの数だけ選ぶ（`routing.top_m.enronqa` の代わりに使う．`oracle` など選ぶ数を持たない方式は従来どおり）．m を変えるときは `routing.top_m` を変えない |
 | `aggregate` | `max_score` | 候補の回答の統合の規則．`max_score`：検索の最高得点の受信箱の回答（B4 に相当）／`abstain`：「メールに答えが無ければ UNKNOWN」のプロンプト（`prompts.ENRON_ABSTAIN_TEMPLATE`）で答えさせ，UNKNOWN でない回答のうち得点最高のもの（全て UNKNOWN なら `max_score`）／`agree`：正規化した回答の文字列（NFKC・小文字・英数字以外を空白に）の一致で票を数え，同票は得点で決める／`llm_select`：質問者の LLM（`llm.requester_model`）が候補の回答から 1 つを選ぶ（番号を読み取れなければ `max_score`．候補が 1 つなら呼ばない） |
+| `save_candidates` | `false` | p0007 A5．`true` なら全候補の回答と，候補ごとの選び方の特徴量を `owner_answer.candidates` に残す（下）．統合の結果（採る回答）は変わらない．ノードへの `/v1/answer` に `with_features: true` を付け，ノードは生成に Ollama の `logprobs` を求める（温度 0 の生成文は変わらないことを 0.35.1 で確認） |
 
 結果（`results.jsonl`）には，1 問ごとに `owner_answer`（`aggregate`・`candidate_sources`・`n_candidates`・`n_requests`・`n_requests_total`・`n_generations`・`n_unknown`・`chosen_source`・`chosen_index`・`chosen_unknown`・`fell_back_to_max_score`・`vote_groups`・`select_parse_failed`），`node_answers`（候補ごとの `unknown`・`top_score`・`delegated_to`・生成の計測値）が残る．
 回答の本文は，採った 1 つ（`answer`・`final_answer`）だけを残す（候補の回答にはメールの引用が混ざりうるため）．commit の前に `scripts/tasks/sanitize_results.py` を通す．
+
+`save_candidates: true` のときだけ，`owner_answer.candidates` に候補ごとに次を残す：`source`・`answer`（"Answer:" の後ろ．`sanitize_results.py` が `final_answer` と同じ規則で整形する）・`unknown`・`top_score`（密ベクトルの最高得点）・`probe_dense`・`probe_bm25`・`probe_fused`（bm25_probe の probe の得点と融合得点 z(dense) + w·z(bm25)．他の Router は null．記録の `probe_selected_scores` にも残る）・`bm25_max`・`rrf_max`（受信箱の中の BM25 と RRF の得点の最大．`retrieval.fusion: rrf` のときだけ）・`avg_logprob`・`n_logprob_tokens`（生成の対数確率の平均）・`context_doc_ids`（文脈の文書 ID．本文は残さない）．
+候補ごとの採点は `bash scripts/tasks/judge.sh run-candidates <run_id>`（`candidate_judgements.jsonl`），cross-encoder の得点は `uv run atrium select-features --run-dir results/<run_id> --data-dir <データ>`（`ce_features.jsonl`），規則の評価は `uv run atrium select-eval`（`select_eval.json`．`atrium.select_eval` の docstring に規則の一覧）．
 
 ```yaml
 # 例：bm25_probe（D = 24．p0007 A4）．probe に質問の語ごとの IDF・長さの平均を載せ，ノードが本文だけの BM25 も返す．

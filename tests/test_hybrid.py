@@ -12,7 +12,7 @@ import pytest
 from atrium.arrays import F32Array
 from atrium.central_eval import bm25_top_k
 from atrium.config import AtriumConfig
-from atrium.hybrid import Bm25Index, ranked_indices, rrf_top_k
+from atrium.hybrid import RRF_K, Bm25Index, ranked_indices, rrf_scores, rrf_top_k
 from atrium.node import create_app
 from atrium.paths import dataset_paths
 from atrium.routing.advert import tokenize
@@ -117,6 +117,71 @@ def test_rrf_breaks_ties_by_dense_score_then_by_index() -> None:
 
     # 密ベクトルだけの順位（2 位と 3 位は同点）．同点は番号の小さい方が先
     assert rrf_top_k(dense, bm25, 3, depth=3) == [2, 0, 1]
+
+
+def test_rrf_scores_sum_the_reciprocal_ranks_of_both_lists() -> None:
+    dense = np.array([0.9, 0.8, 0.1, 0.7])
+    bm25 = np.array([0.0, 5.0, 0.0, 3.0])
+
+    scores = rrf_scores(dense, bm25, depth=10)
+
+    # 文書 1 は密ベクトル 2 位・BM25 1 位，文書 0 は密ベクトル 1 位だけ（BM25 の得点 0 は票にならない）
+    assert scores[1] == pytest.approx(1 / (RRF_K + 2) + 1 / (RRF_K + 1))
+    assert scores[0] == pytest.approx(1 / (RRF_K + 1))
+    assert rrf_top_k(dense, bm25, 4, depth=10) == sorted(scores, key=lambda d: -scores[d])
+
+
+def test_fusion_maxima_are_the_inbox_bm25_and_rrf_maxima_used_by_the_search(tmp_path: Path) -> None:
+    _write_shard(tmp_path)
+    store = load_shard(tmp_path / "s", "rrf", 50)
+
+    bm25_max, rrf_max = store.fusion_maxima(QUERY, "zebra schedule")  # type: ignore[attr-defined]
+
+    expected_bm25 = Bm25Index([tokenize(t) for t in CONTENTS]).scores(tokenize("zebra schedule"))
+    assert bm25_max == pytest.approx(float(expected_bm25.max()))
+    # 文書 4（zebra）は BM25 の 1 位で，密ベクトルでは同点の 5 位（番号の小さい順）
+    assert rrf_max == pytest.approx(1 / (RRF_K + 1) + 1 / (RRF_K + 5))
+
+
+def test_fusion_maxima_need_the_rrf_index(tmp_path: Path) -> None:
+    _write_shard(tmp_path)
+    store = load_shard(tmp_path / "s")
+    with pytest.raises(ValueError, match="fusion=rrf"):
+        store.fusion_maxima(QUERY, "zebra")  # type: ignore[attr-defined]
+
+
+async def test_node_answer_with_features_reports_the_inbox_maxima_when_fusion_is_rrf(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    _write_shard(tmp_path)
+    rrf_cfg = _with_fusion(cfg, "rrf")
+    store = load_shard(tmp_path / "s", "rrf", 50)
+    app = create_app(
+        "n",
+        {"s": store},
+        rrf_cfg,
+        "http://ollama",
+        httpx.AsyncClient(transport=ollama_mock(lambda _: "Answer: x", [-1.0])),
+    )
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://n") as c:
+        response = await c.post(
+            "/v1/answer",
+            json={
+                "dataset": "enronqa",
+                "question": "zebra schedule",
+                "options": {},
+                "shard_ids": ["s"],
+                "k": 2,
+                "embedding": QUERY,
+                "with_features": True,
+            },
+        )
+    features = response.json()["features"]
+    assert features["context_doc_ids"] == ["s/f/0", "s/f/4"]
+    assert (features["bm25_max"], features["rrf_max"]) == pytest.approx(
+        store.fusion_maxima(QUERY, "zebra schedule")
+    )
+    assert (features["avg_logprob"], features["n_logprob_tokens"]) == (-1.0, 1)
 
 
 def test_node_store_with_rrf_adds_the_keyword_document_dense_search_misses(tmp_path: Path) -> None:

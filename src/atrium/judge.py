@@ -5,7 +5,9 @@
 yes・true・correct などで始まれば正解とする（incorrect・not などで始まれば不正解．どちらでもなければ判定できなかったとする）．
 
 - `judge`：実行の results.jsonl の回答を採点し，judgements.jsonl（質問 ID・正誤・判定できたか・回答と正解メールの
-  最長共通部分列の比率だけ．本文と判定の理由は含めない）を実行のディレクトリに書く．
+  最長共通部分列の比率だけ．本文と判定の理由は含めない）を実行のディレクトリに書く．`--with-candidates`（p0007 A5）では，
+  owner_answer の全候補の回答（`owner_answer.candidates`）も採点し，candidate_judgements.jsonl（質問 ID・候補の番号・受信箱・正誤）を書く．
+  同じ質問の同じ回答の文字列（採った回答と候補，UNKNOWN どうしなど）は，判定モデルへの入力が同じなので 1 回だけ採点して使い回す．
 - `judge-validate`：データに付属する別解（正解と一致すると原論文の 70B の判定モデルが判定したもの）と誤答を採点し，
   別解を正解・誤答を不正解とする割合を測る（§8.6 の 1）．
 - `judge-kappa`：本実験の出力から層化抽出した回答を，より大きい参照モデルで採点し直し，Cohen の κ を出す（§8.6 の 2）．
@@ -35,6 +37,7 @@ from atrium.routing.advert import tokenize
 logger = logging.getLogger(__name__)
 
 JUDGEMENTS = "judgements.jsonl"
+CANDIDATE_JUDGEMENTS = "candidate_judgements.jsonl"
 # 1 台の Ollama に同時に送る要求の数（OLLAMA_NUM_PARALLEL と同じ）
 PER_URL_PARALLEL = 2
 # 失敗した要求を次の Ollama へ振り替えて送り直す回数．1 台の一時的な失敗で全件の採点が止まらないようにする
@@ -174,10 +177,41 @@ def email_lookup(cfg: AtriumConfig, paths: DatasetPaths) -> dict[str, str]:
     }
 
 
+def candidate_answers(row: dict[str, Any]) -> list[dict[str, Any]]:
+    """結果の 1 行の owner_answer.candidates（answer.save_candidates の実行だけ．無ければ空）．"""
+    owner = row.get("owner_answer")
+    candidates = owner.get("candidates") if isinstance(owner, dict) else None
+    return candidates if isinstance(candidates, list) else []
+
+
+def unique_items(
+    items: Sequence[JudgeItem], qid_of: dict[str, str]
+) -> tuple[list[JudgeItem], dict[str, str]]:
+    """同じ質問の同じ回答の文字列を 1 件にまとめる．（採点する件，元の key → 採点する件の key）を返す．"""
+    first_key: dict[tuple[str, str], str] = {}
+    unique: list[JudgeItem] = []
+    alias: dict[str, str] = {}
+    for item in items:
+        signature = (qid_of[item.key], item.answer)
+        if signature not in first_key:
+            first_key[signature] = item.key
+            unique.append(item)
+        alias[item.key] = first_key[signature]
+    return unique, alias
+
+
 def judge_run(
-    cfg: AtriumConfig, paths: DatasetPaths, run_dir: Path, urls: Sequence[str], model: str
+    cfg: AtriumConfig,
+    paths: DatasetPaths,
+    run_dir: Path,
+    urls: Sequence[str],
+    model: str,
+    with_candidates: bool = False,
 ) -> dict[str, Any]:
-    """実行の回答を採点し，judgements.jsonl を書く（判定モデルの出力は raw_dir にだけ残す）．"""
+    """実行の回答を採点し，judgements.jsonl を書く（判定モデルの出力は raw_dir にだけ残す）．
+
+    with_candidates なら owner_answer の全候補も採点し，candidate_judgements.jsonl を書く．
+    """
     from atrium.analysis import read_results
     from atrium.data_enronqa import read_gold
 
@@ -185,45 +219,83 @@ def judge_run(
     emails = email_lookup(cfg, paths)
     questions = question_texts(paths)
     rows = [r for r in read_results(run_dir / "results.jsonl") if r.get("error") is None]
-    items = [
-        JudgeItem(
-            key=r["qid"],
-            email=emails[gold[r["qid"]]["path"]],
-            question=questions[r["qid"]],
-            gold=gold[r["qid"]]["gold_answer"],
-            answer=r.get("final_answer", ""),
+
+    def item(key: str, qid: str, answer: str) -> JudgeItem:
+        return JudgeItem(
+            key=key,
+            email=emails[gold[qid]["path"]],
+            question=questions[qid],
+            gold=gold[qid]["gold_answer"],
+            answer=answer,
         )
-        for r in rows
-        if "final_answer" in r
+
+    final_items = [
+        item(r["qid"], r["qid"], r.get("final_answer", "")) for r in rows if "final_answer" in r
     ]
-    verdicts = asyncio.run(judge_items(items, urls, model, cfg))
+    # 候補の key は "<qid>#<候補の番号>"（採った回答の key は qid のまま）
+    candidate_items: list[JudgeItem] = []
+    candidate_meta: list[tuple[str, int, str]] = []
+    if with_candidates:
+        for r in rows:
+            for index, cand in enumerate(candidate_answers(r)):
+                candidate_items.append(
+                    item(f"{r['qid']}#{index}", r["qid"], str(cand.get("answer", "")))
+                )
+                candidate_meta.append((r["qid"], index, str(cand.get("source"))))
+    qid_of = {i.key: i.key for i in final_items} | {
+        i.key: qid for i, (qid, _, _) in zip(candidate_items, candidate_meta, strict=True)
+    }
+    unique, alias = unique_items(final_items + candidate_items, qid_of)
+    judged_unique = asyncio.run(judge_items(unique, urls, model, cfg))
+    verdicts = {key: judged_unique[target] for key, target in alias.items()}
     with (run_dir / JUDGEMENTS).open("w", encoding="utf-8") as f:
-        for item in items:
-            verdict, _ = verdicts[item.key]
+        for fi in final_items:
             f.write(
                 json.dumps(
                     {
-                        "qid": item.key,
+                        "qid": fi.key,
                         "judge_model": model,
-                        "correct": verdict,
-                        "answer_overlap_lcs": lcs_ratio(item.answer, item.email),
+                        "correct": verdicts[fi.key][0],
+                        "answer_overlap_lcs": lcs_ratio(fi.answer, fi.email),
                     }
                 )
                 + "\n"
             )
+    if with_candidates:
+        with (run_dir / CANDIDATE_JUDGEMENTS).open("w", encoding="utf-8") as f:
+            for ci, (qid, index, source) in zip(candidate_items, candidate_meta, strict=True):
+                f.write(
+                    json.dumps(
+                        {
+                            "qid": qid,
+                            "index": index,
+                            "source": source,
+                            "judge_model": model,
+                            "correct": verdicts[ci.key][0],
+                        }
+                    )
+                    + "\n"
+                )
     raw_dir = paths.root / "judge_raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     with (raw_dir / f"{run_dir.name}.{model.replace(':', '_')}.jsonl").open(
         "w", encoding="utf-8"
     ) as f:
-        for key, (verdict, raw) in verdicts.items():
+        for key, (verdict, raw) in judged_unique.items():
             f.write(json.dumps({"qid": key, "correct": verdict, "output": raw}) + "\n")
-    judged = [v for v, _ in verdicts.values()]
-    return {
+    judged = [verdicts[fi.key][0] for fi in final_items]
+    summary: dict[str, Any] = {
         "n": len(judged),
         "correct": sum(v is True for v in judged),
         "unparsed": sum(v is None for v in judged),
     }
+    if with_candidates:
+        summary |= {
+            "n_candidates": len(candidate_items),
+            "n_judge_calls": len(unique),
+            "candidates_correct": sum(verdicts[ci.key][0] is True for ci in candidate_items),
+        }
+    return summary
 
 
 def question_texts(paths: DatasetPaths) -> dict[str, str]:

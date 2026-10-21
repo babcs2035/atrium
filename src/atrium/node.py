@@ -3,7 +3,8 @@
 1 台のノードは 1 個以上のシャードを持ち，次の方法で問い合わせに応じる．
 
 - 断片返却型（/v1/retrieve）: 検索した断片をそのまま返す．
-- 宿る型（/v1/answer）: 断片を自分の LLM（同じホストの Ollama）に渡し，回答文だけを返す．
+- 宿る型（/v1/answer）: 断片を自分の LLM（同じホストの Ollama）に渡し，回答文だけを返す．`with_features`（p0007 A5）の要求には，
+  候補の選び方の特徴量（文脈の文書 ID・受信箱の中の BM25 と RRF の最大・生成の対数確率の平均）も付ける（本文は付けない）．
 - flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．routing=bm25_probe（p0007 A4）では，
   要求の `bm25`（質問の語ごとの IDF・長さの平均）で採点した，受信箱の中の本文の BM25 の最大も返す．
 - 参加・離脱の再生（/v1/admin/availability．EQ7b）: experiment.churn を指定した実験でだけ有効になり，離脱中は
@@ -48,6 +49,7 @@ from atrium.cpu_stat import read_cgroup_cpu_s, read_device_cpu
 from atrium.protocol import (
     AddDocsRequest,
     AddDocsResponse,
+    AnswerFeatures,
     AnswerRequest,
     AnswerResponse,
     AvailabilityRequest,
@@ -442,7 +444,26 @@ def create_app(
             node_id=node_id, scores=scores, bm25=bm25, duration_s=time.perf_counter() - start
         )
 
-    @app.post("/v1/answer", dependencies=up_only)
+    def fusion_maxima(
+        shard_ids: list[str], req: AnswerRequest
+    ) -> tuple[float | None, float | None]:
+        """p0007 A5：受信箱の中の BM25・RRF の得点の最大（fusion=rrf の faiss のシャードだけ．複数のシャードは最大を取る）．"""
+        stores = [store_of(s) for s in shard_ids]
+        if (
+            cfg.retrieval.fusion != "rrf"
+            or req.embedding is None
+            or not all(isinstance(s, FaissShardStore) for s in stores)
+        ):
+            return None, None
+        maxima = [
+            s.fusion_maxima(req.embedding, req.question)
+            for s in stores
+            if isinstance(s, FaissShardStore)
+        ]
+        return max(m[0] for m in maxima), max(m[1] for m in maxima)
+
+    # with_features の無い要求では，追加した features を応答に含めない（従来の応答とバイト単位で同じにする）
+    @app.post("/v1/answer", dependencies=up_only, response_model_exclude_unset=True)
     async def answer(req: AnswerRequest) -> AnswerResponse:
         start = time.perf_counter()
         docs: list[RetrievedDoc] = []
@@ -460,14 +481,32 @@ def create_app(
             )
         context = _merge_top(docs, req.k)
         retrieve_s = time.perf_counter() - start
+        avg_logprob: float | None
         if req.delegate_url is not None:
             generated = await delegate(req, context)
             content, usage, delegated_to = generated.answer, generated.llm, generated.node_id
+            avg_logprob, n_logprob_tokens = generated.avg_logprob, generated.n_logprob_tokens
         else:
-            content, usage = await generate(
-                req.dataset, req.question, context, req.options, req.allow_unknown
+            content, usage, avg_logprob, n_logprob_tokens = await generate(
+                req.dataset,
+                req.question,
+                context,
+                req.options,
+                req.allow_unknown,
+                logprobs=req.with_features,
             )
             delegated_to = None
+        extra: dict[str, AnswerFeatures] = {}
+        if req.with_features:
+            # 特徴量は生成の後に求める（生成の待ち時間・retrieve_s に含めない）
+            bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+            extra["features"] = AnswerFeatures(
+                context_doc_ids=[d.doc_id for d in context],
+                bm25_max=bm25_max,
+                rrf_max=rrf_max,
+                avg_logprob=avg_logprob,
+                n_logprob_tokens=n_logprob_tokens,
+            )
         return AnswerResponse(
             node_id=node_id,
             answer=content,
@@ -479,6 +518,7 @@ def create_app(
             duration_s=time.perf_counter() - start,
             delegated_to=delegated_to,
             docs_sent=len(context) if delegated_to is not None else 0,
+            **extra,
         )
 
     async def generate(
@@ -487,10 +527,12 @@ def create_app(
         context: list[RetrievedDoc],
         options: dict[str, str],
         allow_unknown: bool = False,
-    ) -> tuple[str, LlmUsage]:
+        logprobs: bool = False,
+    ) -> tuple[str, LlmUsage, float | None, int]:
+        """（生成文，計測値，対数確率の平均，そのトークン数）を返す．対数確率は logprobs=True のときだけ（それ以外は None と 0）．"""
         messages = prompts.build_messages(dataset, question, context, options, allow_unknown)
         try:
-            result = await llm.chat(client, ollama_url, model, messages, cfg.llm)
+            result = await llm.chat(client, ollama_url, model, messages, cfg.llm, logprobs)
         except httpx.HTTPError as exc:
             logger.error("local LLM call failed: %s", exc)
             raise NodeError(502, "Local LLM unavailable") from exc
@@ -501,7 +543,7 @@ def create_app(
             decode_s=result.decode_s,
             total_s=result.total_s,
         )
-        return result.content, usage
+        return result.content, usage, result.avg_logprob, result.n_logprob_tokens
 
     async def delegate(req: AnswerRequest, context: list[RetrievedDoc]) -> GenerateResponse:
         body = GenerateRequest(
@@ -513,6 +555,7 @@ def create_app(
                 for d in context
             ],
             allow_unknown=req.allow_unknown,
+            logprobs=req.with_features,
         )
         try:
             response = await client.post(
@@ -526,13 +569,22 @@ def create_app(
             raise NodeError(502, "Delegate unavailable") from exc
         return GenerateResponse.model_validate_json(response.content)
 
-    @app.post("/v1/generate", dependencies=up_only)
+    # logprobs の無い要求では，追加した対数確率の欄を応答に含めない（従来の応答とバイト単位で同じにする）
+    @app.post("/v1/generate", dependencies=up_only, response_model_exclude_unset=True)
     async def generate_for_peer(req: GenerateRequest) -> GenerateResponse:
         context = [RetrievedDoc(d.doc_id, d.title, d.content, d.score) for d in req.docs]
-        content, usage = await generate(
-            req.dataset, req.question, context, req.options, req.allow_unknown
+        content, usage, avg_logprob, n_logprob_tokens = await generate(
+            req.dataset, req.question, context, req.options, req.allow_unknown, req.logprobs
         )
-        return GenerateResponse(node_id=node_id, answer=content, llm=usage)
+        if not req.logprobs:
+            return GenerateResponse(node_id=node_id, answer=content, llm=usage)
+        return GenerateResponse(
+            node_id=node_id,
+            answer=content,
+            llm=usage,
+            avg_logprob=avg_logprob,
+            n_logprob_tokens=n_logprob_tokens,
+        )
 
     return app
 

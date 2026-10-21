@@ -252,36 +252,43 @@ class Bm25ProbeRouter(SummaryProbeRouter):
             avg_doc_len=self._stats.avg_doc_len,
         )
 
+    def fused_scores(
+        self,
+        candidates: Sequence[str],
+        probe_scores: Mapping[str, float],
+        bm25_scores: Mapping[str, float],
+    ) -> dict[str, float]:
+        """probe に答えた候補 → `z(dense) + w × z(bm25)`（密ベクトルと BM25 の得点をそれぞれ標準化．平均・母標準偏差）．
+
+        答えなかった候補（得点が無い・有限でない）は標準化に含めず，結果にも入れない．
+        """
+        from atrium.frontier_methods import Z_EPSILON
+
+        answered = [
+            c
+            for c in candidates
+            if np.isfinite(probe_scores.get(c, float("-inf"))) and c in bm25_scores
+        ]
+        if not answered:
+            return {}
+        dense = np.asarray([probe_scores[c] for c in answered], dtype=np.float64)
+        bm25 = np.asarray([bm25_scores[c] for c in answered], dtype=np.float64)
+
+        def z(values: F64Array) -> F64Array:
+            standardized: F64Array = (values - values.mean()) / (values.std() + Z_EPSILON)
+            return standardized
+
+        return dict(zip(answered, (z(dense) + self._bm25_weight * z(bm25)).tolist(), strict=True))
+
     def select_among(
         self,
         candidates: Sequence[str],
         probe_scores: Mapping[str, float],
         bm25_scores: Mapping[str, float] | None = None,
     ) -> list[str]:
-        """probe に答えた候補の中で，密ベクトルと BM25 の得点をそれぞれ標準化し（平均・母標準偏差），`z(dense) + w × z(bm25)` の上位 m 個を返す．
-
-        答えなかった候補（得点が無い・有限でない）は標準化に含めず，選ばれない．
-        """
-        from atrium.frontier_methods import Z_EPSILON
-
+        """`fused_scores` の上位 m 個を返す（probe に答えなかった候補は選ばれない）．"""
         if bm25_scores is None:
             raise ValueError("bm25_probe needs the BM25 scores of the probe responses")
-        answered = [
-            c
-            for c in candidates
-            if np.isfinite(probe_scores.get(c, float("-inf"))) and c in bm25_scores
-        ]
-        fused: dict[str, float] = {}
-        if answered:
-            dense = np.asarray([probe_scores[c] for c in answered], dtype=np.float64)
-            bm25 = np.asarray([bm25_scores[c] for c in answered], dtype=np.float64)
-
-            def z(values: F64Array) -> F64Array:
-                standardized: F64Array = (values - values.mean()) / (values.std() + Z_EPSILON)
-                return standardized
-
-            fused = dict(
-                zip(answered, (z(dense) + self._bm25_weight * z(bm25)).tolist(), strict=True)
-            )
+        fused = self.fused_scores(candidates, probe_scores, bm25_scores)
         scores = [fused.get(c, float("-inf")) for c in candidates]
         return top_m(candidates, scores, self.m)
