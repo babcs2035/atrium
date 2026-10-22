@@ -1,0 +1,2 @@
+# p0007 A6 の dev：A5 と同じ構成（bm25_probe D=24・owner_answer m=3・rrf・save_candidates）で，aggregate を max_score（通常のプロンプト．UNKNOWN を許さない）にする．選び方はオフラインの規則（R0′〜R6′）に任せる
+p0007_a6_dev experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=true experiment.routing=bm25_probe experiment.question_split=dev

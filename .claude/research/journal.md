@@ -3,6 +3,60 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0007 A6（事前登録）：通常のプロンプトの全候補から，UNKNOWN の除外なしの規則で選ぶ（提案 A5-S1．2026-10-22．`plans/p0007_p2p_vs_central.md` §3・§4・§10・§12）
+
+ユーザーの判断（2026-10-22．「B1」．backlog B69）により，A の反復の上限（§6 の 5）を超えて 1 回だけ流す追加の反復．実機を動かす前に，構成・規則の候補・選び方・判定の規則を固定する．**test を見て規則を選ばない**．dev で選んだ規則は，この節の末尾に「追記」として書いて push してから test を流す．
+
+**背景（A5．「p0007 A5：回答の選び方…」の節）**：P2P-R3 0.7493 対 C1-RRF-CE 0.7976（差 −0.0483）．oracle-RRF（0.8126）との差 −0.063 の内訳は，(a) 持ち主の特定 −0.029，(b) UNKNOWN を許すプロンプト −0.024（流し直しの揺れを含む），(c) 選び方 −0.011．A6 は (b) を取り除くため，全候補に通常のプロンプト（UNKNOWN を許さない．B1・oracle-RRF と同じ答え方）を使う．その代わり，持ち主以外の候補が UNKNOWN と言わなくなる（A5 では 75% が UNKNOWN）ので，選び方の負担は増える．
+
+**構成**（A5 と同じ．共通：EnronQA・llama3.1:8b・温度 0・`parallel: 30`・`http_pool: per_node`・種 12．判定 qwen3:8b）：`routing: bm25_probe`（D = 24・wb = 2・IDF は published）・`answer_mode: owner_answer`・`answer.owner_m: 3`・`retrieval.fusion: rrf`・`answer.save_candidates: true`．**違いは `answer.aggregate: max_score` だけ**（ノードへの要求に `allow_unknown` を付けない．実機が採る回答は検索の最高得点の候補で，オフラインの R0′ と同じ）．specs は `results/p0007_a6_live/specs_{dev,test}.txt`．
+
+| 実行 | run_id | 質問 |
+|---|---|---|
+| dev（規則の選択） | `p0007_a6_dev` | dev の全 2,948 問 |
+| test（判定） | `p0007_a6_test` | test の全 2,940 問 |
+
+**規則の候補**（`atrium select-eval --ignore-unknown`．UNKNOWN かどうかを見ず，全候補の中で特徴量が最高の候補を採る．同点は候補の並びの先の方．特徴量の無い候補は最低．特徴量の定義は A5 と同じ）：
+
+| 規則 | 特徴量 | 単純な順 |
+|---|---|---|
+| R0′ | 密ベクトルの top_score（実機の `max_score`） | 1 |
+| R1′ | ルーターの融合得点 z(dense) + 2·z(bm25) | 2 |
+| R5′ | 受信箱の中の BM25 の最大 | 3 |
+| R6′ | 受信箱の中の RRF の得点の最大 | 4 |
+| R2′ | AvgLogP | 5 |
+| R3′ | cross-encoder（bge-reranker-v2-m3）の関連度の最大 | 6 |
+| R4′ | R0′・R1′・R2′・R3′ の 4 つの特徴量の順位の和（全候補の中の平均の順位．最小を採る．重み・閾値は無い） | 7 |
+
+dev で学習・調整するものは無い．
+
+**選び方**（機械的）：dev の全 2,948 問で全候補を採点し（同じ質問の同じ回答の文字列は 1 回だけ採点），規則ごとの dev の正答率（分母は 2,948 に固定．失敗・判定不能は不正解）が最大の規則を 1 つ選ぶ．同点（正解数が同じ）は上の「単純な順」の先の方．失敗率が 10% を超えたら原因を調べて 1 回だけ流し直す．
+
+**test**：`p0007_a6_test` を 1 回流し，全候補を採点し，**選んだ規則を 1 回だけ当てはめる**（`atrium select-eval --ignore-unknown --apply <規則> --derived-run results/p0007_a6_test_<規則>p`）．他の規則の test の値は記述として併記するが，選択にも判定にも使わない．
+
+**判定の規則**（§4.2．最初の基準．A1〜A5 と同じ）：
+- H-A1⁵（主）：P2P-A6（選んだ規則）− 比べる相手 の正答率の差の 95% 信頼区間（対応ありのブートストラップ 10,000 回・種 12）の下端が −0.02 より大きければ非劣性．
+- H-A2⁵：McNemar の正確検定（両側 5%）で P2P-A6 が相手より有意に高ければ優越．
+- **比べる相手（§3.2 の公平性）**：選んだ規則が cross-encoder を使う（R3′・R4′）なら **C1-RRF-CE**（既存の `results/p0007_a5_c1_rrf_ce`．0.7976．同じ test の質問・同じ判定モデルで採点済み．流し直さない），使わない（R0′・R1′・R2′・R5′・R6′）なら **C1-RRF**（`results/p0007_a2_c1_rrf`．0.7653）．もう一方は併記する．
+- 出力：`atrium compare results/p0007_a6_test_<規則>p <相手> --out-dir results/p0007_a6_verdict`．`verdict_original` はこの規則の判定で，書き換えない．見直し（`verdict_revised`）は §4.4 の 2 に厳密に従い，「目標に届かなかったから」は理由にしない．
+
+**併記（判定に使わない）**：
+- dev・test の規則ごとの正答率（Wilson 95%）と区分 (a)(b)(c)（選んだ規則と R0′）．
+- **A5 の P2P-R3（`results/p0007_a5_test_R3`）との差**（対応ありのブートストラップ区間・McNemar）．
+- 区分 (a)(b)(c) の再分解（対 主の相手・対 C1-RRF．寄与 = 割合 ×（P2P − 相手））．
+- **oracle-RRF（`results/p0007_a5_oracle_rrf`．0.8126）との差の内訳**：A5 と同じ (a)(b)(c) の寄与（区分は選んだ規則のもの．寄与 = 割合 ×（P2P − oracle））．
+- 天井：候補のどれかが正解の割合，持ち主が候補に入った問の持ち主の候補の正答率，候補が UNKNOWN と答えた割合（持ち主・持ち主以外．通常のプロンプトでも UNKNOWN で始まる回答はありうる）．
+- 費用：1 問あたりの要求数・生成回数・e2e の p50・p95・処理量．採点の要求の数．cross-encoder の計算の時間．
+- 回答の保存：`sanitize_results.py` を通し，`answer`・`final_answer`・`node_answers`・`owner_answer.candidates[].answer` にメール本文（区切り線・ヘッダー行）が無いかを点検してから commit する．
+
+**照合（`sim_vs_live.json`．§10）**：(i) test の実機の候補の集合とオフラインの `bm25_probe_m3` の一致（期待 ≥ 0.999），(ii) 実機の融合得点とオフラインの差（期待 1e-5 以内．float32 の丸めは A5 と同じ扱い），(iii) R0′ のオフラインの当てはめと実機の `chosen_index`（`max_score`）の一致（期待 1.0），(iv) 候補ごとの判定から作った R0′ の正誤と，採った回答の判定（judgements.jsonl）の一致，(v) A5 の test との候補の集合の一致（同じ Router），(vi) 選んだ規則の dev と test の正答率の差．
+
+**実装**（追加のみ．既存の挙動・既定値は変えない）：`atrium select-eval --ignore-unknown`（`atrium.select_eval` の `ignore_unknown`．`select_eval.json` と `derived_from.json` に `ignore_unknown` を残す）．実機の経路は変えていない（`aggregate: max_score` と `save_candidates: true` の組が通常のプロンプトの全候補を保存することを `tests/test_owner_answer.py` で固定）．commit `4910705`．`mise run check` 通過（825 件）．退行ゲートは通過（gpu2 の CPU で制御点のデータの複製に対して流した．gpu2 の GPU は 2 枚とも別の作業が使用中）：R3 flood_score hit@1 0.7224・hit@2 0.8041，multi_centroid 0.3486・0.4401（`results/20261022_p0007_a6_r3_advert_eval`）／R4 既存の 5 点が一致（`results/20261022_p0007_a6_r4_frontier`）／R5 term_probe・hybrid_probe・bm25_probe・bm25_probe_m3 の 2,940 問の選択が既存の `offline_selection.json`（`p0006_p4_build_summary`・`p0007_a4_build_summary`）と全問一致（`results/20261022_p0007_a6_r5_selection`）．
+
+**実行**：`results/p0007_a6_live/a6_run.sh <dev|test>`（事前確認 → A5 の `a5_chain.sh` で deploy → start → analyze → `mise run stop` → 制御点で全候補の採点と cross-encoder の得点（`a6_judge_ctrl.sh`）→ 取得 → 事後確認）．順は dev → 規則の選択 → この節への追記の commit・push → test．実機の連続実行の途中では commit しない．**採点と cross-encoder は制御点の GPU だけで行う**：事前確認（11:13）で wafl500〜509 の全台で他の研究者の DETR の学習（`/home/denjo/workspace/namit/DETR`．1 台 4.8〜6.0 GB）が動いており，A5 ではこれと判定モデルの GPU の取り合いで判定モデルの Ollama が落ちたため（A5 の C1-RRF-CE・oracle-RRF と同じ回避．判定モデル・設定は同じ）．gpu2 の GPU も使用中．他のプロセスには触れない．ディスク使用率 90% 超（制御点・専門家．事前確認は制御点 71%・専門家の最大 84%）で止める．ノードの失敗は原因を調べて 1 回だけ直して流し直す．実験の後に `mise run stop`．非劣性が不成立でも止まらない．
+
+**見込み（記述．検証対象ではない）**：持ち主の候補の回答は oracle-RRF に近づく（(b) の −0.024 の大半を取り戻しうる）一方，持ち主以外の候補も答えるので (c) が増えうる．R3′ が A5 の R3 と同程度に持ち主を当てれば差は −0.03 前後で，非劣性（下端 > −0.02）には届かない見込みが高い．
+
 ## p0007 A5：回答の選び方（P1）と天井（P4）の結果と判定（2026-10-21〜22．`results/p0007_a5_*`）
 
 **判定（`verdict_original`．事前登録の規則どおり．`verdict_revised` は無し）**：**H-A1⁗（C1-RRF-CE に対する非劣性）不成立，H-A2⁗（優越）不成立**．dev で選んだ R3（cross-encoder で候補を選ぶ）を test に 1 回だけ当てはめた P2P-A5 の正答率は **0.7493**（2,203/2,940．Wilson 95%：0.733〜0.765），主の比べる相手 C1-RRF-CE（中央にも同じ cross-encoder の再ランクを入れた条件）は **0.7976** で，**差 −0.0483（95% 区間 −0.0650〜−0.0323．McNemar p = 2.0e-8．P2P のみ正解 247 対 C1-RRF-CE のみ正解 389）**（`results/p0007_a5_verdict/verdict.json`）．区間の下端は −0.02 を大きく下回る．基準の見直しは行わない（「目標に届かなかったから」は理由にならない．§4.4 の 2）．§7 の書き方は「非劣性を満たさない」の行．A は反復の上限（5）に達したので，ここで閉じる．

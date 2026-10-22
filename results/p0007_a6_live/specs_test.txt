@@ -1,0 +1,2 @@
+# p0007 A6 の test（dev で選んだ規則を事前登録に追記して push した後）
+p0007_a6_test experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=true experiment.routing=bm25_probe experiment.question_split=test

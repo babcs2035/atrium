@@ -1,0 +1,244 @@
+{
+ "m": 2,
+ "n_inboxes": 150,
+ "checks": {
+  "r4": {
+   "flood_score": {
+    "found": true,
+    "expected_hit": 0.8041,
+    "got_hit": 0.8040816326530612,
+    "expected_requests": 32.0,
+    "got_requests": 32.0,
+    "passed": true
+   },
+   "device_probe_d24": {
+    "found": true,
+    "expected_hit": 0.7837,
+    "got_hit": 0.7836734693877551,
+    "expected_requests": 26.0,
+    "got_requests": 26.0,
+    "passed": true
+   },
+   "device_probe_d12": {
+    "found": true,
+    "expected_hit": 0.683,
+    "got_hit": 0.6829931972789116,
+    "expected_requests": 14.0,
+    "got_requests": 14.0,
+    "passed": true
+   },
+   "centroid_probe_k75": {
+    "found": true,
+    "expected_hit": 0.7612,
+    "got_hit": 0.7612244897959184,
+    "expected_requests": null,
+    "got_requests": 31.11938775510204,
+    "passed": true
+   },
+   "multi_centroid": {
+    "found": true,
+    "expected_hit": 0.4401,
+    "got_hit": 0.44013605442176873,
+    "expected_requests": 2.0,
+    "got_requests": 2.0,
+    "passed": true
+   },
+   "passed": true
+  }
+ },
+ "hypotheses": {
+  "chosen": {
+   "n30": {}
+  },
+  "h_p2a": {
+   "by_family": {},
+   "passed": false
+  },
+  "h_p2b": {
+   "multi_centroid_body": {
+    "available": false,
+    "passed": false
+   },
+   "sample_64_max": {
+    "available": false,
+    "passed": false
+   },
+   "passed": false
+  },
+  "h_p2c": {
+   "available": false,
+   "passed": false
+  }
+ },
+ "pareto": {
+  "n30": {
+   "all": [
+    {
+     "method": "multi_centroid",
+     "params": {
+      "C": 32
+     },
+     "requests": 2.0,
+     "hit@2": 0.44013605442176873
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 2
+     },
+     "requests": 4.0,
+     "hit@2": 0.46462585034013604
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 3
+     },
+     "requests": 5.0,
+     "hit@2": 0.5095238095238095
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 4
+     },
+     "requests": 6.0,
+     "hit@2": 0.5465986394557824
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 6
+     },
+     "requests": 8.0,
+     "hit@2": 0.5948979591836735
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 8
+     },
+     "requests": 10.0,
+     "hit@2": 0.6302721088435375
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 12
+     },
+     "requests": 14.0,
+     "hit@2": 0.6829931972789116
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 16
+     },
+     "requests": 18.0,
+     "hit@2": 0.7295918367346939
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 24
+     },
+     "requests": 26.0,
+     "hit@2": 0.7836734693877551
+    },
+    {
+     "method": "flood_score",
+     "params": {},
+     "requests": 32.0,
+     "hit@2": 0.8040816326530612
+    }
+   ],
+   "no_owner_name": [
+    {
+     "method": "multi_centroid",
+     "params": {
+      "C": 32
+     },
+     "requests": 2.0,
+     "hit@2": 0.3683005038937242
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 2
+     },
+     "requests": 4.0,
+     "hit@2": 0.39532753092075124
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 3
+     },
+     "requests": 5.0,
+     "hit@2": 0.42968392120934495
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 4
+     },
+     "requests": 6.0,
+     "hit@2": 0.4640403114979386
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 6
+     },
+     "requests": 8.0,
+     "hit@2": 0.5116811726981219
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 8
+     },
+     "requests": 10.0,
+     "hit@2": 0.5455794777828676
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 12
+     },
+     "requests": 14.0,
+     "hit@2": 0.6046724690792488
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 16
+     },
+     "requests": 18.0,
+     "hit@2": 0.6614750343563903
+    },
+    {
+     "method": "device_probe",
+     "params": {
+      "D": 24
+     },
+     "requests": 26.0,
+     "hit@2": 0.7306459001374256
+    },
+    {
+     "method": "flood_score",
+     "params": {},
+     "requests": 32.0,
+     "hit@2": 0.7595052679798443
+    }
+   ]
+  }
+ },
+ "methods": [
+  "flood_score",
+  "multi_centroid",
+  "centroid_probe",
+  "device_probe"
+ ],
+ "duration_s": 21.827598065137863
+}
