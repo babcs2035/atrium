@@ -69,7 +69,10 @@ def segments(run_dir: Path, rule: str, other: Mapping[str, bool]) -> dict[str, A
 def costs(run_dir: Path) -> dict[str, Any]:
     """1 問あたりの要求数・生成回数・待ち時間・処理量と，生成 1 回の decode の時間・対数確率の数．"""
     rows = read_results(run_dir / "results.jsonl")
-    meta = json.loads((run_dir / "run_meta.json").read_text(encoding="utf-8"))
+    # 失敗した質問を再開した実行は run_meta.json が再開の値で上書きされるので，主の実行の控え（run_meta.main.json）を使う
+    main_meta = run_dir / "run_meta.main.json"
+    meta_path = main_meta if main_meta.exists() else run_dir / "run_meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
     ok = [r for r in rows if r.get("error") is None]
     e2e = [r["timings"]["e2e_s"] for r in ok]
     decode = [a["decode_s"] for r in ok for a in r.get("node_answers", [])]

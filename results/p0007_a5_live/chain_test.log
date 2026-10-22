@@ -1,0 +1,20 @@
+[2026-10-21_18:25:10] BEGIN p0007_a5_test experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=3 answer.aggregate=abstain answer.save_candidates=true experiment.routing=bm25_probe experiment.question_split=test
+[18:27:28] p0007_a5_test deployed
+[19:15:19] p0007_a5_test start=2 inner=2
+[19:15:21] p0007_a5_test analyze=0
+[2026-10-21_19:15:21] ALL DONE
+[2026-10-21_19:15:21] ce_chain: stop before patching
+[19:15:25] ce_chain: requester_llm=192.168.15.109, removed from experts and gpu_workers
+[2026-10-21_19:15:25] BEGIN p0007_a5_c1_rrf_ce experiment.dataset=enronqa experiment.answer_mode=snippet_return experiment.parallel=30 experiment.http_pool=per_node experiment.routing=central_local experiment.requester_procs=1 experiment.question_split=test experiment.question_limit=null retrieval.fusion=rrf retrieval.merge=cross_encoder
+[19:17:45] p0007_a5_c1_rrf_ce deployed
+[01:06:37] p0007_a5_c1_rrf_ce start=0 inner=0
+[01:06:40] p0007_a5_c1_rrf_ce analyze=0
+[2026-10-22_01:06:40] ALL DONE
+[01:06:40] ce_chain: stop after the run
+[2026-10-22_01:06:43] ce_chain: done
+[2026-10-22_01:06:43] BEGIN p0007_a5_oracle_rrf experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=1 answer.aggregate=max_score answer.save_candidates=false experiment.routing=oracle experiment.question_split=test
+[01:09:06] p0007_a5_oracle_rrf deployed
+[01:24:42] p0007_a5_oracle_rrf start=0 inner=0
+[01:24:45] p0007_a5_oracle_rrf analyze=0
+[2026-10-22_01:24:45] ALL DONE
+[2026-10-22_01:24:48] a5_test_all: done

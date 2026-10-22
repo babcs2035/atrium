@@ -1,0 +1,79 @@
+{
+ "run": "p0007_a5_test",
+ "rule": "R3",
+ "comparator": "p0007_a5_c1_rrf_ce",
+ "segments_rule": {
+  "a_owner_out": {
+   "n": 200,
+   "share": 0.06802721088435375,
+   "p2p_accuracy": 0.25,
+   "comparator_accuracy": 0.545,
+   "contribution_to_diff": -0.020068027210884357
+  },
+  "b_owner_chosen": {
+   "n": 2548,
+   "share": 0.8666666666666667,
+   "p2p_accuracy": 0.8080847723704867,
+   "comparator_accuracy": 0.8214285714285714,
+   "contribution_to_diff": -0.011564625850340068
+  },
+  "c_owner_in_not_chosen": {
+   "n": 192,
+   "share": 0.0653061224489796,
+   "p2p_accuracy": 0.4895833333333333,
+   "comparator_accuracy": 0.7447916666666666,
+   "contribution_to_diff": -0.016666666666666666
+  },
+  "total": {
+   "p2p_accuracy": 0.7493197278911564,
+   "comparator_accuracy": 0.7976190476190477
+  }
+ },
+ "segments_r0": {
+  "a_owner_out": {
+   "n": 200,
+   "share": 0.06802721088435375,
+   "p2p_accuracy": 0.23,
+   "comparator_accuracy": 0.545,
+   "contribution_to_diff": -0.021428571428571436
+  },
+  "b_owner_chosen": {
+   "n": 2452,
+   "share": 0.8340136054421768,
+   "p2p_accuracy": 0.8079119086460033,
+   "comparator_accuracy": 0.8230016313213703,
+   "contribution_to_diff": -0.012585034013605412
+  },
+  "c_owner_in_not_chosen": {
+   "n": 288,
+   "share": 0.09795918367346938,
+   "p2p_accuracy": 0.34375,
+   "comparator_accuracy": 0.7569444444444444,
+   "contribution_to_diff": -0.04047619047619047
+  },
+  "total": {
+   "p2p_accuracy": 0.7231292517006803,
+   "comparator_accuracy": 0.7976190476190477
+  }
+ },
+ "costs": {
+  "n": 2940,
+  "failed": 0,
+  "requests_total_mean": 27.0,
+  "generations_mean": 3.0,
+  "e2e_p50_s": 12.450300543569028,
+  "e2e_p95_s": 80.57673391757997,
+  "wall_s": 2785.711380958557,
+  "throughput_q_per_s": 1.0553857158699451,
+  "decode_s_mean": 0.574876193185034,
+  "docs_exposed_mean": 10.0
+ },
+ "sim_vs_live": {
+  "candidate_set_agreement": 1.0,
+  "fused_abs_diff_max": 1.3047306653746205e-05,
+  "fused_within_tolerance": 0.999092970521542,
+  "a4_candidate_set_agreement": 1.0,
+  "a4_chosen_source_agreement": 0.9904761904761905,
+  "a4_final_answer_identical": 0.7673469387755102
+ }
+}

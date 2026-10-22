@@ -1,0 +1,41 @@
+{
+ "description": "p0007 A5 の天井の推定（記述．候補ごとの判定から．判定に使わない）．always_owner は「持ち主が候補に入れば必ず持ち主の候補を採り，入らなければ R3 の選択のまま」の正答率",
+ "dev": {
+  "any_candidate_correct": 0.7954545454545454,
+  "owner_candidate_given_owner_in": {
+   "n": 2730,
+   "accuracy": 0.8003663003663004
+  },
+  "owner_candidate_in_r0_segment_c": {
+   "n": 310,
+   "accuracy": 0.7258064516129032
+  },
+  "owner_candidate_in_r3_segment_c": {
+   "n": 204,
+   "accuracy": 0.652
+  },
+  "always_owner": {
+   "correct": 2248,
+   "accuracy": 0.7626
+  }
+ },
+ "test": {
+  "any_candidate_correct": 0.791156462585034,
+  "owner_candidate_given_owner_in": {
+   "n": 2740,
+   "accuracy": 0.7970802919708029
+  },
+  "owner_candidate_in_r0_segment_c": {
+   "n": 288,
+   "accuracy": 0.7048611111111112
+  },
+  "owner_candidate_in_r3_segment_c": {
+   "n": 192,
+   "accuracy": 0.651
+  },
+  "always_owner": {
+   "correct": 2234,
+   "accuracy": 0.7599
+  }
+ }
+}

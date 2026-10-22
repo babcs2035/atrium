@@ -1,0 +1,65 @@
+{
+ "description": "p0007 A5 の照合（§10．事前登録の (i)〜(vi)）．test 2,940 問（失敗した 1 問は同じ run_id で再開して流し直した後の値）",
+ "i_candidate_sets_vs_offline_bm25_probe_m3": {
+  "agreement": 1.0,
+  "expected": ">= 0.999",
+  "offline": "results/p0007_a4_build_summary/offline_selection.json"
+ },
+ "ii_probe_fused_vs_offline": {
+  "n_candidates": 8820,
+  "max_abs_diff": 1.3047306653746205e-05,
+  "share_within_1e-5": 0.999092970521542,
+  "n_over_1e-5": 8,
+  "max_relative_diff": 3.5e-06,
+  "note": "オフラインの得点（bm25_probe_fused.npz）は float32 で保存されている．1e-5 を超えた 8 件は float32 の丸め（相対差 3.5e-6 以下）で，選択は全問一致"
+ },
+ "iii_r0_offline_vs_live_chosen_index": 1.0,
+ "iv_r0_candidate_judgements_vs_main_judgements": {
+  "available": true,
+  "n": 2940,
+  "agreement": 1.0,
+  "main_accuracy": 0.7231292517006803
+ },
+ "v_a5_r0_vs_a4_same_config": {
+  "candidate_set_agreement": 1.0,
+  "chosen_source_agreement": 0.9904761904761905,
+  "final_answer_identical": 0.7666666666666667,
+  "accuracy_a5_r0": 0.7231292517006803,
+  "accuracy_a4": 0.7153061224489796,
+  "difference": 0.007823129251700681,
+  "ci95": [
+   -0.0017006802721088435,
+   0.017346938775510204
+  ],
+  "mcnemar_p": 0.12969235968367454,
+  "note": "同じ構成の流し直し．候補の集合は全問一致，採った回答の文字列は 76.7% だけが一致（生成の非決定性．並列の要求の組み方で温度 0 でも変わる）"
+ },
+ "vi_selected_rule_dev_vs_test": {
+  "rule": "R3",
+  "dev_accuracy": 0.7581411126187245,
+  "test_accuracy": 0.7493197278911564,
+  "difference": -0.008821384727568105,
+  "dev_gain_over_r0": 0.029511533242876475,
+  "test_gain_over_r0": 0.026190476190476097,
+  "dev_rule_order_by_accuracy": [
+   "R3",
+   "R4",
+   "R1",
+   "R2",
+   "R0",
+   "R5",
+   "R6"
+  ],
+  "test_rule_order_by_accuracy": [
+   "R3",
+   "R4",
+   "R1",
+   "R0",
+   "R2",
+   "R5",
+   "R6"
+  ]
+ },
+ "oracle_rrf_selected_owner_share": 1.0,
+ "oracle_rrf_note": "p0007_a5_oracle_rrf は全 2,940 問で持ち主の受信箱 1 つだけを選んだ（routing: oracle の期待どおり）"
+}

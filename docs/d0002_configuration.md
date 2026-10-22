@@ -51,7 +51,7 @@ Ollama・Hugging Face・uv など外部のツールが読む環境変数（`OLLA
 |---|---|---|
 | `k_ret` | 50 | 各データ源から取得する件数．シャードに分けたデータ源は，各シャードから `k_ret` 件ずつ取って合わせ，上位 `k_ret` 件に絞る |
 | `k_rerank` | 15 | 統合後に LLM へ渡す件数 |
-| `merge` | `score` | `score`：検索スコアの降順／`cross_encoder`：bge-reranker-v2-m3 で再ランク／`qrels_oracle`：FeB4RAG の結果統合用ラベルの順（RAGRoute で再ランクを無効にした場合と同じ） |
+| `merge` | `score` | `score`：検索スコアの降順／`cross_encoder`：bge-reranker-v2-m3 で再ランク／`qrels_oracle`：FeB4RAG の結果統合用ラベルの順（RAGRoute で再ランクを無効にした場合と同じ）．`routing: central_local` で `cross_encoder` を指定すると，質問者は中央の索引の上位 `k_ret` 通（RRF なら RRF の上位）を再ランクし，その上位 5 通（再ランクの順）で答える（p0007 A5 の C1-RRF-CE．記録の `rerank_pool`・`timings.rerank_s`）．再ランクと 8B の Ollama を質問者の 12 GB の GPU に同居させるとメモリ不足で問が失敗するので，`cluster.requester_llm` で質問者の LLM を別の GPU PC に分ける（下） |
 | `fusion` | `none` | 受信箱（シャード）の中の検索（p0007 A2・I3）．`none`：質問の埋め込みとの内積の上位 k 通（従来）／`rrf`：BM25 と密ベクトルの RRF（k = 60）で選んだ上位 k 通．ノードは起動時に全断片の本文を 1 回読んで，そのシャードだけの統計の BM25 の転置索引（numpy の配列．`atrium.hybrid.Bm25Index`）を作り，`/v1/retrieve`（要求の `query_text`）・`/v1/answer`（`question`）の検索で使う．`/v1/probe`（ルーティング）は密ベクトルのまま．`score` は内積のまま，文脈の並びも内積の降順で，どの断片が上位 k 通に入るかだけが変わる．`routing: central_local` では質問者が全メールで統計を共有した BM25 も作り，同じ式で選ぶ（中央にも同じ改良を入れた C1-RRF）．BM25 の式・語への分け方は `atrium.advert_eval`・`atrium.central_eval` と同じ（語は `[a-z0-9]+`，k1 = 1.2，b = 0.75，メールの本文だけ）．faiss のシャード以外では指定を拒否する．`atrium fusion-eval` が受信箱の中と中央の Recall を出す |
 | `fusion_depth` | 50 | `rrf` で順位を付ける，密ベクトル・BM25 それぞれの上位の件数（BM25 は得点が正のものだけ）．RRF の得点は Σ 1 / (60 + 順位)，同点は内積の高い方 |
 | `query_embedding.medrag` | `live` | 質問者がその場で MedCPT で埋め込む（埋め込み時間も計測に入る） |
@@ -172,7 +172,7 @@ cluster:
 | リスト | 役割 | 現在の構成 |
 |---|---|---|
 | `requester`（1 台） | 質問者．質問を投げ，断片返却型では回答も生成する | wafl-ctrl5（制御点が兼ねる） |
-| `requester_llm`（省略可．1 台） | 質問者の LLM（Ollama，`llm.requester_model`）を動かす GPU PC．省略すると質問者と同じホストで動かす．質問者の GPU で再ランク（`merge=cross_encoder`）を動かすと 8B の Ollama と VRAM を取り合い，一部の層が CPU で動いて生成が約 4 倍遅くなるため，別の GPU に分ける | 省略（制御点が兼ねる）．MedRAG の `merge=cross_encoder` を流すときだけ，`{host: "192.168.15.100"}`（wafl500）にし，`experts` と `gpu_workers` から wafl500 を外す（役割は 1 つだけ） |
+| `requester_llm`（省略可．1 台） | 質問者の LLM（Ollama，`llm.requester_model`）を動かす GPU PC．省略すると質問者と同じホストで動かす．質問者の GPU で再ランク（`merge=cross_encoder`）を動かすと 8B の Ollama と VRAM を取り合い，一部の層が CPU で動いて生成が約 4 倍遅くなるため，別の GPU に分ける | 省略（制御点が兼ねる）．MedRAG の `merge=cross_encoder` を流すときだけ，`{host: "192.168.15.100"}`（wafl500）にし，`experts` と `gpu_workers` から wafl500 を外す（役割は 1 つだけ）．p0007 A5 の C1-RRF-CE（EnronQA の `central_local`）では wafl509（`192.168.15.109`）を使った（`results/p0007_a5_live/ce_chain.sh` が実行の間だけ書き換える．`central_local` はノードに問い合わせないので，専門家が 29 台でも結果は変わらない） |
 | `experts` | 専門家．シャード数だけ先頭から使い，足りなければ巡回して 1 台に複数のシャードを載せる（EnronQA は 150 個の受信箱を全台に均等に配る）．GPU を持つ専門家は Ollama を GPU で動かし，`llm.expert_model_gpu` を使う | CPU の 192.168.13.100〜109，192.168.14.100〜109 の後ろに，GPU の 192.168.15.100〜109（計 30 台） |
 | `gpu_workers` | データ準備の埋め込みを制御点の GPU と分担する GPU PC | 192.168.15.100〜109（wafl500〜509） |
 
