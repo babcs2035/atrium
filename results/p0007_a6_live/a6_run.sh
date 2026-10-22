@@ -19,9 +19,9 @@ fi
 bash results/p0007_a5_live/a5_chain.sh "$LOG" $D/specs_$SPLIT.txt
 mise run stop > "$LOG.stop" 2>&1 < /dev/null
 echo "[$(date +%F_%T)] stopped; judging on the control host" >> "$LOG"
-scp -q $D/a6_judge_ctrl.sh wafl-ctrl5:/home/denjo/workspace/ktakahashi/atrium/a6_judge_ctrl.sh
+scp -q $D/a6_judge_ctrl.sh $D/a6_judge_chunks.sh wafl-ctrl5:/home/denjo/workspace/ktakahashi/atrium/
 ssh wafl-ctrl5 bash /home/denjo/workspace/ktakahashi/atrium/a6_judge_ctrl.sh $RUN > "$LOG.judge" 2>&1 < /dev/null
-echo "[$(date +%F_%T)] judge: $(grep -E 'DONE rc=' "$LOG.judge" | tr '\n' ' ')" >> "$LOG"
+echo "[$(date +%F_%T)] judge: $(grep -E 'DONE rc=|^PART ' "$LOG.judge" | tr '\n' ' ')" >> "$LOG"
 rsync -az wafl-ctrl5:/home/denjo/workspace/ktakahashi/atrium/results/$RUN/judgements.jsonl \
   wafl-ctrl5:/home/denjo/workspace/ktakahashi/atrium/results/$RUN/candidate_judgements.jsonl \
   wafl-ctrl5:/home/denjo/workspace/ktakahashi/atrium/results/$RUN/ce_features.jsonl results/$RUN/

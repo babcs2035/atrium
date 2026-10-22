@@ -1,0 +1,15 @@
+[2026-10-22_11:24:34] BEGIN p0007_a6_dev experiment.dataset=enronqa experiment.answer_mode=owner_answer experiment.parallel=30 experiment.http_pool=per_node retrieval.fusion=rrf experiment.question_limit=null answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=true experiment.routing=bm25_probe experiment.question_split=dev
+[11:27:44] p0007_a6_dev deployed
+[14:55:43] p0007_a6_dev start=0 inner=0
+[14:55:45] p0007_a6_dev analyze=0
+[2026-10-22_14:55:46] ALL DONE
+[2026-10-22_14:55:50] stopped; judging on the control host
+[2026-10-22_20:48:49] judge: JUDGE_CTRL_DONE rc=1 SELECT_FEATURES_DONE rc=0 
+[2026-10-22_20:49:07] a6_run dev: done
+[2026-10-22_20:52:45] judge (1 fix): chunked judging a6_judge_chunks.sh
+[2026-10-22_20:53:09] judge (1 fix): chunked judging a6_judge_chunks.sh started 20:53
+[2026-10-22_21:13:45] the 20:53 start was cut off with my ssh session (operator error, not a node failure); relaunching with nohup on the control host
+[2026-10-22_21:13:45] judge_chunks started on the control host (/home/denjo/workspace/ktakahashi/atrium/results/p0007_a6_dev.judge_chunks.log)
+[2026-10-23_02:34:29] judge_chunks: split 2948 rows into 6 parts of 492 PART 0 rc=0 PART 1 rc=0 PART 2 rc=0 PART 3 rc=0 PART 4 rc=0 PART 5 rc=0 JUDGE_CHUNKS_DONE rc=0 2948 8844 
+[2026-10-23_02:34:31] fetched and analyzed p0007_a6_dev
+[2026-10-23_02:34:31] a6_fetch_judged p0007_a6_dev: done
