@@ -951,7 +951,7 @@ def cmd_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
 
     run_dir = Path(args.run_dir)
     rules = [r.strip() for r in args.rules.split(",") if r.strip()]
-    report, outcomes = evaluate(run_dir, rules, run_dir / CE_FEATURES)
+    report, outcomes = evaluate(run_dir, rules, run_dir / CE_FEATURES, args.ignore_unknown)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / SELECT_EVAL).write_text(json.dumps(report, indent=1), encoding="utf-8")
@@ -962,7 +962,9 @@ def cmd_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
             raise SystemExit("--apply requires --derived-run")
         if args.apply not in outcomes:
             raise SystemExit(f"rule {args.apply} was not evaluated (missing ce_features.jsonl?)")
-        write_derived_run(run_dir, outcomes[args.apply], args.apply, Path(args.derived_run))
+        write_derived_run(
+            run_dir, outcomes[args.apply], args.apply, Path(args.derived_run), args.ignore_unknown
+        )
     return 0
 
 
@@ -1612,6 +1614,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--apply", default=None, help="正誤を書き出す 1 つの規則（atrium compare の入力）"
     )
     p.add_argument("--derived-run", default=None, help="--apply の正誤の出力先（実行の形）")
+    p.add_argument(
+        "--ignore-unknown",
+        action="store_true",
+        help="UNKNOWN による除外をせず全候補から選ぶ（R0′〜R6′．通常のプロンプトの候補．p0007 A6）",
+    )
     p.set_defaults(func=cmd_select_eval)
 
     p = sub.add_parser("e0", help="E0 の実測と集約")

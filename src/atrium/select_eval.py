@@ -6,6 +6,8 @@ ce_features.jsonl に書く（質問と，候補の文脈の上位 5 通の関�
 
 規則は全て abstain と同じ形で，UNKNOWN でない候補のうち特徴量が最高のものを採る（全て UNKNOWN なら全候補の中で最高）．
 同点は候補の並びの先の方（`atrium.merge.choose_abstain` と同じ）．R0 は実機の `abstain` そのもの（密ベクトルの最高得点）．
+`--ignore-unknown`（p0007 A6）は UNKNOWN による除外をせず，全候補の中で特徴量が最高のものを採る（R0′〜R6′．通常のプロンプト
+（`aggregate: max_score`）で答えさせた候補に使う．R0′ は実機の `max_score` そのもの）．
 
 | 規則 | 特徴量 |
 |---|---|
@@ -23,6 +25,7 @@ ce_features.jsonl に書く（質問と，候補の文脈の上位 5 通の関�
     uv run atrium select-features --run-dir results/<run> --data-dir <データの置き場所>
     uv run atrium select-eval --run-dir results/<run> --out-dir results/<out>
     uv run atrium select-eval --run-dir results/<run> --out-dir results/<out> --apply R1 --derived-run results/<run>_R1
+    uv run atrium select-eval --run-dir results/<run> --out-dir results/<out> --ignore-unknown
 `--apply` は選んだ 1 つの規則の正誤を results.jsonl・judgements.jsonl の形で書き（回答の文は書かない），`atrium compare` に渡せるようにする．
 """
 
@@ -69,19 +72,28 @@ def _value(c: Candidate, feature: str) -> float:
     return float(v) if v is not None and math.isfinite(v) else float("-inf")
 
 
-def considered(candidates: Sequence[Candidate]) -> tuple[list[int], bool]:
-    """（考える候補の番号，全て UNKNOWN だったか）．UNKNOWN でない候補だけを考え，全て UNKNOWN なら全候補を考える．"""
+def considered(
+    candidates: Sequence[Candidate], ignore_unknown: bool = False
+) -> tuple[list[int], bool]:
+    """（考える候補の番号，全て UNKNOWN だったか）．UNKNOWN でない候補だけを考え，全て UNKNOWN なら全候補を考える．
+
+    ignore_unknown のときは UNKNOWN かどうかを見ず，常に全候補を考える（2 つ目の値は False）．
+    """
+    if ignore_unknown:
+        return list(range(len(candidates))), False
     answered = [i for i, c in enumerate(candidates) if not c.unknown]
     if answered:
         return answered, False
     return list(range(len(candidates))), True
 
 
-def choose_by_feature(candidates: Sequence[Candidate], feature: str) -> int:
+def choose_by_feature(
+    candidates: Sequence[Candidate], feature: str, ignore_unknown: bool = False
+) -> int:
     """考える候補のうち feature が最高の候補の番号（同点は先の方）．"""
     if not candidates:
         raise ValueError("no candidates to choose from")
-    pool, _ = considered(candidates)
+    pool, _ = considered(candidates, ignore_unknown)
     return max(pool, key=lambda i: (_value(candidates[i], feature), -i))
 
 
@@ -101,11 +113,13 @@ def average_ranks(values: Sequence[float]) -> list[float]:
     return ranks
 
 
-def choose_by_rank_sum(candidates: Sequence[Candidate], features: Sequence[str]) -> int:
+def choose_by_rank_sum(
+    candidates: Sequence[Candidate], features: Sequence[str], ignore_unknown: bool = False
+) -> int:
     """考える候補の中で，各特徴量の順位（平均の順位）の和が最小の候補の番号（同点は先の方）．"""
     if not candidates:
         raise ValueError("no candidates to choose from")
-    pool, _ = considered(candidates)
+    pool, _ = considered(candidates, ignore_unknown)
     total = [0.0] * len(pool)
     for feature in features:
         for j, r in enumerate(average_ranks([_value(candidates[i], feature) for i in pool])):
@@ -114,13 +128,13 @@ def choose_by_rank_sum(candidates: Sequence[Candidate], features: Sequence[str])
     return pool[best]
 
 
-def rule_chooser(rule: str) -> Callable[[Sequence[Candidate]], int]:
-    """規則の名前 → 候補の列から採る番号を返す関数．"""
+def rule_chooser(rule: str, ignore_unknown: bool = False) -> Callable[[Sequence[Candidate]], int]:
+    """規則の名前 → 候補の列から採る番号を返す関数（ignore_unknown なら UNKNOWN で除外しない R0′〜R6′）．"""
     if rule == "R4":
-        return lambda cands: choose_by_rank_sum(cands, RANK_SUM_FEATURES)
+        return lambda cands: choose_by_rank_sum(cands, RANK_SUM_FEATURES, ignore_unknown)
     if rule in SINGLE_FEATURE:
         feature = SINGLE_FEATURE[rule]
-        return lambda cands: choose_by_feature(cands, feature)
+        return lambda cands: choose_by_feature(cands, feature, ignore_unknown)
     raise ValueError(f"unknown rule {rule!r}; choose from {RULE_ORDER}")
 
 
@@ -173,9 +187,10 @@ def apply_rule(
     judged: Mapping[tuple[str, int], bool | None],
     rule: str,
     ce: Mapping[tuple[str, int], float] | None = None,
+    ignore_unknown: bool = False,
 ) -> list[QuestionOutcome]:
     """全問に規則を当てはめる．失敗した問・候補の無い問・判定できなかった候補は不正解とする．"""
-    choose = rule_chooser(rule)
+    choose = rule_chooser(rule, ignore_unknown)
     out = []
     for row in rows:
         cands = row_candidates(row, ce) if row.get("error") is None else []
@@ -257,14 +272,20 @@ def select_rule(accuracy_of: Mapping[str, int]) -> str:
 
 
 def evaluate(
-    run_dir: Path, rules: Sequence[str], ce_path: Path | None = None
+    run_dir: Path,
+    rules: Sequence[str],
+    ce_path: Path | None = None,
+    ignore_unknown: bool = False,
 ) -> tuple[dict[str, Any], dict[str, list[QuestionOutcome]]]:
-    """規則ごとの正答率・区分・上限と，選んだ規則を返す（cross-encoder の得点が無ければ R3・R4 は評価しない）．"""
+    """規則ごとの正答率・区分・上限と，選んだ規則を返す（cross-encoder の得点が無ければ R3・R4 は評価しない）．
+
+    ignore_unknown のときは UNKNOWN で除外しない R0′〜R6′ を評価する（report の ignore_unknown に残す）．
+    """
     rows = read_results(run_dir / "results.jsonl")
     judged = read_candidate_judgements(run_dir / CANDIDATE_JUDGEMENTS)
     ce = read_ce_features(ce_path) if ce_path is not None and ce_path.exists() else None
     usable = [r for r in rules if ce is not None or r not in ("R3", "R4")]
-    outcomes = {rule: apply_rule(rows, judged, rule, ce) for rule in usable}
+    outcomes = {rule: apply_rule(rows, judged, rule, ce, ignore_unknown) for rule in usable}
     per_rule: dict[str, Any] = {}
     for rule, items in outcomes.items():
         acc = _accuracy(items)
@@ -279,6 +300,7 @@ def evaluate(
         "run": run_dir.name,
         "n_questions": len(rows),
         "n_failed": sum(r.get("error") is not None for r in rows),
+        "ignore_unknown": ignore_unknown,
         "rules_evaluated": usable,
         "rules_skipped_no_ce": [r for r in rules if r not in usable],
         "per_rule": per_rule,
@@ -294,7 +316,7 @@ def evaluate(
 
 
 def _live_agreement(rows: Sequence[Mapping[str, Any]], r0: Sequence[QuestionOutcome]) -> float:
-    """R0 の選択が，実機の abstain が採った候補（owner_answer.chosen_index）と一致する割合（候補のある問）．"""
+    """R0 の選択が，実機の統合（abstain．R0′ なら max_score）が採った候補（owner_answer.chosen_index）と一致する割合．"""
     live = {r["qid"]: (r.get("owner_answer") or {}).get("chosen_index") for r in rows}
     pairs = [(o.chosen_index, live.get(o.qid)) for o in r0 if o.chosen_index is not None]
     return sum(a == b for a, b in pairs) / max(1, len(pairs))
@@ -334,7 +356,11 @@ def _unknown_shares(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
 
 
 def write_derived_run(
-    run_dir: Path, outcomes: Sequence[QuestionOutcome], rule: str, out_dir: Path
+    run_dir: Path,
+    outcomes: Sequence[QuestionOutcome],
+    rule: str,
+    out_dir: Path,
+    ignore_unknown: bool = False,
 ) -> None:
     """選んだ規則の正誤を results.jsonl・judgements.jsonl の形で書く（`atrium compare` の入力．回答の文は書かない）．"""
     rows = {r["qid"]: r for r in read_results(run_dir / "results.jsonl")}
@@ -366,7 +392,11 @@ def write_derived_run(
                     + "\n"
                 )
     (out_dir / "derived_from.json").write_text(
-        json.dumps({"run": str(run_dir), "select_rule": rule}, indent=1), encoding="utf-8"
+        json.dumps(
+            {"run": str(run_dir), "select_rule": rule, "ignore_unknown": ignore_unknown},
+            indent=1,
+        ),
+        encoding="utf-8",
     )
 
 

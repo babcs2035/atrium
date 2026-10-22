@@ -498,6 +498,23 @@ async def test_save_candidates_reads_the_log_probability_from_the_delegate_gpu_n
     assert harness.node_prompts["node-a"] == []
 
 
+async def test_max_score_with_save_candidates_keeps_every_candidate_under_the_normal_prompt(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    """p0007 A6 の構成：通常のプロンプト（UNKNOWN を許さない）で全候補に答えさせ，選び方はオフラインの規則に任せる．"""
+    replies = {"node-a": "Answer: ALPHA", "node-b": "Answer: BETA", "node-c": "Answer: GAMMA"}
+    record, harness = await run_one(
+        owner_cfg(cfg, "max_score", save_candidates=True), tmp_path, replies
+    )
+    info = record["owner_answer"]
+    assert isinstance(info, dict)
+    assert [c["answer"] for c in info["candidates"]] == ["ALPHA", "BETA", "GAMMA"]
+    assert all("write UNKNOWN" not in p for ps in harness.node_prompts.values() for p in ps)
+    # 実機で採るのは検索の最高得点の候補（オフラインの R0′ と同じ）
+    best = max(range(3), key=lambda i: (info["candidates"][i]["top_score"], -i))
+    assert info["chosen_index"] == best
+
+
 async def test_without_save_candidates_nodes_are_not_asked_for_features(
     cfg: AtriumConfig, tmp_path: Path
 ) -> None:

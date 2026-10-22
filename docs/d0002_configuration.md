@@ -118,6 +118,7 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 
 `save_candidates: true` のときだけ，`owner_answer.candidates` に候補ごとに次を残す：`source`・`answer`（"Answer:" の後ろ．`sanitize_results.py` が `final_answer` と同じ規則で整形する）・`unknown`・`top_score`（密ベクトルの最高得点）・`probe_dense`・`probe_bm25`・`probe_fused`（bm25_probe の probe の得点と融合得点 z(dense) + w·z(bm25)．他の Router は null．記録の `probe_selected_scores` にも残る）・`bm25_max`・`rrf_max`（受信箱の中の BM25 と RRF の得点の最大．`retrieval.fusion: rrf` のときだけ）・`avg_logprob`・`n_logprob_tokens`（生成の対数確率の平均）・`context_doc_ids`（文脈の文書 ID．本文は残さない）．
 候補ごとの採点は `bash scripts/tasks/judge.sh run-candidates <run_id>`（`candidate_judgements.jsonl`），cross-encoder の得点は `uv run atrium select-features --run-dir results/<run_id> --data-dir <データ>`（`ce_features.jsonl`），規則の評価は `uv run atrium select-eval`（`select_eval.json`．`atrium.select_eval` の docstring に規則の一覧）．
+`aggregate: max_score` と `save_candidates: true` の組では，全候補が通常のプロンプト（UNKNOWN を許さない）で答え，実機は検索の最高得点の候補を採る．このときの規則の評価は `select-eval --ignore-unknown`（UNKNOWN による除外をしない R0′〜R6′．p0007 A6）で行う．
 
 ```yaml
 # 例：bm25_probe（D = 24．p0007 A4）．probe に質問の語ごとの IDF・長さの平均を載せ，ノードが本文だけの BM25 も返す．

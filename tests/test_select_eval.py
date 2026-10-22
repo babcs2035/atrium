@@ -1,4 +1,4 @@
-"""p0007 A5 の候補の選び方の規則（atrium.select_eval）の仕様：規則の当てはめ・順位の和・区分・上限・選択・compare への出力．"""
+"""p0007 A5・A6 の候補の選び方の規則（atrium.select_eval）の仕様：規則の当てはめ（UNKNOWN の除外の有無）・順位の和・区分・上限・選択・compare への出力．"""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from atrium.analysis import merge_judgements, read_results
+from atrium.merge import OwnerCandidate, choose_max_score
 from atrium.select_eval import (
     RULE_ORDER,
     Candidate,
@@ -84,6 +85,30 @@ def test_rank_sum_takes_the_candidate_best_on_most_features() -> None:
 def test_rank_sum_ranks_only_the_answered_candidates() -> None:
     cands = [cand("a", True, f=9.0), cand("b", f=1.0), cand("c", f=2.0)]
     assert choose_by_rank_sum(cands, ("f",)) == 2
+
+
+def test_ignore_unknown_lets_an_unknown_candidate_win_on_its_feature() -> None:
+    cands = [cand("a", True, top_score=0.9), cand("b", top_score=0.5)]
+    assert choose_by_feature(cands, "top_score", ignore_unknown=True) == 0
+
+
+def test_ignore_unknown_rank_sum_ranks_every_candidate() -> None:
+    cands = [cand("a", True, f=9.0), cand("b", f=1.0), cand("c", f=2.0)]
+    assert choose_by_rank_sum(cands, ("f",), ignore_unknown=True) == 0
+
+
+@pytest.mark.parametrize(
+    "scores",
+    [
+        [(True, 0.9), (False, 0.5), (False, 0.7)],
+        [(False, 0.4), (False, 0.4), (True, None)],
+        [(True, None), (True, -1.0)],
+    ],
+)
+def test_r0_prime_is_the_live_max_score_rule(scores: list[tuple[bool, float | None]]) -> None:
+    owner = [OwnerCandidate(str(i), "x", s, u) for i, (u, s) in enumerate(scores)]
+    cands = [cand(str(i), u, top_score=s) for i, (u, s) in enumerate(scores)]
+    assert rule_chooser("R0", ignore_unknown=True)(cands) == choose_max_score(owner).index
 
 
 def test_unknown_rule_name_is_an_error() -> None:
@@ -197,6 +222,34 @@ def test_evaluate_uses_the_cross_encoder_scores_when_present(tmp_path: Path) -> 
     # q1 の b は UNKNOWN なので，得点が高くても採らない．q2 は a を採る
     assert [o.chosen_index for o in outcomes["R3"][:2]] == [0, 0]
     assert report["per_rule"]["R3"]["correct"] == 2
+
+
+def test_evaluate_with_ignore_unknown_considers_unknown_candidates(tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    _write_run(run)
+    ce = [("q1", 0, 0.1), ("q1", 1, 0.9), ("q2", 0, 5.0), ("q2", 1, 1.0), ("q3", 0, 0.0)]
+    (run / "ce_features.jsonl").write_text(
+        "".join(json.dumps({"qid": q, "index": i, "ce_max": v}) + "\n" for q, i, v in ce)
+    )
+
+    report, outcomes = evaluate(run, ["R3"], run / "ce_features.jsonl", ignore_unknown=True)
+
+    # q1 の b は UNKNOWN だが除外しないので，得点の高い b を採る（不正解）
+    assert [o.chosen_index for o in outcomes["R3"][:2]] == [1, 0]
+    assert report["per_rule"]["R3"]["correct"] == 1
+    assert report["ignore_unknown"] is True
+
+
+def test_derived_run_records_whether_unknown_was_ignored(tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    _write_run(run)
+    _, outcomes = evaluate(run, ["R0"], ignore_unknown=True)
+    out = tmp_path / "derived"
+
+    write_derived_run(run, outcomes["R0"], "R0", out, ignore_unknown=True)
+
+    meta = json.loads((out / "derived_from.json").read_text())
+    assert (meta["select_rule"], meta["ignore_unknown"]) == ("R0", True)
 
 
 def test_derived_run_feeds_atrium_compare_without_answer_text(tmp_path: Path) -> None:
