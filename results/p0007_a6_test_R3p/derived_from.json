@@ -1,0 +1,5 @@
+{
+ "run": "results/p0007_a6_test",
+ "select_rule": "R3",
+ "ignore_unknown": true
+}

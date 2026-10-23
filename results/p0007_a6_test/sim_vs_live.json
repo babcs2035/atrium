@@ -1,0 +1,31 @@
+{
+ "stage": "p0007 A6 (test, owner_answer m=3, aggregate=max_score, save_candidates)",
+ "i_candidate_set_vs_offline_bm25_probe_m3": {
+  "live_vs_offline_agreement": 1.0,
+  "expected": ">= 0.999"
+ },
+ "ii_probe_fused_vs_offline": {
+  "abs_diff_max": 1.3047306653746205e-05,
+  "share_within_1e-5": 0.9990926619031416,
+  "note": "the offline fused scores are stored as float32; the few differences above 1e-5 are rounding (same as A5)"
+ },
+ "iii_r0prime_offline_vs_live_chosen_index": 1.0,
+ "iv_r0prime_candidate_judgements_vs_judgements_jsonl": {
+  "available": true,
+  "n": 2939,
+  "agreement": 1.0,
+  "main_accuracy": 0.6785714285714286
+ },
+ "v_vs_a5_test_same_router": {
+  "candidate_set_agreement": 1.0,
+  "chosen_source_agreement": 0.8975842123171147,
+  "final_answer_identical": 0.28649200408302145,
+  "note": "A5 chose with abstain (UNKNOWN prompt), A6 live chooses with max_score (normal prompt), so chosen sources and answers are expected to differ"
+ },
+ "vi_selected_rule_dev_to_test": {
+  "rule": "R3 (ignore_unknown)",
+  "dev": 0.7778154681139756,
+  "test": 0.7738095238095238,
+  "diff": -0.004005944304451781
+ }
+}

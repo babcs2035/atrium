@@ -1,0 +1,79 @@
+{
+ "run": "p0007_a6_test",
+ "rule": "R3",
+ "comparator": "p0007_a2_c1_rrf",
+ "segments_rule": {
+  "a_owner_out": {
+   "n": 201,
+   "share": 0.06836734693877551,
+   "p2p_accuracy": 0.22388059701492538,
+   "comparator_accuracy": 0.43283582089552236,
+   "contribution_to_diff": -0.014285714285714284
+  },
+  "b_owner_chosen": {
+   "n": 2545,
+   "share": 0.8656462585034014,
+   "p2p_accuracy": 0.8373280943025541,
+   "comparator_accuracy": 0.7960707269155206,
+   "contribution_to_diff": 0.03571428571428576
+  },
+  "c_owner_in_not_chosen": {
+   "n": 194,
+   "share": 0.06598639455782312,
+   "p2p_accuracy": 0.5103092783505154,
+   "comparator_accuracy": 0.7061855670103093,
+   "contribution_to_diff": -0.012925170068027216
+  },
+  "total": {
+   "p2p_accuracy": 0.7738095238095238,
+   "comparator_accuracy": 0.7653061224489796
+  }
+ },
+ "segments_r0": {
+  "a_owner_out": {
+   "n": 201,
+   "share": 0.06836734693877551,
+   "p2p_accuracy": 0.19900497512437812,
+   "comparator_accuracy": 0.43283582089552236,
+   "contribution_to_diff": -0.015986394557823125
+  },
+  "b_owner_chosen": {
+   "n": 2222,
+   "share": 0.7557823129251701,
+   "p2p_accuracy": 0.8370837083708371,
+   "comparator_accuracy": 0.810981098109811,
+   "contribution_to_diff": 0.019727891156462594
+  },
+  "c_owner_in_not_chosen": {
+   "n": 517,
+   "share": 0.1758503401360544,
+   "p2p_accuracy": 0.18375241779497098,
+   "comparator_accuracy": 0.6982591876208898,
+   "contribution_to_diff": -0.09047619047619047
+  },
+  "total": {
+   "p2p_accuracy": 0.6785714285714286,
+   "comparator_accuracy": 0.7653061224489796
+  }
+ },
+ "costs": {
+  "n": 2940,
+  "failed": 1,
+  "requests_total_mean": 27.0,
+  "generations_mean": 3.0,
+  "e2e_p50_s": 134.11593723017722,
+  "e2e_p95_s": 771.6982821115283,
+  "wall_s": 11965.914298534393,
+  "throughput_q_per_s": 0.24569789876901396,
+  "decode_s_mean": 10.891173011325053,
+  "docs_exposed_mean": 10.0
+ },
+ "sim_vs_live": {
+  "candidate_set_agreement": 1.0,
+  "fused_abs_diff_max": 1.3047306653746205e-05,
+  "fused_within_tolerance": 0.9990926619031416,
+  "prev_candidate_set_agreement": 1.0,
+  "prev_chosen_source_agreement": 0.8975842123171147,
+  "prev_final_answer_identical": 0.28649200408302145
+ }
+}
