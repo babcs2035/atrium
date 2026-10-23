@@ -1,0 +1,45 @@
+{
+ "selection_agreement": {
+  "n": 300,
+  "strict": 1.0,
+  "tie_tolerant": 1.0,
+  "n_disagree_strict": 0,
+  "n_disagree_tie_tolerant": 0,
+  "max_abs_score_diff": 0.0,
+  "tie_tolerance": 0.0001
+ },
+ "agreement_with_a6_offline_r3p": {
+  "n": 300,
+  "same_index": 1.0,
+  "same_source": 1.0,
+  "n_different_source": 0
+ },
+ "ce_service_time_s": {
+  "predicted": 1.9,
+  "live_p1_p50": 1.3061208571307361
+ },
+ "throughput_ce_vs_capacity": {
+  "predicted_capacity_qps": 0.5,
+  "live_ce_p30_median_qps": 0.24130526445548597
+ },
+ "coexistence_with_8b": {
+  "ce_increase_mib": 6968.0,
+  "plus_llama_8b_mib": 13668.0,
+  "gpu_total_mib": 12288,
+  "fits": false
+ },
+ "exposure_to_requester": {
+  "distinct_docs_300q": 4196,
+  "share_of_all_emails_300q": 0.056877948273057526,
+  "a6_test_distinct_docs_2939q": 27704,
+  "a6_test_share": 0.37553543349780405
+ },
+ "sensitivity_clean_gpu_posthoc": {
+  "throughput_base_qps": 1.0137363849146879,
+  "throughput_ce_qps": 0.6011567353091122,
+  "ratio": 0.5930109092017085,
+  "predicted_capacity_qps": 0.5,
+  "ce_s_p50_s": 30.26134236389771,
+  "gpu_mem_increase_mib": 7057.0
+ }
+}

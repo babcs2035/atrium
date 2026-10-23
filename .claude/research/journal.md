@@ -3,6 +3,69 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## p0007 F-6：R3′ を実機の経路に載せた結果と判定（2026-10-23〜24．`results/p0007_f6_*`・`results/p0007_f6_verdict`・`results/p0007_f6_verdict_clean`）
+
+**判定（`verdict_original`．事前登録の規則どおり．`results/p0007_f6_verdict/verdict.json`．`verdict_revised` は無し）**：**F6-a 成立（`ce_s` の p50 1.58 秒 ≤ 5 秒）・F6-b 成立（処理量の比 0.986 ≥ 0.80）→ 総合「質問者の GPU に載せても費用は小さい」**．**ただしこの判定は他の研究者の GPU の使用で交絡している**（下）．GPU の PC が空いている時に流し直した事後の感度分析（`results/p0007_f6_verdict_clean`．主の判定ではない）では，**F6-a 不成立（30.3 秒）・F6-b 不成立（比 0.593．範囲が重ならない）→「費用が大きい」**．事前登録の予測（F6-a・F6-b とも不成立）は，主の判定では外れ，感度分析では当たった．**精度は判定していない**．
+
+**選択の一致**（`p0007_f6_agree`．300 問．`save_candidates: true`．`select-features` で候補の文脈をオフラインで採点し直した．`ce_live_agreement.json`）：実機の `chosen_index` とオフラインの R3′ は **300/300 一致（strict．同点を許すと tie_tolerant 300/300）．候補ごとの得点の差の最大 0.0**（同じ制御点の GPU・同じ 4 組ずつの推論．丸めの差も無い）．A6 の test のオフラインの R3′（`results/p0007_a6_test_R3p` の `chosen_index`）とも，同じ質問 300 問で番号・受信箱が全問一致（選択は候補の文脈と質問だけで決まり，回答の文には依らない）．実機のノードは 1 問あたり 15 通（3 候補 × 5 通）の文書を質問者へ返した（`ce_docs_received` 平均 15）．
+
+**追加の時間・処理量・GPU メモリ**（300 問・parallel 30・各 3 回．交互：r1 base → ce，r2 ce → base，r3 base → ce．parallel 1 は 150 問・各 1 回．失敗 0 問．`f6_summary.json`）
+
+| 量 | base（R3′ なし） | ce（R3′ あり） | 差・比 |
+|---|---|---|---|
+| 処理量 parallel 30（問/秒．3 回の最小・中央値・最大） | 0.140・0.245・0.245 | 0.122・0.241・0.242 | 比 0.986（実行ごとの比 0.875・0.988・0.986）．範囲は重なる |
+| e2e p50 / p95（秒．中央値．3 回） | 90.5（90.3〜134.1）/ 289.8（289.8〜337.3） | 89.4（87.5〜144.3）/ 292.5（291.0〜904.0） | p50 −1.1 秒・p95 +2.7 秒（いずれも揺れの範囲内） |
+| `ce_s`（質問者での採点の時間．待ちを含む）p50 / p95 | － | parallel 30（900 問）1.58 / 9.91 秒．parallel 1（150 問）1.31 / 2.24 秒（平均 1.49） | サービス時間は約 1.3〜1.5 秒．parallel 30 の p95 は直列の待ち |
+| 処理量 parallel 1（問/秒） | 0.069 | 0.062 | 比 0.90．e2e p50 9.47 → 10.78 秒（+1.3 秒）・p95 32.4 → 33.9 秒 |
+| 制御点の GPU の使用メモリの増分（MiB．安静時 107） | 0 | 6,968（6,872〜6,976．プロセス最大 6,960）．parallel 1 では 7,796 | 増分 約 7.0〜7.8 GB |
+| 質問者へ渡る文書（1 問あたり） | 0 | 15 | 重複なしの露出は A6 の test の保存した文書 ID から算出すると 27,704 通 = 73,772 通の 37.6%（H-B の 50% 未満は保たれる．hybrid_probe の P4-1 は 27.3%） |
+
+**他の研究者の GPU の使用と，主の判定の交絡**：6 回の parallel 30 のうち r1 の base・ce は，実行の前に wafl500〜509 の 6〜10 台で他の研究者の DETR の学習が動いていた（`gpu_apps_pre.txt`）．r2・r3 は実行の前後に他のプロセスは無かったが，**全 6 回で wafl500〜509 の llama3.1:8b は約 3〜5 GB しか GPU に載っておらず**（8B の全層は約 6.7 GB．deploy の時に DETR が GPU のメモリを使っていて，層の一部が CPU に載ったまま．`ollama` のプロセスの使用メモリ），1 トークンあたりの decode の中央値は約 100〜114 ms（D の P2P は 16〜35 ms）だった．このため base の処理量は，**生成が律速で 0.245 問/秒**（CPU に載った 8B の速度）になり，質問者の cross-encoder の容量（0.6 問/秒前後）より低い．cross-encoder は生成の待ちの中に隠れ，処理量の比が 1 に近く出た．**主の判定の「費用が小さい」は，生成が遅い状態の下での値である**．
+
+**事後の感度分析**（`results/p0007_f6c_{base,ce}_p30_r{1,2}`．ABBA の順で各 2 回．実行の直前に GPU の PC が空いている（他のプロセス無し）のを確かめて `mise run deploy` し直し，8B を全層 GPU に載せた．事前登録の外の追加．目的は交絡の切り分けで，主の判定には使わない）：
+
+| 量 | base | ce | 差・比 |
+|---|---|---|---|
+| 処理量 parallel 30（問/秒） | 1.011・1.017 | 0.602・0.600 | **比 0.593**（0.596・0.590．範囲は重ならない） |
+| e2e p50 / p95（秒） | 21.5 / 54.4 | 47.1 / 75.9 | +25.6 / +21.5 |
+| `ce_s` p50 / p95（600 問） | － | **30.3 / 54.7 秒** | 質問者の cross-encoder の直列の待ち |
+| GPU メモリの増分（MiB） | 0 | 7,057 | |
+
+読み方：**生成が速い（GPU が空いている）と，質問者の cross-encoder（1 問 約 1.5〜1.7 秒で直列）が律速になり，処理量は約 0.6 問/秒で頭打ちになる**（base の約 59%．事前登録の予測 容量 0.5 問/秒に対し実測 0.60）．待ちは `ce_s` の p50 30 秒として現れる．サービス時間そのもの（parallel 1 で 1.3〜1.5 秒）は，1 問の e2e（10 秒前後）の 1 割強にすぎない．
+
+**照合（`results/p0007_f6_verdict/sim_vs_live.json`．§10）**：(i) 選択：オフラインの R3′ と実機は 300/300 一致（得点の差 0）．(ii) 処理量の容量：予測 0.5 問/秒に対し，GPU が空いている時の ce の処理量 0.60（比 1.20．±20% の境界）．GPU が遅い時は 0.241（生成が律速で，予測の「容量」の外）．(iii) サービス時間：予測 1.9 秒（`select-features` の 0.126 秒/組 × 15）に対し parallel 1 の p50 1.31 秒（平均 1.49）．(iv) GPU メモリ：予測 2〜4 GB に対し 7.0〜7.8 GB（長い文で PyTorch の確保が膨らむ．**8B（約 6.7 GB）と合わせると 13.7 GB で，12 GB の RTX 3060 に共存できない**．この実験では owner_answer が質問者の Ollama を使わないので共存の必要が無かった）．(v) 露出：A6 の test から 37.6%（300 問の `p0007_f6_agree` では 4,196 通 = 5.7%．問の数が違うので比べない）．食い違いの見立て：(ii) は生成が速ければ直列の採点が律速になる，という構造の予測は当たったが，GPU の共有で生成の速度が実行ごとに 4 倍変わり，主の判定の値が上の状態に依った（K4 の「処理量は同じ時間帯に交互に流した条件の間でしか比べられない」と同じ）．(iv) は予測が小さすぎた．
+
+**設計の選択の見直し（記録）**：質問者の GPU に載せる案（Q）を選んだ理由は事前登録の節にある．実測で，Q の代償（質問者への採点の集中）は，GPU が空いていれば処理量を約 4 割下げ，GPU のメモリを約 7 GB 使う．採点を分散する案（N．GPU の専門家 wafl500〜509 の `/v1/generate` の委託先で，受け取った文脈を採点して得点だけを返す）は，採点の容量を最大 10 倍にでき，質問者への文書の集中も無くせるが，ノード側の torch・CUDA・モデルの配備が要る．これは提案 F-6S として残す（実装しない）．
+
+**実行の経緯**：実装 `ad0e095`（A6-S1）・`b095971`（F-6）・事前登録 `9dbeff5`．smoke（150 問）→ agree（300 問）→ 負荷 6 回 + parallel 1 を 2 回（2026-10-23 19:50〜 24 日 01:04．`chain.log`）→ 事後の感度分析 4 回（01:17〜01:49．`chain_clean.log`）．各回の前後に `gpu_apps_snapshot.sh`（全 11 台）と，制御点の GPU の使用メモリを 1 秒ごとに記録（`gpu_mem_ctrl.csv`）．**途中で 1 回の修正**：メモリの記録の置き場所（`$REMOTE_DIR/f6_gpu/`）が deploy・start の rsync `--delete` で消され，smoke・agree の記録が取れなかった（負荷の実行の前に `$REMOTE_DIR/energy/f6_gpu/` へ直した．smoke の制御点の GPU は `nvidia-smi` の手動の確認 4,437 MiB だけ）．ディスク使用率：実験の前 制御点 71%・専門家の最大 85%，後 同じ（§12 の 7 は該当せず）．start の終了コードは全て 0，失敗した問は 0．実験の後に `mise run stop`．他のプロセスには触れていない．結果の整形：`sanitize_results.py` を smoke・agree・負荷・感度の全実行に通し，区切り線・`Message-ID`・`X-FileName`・`"content"` が 0 件であることを確かめた．
+
+**F-7 の agent が使う config.yaml の書き方**（cross-encoder 付きの実機の流し方）
+
+```yaml
+experiment:
+  dataset: enronqa
+  routing: bm25_probe        # 標準構成．D = 24・wb = 2
+  answer_mode: owner_answer
+  question_split: dev        # dev で選び，test は 1 回だけ（A6 と同じ規則）
+  question_limit: null       # 全問．小さな確認は 1 か 2（受信箱ごとの先頭の数）
+  parallel: 30
+  http_pool: per_node
+  requester_procs: 1
+retrieval: {fusion: rrf}
+answer:
+  owner_m: 4                 # F-7．A6 は 3
+  aggregate: cross_encoder   # R3′ を実機で採る．選ばず保存だけなら max_score
+  save_candidates: false     # true なら全候補の回答・得点を results に残す（commit の前に sanitize_results.py）
+```
+
+- 流し方：`results/p0007_f6_live/f6_chain.sh <log> <specs>`（specs は `make_specs.py` の形．deploy を最初の 1 回にし，以降は config.yaml の配り直し）．`answer.*` は質問者だけが読むので，m と aggregate の変更に deploy の作り直しは要らない（要るのは最初の 1 回）．start の終了コードを確かめ，失敗したらノードを止めずに止まる．**始める前に GPU の PC の他のプロセス（`gpu_apps_snapshot.sh`）を見て，空いている時に deploy する**（deploy の時に DETR が GPU のメモリを使っていると，8B の層の一部が CPU に載ったままになり，生成が 3〜5 倍遅くなる．この状態は DETR が止まっても直らず，もう一度 deploy するまで続く）．
+- 選択の確認：`save_candidates: true` で 300 問流し，制御点で `docker run --rm --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all --user $(id -u):$(id -g) -e HOME=/tmp -e HF_HOME=/data/.cache/huggingface -e HF_HUB_OFFLINE=1 -v /home/denjo/atrium-data:/data -v $PWD/results:/results -v $PWD/config.yaml:/app/config.yaml:ro localhost:5000/atrium-full:latest atrium --config /app/config.yaml select-features --run-dir /results/<run> --data-dir /data`（`results/p0007_a6_live/a6_judge_ctrl.sh` と同じ形．今回は p0007_f6_agree に対し 1 回）．`ce_live_agreement.json` の `strict`・`tie_tolerant` が 1.0 であること．
+- 精度の採点：採った回答だけなら `bash scripts/tasks/judge.sh resume <run_id>`（A6-S1．止まったら終了コード 3 になるので，`judge.sh up qwen3:8b` で Ollama を起動し直して同じコマンドを再実行する）．A6 では wafl500〜509 が他の研究者の学習と同居していたので，制御点の GPU だけで採点した．`select-features` と採点は，負荷の測定の実行と同時に動かさない（制御点の GPU を取り合う）．
+- 費用の見込み（m = 4）：質問者へ渡る文書は 20 通，採点は 1 問 約 2 秒（サービス時間は文書の数にほぼ比例．m = 3 の 1.3〜1.5 秒から約 1.3 倍）で，GPU が空いている時の処理量の上限は約 0.45 問/秒．`ce_s`・`owner_answer.ce_docs_received` を記録するので，負荷の面の影響は `results/p0007_f6_live/f6_report.py` の形で同じように出せる．質問者の GPU には 7〜8 GB が要る（質問者の Ollama と同居させない．`llm_select` を使わない限り質問者の Ollama は動かない）．
+- 判定：精度の判定の規則（相手 C1-RRF-CE．非劣性 δ = 0.02）は A6 の事前登録に従う．m = 4 は A の反復の上限（5 + 承認された 1）をさらに超えるので，ユーザーの承認が要る．
+
+**懸念**：(1) 主の判定の「費用が小さい」は生成が遅い状態の値で，GPU が空いている状態（感度分析）では逆になる．どちらを「実機の費用」とするかは，運用で GPU が共有されるか否かによる．報告では両方を併記する．(2) 感度分析は 2 + 2 回で，事前登録の外（事後の追加）．(3) 質問者の cross-encoder が 8B と同じ GPU に同居できない（13.7 GB）ので，質問者が `llm_select` や central_local の生成も行う構成では使えない．(4) 質問者へ 15〜20 通の文書が渡るので，露出の優位（B）が縮む（27% 台 → 37.6%）．(5) `mise run check` で `tests/test_failure_run.py::test_fault_lowers_the_answered_rate_to_the_offline_prediction_and_nodes_come_back` が 1 回だけ失敗した（0.9667 ≠ 1.0）．単独で 3 回，全体で 1 回再実行すると全て通った．時間に依る不安定なテストと見ており，今回の変更とは無関係（確認はこれだけ）．
+
 ## p0007 F-6（事前登録）：R3′（cross-encoder で候補を選ぶ）を実機の経路に載せた費用（2026-10-23．`plans/p0007_p2p_vs_central.md` §3・§4.4・§10・§12，`docs/d0007_p2p_vs_central_report.md` §8 の F-6）
 
 ユーザーの指示（2026-10-23）による追加の作業．A6 の R3′（質問と各候補の上位 5 通の bge-reranker-v2-m3 による関連度の最大が最高の候補の回答を採る）は，実行の後にオフラインで当てはめていた（`atrium select-features`・`select-eval`）．これを実機の経路に載せ，(1) オフラインの選択との一致，(2) 追加の時間・GPU メモリ・処理量への影響を測る．**精度は A6 で既知なので判定しない**．test の質問は A6 と同じで，選び方の規則は A6 で選んだ R3′ から変えない（新しい選択は無い）．
@@ -59,7 +122,9 @@ A6 の `select-features` の実測（3060 で 44,220 組・約 93 分 = 1 組 0.
 
 (i) 選択の一致（上の 1），(ii) 処理量の予測（採点の容量 0.5 問/秒に対する，ce の処理量）と実測，(iii) `ce_s` のサービス時間の予測（約 1.9 秒）と parallel 1 の実測，(iv) 重複なしの露出（A6 の 37.6%）と `p0007_f6_agree` の値．食い違いの見立てを書く．
 
-### F-7 の agent が使う config.yaml の書き方（結果の後に確定して追記する）
+### F-7 の agent が使う config.yaml の書き方
+
+結果の節（「p0007 F-6：…の結果と判定」の末尾）に書いた．
 
 
 ## p0007 A6-S1：`atrium judge` の途中からの再開（2026-10-23．ユーザーの指示．`results/p0007_a6s1_live/`）

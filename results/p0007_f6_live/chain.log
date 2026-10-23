@@ -1,0 +1,41 @@
+[2026-10-23_19:49:49] BEGIN p0007_f6_smoke experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=30 experiment.question_limit=1
+[19:52:36] p0007_f6_smoke deployed
+[20:20:27] p0007_f6_smoke start=0 inner=0
+[20:20:29] p0007_f6_smoke analyze=0
+[2026-10-23_20:20:29] BEGIN p0007_f6_agree experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=cross_encoder answer.save_candidates=true experiment.parallel=30 experiment.question_limit=2
+[20:20:31] p0007_f6_agree config synced
+[20:58:27] p0007_f6_agree start=0 inner=0
+[20:58:29] p0007_f6_agree analyze=0
+[2026-10-23_20:58:29] BEGIN p0007_f6_base_p30_r1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[20:58:31] p0007_f6_base_p30_r1 config synced
+[21:35:25] p0007_f6_base_p30_r1 start=0 inner=0
+[21:35:27] p0007_f6_base_p30_r1 analyze=0
+[2026-10-23_21:35:27] BEGIN p0007_f6_ce_p30_r1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[21:35:29] p0007_f6_ce_p30_r1 config synced
+[22:17:25] p0007_f6_ce_p30_r1 start=0 inner=0
+[22:17:27] p0007_f6_ce_p30_r1 analyze=0
+[2026-10-23_22:17:27] BEGIN p0007_f6_ce_p30_r2 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[22:17:29] p0007_f6_ce_p30_r2 config synced
+[22:39:15] p0007_f6_ce_p30_r2 start=0 inner=0
+[22:39:17] p0007_f6_ce_p30_r2 analyze=0
+[2026-10-23_22:39:17] BEGIN p0007_f6_base_p30_r2 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[22:39:19] p0007_f6_base_p30_r2 config synced
+[23:01:05] p0007_f6_base_p30_r2 start=0 inner=0
+[23:01:07] p0007_f6_base_p30_r2 analyze=0
+[2026-10-23_23:01:07] BEGIN p0007_f6_base_p30_r3 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[23:01:09] p0007_f6_base_p30_r3 config synced
+[23:22:55] p0007_f6_base_p30_r3 start=0 inner=0
+[23:22:56] p0007_f6_base_p30_r3 analyze=0
+[2026-10-23_23:22:56] BEGIN p0007_f6_ce_p30_r3 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[23:22:58] p0007_f6_ce_p30_r3 config synced
+[23:44:44] p0007_f6_ce_p30_r3 start=0 inner=0
+[23:44:46] p0007_f6_ce_p30_r3 analyze=0
+[2026-10-23_23:44:46] BEGIN p0007_f6_base_p1_r1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=false experiment.parallel=1 experiment.question_limit=1
+[23:44:48] p0007_f6_base_p1_r1 config synced
+[00:22:40] p0007_f6_base_p1_r1 start=0 inner=0
+[00:22:42] p0007_f6_base_p1_r1 analyze=0
+[2026-10-24_00:22:42] BEGIN p0007_f6_ce_p1_r1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=1 experiment.question_limit=1
+[00:22:44] p0007_f6_ce_p1_r1 config synced
+[01:03:38] p0007_f6_ce_p1_r1 start=0 inner=0
+[01:03:40] p0007_f6_ce_p1_r1 analyze=0
+[2026-10-24_01:03:40] ALL DONE

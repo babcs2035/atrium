@@ -1,0 +1,43 @@
+# 1792758929 2026-10-23T21:35:29
+== wafl-ctrl5
+17.68 W, 0 %, 107 MiB
+== 192.168.15.100
+137.02 W, 92 %, 10825 MiB
+pid=2017070  7024 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=2040129  3756 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.101
+21.48 W, 0 %, 10857 MiB
+pid=1758675  7636 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=1780029  3198 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.102
+18.38 W, 0 %, 10837 MiB
+pid=1791841  5714 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=1814941  5044 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.103
+131.47 W, 92 %, 10875 MiB
+pid=1795881  7636 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=1818059  3194 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.104
+131.02 W, 100 %, 10825 MiB
+pid=1703654  6682 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=1726271  4120 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.105
+140.53 W, 93 %, 10819 MiB
+pid=1720453  7422 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=1743414  3374 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.106
+135.75 W, 98 %, 10857 MiB
+pid=1705453  6536 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=1726571  4306 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.107
+141.72 W, 70 %, 10839 MiB
+pid=1697888  6508 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=1719012  4316 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.108
+15.91 W, 0 %, 10829 MiB
+pid=3407336  7608 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=3454265  3198 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.109
+15.40 W, 0 %, 10893 MiB
+pid=3406316  7312 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+pid=3453364  3558 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4

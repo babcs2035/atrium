@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 RESULTS = Path("results")
-RUN_PATTERN = re.compile(r"p0007_f6_(?P<cond>base|ce)_p(?P<parallel>\d+)_r(?P<rep>\d+)$")
+MAIN_PREFIX = "p0007_f6"
 # 事前登録の判定の閾値（journal「p0007 F-6（事前登録）」）
 F6A_CE_P50_MAX_S = 5.0
 F6B_THROUGHPUT_RATIO_MIN = 0.80
@@ -181,12 +181,16 @@ def main() -> None:
     """全実行を集計して out-dir へ書く．"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--out-dir", required=True)
+    # 感度分析（GPU が空いている時に流し直した p0007_f6c_*）では --prefix p0007_f6c --verdict-key sensitivity_posthoc を使う
+    parser.add_argument("--prefix", default=MAIN_PREFIX)
+    parser.add_argument("--verdict-key", default="verdict_original")
     args = parser.parse_args()
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     runs: dict[str, dict[str, Any]] = {}
-    for run_dir in sorted(RESULTS.glob("p0007_f6_*_p*_r*")):
-        m = RUN_PATTERN.match(run_dir.name)
+    run_pattern = re.compile(rf"{args.prefix}_(?P<cond>base|ce)_p(?P<parallel>\d+)_r(?P<rep>\d+)$")
+    for run_dir in sorted(RESULTS.glob(f"{args.prefix}_*_p*_r*")):
+        m = run_pattern.match(run_dir.name)
         summary = run_summary(run_dir)
         if m and summary:
             runs[run_dir.name] = {**summary, "cond": m["cond"], "parallel": int(m["parallel"]), "rep": int(m["rep"])}
@@ -227,7 +231,10 @@ def main() -> None:
                 entry["ce_s_pooled"] = {"n": len(pooled), "p50": percentile(pooled, 50), "p95": percentile(pooled, 95)}
             summary["conditions"][f"{cond}_p{parallel}"] = entry
     base30, ce30 = of("base", 30), of("ce", 30)
-    verdict: dict[str, Any] = {"note": "verdict_original（事前登録の規則．精度は判定しない）"}
+    verdict: dict[str, Any] = {
+        "note": f"{args.verdict_key}（事前登録の規則．精度は判定しない）"
+        + ("" if args.verdict_key == "verdict_original" else "．事後の追加の感度分析（主の判定ではない）")
+    }
     if base30 and ce30:
         ratio = statistics.median(r["throughput_qps"] for r in ce30) / statistics.median(
             r["throughput_qps"] for r in base30
@@ -253,7 +260,8 @@ def main() -> None:
             "F6b_throughput_ratio_at_least_0.80": {"value": ratio, "threshold": F6B_THROUGHPUT_RATIO_MIN, "holds": f6b},
             "overall": "small_cost" if f6a and f6b else ("partial" if f6a or f6b else "large_cost"),
         }
-    agreement(summary)
+    if args.prefix == MAIN_PREFIX:
+        agreement(summary)
     (out_dir / "f6_summary.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
     (out_dir / "verdict.json").write_text(json.dumps(verdict, indent=1), encoding="utf-8")
 
@@ -275,6 +283,19 @@ def main() -> None:
                 "fits": inc + LLAMA_8B_MIB <= GPU_TOTAL_MIB,
             }
     sim["exposure_to_requester"] = summary.get("exposure_to_requester")
+    # 事後の感度分析（GPU が空いている時に流し直した p0007_f6c_*．--prefix p0007_f6c で先に集計しておく）があれば併記する
+    clean_path = RESULTS / "p0007_f6_verdict_clean" / "f6_summary.json"
+    if args.prefix == MAIN_PREFIX and clean_path.exists():
+        clean = json.loads(clean_path.read_text())
+        base_c, ce_c = clean["conditions"]["base_p30"], clean["conditions"]["ce_p30"]
+        sim["sensitivity_clean_gpu_posthoc"] = {
+            "throughput_base_qps": base_c["throughput_qps"]["median"],
+            "throughput_ce_qps": ce_c["throughput_qps"]["median"],
+            "ratio": clean["throughput_ratio_ce_over_base_p30"]["median_ratio"],
+            "predicted_capacity_qps": PREDICTED_CE_CAPACITY_QPS,
+            "ce_s_p50_s": ce_c["ce_s_pooled"]["p50"],
+            "gpu_mem_increase_mib": ce_c["gpu_mem_increase_mib"]["median"],
+        }
     (out_dir / "sim_vs_live.json").write_text(json.dumps(sim, indent=1), encoding="utf-8")
     print(json.dumps({"verdict": verdict, "summary": summary["conditions"]}, indent=1))
 

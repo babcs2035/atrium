@@ -1,0 +1,15 @@
+{
+ "selection_agreement": null,
+ "agreement_with_a6_offline_r3p": null,
+ "throughput_ce_vs_capacity": {
+  "predicted_capacity_qps": 0.5,
+  "live_ce_p30_median_qps": 0.6011567353091122
+ },
+ "coexistence_with_8b": {
+  "ce_increase_mib": 7057.0,
+  "plus_llama_8b_mib": 13757.0,
+  "gpu_total_mib": 12288,
+  "fits": false
+ },
+ "exposure_to_requester": null
+}

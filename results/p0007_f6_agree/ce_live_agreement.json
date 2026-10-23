@@ -1,0 +1,9 @@
+{
+ "n": 300,
+ "strict": 1.0,
+ "tie_tolerant": 1.0,
+ "n_disagree_strict": 0,
+ "n_disagree_tie_tolerant": 0,
+ "max_abs_score_diff": 0.0,
+ "tie_tolerance": 0.0001
+}

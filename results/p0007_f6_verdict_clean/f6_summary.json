@@ -1,0 +1,90 @@
+{
+ "conditions": {
+  "base_p30": {
+   "n_runs": 2,
+   "throughput_qps": {
+    "min": 1.0106521457087059,
+    "median": 1.0137363849146879,
+    "max": 1.0168206241206699
+   },
+   "e2e_p50_s": {
+    "min": 21.28904647566378,
+    "median": 21.484022361342795,
+    "max": 21.67899824702181
+   },
+   "e2e_p95_s": {
+    "min": 53.58334388502408,
+    "median": 54.434110542398415,
+    "max": 55.284877199772744
+   },
+   "failure_rate_max": 0.0,
+   "gpu_mem_increase_mib": {
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "gpu_mem_peak_mib": {
+    "min": 107.0,
+    "median": 107.0,
+    "max": 107.0
+   },
+   "gpu_mem_process_peak_mib": {
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   }
+  },
+  "ce_p30": {
+   "n_runs": 2,
+   "throughput_qps": {
+    "min": 0.6003922129282976,
+    "median": 0.6011567353091122,
+    "max": 0.6019212576899268
+   },
+   "e2e_p50_s": {
+    "min": 46.428102880949154,
+    "median": 47.08954606868792,
+    "max": 47.75098925642669
+   },
+   "e2e_p95_s": {
+    "min": 74.47311313098763,
+    "median": 75.88927546880441,
+    "max": 77.3054378066212
+   },
+   "failure_rate_max": 0.0,
+   "gpu_mem_increase_mib": {
+    "min": 6968.0,
+    "median": 7057.0,
+    "max": 7146.0
+   },
+   "gpu_mem_peak_mib": {
+    "min": 7075.0,
+    "median": 7164.0,
+    "max": 7253.0
+   },
+   "gpu_mem_process_peak_mib": {
+    "min": 6960.0,
+    "median": 7049.0,
+    "max": 7138.0
+   },
+   "ce_docs_received_mean": 15,
+   "ce_s_pooled": {
+    "n": 600,
+    "p50": 30.26134236389771,
+    "p95": 54.67648171302862
+   }
+  }
+ },
+ "throughput_ratio_ce_over_base_p30": {
+  "median_ratio": 0.5930109092017085,
+  "by_rep": {
+   "1": 0.595577083812391,
+   "2": 0.5904603021280249
+  },
+  "ranges_disjoint": true
+ },
+ "e2e_difference_ce_minus_base_p30": {
+  "e2e_p50_s": 25.605523707345128,
+  "e2e_p95_s": 21.455164926406
+ }
+}

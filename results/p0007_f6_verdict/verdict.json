@@ -1,0 +1,14 @@
+{
+ "note": "verdict_original\uff08\u4e8b\u524d\u767b\u9332\u306e\u898f\u5247\uff0e\u7cbe\u5ea6\u306f\u5224\u5b9a\u3057\u306a\u3044\uff09",
+ "F6a_ce_s_p50_at_most_5s": {
+  "value_s": 1.5756558310240507,
+  "threshold_s": 5.0,
+  "holds": true
+ },
+ "F6b_throughput_ratio_at_least_0.80": {
+  "value": 0.9864841636535581,
+  "threshold": 0.8,
+  "holds": true
+ },
+ "overall": "small_cost"
+}

@@ -1,0 +1,14 @@
+{
+ "note": "sensitivity_posthoc\uff08\u4e8b\u524d\u767b\u9332\u306e\u898f\u5247\uff0e\u7cbe\u5ea6\u306f\u5224\u5b9a\u3057\u306a\u3044\uff09\uff0e\u4e8b\u5f8c\u306e\u8ffd\u52a0\u306e\u611f\u5ea6\u5206\u6790\uff08\u4e3b\u306e\u5224\u5b9a\u3067\u306f\u306a\u3044\uff09",
+ "F6a_ce_s_p50_at_most_5s": {
+  "value_s": 30.26134236389771,
+  "threshold_s": 5.0,
+  "holds": false
+ },
+ "F6b_throughput_ratio_at_least_0.80": {
+  "value": 0.5930109092017085,
+  "threshold": 0.8,
+  "holds": false
+ },
+ "overall": "large_cost"
+}

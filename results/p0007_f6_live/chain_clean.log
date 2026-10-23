@@ -1,0 +1,17 @@
+[2026-10-24_01:15:02] BEGIN p0007_f6c_base_p30_r1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[01:17:47] p0007_f6c_base_p30_r1 deployed
+[01:23:28] p0007_f6c_base_p30_r1 start=0 inner=0
+[01:23:30] p0007_f6c_base_p30_r1 analyze=0
+[2026-10-24_01:23:30] BEGIN p0007_f6c_ce_p30_r1 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[01:23:32] p0007_f6c_ce_p30_r1 config synced
+[01:33:13] p0007_f6c_ce_p30_r1 start=0 inner=0
+[01:33:15] p0007_f6c_ce_p30_r1 analyze=0
+[2026-10-24_01:33:16] BEGIN p0007_f6c_ce_p30_r2 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[01:33:18] p0007_f6c_ce_p30_r2 config synced
+[01:42:59] p0007_f6c_ce_p30_r2 start=0 inner=0
+[01:43:01] p0007_f6c_ce_p30_r2 analyze=0
+[2026-10-24_01:43:01] BEGIN p0007_f6c_base_p30_r2 experiment.dataset=enronqa experiment.http_pool=per_node experiment.question_split=test experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=3 answer.aggregate=max_score answer.save_candidates=false experiment.parallel=30 experiment.question_limit=2
+[01:43:03] p0007_f6c_base_p30_r2 config synced
+[01:48:43] p0007_f6c_base_p30_r2 start=0 inner=0
+[01:48:45] p0007_f6c_base_p30_r2 analyze=0
+[2026-10-24_01:48:45] ALL DONE
