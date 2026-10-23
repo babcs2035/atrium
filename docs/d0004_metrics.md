@@ -121,6 +121,9 @@ EnronQA の回答は自由記述なので，実験の後に判定モデル（`da
 `atrium judge` は `results/<run_id>/judgements.jsonl`（質問 ID・正誤・回答と正解のメールの最長共通部分列の比率）を書き，
 `atrium analyze` が `accuracy` にこの採点を使う．判定できなかった回答は不正解として数え，`accuracy.unparsed_choice_rate` に割合を出す．
 メールの本文と判定モデルの出力は，制御点の `<data_dir>/enronqa/judge_raw/` にだけ残す．
+`atrium judge --resume`（p0007 A6-S1）は採点した件を `judge_raw/<run_id>.<model>.progress.jsonl`（key・判定モデルへの入力の SHA-256・正誤・出力）へ
+追記し，再実行では入力が同じ件を飛ばす．未採点が残ったときは出力（`judgements.jsonl`・`candidate_judgements.jsonl`）を書かず，終了コード 3 で終わる．
+完了したときの出力の形式は `--resume` の有無で変わらない．
 
 | 指標 | 定義 |
 |---|---|

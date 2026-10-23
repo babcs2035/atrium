@@ -762,9 +762,19 @@ def cmd_judge(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     if args.cmd == "judge":
         for run_dir in args.run_dir:
             summary = judge.judge_run(
-                cfg, paths, Path(run_dir), args.ollama_url, e.judge_model, args.with_candidates
+                cfg,
+                paths,
+                Path(run_dir),
+                args.ollama_url,
+                e.judge_model,
+                args.with_candidates,
+                args.resume,
+                args.request_timeout_s,
             )
             print(run_dir, json.dumps(summary))
+            if summary.get("n_unjudged"):
+                # 判定モデルが止まっている間は，次の実行も採点できない．呼び出し側が Ollama を起動し直して再実行する
+                return judge.INCOMPLETE_EXIT_CODE
         return 0
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1553,6 +1563,18 @@ def build_parser() -> argparse.ArgumentParser:
                 "--with-candidates",
                 action="store_true",
                 help="owner_answer の全候補も採点し candidate_judgements.jsonl を書く（p0007 A5）",
+            )
+            p.add_argument(
+                "--resume",
+                action="store_true",
+                help="採点した件を judge_raw/<run>.<model>.progress.jsonl へ追記し，再実行では採点済みを飛ばす．"
+                "採点できない件が続いたら未採点を残して終了コード 3 で終わる（p0007 A6-S1）",
+            )
+            p.add_argument(
+                "--request-timeout-s",
+                type=float,
+                default=None,
+                help="判定モデルへの 1 回の要求の待ち時間の上限（秒）．省略すると llm.timeout_s",
             )
         p.set_defaults(func=cmd_judge)
 

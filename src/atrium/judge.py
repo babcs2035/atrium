@@ -13,16 +13,24 @@ yes・true・correct などで始まれば正解とする（incorrect・not な�
 - `judge-kappa`：本実験の出力から層化抽出した回答を，より大きい参照モデルで採点し直し，Cohen の κ を出す（§8.6 の 2）．
 
 判定モデルへの要求は，複数の Ollama（制御点と wafl500〜509 の GPU）へ均等に振り分けて並列に送る．
+
+途中からの再開（p0007 A6-S1．`judge --resume`）：判定モデルの Ollama が長い採点の途中で止まることがあるので，採点した件を
+`<data_dir>/enronqa/judge_raw/<run_id>.<model>.progress.jsonl`（質問・回答の組の key・判定モデルへの入力の SHA-256・正誤・出力．
+メールの本文を含みうるので results には置かない）へ 1 件ずつ追記する．同じ run_dir で `--resume` を付けて再実行すると，入力の
+SHA-256 が一致する件を飛ばす．失敗した要求が `RESUME_ABORT_AFTER_FAILURES` 回連続したら，例外にせず残りの
+未採点を残して終わり，`atrium judge` は終了コード `INCOMPLETE_EXIT_CODE` を返す（judgements.jsonl などの出力は完了したときだけ書く）．
+Ollama の起動し直しは呼び出し側が行い，同じコマンドを再実行する．`--resume` が無ければ従来どおり（進捗のファイルを読み書きしない）．
 """
 
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import re
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +54,11 @@ JUDGE_RETRIES = 2
 # qwen3:14b が 300 件中 2 件で陥った）．温度 0 ではどの Ollama でも同じく打ち切られるので，送り直さずに
 # 判定できなかった出力として扱う
 _REPEAT_ABORT = "token repeat limit reached"
+# --resume の採点で，失敗した要求がこの回数連続したらその時点で打ち切る．Ollama が止まっている間，残りの全件が
+# 要求の時間切れまで待つのを避ける（打ち切った残りは未採点として残り，再実行で採点する）
+RESUME_ABORT_AFTER_FAILURES = 6
+# 未採点が残ったまま終わったときの `atrium judge` の終了コード（argparse の誤りの 2 と区別する）
+INCOMPLETE_EXIT_CODE = 3
 JUDGE_PROMPT = (
     "Given an email, a question about that email, a gold answer to that question, and a student's "
     "potentially correct or incorrect response, judge whether the answer matches the gold answer.\n\n"
@@ -77,6 +90,57 @@ class JudgeItem:
     question: str
     gold: str
     answer: str
+
+
+class _JudgeStopped(Exception):
+    """resume の打ち切り（失敗した要求が続いた）．残りの件は未採点のまま終わる．"""
+
+
+# 進捗のファイルの 1 件：判定モデルへの入力の SHA-256・正誤・判定モデルの出力
+ProgressEntry = tuple[str, bool | None, str]
+
+
+@dataclass
+class JudgeResume:
+    """途中から再開する採点の状態（採点した件の進捗のファイルと，読み込み済みの件）．"""
+
+    path: Path
+    done: dict[str, ProgressEntry] = field(default_factory=dict)
+    abort_after_failures: int = RESUME_ABORT_AFTER_FAILURES
+
+    @classmethod
+    def open(cls, path: Path) -> JudgeResume:
+        """進捗のファイルを読む（無ければ空）．最後の行だけ途中で切れていれば（書き込み中に止まった）捨てる．"""
+        done: dict[str, ProgressEntry] = {}
+        if path.exists():
+            lines = path.read_text(encoding="utf-8").splitlines()
+            for i, line in enumerate(lines):
+                try:
+                    j = json.loads(line)
+                except json.JSONDecodeError:
+                    if i == len(lines) - 1:
+                        logger.warning("dropping a truncated last line of %s", path)
+                        continue
+                    raise
+                done[j["key"]] = (j["prompt_sha256"], j["correct"], j["output"])
+        return cls(path, done)
+
+    def append(self, key: str, prompt_sha256: str, verdict: bool | None, output: str) -> None:
+        """採点した 1 件を進捗のファイルへ追記する（止まっても，ここまでの件は残る）．"""
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.path.open("a", encoding="utf-8") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "key": key,
+                        "prompt_sha256": prompt_sha256,
+                        "correct": verdict,
+                        "output": output,
+                    }
+                )
+                + "\n"
+            )
+        self.done[key] = (prompt_sha256, verdict, output)
 
 
 def parse_verdict(output: str) -> bool | None:
@@ -118,32 +182,58 @@ async def judge_items(
     model: str,
     cfg: AtriumConfig,
     transport: httpx.AsyncBaseTransport | None = None,
+    resume: JudgeResume | None = None,
+    request_timeout_s: float | None = None,
 ) -> dict[str, tuple[bool | None, str]]:
-    """全件を採点する．key → （正誤，判定モデルの出力）．transport はテストで Ollama を模すときだけ渡す．"""
+    """全件を採点する．key → （正誤，判定モデルの出力）．transport はテストで Ollama を模すときだけ渡す．
+
+    resume を渡すと，進捗のファイルにある件（入力の SHA-256 が同じもの）は送らずに使い，採点した件を 1 件ずつ追記する．
+    このとき再試行しても採点できなかった件は例外にせず戻り値から除き（失敗した要求が連続 abort_after_failures 回で，送っていない残りも打ち切る），
+    呼び出し側が不足を見て非ゼロで終わる．resume が無ければ，採点できない件は例外になる（従来どおり）．
+    request_timeout_s は 1 回の要求の待ち時間の上限（無ければ llm.timeout_s）．
+    """
     llm_cfg = _judge_llm_config(cfg)
+    if request_timeout_s is not None:
+        llm_cfg = llm_cfg.model_copy(update={"timeout_s": request_timeout_s})
+    # 連続して失敗した要求の数（resume のときだけ数える．成功か，繰り返しの打ち切り（正常な応答）で 0 に戻す）
+    failed_requests = 0
     semaphores = {url: asyncio.Semaphore(PER_URL_PARALLEL) for url in urls}
     out: dict[str, tuple[bool | None, str]] = {}
+
+    def stopped() -> bool:
+        """resume の打ち切り：失敗した要求が続いたら，まだ送っていない要求は送らない（止まった Ollama を待ち続けないため）．"""
+        return resume is not None and failed_requests >= resume.abort_after_failures
+
     async with httpx.AsyncClient(transport=transport) as client:
 
         async def ask(i: int, prompt: str) -> llm.LlmResult | None:
             """判定モデルの出力を返す．繰り返しで打ち切られたときは None．"""
+            nonlocal failed_requests
             for attempt in range(JUDGE_RETRIES + 1):
                 url = urls[(i + attempt) % len(urls)]
                 try:
                     async with semaphores[url]:
-                        return await llm.chat(
+                        # 順番待ちの間に打ち切りが決まった要求は送らない
+                        if stopped():
+                            raise _JudgeStopped
+                        result = await llm.chat(
                             client, url, model, [{"role": "user", "content": prompt}], llm_cfg
                         )
+                        failed_requests = 0
+                        return result
                 except httpx.HTTPStatusError as exc:
                     if _REPEAT_ABORT in exc.response.text:
+                        failed_requests = 0
                         logger.warning("judge output aborted by repeat limit at %s", url)
                         return None
+                    failed_requests += resume is not None
                     if attempt == JUDGE_RETRIES:
                         raise
                     logger.warning(
                         "judge request to %s failed (%s); retrying on another URL", url, exc
                     )
                 except httpx.HTTPError as exc:
+                    failed_requests += resume is not None
                     if attempt == JUDGE_RETRIES:
                         raise
                     logger.warning(
@@ -155,10 +245,26 @@ async def judge_items(
             prompt = JUDGE_PROMPT.format(
                 email=item.email, question=item.question, gold=item.gold, answer=item.answer
             )
-            result = await ask(i, prompt)
+            sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+            if resume is not None:
+                saved = resume.done.get(item.key)
+                if saved is not None and saved[0] == sha:
+                    out[item.key] = (saved[1], saved[2])
+                    return
+            try:
+                result = await ask(i, prompt)
+            except _JudgeStopped:
+                return
+            except httpx.HTTPError as exc:
+                if resume is None:
+                    raise
+                logger.error("judge failed for %s after retries: %s", item.key, exc)
+                return
             out[item.key] = (
                 (None, "") if result is None else (parse_verdict(result.content), result.content)
             )
+            if resume is not None:
+                resume.append(item.key, sha, *out[item.key])
             if len(out) % 100 == 0:
                 logger.info("judged %d / %d", len(out), len(items))
 
@@ -207,10 +313,14 @@ def judge_run(
     urls: Sequence[str],
     model: str,
     with_candidates: bool = False,
+    resume: bool = False,
+    request_timeout_s: float | None = None,
 ) -> dict[str, Any]:
     """実行の回答を採点し，judgements.jsonl を書く（判定モデルの出力は raw_dir にだけ残す）．
 
     with_candidates なら owner_answer の全候補も採点し，candidate_judgements.jsonl を書く．
+    resume なら進捗のファイル（raw_dir）から再開する（モジュールの説明を参照）．未採点が残ったときは出力を書かず，
+    summary の `n_unjudged`（0 より大きい）で知らせる（resume でないときは常に例外か完了のどちらか）．
     """
     from atrium.analysis import read_results
     from atrium.data_enronqa import read_gold
@@ -246,7 +356,30 @@ def judge_run(
         i.key: qid for i, (qid, _, _) in zip(candidate_items, candidate_meta, strict=True)
     }
     unique, alias = unique_items(final_items + candidate_items, qid_of)
-    judged_unique = asyncio.run(judge_items(unique, urls, model, cfg))
+    raw_dir = paths.root / "judge_raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    stem = f"{run_dir.name}.{model.replace(':', '_')}"
+    if resume:
+        judged_unique = asyncio.run(
+            judge_items(
+                unique,
+                urls,
+                model,
+                cfg,
+                resume=JudgeResume.open(raw_dir / f"{stem}.progress.jsonl"),
+                request_timeout_s=request_timeout_s,
+            )
+        )
+        n_unjudged = sum(item.key not in judged_unique for item in unique)
+        if n_unjudged:
+            logger.error(
+                "%s: %d / %d unjudged; rerun with --resume", run_dir, n_unjudged, len(unique)
+            )
+            return {"n_judge_calls": len(unique), "n_unjudged": n_unjudged}
+    else:
+        judged_unique = asyncio.run(
+            judge_items(unique, urls, model, cfg, request_timeout_s=request_timeout_s)
+        )
     verdicts = {key: judged_unique[target] for key, target in alias.items()}
     with (run_dir / JUDGEMENTS).open("w", encoding="utf-8") as f:
         for fi in final_items:
@@ -276,11 +409,7 @@ def judge_run(
                     )
                     + "\n"
                 )
-    raw_dir = paths.root / "judge_raw"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    with (raw_dir / f"{run_dir.name}.{model.replace(':', '_')}.jsonl").open(
-        "w", encoding="utf-8"
-    ) as f:
+    with (raw_dir / f"{stem}.jsonl").open("w", encoding="utf-8") as f:
         for key, (verdict, raw) in judged_unique.items():
             f.write(json.dumps({"qid": key, "correct": verdict, "output": raw}) + "\n")
     judged = [verdicts[fi.key][0] for fi in final_items]

@@ -10,7 +10,15 @@ import pytest
 
 from atrium.analysis import accuracy_metrics, merge_judgements
 from atrium.config import AtriumConfig
-from atrium.judge import JUDGE_PROMPT, JudgeItem, cohen_kappa, judge_items, lcs_ratio, parse_verdict
+from atrium.judge import (
+    JUDGE_PROMPT,
+    PER_URL_PARALLEL,
+    JudgeItem,
+    cohen_kappa,
+    judge_items,
+    lcs_ratio,
+    parse_verdict,
+)
 from tests.conftest import HostDispatchTransport, ollama_mock
 
 
@@ -107,6 +115,196 @@ async def test_judge_items_marks_repeat_limit_aborts_as_unparsed_without_retryin
     )
     assert out == {"k": (None, "")}
     assert calls == ["a"]
+
+
+# ── 途中からの再開（p0007 A6-S1．atrium judge --resume） ───────────────────────────────────
+
+
+def _flaky_ollama(down_for: set[str], calls: list[str]) -> httpx.MockTransport:
+    """回答の文字列が down_for にあるときだけ 500 を返し，それ以外は Correct と判定する Ollama．calls に受けた回答を残す．"""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        prompt = json.loads(request.content)["messages"][0]["content"]
+        answer = prompt.split("Student Answer: ")[-1].split("\n")[0]
+        calls.append(answer)
+        if answer in down_for:
+            return httpx.Response(500, text="llama runner crashed")
+        body = {
+            "message": {"role": "assistant", "content": f"Reasoning: ok.\nAnswer: Correct {answer}"}
+        }
+        return httpx.Response(200, json=body)
+
+    return httpx.MockTransport(handler)
+
+
+async def test_resume_skips_judged_items_and_matches_a_single_run(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    from atrium.judge import JudgeResume
+
+    items = [JudgeItem(f"k{i}", "E", "Q", "G", f"a{i}") for i in range(6)]
+    url = ["http://o:11434"]
+    expected = await judge_items(items, url, "m", cfg, transport=_flaky_ollama(set(), []))
+    progress = tmp_path / "progress.jsonl"
+    # 1 回目：a4・a5 の採点が失敗する（Ollama が止まった）．例外にならず，採点できた 4 件だけが返り，進捗に残る
+    first = await judge_items(
+        items,
+        url,
+        "m",
+        cfg,
+        transport=_flaky_ollama({"a4", "a5"}, []),
+        resume=JudgeResume.open(progress),
+    )
+    assert sorted(first) == ["k0", "k1", "k2", "k3"]
+    assert len(progress.read_text().splitlines()) == 4
+    # 2 回目：同じ進捗から再開すると，未採点の 2 件だけを送り，全件が 1 回で通した結果と一致する
+    calls: list[str] = []
+    second = await judge_items(
+        items,
+        url,
+        "m",
+        cfg,
+        transport=_flaky_ollama(set(), calls),
+        resume=JudgeResume.open(progress),
+    )
+    assert sorted(calls) == ["a4", "a5"]
+    assert second == expected
+
+
+async def test_resume_rejudges_an_item_whose_judge_input_changed(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    from atrium.judge import JudgeResume
+
+    progress = tmp_path / "progress.jsonl"
+    url = ["http://o:11434"]
+    old = [JudgeItem("k", "E", "Q", "G", "old answer")]
+    await judge_items(
+        old, url, "m", cfg, transport=_flaky_ollama(set(), []), resume=JudgeResume.open(progress)
+    )
+    calls: list[str] = []
+    new = [JudgeItem("k", "E", "Q", "G", "new answer")]
+    out = await judge_items(
+        new, url, "m", cfg, transport=_flaky_ollama(set(), calls), resume=JudgeResume.open(progress)
+    )
+    assert calls == ["new answer"]
+    assert out["k"][1].endswith("new answer")
+
+
+async def test_resume_stops_after_consecutive_failures_and_keeps_the_rest_unjudged(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    from atrium.judge import JudgeResume
+
+    calls: list[str] = []
+    items = [JudgeItem(f"k{i}", "E", "Q", "G", f"a{i}") for i in range(20)]
+    resume = JudgeResume.open(tmp_path / "progress.jsonl")
+    resume.abort_after_failures = 3
+    out = await judge_items(
+        items,
+        ["http://o:11434"],
+        "m",
+        cfg,
+        transport=_flaky_ollama({f"a{i}" for i in range(20)}, calls),
+        resume=resume,
+    )
+    assert out == {}
+    # 失敗した要求が 3 回続いた後は，順番待ちの要求も送らない（すでに送った 1 台あたり PER_URL_PARALLEL 件の分だけは増えうる）
+    assert len(calls) <= 3 + PER_URL_PARALLEL
+
+
+def test_progress_file_ignores_a_truncated_last_line(tmp_path: Path) -> None:
+    from atrium.judge import JudgeResume
+
+    path = tmp_path / "progress.jsonl"
+    good = {"key": "k0", "prompt_sha256": "x", "correct": True, "output": "o"}
+    path.write_text(json.dumps(good) + "\n" + '{"key": "k1", "prompt_sh', encoding="utf-8")
+    assert JudgeResume.open(path).done == {"k0": ("x", True, "o")}
+
+
+def _judge_run_fixture(cfg: AtriumConfig, tmp_path: Path) -> tuple[AtriumConfig, Path]:
+    """受信箱 a・質問 2 問の最小のデータと，回答が重ならない 2 行の results.jsonl（候補つき）を作る．"""
+    _enron_data(tmp_path / "data")
+    enron = cfg.data.require_enronqa().model_copy(update={"sources": ["a"]})
+    cfg = cfg.model_copy(update={"data": cfg.data.model_copy(update={"enronqa": enron})})
+    run = tmp_path / "run"
+    run.mkdir()
+    rows = [
+        {
+            "qid": f"q{i}",
+            "error": None,
+            "final_answer": f"ans{i}",
+            "owner_answer": {
+                "candidates": [
+                    {"source": "a", "answer": f"ans{i}"},
+                    {"source": "b", "answer": f"other{i}"},
+                ]
+            },
+        }
+        for i in range(2)
+    ]
+    (run / "results.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+    return cfg, run
+
+
+def test_judge_run_resume_reaches_the_same_outputs_as_a_single_run(
+    cfg: AtriumConfig, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import functools
+
+    from atrium import judge
+    from atrium.paths import dataset_paths
+
+    cfg, run = _judge_run_fixture(cfg, tmp_path)
+    paths = dataset_paths(tmp_path / "data", "enronqa")
+    outputs = ("judgements.jsonl", "candidate_judgements.jsonl")
+
+    original = judge.judge_items
+
+    def use(down_for: set[str]) -> list[str]:
+        """judge_items の送り先を，down_for の回答だけ失敗する Ollama の模擬に差し替える（受けた回答を返す）．"""
+        calls: list[str] = []
+        transport = _flaky_ollama(down_for, calls)
+        monkeypatch.setattr(judge, "judge_items", functools.partial(original, transport=transport))
+        return calls
+
+    # 再開なしの 1 回（基準）
+    use(set())
+    judge.judge_run(cfg, paths, run, ["http://o:11434"], "m", True)
+    reference = {name: (run / name).read_text() for name in outputs}
+    for name in outputs:
+        (run / name).unlink()
+    # 再開あり：1 回目は other1 の採点が失敗して未採点が残り，出力は書かない
+    use({"other1"})
+    summary = judge.judge_run(cfg, paths, run, ["http://o:11434"], "m", True, resume=True)
+    assert summary["n_unjudged"] == 1
+    assert not any((run / name).exists() for name in outputs)
+    # 2 回目は未採点だけを送って完了し，再開なしの結果と一致する
+    calls = use(set())
+    summary = judge.judge_run(cfg, paths, run, ["http://o:11434"], "m", True, resume=True)
+    assert calls == ["other1"]
+    assert "n_unjudged" not in summary
+    assert {name: (run / name).read_text() for name in outputs} == reference
+
+
+def test_cli_judge_exits_non_zero_when_items_remain_unjudged(
+    cfg: AtriumConfig, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import argparse
+
+    from atrium import cli, judge
+
+    monkeypatch.setattr(judge, "judge_run", lambda *a, **k: {"n_judge_calls": 5, "n_unjudged": 2})
+    args = argparse.Namespace(
+        cmd="judge",
+        data_dir=str(tmp_path),
+        run_dir=["r1", "r2"],
+        ollama_url=["u"],
+        with_candidates=False,
+        resume=True,
+        request_timeout_s=None,
+    )
+    assert cli.cmd_judge(args, cfg) == judge.INCOMPLETE_EXIT_CODE
 
 
 # ── 候補ごとの採点（p0007 A5．atrium judge --with-candidates） ─────────────────────────────

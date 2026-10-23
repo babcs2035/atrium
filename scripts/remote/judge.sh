@@ -6,6 +6,8 @@
 #   bash scripts/remote/judge.sh up <model>                 # 判定モデルの Ollama を全 GPU で起動する
 #   bash scripts/remote/judge.sh run <run_id>...            # 実行の回答を採点し，results/<run_id>/judgements.jsonl を書く
 #   bash scripts/remote/judge.sh run-candidates <run_id>... # 上に加え，owner_answer の全候補を採点し candidate_judgements.jsonl も書く（p0007 A5）
+#   bash scripts/remote/judge.sh resume <run_id>...         # run と同じ．採点した件を逐次保存し，再実行で採点済みを飛ばす（p0007 A6-S1）．未採点が残ると終了コード 3
+#   bash scripts/remote/judge.sh resume-candidates <run_id>... # run-candidates の再開版
 #   bash scripts/remote/judge.sh validate <out_name>        # 付属の別解・誤答で判定モデルを検証する（results/<out_name>）
 #   bash scripts/remote/judge.sh kappa <out_name> <run_id>... # 参照モデルで採点し直して κ を出す（先に up で参照モデルを起動する）
 #   bash scripts/remote/judge.sh down                       # 判定モデルの Ollama を止めて消す
@@ -13,7 +15,7 @@
 # GPU の PC は専門家（experts）でもあるので，up はその PC の専門家のコンテナを止める．実験の後に使う．
 source "$(dirname "$0")/lib.sh"
 
-ACTION=${1:?usage: judge.sh up|run|run-candidates|validate|kappa|down ...}
+ACTION=${1:?usage: judge.sh up|run|run-candidates|resume|resume-candidates|validate|kappa|down ...}
 shift
 NAME=atrium-judge-ollama
 IMAGE="localhost:$REGISTRY_PORT/mirror/ollama:$OLLAMA_TAG"
@@ -21,6 +23,7 @@ IMAGE="localhost:$REGISTRY_PORT/mirror/ollama:$OLLAMA_TAG"
 CONTROL_PORT=11435
 WORKER_PORT=11434
 JUDGE_PARALLEL=2
+RESUME_REQUEST_TIMEOUT_S=300
 
 ollama_urls() {
   local args="--ollama-url http://127.0.0.1:$CONTROL_PORT"
@@ -70,13 +73,15 @@ case "$ACTION" in
     # shellcheck disable=SC2086
     run_parallel judge-up up_worker $GPU_WORKERS
     ;;
-  run | run-candidates)
+  run | run-candidates | resume | resume-candidates)
     [ "$#" -gt 0 ] || { echo "usage: judge.sh $ACTION <run_id>..." >&2; exit 1; }
     runs=()
     for run in "$@"; do runs+=(--run-dir "/results/$run"); done
     # run-candidates（p0007 A5）：owner_answer の全候補も採点し，candidate_judgements.jsonl も書く
     extra=()
-    [ "$ACTION" = run-candidates ] && extra=(--with-candidates)
+    case "$ACTION" in *candidates) extra+=(--with-candidates) ;; esac
+    # resume（p0007 A6-S1）：1 回の要求は RESUME_REQUEST_TIMEOUT_S 秒で打ち切り，Ollama が止まったときに長く待たずに未採点を残して終わる
+    case "$ACTION" in resume*) extra+=(--resume --request-timeout-s "$RESUME_REQUEST_TIMEOUT_S") ;; esac
     # shellcheck disable=SC2046
     judge_container judge --data-dir /data $(ollama_urls) "${runs[@]}" "${extra[@]}"
     ;;

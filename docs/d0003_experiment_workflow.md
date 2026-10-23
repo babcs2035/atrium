@@ -178,6 +178,14 @@ bash scripts/tasks/judge.sh down
 - `judgements.jsonl` には質問 ID・正誤・回答と正解のメールの最長共通部分列の比率だけを書く．メールの本文と判定モデルの出力は
   制御点の `<data_dir>/enronqa/judge_raw/` にだけ残す．
 - `judge.sh up` は GPU の PC の専門家のコンテナを止める（GPU を判定モデルに使うため）．実験の後に使う．
+- 長い採点の途中で判定モデルの Ollama が止まることがある（p0007 の A5・A6 で計 3 回）．`judge.sh resume <run_id>...`
+  （全候補も採点するなら `resume-candidates`）は `run`・`run-candidates` と同じ採点を，次のように途中から再開できる形で行う（p0007 A6-S1）．
+  - 採点した件（質問・回答の組）を，1 件ずつ制御点の `<data_dir>/enronqa/judge_raw/<run_id>.<model>.progress.jsonl` へ追記する
+    （判定モデルの出力を含むので results には置かない）．同じ run_id で再実行すると，判定モデルへの入力が同じ件を飛ばす．
+  - 1 回の要求は 300 秒で打ち切り（`--request-timeout-s`），失敗した要求が 6 回連続したら，まだ送っていない要求は送らずに終わる．この場合は
+    judgements.jsonl などの出力を書かず，終了コード 3 を返す（`atrium judge --resume --request-timeout-s <秒>` の直接の実行でも同じ）．
+  - Ollama の起動し直しは呼び出し側が行う：`judge.sh up <model>` の後に，同じ `judge.sh resume ...` をもう一度実行する．
+  - 採点が完了したときの出力は，`run` と同じ形式・同じ内容である．`resume` を付けない従来の実行は，進捗のファイルを読み書きしない．
 
 ## 6. 実機を使わない評価と連続実行
 
