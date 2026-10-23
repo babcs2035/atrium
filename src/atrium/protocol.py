@@ -83,6 +83,8 @@ class AnswerRequest(_Model):
     allow_unknown: bool = False
     # answer.save_candidates（p0007 A5）：候補の選び方の特徴量（AnswerFeatures）も返させる．false なら従来と同じ応答
     with_features: bool = False
+    # answer.aggregate=cross_encoder（p0007 F-6）：文脈にした上位 k 通（題・本文）も返させる（質問者が cross-encoder で採点する）
+    with_context_docs: bool = False
 
 
 class GenerateRequest(_Model):
@@ -136,6 +138,8 @@ class AnswerResponse(_Model):
     docs_sent: int = 0
     # with_features の要求にだけ付ける（p0007 A5）
     features: AnswerFeatures | None = None
+    # with_context_docs の要求にだけ付ける（p0007 F-6．メールの本文を含むので，質問者は採点に使うだけで保存しない）
+    context_docs: list[DocOut] | None = None
 
 
 class GenerateResponse(_Model):

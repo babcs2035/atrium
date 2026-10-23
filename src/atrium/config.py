@@ -47,7 +47,7 @@ AnswerMode = Literal[
     "owner_answer",
 ]
 # owner_answer の回答の統合の規則（p0007 §6.2 A1）
-AggregateName = Literal["max_score", "abstain", "agree", "llm_select"]
+AggregateName = Literal["max_score", "abstain", "agree", "llm_select", "cross_encoder"]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
 QueryEmbeddingMode = Literal["live", "cached"]
 FusionName = Literal["none", "rrf"]
@@ -261,7 +261,9 @@ class AnswerConfig(_Strict):
     # 候補にする受信箱の数 m．Router がこの数だけ選ぶ（routing.top_m の代わりに使う．選ぶ数を持たない oracle・all などは従来どおり）
     owner_m: int = Field(default=2, ge=1)
     # 候補の回答の統合の規則．max_score：検索の最高得点の候補／abstain：UNKNOWN を許し，UNKNOWN でない回答のうち得点最高
-    # （全て UNKNOWN なら max_score）／agree：正規化した文字列の一致の票数（同票は得点）／llm_select：質問者の LLM が 1 つを選ぶ
+    # （全て UNKNOWN なら max_score）／agree：正規化した文字列の一致の票数（同票は得点）／llm_select：質問者の LLM が 1 つを選ぶ／
+    # cross_encoder（p0007 F-6．オフラインの R3′）：各候補が文脈にした上位 5 通を質問者へ返し，質問者の bge-reranker-v2-m3 で
+    # 質問との関連度を測って最大の候補の回答を採る（通常のプロンプト．同点は候補の並びの先の方．候補の文書 15 通が質問者へ渡る）
     aggregate: AggregateName = "max_score"
     # p0007 A5：全候補の回答（"Answer:" の後ろだけ．commit の前に sanitize_results.py で整形する）と，候補ごとの選び方の特徴量
     # （密ベクトルの最高得点・probe の得点・受信箱の中の BM25 と RRF の最大・生成の対数確率の平均・文脈の文書 ID）を

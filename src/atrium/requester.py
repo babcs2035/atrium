@@ -51,6 +51,7 @@ from atrium.merge import (
     SourcedDoc,
     choose_abstain,
     choose_agree,
+    choose_cross_encoder,
     choose_max_score,
     contributing_sources,
     merge_by_qrels,
@@ -260,6 +261,14 @@ class Reranker(Protocol):
         ...
 
 
+class CandidateScorer(Protocol):
+    """質問と各文の関連度（answer.aggregate=cross_encoder の候補の採点．CrossEncoderReranker が満たす）．"""
+
+    def scores(self, query: str, texts: Sequence[str]) -> list[float]:
+        """質問と各文（`<題>\\n<本文>`）の関連度を，文の順に返す．"""
+        ...
+
+
 class CachedQueryEmbedder:
     """中継点で事前計算したクエリ埋め込みを引く．"""
 
@@ -365,6 +374,8 @@ class Requester:
     client: httpx.AsyncClient
     ollama_url: str
     reranker: Reranker | None = None
+    # answer.aggregate=cross_encoder（p0007 F-6）：候補の文脈を採点する cross-encoder．他の統合の規則では None
+    candidate_scorer: CandidateScorer | None = None
     rm_qrels: dict[str, dict[str, int]] = field(default_factory=dict)
     # EQ7b：質問者のメンバー表（見えているノードの URL）．None なら全ノードが見えている（従来どおり）
     visible_urls: frozenset[str] | None = None
@@ -685,6 +696,8 @@ class Requester:
         rule = self.cfg.answer.aggregate
         allow_unknown = rule == "abstain"
         save_candidates = self.cfg.answer.save_candidates
+        # aggregate=cross_encoder（p0007 F-6）：ノードに文脈の上位 5 通（題・本文）も返させ，質問者の cross-encoder で採点する
+        score_with_ce = rule == "cross_encoder"
         profiles = [self._profile(name) for name in selected]
         urls = []
         for profile in profiles:
@@ -706,6 +719,7 @@ class Requester:
                 delegate_url=delegate_url_of.get(url),
                 allow_unknown=allow_unknown,
                 with_features=save_candidates,
+                with_context_docs=score_with_ce,
             )
             response = await self.client.post(
                 f"{url}/v1/answer", json=req.model_dump(), timeout=self.cfg.local_answer.timeout_s
@@ -716,14 +730,22 @@ class Requester:
         start = time.perf_counter()
         answers = await gather_or_cancel([ask(p, u) for p, u in zip(profiles, urls, strict=True)])
         record["timings"]["generate_s"] = time.perf_counter() - start
+        ce_scores: list[float | None] = [None] * len(answers)
+        if score_with_ce:
+            start = time.perf_counter()
+            ce_scores = await asyncio.to_thread(
+                self._candidate_ce_scores, question.question, [a for a, _ in answers]
+            )
+            record["timings"]["ce_s"] = time.perf_counter() - start
         candidates = [
             OwnerCandidate(
                 p.source,
                 (free := prompts.extract_free_answer(a.answer)),
                 a.top_score,
                 prompts.is_unknown_answer(free),
+                ce,
             )
-            for p, (a, _) in zip(profiles, answers, strict=True)
+            for p, (a, _), ce in zip(profiles, answers, ce_scores, strict=True)
         ]
         choice, select_info = await self._choose_owner_answer(question, candidates, rule, record)
         chosen = answers[choice.index][0]
@@ -769,6 +791,12 @@ class Requester:
             "vote_groups": [list(g) for g in choice.vote_groups],
             **select_info,
         }
+        if score_with_ce:
+            # cross-encoder の得点と，質問者へ渡った文書の数（メールの本文は残さない）
+            record["owner_answer"]["ce_max"] = ce_scores
+            record["owner_answer"]["ce_docs_received"] = sum(
+                len(a.context_docs or []) for a, _ in answers
+            )
         if save_candidates:
             probe = record.get("probe_selected_scores", {})
             record["owner_answer"]["candidates"] = [
@@ -780,10 +808,28 @@ class Requester:
                     "probe_dense": probe.get(c.source, {}).get("dense"),
                     "probe_bm25": probe.get(c.source, {}).get("bm25"),
                     "probe_fused": probe.get(c.source, {}).get("fused"),
+                    **({"ce_max": c.ce_score} if score_with_ce else {}),
                     **(a.features.model_dump() if a.features is not None else {}),
                 }
                 for c, (a, _) in zip(candidates, answers, strict=True)
             ]
+
+    def _candidate_ce_scores(
+        self, query: str, answers: Sequence[AnswerResponse]
+    ) -> list[float | None]:
+        """候補ごとに，質問と文脈の上位 5 通の関連度の最大を求める（文脈が無い候補は None）．
+
+        候補ごとに別の呼び出しにするのは，オフラインの `atrium select-features` と推論のまとめ方（4 組ずつ）を同じにして，
+        得点が一致するようにするため．文は再ランク・オフラインと同じ「題 + 改行 + 本文」．
+        """
+        if self.candidate_scorer is None:
+            raise RuntimeError("answer.aggregate=cross_encoder requires a candidate scorer")
+        out: list[float | None] = []
+        for a in answers:
+            texts = [f"{d.title}\n{d.content}".strip() for d in a.context_docs or []]
+            values = self.candidate_scorer.scores(query, texts)
+            out.append(max(values) if values else None)
+        return out
 
     async def _choose_owner_answer(
         self,
@@ -801,6 +847,8 @@ class Requester:
             return choose_abstain(candidates), select_info
         if rule == "agree":
             return choose_agree(candidates), select_info
+        if rule == "cross_encoder":
+            return choose_cross_encoder(candidates), select_info
         if rule == "max_score" or len(candidates) == 1:
             return choose_max_score(candidates), select_info
         messages = prompts.build_select_messages(question.question, [c.answer for c in candidates])

@@ -26,6 +26,8 @@ ce_features.jsonl に書く（質問と，候補の文脈の上位 5 通の関�
     uv run atrium select-eval --run-dir results/<run> --out-dir results/<out>
     uv run atrium select-eval --run-dir results/<run> --out-dir results/<out> --apply R1 --derived-run results/<run>_R1
     uv run atrium select-eval --run-dir results/<run> --out-dir results/<out> --ignore-unknown
+`select-features` は，実機が cross-encoder で選んだ実行（`answer.aggregate: cross_encoder`．p0007 F-6）では，実機の選択とオフラインの R3′ の一致も
+ce_live_agreement.json に書く（同点を許す一致を含む）．
 `--apply` は選んだ 1 つの規則の正誤を results.jsonl・judgements.jsonl の形で書き（回答の文は書かない），`atrium compare` に渡せるようにする．
 """
 
@@ -43,6 +45,7 @@ from atrium.analysis import read_results, wilson_interval
 CANDIDATE_JUDGEMENTS = "candidate_judgements.jsonl"
 CE_FEATURES = "ce_features.jsonl"
 SELECT_EVAL = "select_eval.json"
+CE_LIVE_AGREEMENT = "ce_live_agreement.json"
 
 # 規則 → 特徴量（R4 は順位の和で，ここに無い）
 SINGLE_FEATURE = {
@@ -398,6 +401,55 @@ def write_derived_run(
         ),
         encoding="utf-8",
     )
+
+
+# 実機（aggregate=cross_encoder）とオフラインの cross-encoder の得点が，同点とみなせる差
+CE_TIE_TOLERANCE = 1e-4
+
+
+def live_cross_encoder_agreement(
+    rows: Sequence[Mapping[str, Any]], ce: Mapping[tuple[str, int], float]
+) -> dict[str, Any]:
+    """実機の cross-encoder による選択（aggregate=cross_encoder．owner_answer.chosen_index）と，オフラインの R3′ の一致（p0007 F-6）．
+
+    オフラインの得点 ce（`cross_encoder_features`．`ce_features.jsonl`）から R3′ の選択を作り，実機の選択と比べる．
+    - strict：選んだ候補の番号が同じ問の割合
+    - tie_tolerant：番号が違っても，実機が選んだ候補のオフラインの得点が最高の得点と CE_TIE_TOLERANCE 以内の問（同点）も一致とする割合
+    - max_abs_score_diff：実機とオフラインの候補ごとの得点の差の最大（両方に得点がある候補）
+    実機の得点（candidates[].ce_max）が無い問は数えない．
+    """
+    n = strict = tied = 0
+    max_diff = 0.0
+    for row in rows:
+        owner = row.get("owner_answer") or {}
+        raw = owner.get("candidates") or []
+        live_index = owner.get("chosen_index")
+        if row.get("error") is not None or not raw or live_index is None:
+            continue
+        if not any("ce_max" in c for c in raw):
+            continue
+        offline = row_candidates(row, ce)
+        best = choose_by_feature(offline, "ce_max", ignore_unknown=True)
+        n += 1
+        strict += live_index == best
+        live_value, best_value = (
+            _value(offline[live_index], "ce_max"),
+            _value(offline[best], "ce_max"),
+        )
+        tied += live_index == best or abs(live_value - best_value) <= CE_TIE_TOLERANCE
+        for index, c in enumerate(raw):
+            have_both = c.get("ce_max") is not None and (row["qid"], index) in ce
+            if have_both:
+                max_diff = max(max_diff, abs(float(c["ce_max"]) - ce[(row["qid"], index)]))
+    return {
+        "n": n,
+        "strict": strict / n if n else 0.0,
+        "tie_tolerant": tied / n if n else 0.0,
+        "n_disagree_strict": n - strict,
+        "n_disagree_tie_tolerant": n - tied,
+        "max_abs_score_diff": max_diff,
+        "tie_tolerance": CE_TIE_TOLERANCE,
+    }
 
 
 def cross_encoder_features(

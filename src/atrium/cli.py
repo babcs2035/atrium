@@ -929,7 +929,13 @@ def cmd_select_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium.data_enronqa import read_inbox
     from atrium.judge import question_texts
     from atrium.requester import CrossEncoderReranker
-    from atrium.select_eval import CE_FEATURES, cross_encoder_features
+    from atrium.select_eval import (
+        CE_FEATURES,
+        CE_LIVE_AGREEMENT,
+        cross_encoder_features,
+        live_cross_encoder_agreement,
+        read_ce_features,
+    )
 
     run_dir = Path(args.run_dir)
     paths = dataset_paths(Path(args.data_dir), "enronqa")
@@ -951,7 +957,13 @@ def cmd_select_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     with (run_dir / CE_FEATURES).open("w", encoding="utf-8") as f:
         for item in features:
             f.write(json.dumps(item) + "\n")
-    print(json.dumps({"run": run_dir.name, "n_candidates": len(features)}))
+    summary: dict[str, object] = {"run": run_dir.name, "n_candidates": len(features)}
+    # aggregate=cross_encoder の実機の実行（候補に実機の得点 ce_max がある）なら，実機の選択とオフラインの R3′ の一致も残す（p0007 F-6）
+    agreement = live_cross_encoder_agreement(rows, read_ce_features(run_dir / CE_FEATURES))
+    if agreement["n"]:
+        (run_dir / CE_LIVE_AGREEMENT).write_text(json.dumps(agreement, indent=1), encoding="utf-8")
+        summary["live_agreement"] = agreement
+    print(json.dumps(summary))
     return 0
 
 

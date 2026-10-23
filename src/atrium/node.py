@@ -496,18 +496,18 @@ def create_app(
                 logprobs=req.with_features,
             )
             delegated_to = None
-        extra: dict[str, AnswerFeatures] = {}
+        features: AnswerFeatures | None = None
         if req.with_features:
             # 特徴量は生成の後に求める（生成の待ち時間・retrieve_s に含めない）
             bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
-            extra["features"] = AnswerFeatures(
+            features = AnswerFeatures(
                 context_doc_ids=[d.doc_id for d in context],
                 bm25_max=bm25_max,
                 rrf_max=rrf_max,
                 avg_logprob=avg_logprob,
                 n_logprob_tokens=n_logprob_tokens,
             )
-        return AnswerResponse(
+        response = AnswerResponse(
             node_id=node_id,
             answer=content,
             choice=prompts.extract_choice(content),
@@ -518,8 +518,16 @@ def create_app(
             duration_s=time.perf_counter() - start,
             delegated_to=delegated_to,
             docs_sent=len(context) if delegated_to is not None else 0,
-            **extra,
         )
+        # 追加の欄は，要求された応答にだけ設定する（response_model_exclude_unset で，無い要求の応答は従来と同じになる）
+        if features is not None:
+            response.features = features
+        if req.with_context_docs:
+            response.context_docs = [
+                DocOut(doc_id=d.doc_id, title=d.title, content=d.content, score=d.score)
+                for d in context
+            ]
+        return response
 
     async def generate(
         dataset: DatasetName,

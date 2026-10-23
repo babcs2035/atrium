@@ -165,6 +165,10 @@ async def build_requester(
         from atrium.loso import embed_descriptions
 
         sources = with_card_embeddings(sources, embed_descriptions(cfg, sources))
+    needs_cross_encoder = cfg.retrieval.merge == "cross_encoder" or (
+        cfg.experiment.answer_mode == "owner_answer" and cfg.answer.aggregate == "cross_encoder"
+    )
+    reranker = CrossEncoderReranker() if needs_cross_encoder else None
     requester = Requester(
         cfg=cfg,
         placement=placement,
@@ -174,7 +178,9 @@ async def build_requester(
         client=client,
         ollama_url=ollama_url,
         tolerate_node_failures=tolerate_node_failures,
-        reranker=CrossEncoderReranker() if cfg.retrieval.merge == "cross_encoder" else None,
+        reranker=reranker,
+        # answer.aggregate=cross_encoder（p0007 F-6）：候補の文脈を質問者の GPU の cross-encoder で採点する
+        candidate_scorer=reranker if cfg.answer.aggregate == "cross_encoder" else None,
         rm_qrels=load_rm_qrels(paths.rm_qrels) if cfg.retrieval.merge == "qrels_oracle" else {},
         gold_docs=(
             load_gold_docs(paths, [q.qid for q in load_questions(paths.questions, None)])

@@ -144,7 +144,7 @@ curl -s http://192.168.13.100:8100/v1/retrieve -H 'content-type: application/jso
    - `snippet_return_small`：`snippet_return` と同じ流れで，質問者が `llm.expert_model` で答える．
    - `owner_answer`（p0007 I2．EnronQA のみ）：Router が `answer.owner_m` 個の受信箱を選び，受信箱ごとに別の `/v1/answer` を並列に送る
      （各ノードがその受信箱の上位 5 通だけで答える．GPU の無いノードは `delegate_gpu` と同じ経路で GPU の専門家が答える）．
-     `answer.aggregate` の規則で 1 つの回答に統合する（`atrium.merge` の `choose_*`．`llm_select` だけ質問者の LLM を 1 回呼ぶ）．
+     `answer.aggregate` の規則で 1 つの回答に統合する（`atrium.merge` の `choose_*`．`llm_select` だけ質問者の LLM を 1 回呼ぶ．`cross_encoder`（p0007 F-6）は，ノードが返した文脈の上位 5 通を質問者の GPU の cross-encoder で採点して選ぶ）．
      `abstain` は `/v1/answer` の `allow_unknown` で UNKNOWN を許すプロンプトに切り替える．
    - `routing: central_local`（p0007 I4）：ルーティングも `/v1/*` も使わず，質問者が起動時に作った全メールの 1 つの索引（`atrium.routing.central.CentralIndex`）から
      上位 5 通を取り，質問者の LLM が答える（B1 相当）．ノードを発見しないので，ノードが止まっていても流せる．

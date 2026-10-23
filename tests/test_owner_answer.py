@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 
 import httpx
@@ -20,6 +21,7 @@ from atrium.merge import (
     OwnerCandidate,
     choose_abstain,
     choose_agree,
+    choose_cross_encoder,
     choose_max_score,
     normalize_answer,
 )
@@ -550,3 +552,121 @@ async def test_answer_response_without_features_is_unchanged(
     assert answer.status_code == 200 and "features" not in answer.json()
     assert generated.status_code == 200
     assert "avg_logprob" not in generated.json() and "n_logprob_tokens" not in generated.json()
+
+
+# ── answer.aggregate=cross_encoder（p0007 F-6）：質問者の cross-encoder で候補の文脈を採点して選ぶ ────────
+
+
+def ce_candidate(source: str, ce: float | None, top_score: float | None = 0.0) -> OwnerCandidate:
+    """cross-encoder の得点つきの候補（回答は使わない）．"""
+    return OwnerCandidate(source, "x", top_score, False, ce)
+
+
+def test_cross_encoder_takes_the_highest_scored_candidate_regardless_of_retrieval_score() -> None:
+    cands = [ce_candidate("a", 0.1, 0.9), ce_candidate("b", 2.5, 0.1), ce_candidate("c", -1.0, 0.5)]
+    assert choose_cross_encoder(cands).index == 1
+
+
+def test_cross_encoder_tie_goes_to_the_earlier_candidate_and_missing_score_is_lowest() -> None:
+    assert choose_cross_encoder([ce_candidate("a", 1.0), ce_candidate("b", 1.0)]).index == 0
+    assert choose_cross_encoder([ce_candidate("a", None), ce_candidate("b", -9.0)]).index == 1
+    assert choose_cross_encoder([ce_candidate("a", None), ce_candidate("b", None)]).index == 0
+
+
+class RecordingScorer:
+    """文に含まれる受信箱の名前で決めた得点を返す cross-encoder の代わり（呼び出しごとの文の数も記録する）．"""
+
+    def __init__(self, score_of_inbox: dict[str, float]) -> None:
+        """受信箱の名前（"b-00" など）→ その受信箱の文書への得点．"""
+        self.score_of_inbox = score_of_inbox
+        self.calls: list[tuple[str, int]] = []
+
+    def scores(self, query: str, texts: Sequence[str]) -> list[float]:
+        """各文の得点（文に受信箱の名前が含まれるもの）．"""
+        self.calls.append((query, len(texts)))
+        return [next(v for k, v in self.score_of_inbox.items() if k in t) for t in texts]
+
+
+async def run_cross_encoder(
+    cfg: AtriumConfig, root: Path, scorer: RecordingScorer, save_candidates: bool = False
+) -> tuple[dict[str, object], Harness]:
+    """node-a・b・c が答える 1 問を，cross_encoder の統合で流す．"""
+    replies = {"node-a": "Answer: ALPHA", "node-b": "Answer: BETA", "node-c": "Answer: GAMMA"}
+    harness = Harness(
+        owner_cfg(cfg, "cross_encoder", save_candidates=save_candidates), root, replies
+    )
+    requester = harness.requester()
+    requester.candidate_scorer = scorer
+    await harness.discover(requester)
+    return await requester.process(QUESTION), harness
+
+
+async def test_cross_encoder_aggregate_answers_with_the_candidate_the_scorer_prefers(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    # 検索の最高得点は a だが，cross-encoder は b の文脈を最も関連ありとする
+    scorer = RecordingScorer({"a-00": 0.5, "b-00": 3.0, "c-00": -2.0})
+    record, harness = await run_cross_encoder(cfg, tmp_path, scorer)
+
+    info = record["owner_answer"]
+    assert isinstance(info, dict)
+    assert record["final_answer"] == "BETA"
+    assert (info["chosen_source"], info["chosen_index"]) == ("b", 1)
+    assert info["ce_max"] == [0.5, 3.0, -2.0]
+    assert info["ce_docs_received"] == 3  # このデータでは各受信箱の文脈は 1 通
+    # 候補ごとに 1 回ずつ採点する（オフラインの select-features と同じ推論のまとめ方）
+    assert scorer.calls == [(QUESTION.question, 1)] * 3
+    assert "ce_s" in record["timings"]  # type: ignore[operator]
+    # 通常のプロンプトで答えさせ（UNKNOWN を許さない），生成は候補ごとに 1 回
+    assert all("write UNKNOWN" not in p for ps in harness.node_prompts.values() for p in ps)
+    assert info["n_generations"] == 3
+
+
+async def test_cross_encoder_aggregate_does_not_store_email_text_in_the_record(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    scorer = RecordingScorer({"a-00": 0.5, "b-00": 3.0, "c-00": -2.0})
+    record, _ = await run_cross_encoder(cfg, tmp_path, scorer, save_candidates=True)
+    stored = json.dumps(record)
+    # 文脈の本文（このデータでは "<shard>/<file>/<i>"）は質問者へ渡るが，記録には文書の ID しか残らない
+    assert "b-00/f/0" in stored and '"content"' not in stored and "\\nb-00/f/0" not in stored
+    cands = record["owner_answer"]["candidates"]  # type: ignore[index]
+    assert [c["ce_max"] for c in cands] == [0.5, 3.0, -2.0]
+    assert cands[1]["context_doc_ids"] == ["b-00/f/0"]
+
+
+async def test_other_rules_do_not_ask_for_context_docs_or_record_cross_encoder_fields(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    replies = {"node-a": "Answer: ALPHA", "node-b": "Answer: BETA"}
+    record, _ = await run_one(
+        owner_cfg(cfg, "max_score", 2, save_candidates=True), tmp_path, replies
+    )
+    info = record["owner_answer"]
+    assert isinstance(info, dict)
+    assert "ce_max" not in info and "ce_docs_received" not in info
+    assert all("ce_max" not in c for c in info["candidates"])
+    assert "ce_s" not in record["timings"]  # type: ignore[operator]
+
+
+async def test_answer_response_returns_context_docs_only_when_asked(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    harness = Harness(owner_cfg(cfg, "cross_encoder", 2), tmp_path, {"node-a": "Answer: A"})
+    harness.requester()
+    body = {
+        "dataset": "enronqa",
+        "question": "q?",
+        "options": {},
+        "shard_ids": ["a-00"],
+        "k": 5,
+        "embedding": [1.0, 0.0, 0.0, 0.0],
+    }
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=harness._apps["node-a"]), base_url="http://n"
+    ) as c:
+        plain = (await c.post("/v1/answer", json=body)).json()
+        asked = (await c.post("/v1/answer", json={**body, "with_context_docs": True})).json()
+    assert "context_docs" not in plain and "features" not in plain
+    assert [(d["doc_id"], d["title"]) for d in asked["context_docs"]] == [("a-00/f/0", "t0")]
+    assert asked["context_docs"][0]["content"] == "a-00/f/0"

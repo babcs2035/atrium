@@ -19,6 +19,7 @@ from atrium.select_eval import (
     choose_by_rank_sum,
     cross_encoder_features,
     evaluate,
+    live_cross_encoder_agreement,
     rule_chooser,
     select_rule,
     write_derived_run,
@@ -291,3 +292,52 @@ def test_cross_encoder_features_score_each_candidate_context_against_the_questio
         ("a", 5.0, 3.0),
         ("b", 8.0, 8.0),
     ]
+
+
+def _live_row(qid: str, live_ce: list[float | None], chosen: int) -> dict[str, Any]:
+    """実機の cross-encoder の得点（candidates[].ce_max）と選んだ番号 chosen_index を持つ 1 問（候補は受信箱 a・b・c の順）．"""
+    return {
+        "qid": qid,
+        "bank": "a",
+        "error": None,
+        "owner_answer": {
+            "chosen_index": chosen,
+            "candidates": [
+                {"source": s, "answer": "x", "unknown": False, "ce_max": v}
+                for s, v in zip("abc", live_ce, strict=False)
+            ],
+        },
+    }
+
+
+def test_live_agreement_counts_same_choice_and_tolerates_a_tie() -> None:
+    rows = [
+        _live_row("q1", [0.1, 2.0, 1.0], 1),  # 実機もオフラインも b
+        _live_row(
+            "q2", [1.0, 1.0, 0.0], 1
+        ),  # オフラインは同点の a．実機は b（得点が同じなので同点）
+        _live_row("q3", [0.0, 5.0, 4.0], 2),  # 実機が c．オフラインは b（同点ではない）
+    ]
+    offline = {
+        ("q1", 0): 0.1,
+        ("q1", 1): 2.0000001,
+        ("q1", 2): 1.0,
+        ("q2", 0): 1.0,
+        ("q2", 1): 1.0,
+        ("q2", 2): 0.0,
+        ("q3", 0): 0.0,
+        ("q3", 1): 5.0,
+        ("q3", 2): 4.0,
+    }
+    report = live_cross_encoder_agreement(rows, offline)
+    assert report["n"] == 3
+    assert report["strict"] == pytest.approx(1 / 3)
+    assert report["tie_tolerant"] == pytest.approx(2 / 3)
+    assert report["max_abs_score_diff"] == pytest.approx(1e-7, abs=1e-8)
+
+
+def test_live_agreement_ignores_runs_without_live_scores() -> None:
+    row = _live_row("q1", [1.0, 2.0, 3.0], 2)
+    for c in row["owner_answer"]["candidates"]:
+        del c["ce_max"]
+    assert live_cross_encoder_agreement([row], {("q1", 2): 3.0})["n"] == 0

@@ -6,6 +6,7 @@ atrium.requester が行い，LLM が選べなかったときの代替に max_sco
 
 from __future__ import annotations
 
+import math
 import re
 import unicodedata
 from collections import Counter, defaultdict
@@ -90,6 +91,8 @@ class OwnerCandidate:
     answer: str
     top_score: float | None
     unknown: bool
+    # aggregate=cross_encoder（p0007 F-6）：質問と文脈の上位 5 通の cross-encoder の関連度の最大（文脈が無ければ None）
+    ce_score: float | None = None
 
 
 @dataclass(frozen=True)
@@ -128,6 +131,18 @@ def choose_max_score(candidates: Sequence[OwnerCandidate]) -> OwnerChoice:
     if not candidates:
         raise ValueError("no candidates to choose from")
     return OwnerChoice(_best_index(candidates, range(len(candidates))))
+
+
+def choose_cross_encoder(candidates: Sequence[OwnerCandidate]) -> OwnerChoice:
+    """cross-encoder の得点が最高の候補を採る（得点の無い候補は最低．同点は候補の並びの先の方．オフラインの R3′ と同じ）．"""
+    if not candidates:
+        raise ValueError("no candidates to choose from")
+
+    def key(i: int) -> tuple[float, int]:
+        score = candidates[i].ce_score
+        return (score if score is not None and math.isfinite(score) else float("-inf"), -i)
+
+    return OwnerChoice(max(range(len(candidates)), key=key))
 
 
 def choose_abstain(candidates: Sequence[OwnerCandidate]) -> OwnerChoice:

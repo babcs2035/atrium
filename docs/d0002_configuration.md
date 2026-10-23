@@ -110,7 +110,7 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | キー | 既定値 | 意味 |
 |---|---|---|
 | `owner_m` | 2 | 候補にする受信箱の数 m．`owner_answer` では Router がこの数だけ選ぶ（`routing.top_m.enronqa` の代わりに使う．`oracle` など選ぶ数を持たない方式は従来どおり）．m を変えるときは `routing.top_m` を変えない |
-| `aggregate` | `max_score` | 候補の回答の統合の規則．`max_score`：検索の最高得点の受信箱の回答（B4 に相当）／`abstain`：「メールに答えが無ければ UNKNOWN」のプロンプト（`prompts.ENRON_ABSTAIN_TEMPLATE`）で答えさせ，UNKNOWN でない回答のうち得点最高のもの（全て UNKNOWN なら `max_score`）／`agree`：正規化した回答の文字列（NFKC・小文字・英数字以外を空白に）の一致で票を数え，同票は得点で決める／`llm_select`：質問者の LLM（`llm.requester_model`）が候補の回答から 1 つを選ぶ（番号を読み取れなければ `max_score`．候補が 1 つなら呼ばない） |
+| `aggregate` | `max_score` | 候補の回答の統合の規則．`max_score`：検索の最高得点の受信箱の回答（B4 に相当）／`abstain`：「メールに答えが無ければ UNKNOWN」のプロンプト（`prompts.ENRON_ABSTAIN_TEMPLATE`）で答えさせ，UNKNOWN でない回答のうち得点最高のもの（全て UNKNOWN なら `max_score`）／`agree`：正規化した回答の文字列（NFKC・小文字・英数字以外を空白に）の一致で票を数え，同票は得点で決める／`llm_select`：質問者の LLM（`llm.requester_model`）が候補の回答から 1 つを選ぶ（番号を読み取れなければ `max_score`．候補が 1 つなら呼ばない）／`cross_encoder`（p0007 F-6．オフラインの R3′ と同じ選び方を実機で行う）：通常のプロンプトで答えさせ，各候補の文脈の上位 5 通（題・本文）をノードが `/v1/answer` の応答（`with_context_docs: true` の要求にだけ付く `context_docs`）で質問者へ返し，質問者の bge-reranker-v2-m3（`CrossEncoderReranker`．質問者の GPU）が質問との関連度を候補ごとに測り（4 組ずつ），最大の候補の回答を採る（得点の無い候補は最低．同点は候補の並びの先の方）．候補の文書（`owner_m` × 5 通）が質問者へ渡るので，メールは質問者の外に出る文書として数える |
 | `save_candidates` | `false` | p0007 A5．`true` なら全候補の回答と，候補ごとの選び方の特徴量を `owner_answer.candidates` に残す（下）．統合の結果（採る回答）は変わらない．ノードへの `/v1/answer` に `with_features: true` を付け，ノードは生成に Ollama の `logprobs` を求める（温度 0 の生成文は変わらないことを 0.35.1 で確認） |
 
 結果（`results.jsonl`）には，1 問ごとに `owner_answer`（`aggregate`・`candidate_sources`・`n_candidates`・`n_requests`・`n_requests_total`・`n_generations`・`n_unknown`・`chosen_source`・`chosen_index`・`chosen_unknown`・`fell_back_to_max_score`・`vote_groups`・`select_parse_failed`），`node_answers`（候補ごとの `unknown`・`top_score`・`delegated_to`・生成の計測値）が残る．
@@ -118,6 +118,8 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 
 `save_candidates: true` のときだけ，`owner_answer.candidates` に候補ごとに次を残す：`source`・`answer`（"Answer:" の後ろ．`sanitize_results.py` が `final_answer` と同じ規則で整形する）・`unknown`・`top_score`（密ベクトルの最高得点）・`probe_dense`・`probe_bm25`・`probe_fused`（bm25_probe の probe の得点と融合得点 z(dense) + w·z(bm25)．他の Router は null．記録の `probe_selected_scores` にも残る）・`bm25_max`・`rrf_max`（受信箱の中の BM25 と RRF の得点の最大．`retrieval.fusion: rrf` のときだけ）・`avg_logprob`・`n_logprob_tokens`（生成の対数確率の平均）・`context_doc_ids`（文脈の文書 ID．本文は残さない）．
 候補ごとの採点は `bash scripts/tasks/judge.sh run-candidates <run_id>`（`candidate_judgements.jsonl`），cross-encoder の得点は `uv run atrium select-features --run-dir results/<run_id> --data-dir <データ>`（`ce_features.jsonl`），規則の評価は `uv run atrium select-eval`（`select_eval.json`．`atrium.select_eval` の docstring に規則の一覧）．
+`aggregate: cross_encoder` のときは，`owner_answer` に `ce_max`（候補ごとの cross-encoder の得点．文脈が無ければ null）と `ce_docs_received`（質問者へ渡った文書の数）が加わり，`timings.ce_s`（得点を求めた時間．質問者の cross-encoder が別の問の採点で使われている間の待ちを含む）が残る．`save_candidates: true` なら各候補にも `ce_max` が加わる．メールの本文は記録しない．
+実機の選択とオフラインの R3′ の一致は，`atrium select-features --run-dir results/<run> --data-dir <データ>`（GPU のある制御点のコンテナ）が `ce_live_agreement.json`（`strict`・`tie_tolerant`・`max_abs_score_diff`）に書く．
 `aggregate: max_score` と `save_candidates: true` の組では，全候補が通常のプロンプト（UNKNOWN を許さない）で答え，実機は検索の最高得点の候補を採る．このときの規則の評価は `select-eval --ignore-unknown`（UNKNOWN による除外をしない R0′〜R6′．p0007 A6）で行う．
 
 ```yaml
@@ -127,6 +129,10 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 # 例：hybrid_probe（D = 16）の上位 3 受信箱が答え，UNKNOWN を許して統合する
 experiment: {routing: hybrid_probe, answer_mode: owner_answer, dataset: enronqa}
 answer: {owner_m: 3, aggregate: abstain}
+# 例：A6・F-6 の標準構成．bm25_probe・RRF・m = 3 の候補を通常のプロンプトで答えさせ，質問者の cross-encoder（R3′）で選ぶ
+#   experiment: {routing: bm25_probe, answer_mode: owner_answer, dataset: enronqa, parallel: 30, http_pool: per_node}
+#   retrieval: {fusion: rrf}
+#   answer: {owner_m: 3, aggregate: cross_encoder}   # 選ばずに全候補を残してオフラインで評価するなら aggregate: max_score・save_candidates: true
 ```
 
 ## e0
