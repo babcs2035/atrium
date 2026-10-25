@@ -73,6 +73,8 @@ def scorecard(out: Path) -> None:
         "条件つき": ("#fab219", "△"),
     }
     a6 = read_json("p0007_a6_verdict/verdict.json")["verdict_original"]
+    f7 = read_json("p0007_f7_verdict/verdict.json")["verdict_original"]
+    f7_vs_a6 = read_json("p0007_f7_verdict_vs_a6/verdict.json")["verdict_original"]
     oracle = read_json("p0007_a5_verdict_oracle_vs_c1rrf/verdict.json")["verdict_original"]
     exposure = read_json("20261019_155617_p0007_b_exposure/verdict.json")["verdict_original"]
     fresh = read_json("p0007_c_verdict/verdict.json")
@@ -94,16 +96,17 @@ def scorecard(out: Path) -> None:
         """符号つきの 4 桁の小数．本文の表記に合わせて負号は「−」にする．"""
         return f"{x:+.4f}".replace("-", "−")
 
-    lo, hi = a6["ci95"]
+    lo, hi = f7["ci95"]
     integrals = [r["integral"] for r in fail["p2p"]]
     # (軸，結果，根拠の数値（P2P 対 中央），条件・仮定)
     rows = [
         (
             "精度",
             "負ける",
-            f"{a6['accuracy_p2p']:.4f} 対 {a6['accuracy_central']:.4f}"
-            f"（差 {signed(a6['difference'])}，95% 区間 {signed(lo)}〜{signed(hi)}）",
-            f"A6．公平な比較（中央にも同じ再ランク）．持ち主を当てる天井は {oracle['accuracy_p2p']:.4f}",
+            f"{f7['accuracy_p2p']:.4f} 対 {f7['accuracy_central']:.4f}"
+            f"（差 {signed(f7['difference'])}，95% 区間 {signed(lo)}〜{signed(hi)}）",
+            f"F-7（m = 4）．A6（m = 3）は {signed(a6['difference'])}（F-7 との差 {signed(f7_vs_a6['difference'])}）．"
+            f"天井 {oracle['accuracy_p2p']:.4f}",
         ),
         (
             "露出",
@@ -188,6 +191,7 @@ def accuracy_cost(out: Path) -> None:
     a4 = read_json("p0007_a4_verdict_c1rrf/verdict.json")["verdict_original"]
     a5 = read_json("p0007_a5_verdict/verdict.json")["verdict_original"]
     a6 = read_json("p0007_a6_verdict/verdict.json")["verdict_original"]
+    f7 = read_json("p0007_f7_verdict/verdict.json")["verdict_original"]
     oracle = read_json("p0007_a5_verdict_oracle_vs_c1rrf/verdict.json")["verdict_original"]
     # (表示名，正答率，ノードへの要求数/問，種類)．種類は central・p2p・oracle（評価専用の天井）
     conditions = [
@@ -199,6 +203,7 @@ def accuracy_cost(out: Path) -> None:
         ("C1-RRF-CE\n（中央・再ランク）", a5["accuracy_central"], 0, "central"),
         ("P2P-R3（A5）\n選び方を改良", a5["accuracy_p2p"], 27, "p2p"),
         ("P2P-R3′（A6）\n通常の答え方", a6["accuracy_p2p"], 27, "p2p"),
+        ("P2P-R3′ m = 4\n（F-7）", f7["accuracy_p2p"], 28, "p2p"),
         ("oracle-RRF\n（天井・評価専用）", oracle["accuracy_p2p"], 1, "oracle"),
     ]
     fig, (ax1, ax2) = plt.subplots(
@@ -230,7 +235,7 @@ def accuracy_cost(out: Path) -> None:
     ax1.set_ylabel("正答率（test 2,940 問．Wilson 95% 区間）")
     ax1.set_ylim(0.62, 0.84)
     ax1.set_title(
-        "(a) 公平な組の差：A1 −0.0303・A2 −0.0884・A4 −0.0500・A5 −0.0483・A6 −0.0235",
+        "(a) 公平な組の差：A1 −0.0303・A2 −0.0884・A4 −0.0500・A5 −0.0483・A6 −0.0235・F-7 −0.0262",
         fontsize=10,
         loc="left",
     )
@@ -246,6 +251,7 @@ def accuracy_cost(out: Path) -> None:
         (6, -3),
         (-8, -10),
         (-8, 5),
+        (6, -12),
         (6, 4),
     ]
     for (label, acc, req, kind), offset in zip(conditions, label_offsets, strict=True):

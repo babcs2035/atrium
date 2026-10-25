@@ -1,0 +1,17 @@
+[2026-10-24_12:20:53] BEGIN p0007_f7_dev experiment.dataset=enronqa experiment.http_pool=per_node experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=4 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=30 experiment.question_limit=null experiment.question_split=dev
+[12:23:36] p0007_f7_dev deployed
+[20:57:48] p0007_f7_dev start=2 inner=2
+[20:57:48] p0007_f7_dev START FAILED (nodes are left running; inspect results/p0007_f7_live/chain.log.p0007_f7_dev.start)
+[21:01:44] p0007_f7_dev resume of failed questions
+[21:04:18] p0007_f7_dev resume start=0
+[21:04:20] p0007_f7_dev analyze_resume=0
+[21:04:25] p0007_f7_dev skip (results exist)
+[2026-10-24_21:04:25] BEGIN p0007_f7_test experiment.dataset=enronqa experiment.http_pool=per_node experiment.requester_procs=1 experiment.routing=bm25_probe experiment.answer_mode=owner_answer experiment.central_generation=requester retrieval.fusion=rrf answer.owner_m=4 answer.aggregate=cross_encoder answer.save_candidates=false experiment.parallel=30 experiment.question_limit=null experiment.question_split=test
+[21:04:27] p0007_f7_test config synced
+[05:55:44] p0007_f7_test start=2 inner=2
+[05:55:44] p0007_f7_test START FAILED (nodes are left running; inspect results/p0007_f7_live/chain.log.p0007_f7_test.start)
+[06:03:33] p0007_f7_test resume: redeploying (Ollama containers on the GPU PCs are gone)
+[06:06:19] p0007_f7_test deployed (resume)
+[06:39:23] p0007_f7_test resume start=0
+[06:39:24] p0007_f7_test analyze_resume=0
+[06:40:13] stopped; judging on the control host

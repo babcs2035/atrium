@@ -1,0 +1,1 @@
+[12:20:50] gave up waiting for a free GPU PC after 2h10m (DETR of another researcher holds ~6-7.6 GB on wafl500-509); starting the chain under contention

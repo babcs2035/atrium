@@ -1,0 +1,33 @@
+# 1792812050 2026-10-24T12:20:50
+== wafl-ctrl5
+17.98 W, 0 %, 107 MiB
+== 192.168.15.100
+12.73 W, 0 %, 7064 MiB
+pid=2051302  7024 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.101
+21.32 W, 0 %, 7653 MiB
+pid=1789910  7636 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.102
+18.33 W, 0 %, 5788 MiB
+pid=1826062  5714 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.103
+14.55 W, 0 %, 7676 MiB
+pid=1828602  7636 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.104
+133.40 W, 100 %, 6699 MiB
+pid=1736752  6682 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.105
+145.23 W, 93 %, 7439 MiB
+pid=1754123  7422 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.106
+134.74 W, 92 %, 6695 MiB
+pid=1736798  6686 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.107
+142.01 W, 94 %, 6517 MiB
+pid=1728849  6508 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.108
+142.47 W, 100 %, 7625 MiB
+pid=3477581  7608 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 
+== 192.168.15.109
+144.21 W, 88 %, 7329 MiB
+pid=3476239  7312 MiB python3 -u /home/denjo/workspace/namit/DETR/src/main.py 

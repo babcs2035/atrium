@@ -1,0 +1,21 @@
+# 2026-10-25T06:39:11
+== 192.168.15.100
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.101
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.102
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.103
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.104
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.105
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.106
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.107
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.108
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    
+== 192.168.15.109
+llama3.1:8b    46e0c10c039e    6.9 GB    100% GPU     16384      Forever    

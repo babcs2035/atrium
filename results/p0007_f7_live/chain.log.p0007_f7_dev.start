@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[12:23:41] run p0007_f7_dev (kind=e1_routing dataset=enronqa routing=bm25_probe answer_mode=owner_answer)
+[20:57:44] results: results/p0007_f7_dev (exit 2)
+[start] ERROR task failed

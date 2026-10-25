@@ -1,0 +1,60 @@
+{
+ "note": "p0007 F-7（m = 4）のオフラインの予測・A6（m = 3）と実機の値の照合（§10）．test は results/p0007_f7_test，dev は results/p0007_f7_dev",
+ "candidate_set": {
+  "offline_bm25_probe_m3_contained_in_live_m4_candidates": 1.0,
+  "a6_live_m3_candidates_contained_in_live_m4_candidates_test": 1.0,
+  "a6_live_m3_candidates_contained_in_live_m4_candidates_dev": 1.0,
+  "n_test": 2940,
+  "fused_score_diff": "save_candidates: false のため融合得点を残していない（未照合）"
+ },
+ "cross_encoder_scores_shared_candidates": {
+  "n_test": 8817,
+  "abs_diff_max_test": 0.0,
+  "n_dev": 8844,
+  "abs_diff_max_dev": 0.0,
+  "reading": "m = 4 の実機の cross-encoder の得点は，A6 のオフライン（select-features）の共通の 3 候補と全件一致（差 0）"
+ },
+ "chosen_candidate_same_as_a6_m3": {
+  "test": 0.9697278911564626,
+  "dev": 0.9728629579375848,
+  "reading": "同じ受信箱を採った割合．4 つ目の候補が採られたか，生成の文が変わって採点が変わった問が約 3%"
+ },
+ "cost_structure": {
+  "predicted_requests_per_question": 28,
+  "live_requests_per_question": 28.0,
+  "predicted_generations": 4,
+  "live_generations": 4.0,
+  "predicted_docs_to_requester": 20,
+  "live_docs_to_requester": 20.0
+ },
+ "accuracy": {
+  "predicted_gain_over_m3": "+0.003〜+0.008（事前登録の見込み）",
+  "dev_m4_minus_m3": 0.0067842605156037995,
+  "dev_m4_minus_m3_ci95": [
+   -0.0006784260515603799,
+   0.014246947082767978
+  ],
+  "test_m4_minus_m3": -0.0027220142905750254,
+  "test_m4_minus_m3_ci95": [
+   -0.00952705001701259,
+   0.004083021435862538
+  ],
+  "test_m4_minus_m3_n_shared": 2939,
+  "predicted_diff_to_c1_rrf_ce": "−0.017〜−0.020，区間の下端 −0.035 前後",
+  "live_diff_to_c1_rrf_ce": -0.02619047619047619,
+  "live_ci95": [
+   -0.04217687074829932,
+   -0.01054421768707483
+  ],
+  "dev_to_test_accuracy_m4": [
+   0.7845997286295794,
+   0.7714285714285715
+  ]
+ },
+ "latency_throughput": {
+  "confounded": "他の研究者の GPU の使用と，GPU の PC の Ollama のコンテナの再起動・消失（2026-10-25 05:38・05:54）で時間帯ごとに 8B の載り方が違う．m の効果とは分けられない",
+  "cpu_share_of_8b_dev": "29〜56%（ollama ps．dev の開始時・終了時で同じ）",
+  "cpu_share_of_8b_test_main": "記録なし（test の主の実行の途中で Ollama のコンテナが消えた）",
+  "resume_pass_8b": "全 10 台 100% GPU（再 deploy の後）"
+ }
+}

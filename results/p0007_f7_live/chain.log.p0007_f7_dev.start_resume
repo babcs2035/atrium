@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[21:01:47] run p0007_f7_dev (kind=e1_routing dataset=enronqa routing=bm25_probe answer_mode=owner_answer)
+[21:01:48] previous attempt exited with 2; resuming
+[21:04:18] results: results/p0007_f7_dev (exit 0)

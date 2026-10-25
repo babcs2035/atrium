@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-23T18:05:33.513163</dc:date>
+    <dc:date>2026-10-25T11:19:14.050286</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -30,252 +30,252 @@ z
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 94.074683 56.930892 
-L 218.986706 56.930892 
-L 218.986706 89.411277 
-L 94.074683 89.411277 
+    <path d="M 93.53502 56.930892 
+L 217.63755 56.930892 
+L 217.63755 89.411277 
+L 93.53502 89.411277 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #d03b3b; opacity: 0.22"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #d03b3b; opacity: 0.22"/>
    </g>
    <g id="patch_3">
-    <path d="M 94.074683 56.930892 
-L 101.476877 56.930892 
-L 101.476877 89.411277 
-L 94.074683 89.411277 
+    <path d="M 93.53502 56.930892 
+L 100.889244 56.930892 
+L 100.889244 89.411277 
+L 93.53502 89.411277 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #d03b3b"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #d03b3b"/>
    </g>
    <g id="patch_4">
-    <path d="M 94.074683 99.668241 
-L 218.986706 99.668241 
-L 218.986706 132.148627 
-L 94.074683 132.148627 
+    <path d="M 93.53502 99.668241 
+L 217.63755 99.668241 
+L 217.63755 132.148627 
+L 93.53502 132.148627 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #0ca30c; opacity: 0.22"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #0ca30c; opacity: 0.22"/>
    </g>
    <g id="patch_5">
-    <path d="M 94.074683 99.668241 
-L 101.476877 99.668241 
-L 101.476877 132.148627 
-L 94.074683 132.148627 
+    <path d="M 93.53502 99.668241 
+L 100.889244 99.668241 
+L 100.889244 132.148627 
+L 93.53502 132.148627 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #0ca30c"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #0ca30c"/>
    </g>
    <g id="patch_6">
-    <path d="M 94.074683 142.40559 
-L 218.986706 142.40559 
-L 218.986706 174.885976 
-L 94.074683 174.885976 
+    <path d="M 93.53502 142.40559 
+L 217.63755 142.40559 
+L 217.63755 174.885976 
+L 93.53502 174.885976 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #fab219; opacity: 0.22"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #fab219; opacity: 0.22"/>
    </g>
    <g id="patch_7">
-    <path d="M 94.074683 142.40559 
-L 101.476877 142.40559 
-L 101.476877 174.885976 
-L 94.074683 174.885976 
+    <path d="M 93.53502 142.40559 
+L 100.889244 142.40559 
+L 100.889244 174.885976 
+L 93.53502 174.885976 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #fab219"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #fab219"/>
    </g>
    <g id="patch_8">
-    <path d="M 94.074683 185.14294 
-L 218.986706 185.14294 
-L 218.986706 217.623325 
-L 94.074683 217.623325 
+    <path d="M 93.53502 185.14294 
+L 217.63755 185.14294 
+L 217.63755 217.623325 
+L 93.53502 217.623325 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #fab219; opacity: 0.22"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #fab219; opacity: 0.22"/>
    </g>
    <g id="patch_9">
-    <path d="M 94.074683 185.14294 
-L 101.476877 185.14294 
-L 101.476877 217.623325 
-L 94.074683 217.623325 
+    <path d="M 93.53502 185.14294 
+L 100.889244 185.14294 
+L 100.889244 217.623325 
+L 93.53502 217.623325 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #fab219"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #fab219"/>
    </g>
    <g id="patch_10">
-    <path d="M 94.074683 227.880289 
-L 218.986706 227.880289 
-L 218.986706 260.360675 
-L 94.074683 260.360675 
+    <path d="M 93.53502 227.880289 
+L 217.63755 227.880289 
+L 217.63755 260.360675 
+L 93.53502 260.360675 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #d03b3b; opacity: 0.22"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #d03b3b; opacity: 0.22"/>
    </g>
    <g id="patch_11">
-    <path d="M 94.074683 227.880289 
-L 101.476877 227.880289 
-L 101.476877 260.360675 
-L 94.074683 260.360675 
+    <path d="M 93.53502 227.880289 
+L 100.889244 227.880289 
+L 100.889244 260.360675 
+L 93.53502 260.360675 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #d03b3b"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #d03b3b"/>
    </g>
    <g id="patch_12">
-    <path d="M 94.074683 270.617639 
-L 218.986706 270.617639 
-L 218.986706 303.098024 
-L 94.074683 303.098024 
+    <path d="M 93.53502 270.617639 
+L 217.63755 270.617639 
+L 217.63755 303.098024 
+L 93.53502 303.098024 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #fab219; opacity: 0.22"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #fab219; opacity: 0.22"/>
    </g>
    <g id="patch_13">
-    <path d="M 94.074683 270.617639 
-L 101.476877 270.617639 
-L 101.476877 303.098024 
-L 94.074683 303.098024 
+    <path d="M 93.53502 270.617639 
+L 100.889244 270.617639 
+L 100.889244 303.098024 
+L 93.53502 303.098024 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #fab219"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #fab219"/>
    </g>
    <g id="patch_14">
-    <path d="M 94.074683 313.354988 
-L 218.986706 313.354988 
-L 218.986706 345.835373 
-L 94.074683 345.835373 
+    <path d="M 93.53502 313.354988 
+L 217.63755 313.354988 
+L 217.63755 345.835373 
+L 93.53502 345.835373 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #d03b3b; opacity: 0.22"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #d03b3b; opacity: 0.22"/>
    </g>
    <g id="patch_15">
-    <path d="M 94.074683 313.354988 
-L 101.476877 313.354988 
-L 101.476877 345.835373 
-L 94.074683 345.835373 
+    <path d="M 93.53502 313.354988 
+L 100.889244 313.354988 
+L 100.889244 345.835373 
+L 93.53502 345.835373 
 z
-" clip-path="url(#pe0c79a23d3)" style="fill: #d03b3b"/>
+" clip-path="url(#p22f6ad239b)" style="fill: #d03b3b"/>
    </g>
    <g id="line2d_1">
     <path d="M 10.8 51.80241 
-L 936.07425 51.80241 
-" clip-path="url(#pe0c79a23d3)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
+L 930.078 51.80241 
+" clip-path="url(#p22f6ad239b)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
    </g>
    <g id="line2d_2">
     <path d="M 10.8 94.539759 
-L 936.07425 94.539759 
-" clip-path="url(#pe0c79a23d3)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
+L 930.078 94.539759 
+" clip-path="url(#p22f6ad239b)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
    </g>
    <g id="line2d_3">
     <path d="M 10.8 137.277108 
-L 936.07425 137.277108 
-" clip-path="url(#pe0c79a23d3)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
+L 930.078 137.277108 
+" clip-path="url(#p22f6ad239b)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
    </g>
    <g id="line2d_4">
     <path d="M 10.8 180.014458 
-L 936.07425 180.014458 
-" clip-path="url(#pe0c79a23d3)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
+L 930.078 180.014458 
+" clip-path="url(#p22f6ad239b)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
    </g>
    <g id="line2d_5">
     <path d="M 10.8 222.751807 
-L 936.07425 222.751807 
-" clip-path="url(#pe0c79a23d3)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
+L 930.078 222.751807 
+" clip-path="url(#p22f6ad239b)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
    </g>
    <g id="line2d_6">
     <path d="M 10.8 265.489157 
-L 936.07425 265.489157 
-" clip-path="url(#pe0c79a23d3)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
+L 930.078 265.489157 
+" clip-path="url(#p22f6ad239b)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
    </g>
    <g id="line2d_7">
     <path d="M 10.8 308.226506 
-L 936.07425 308.226506 
-" clip-path="url(#pe0c79a23d3)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
+L 930.078 308.226506 
+" clip-path="url(#p22f6ad239b)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
    </g>
    <g id="line2d_8">
     <path d="M 10.8 350.963855 
-L 936.07425 350.963855 
-" clip-path="url(#pe0c79a23d3)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
+L 930.078 350.963855 
+" clip-path="url(#p22f6ad239b)" style="fill: none; stroke: #e3e2dc; stroke-width: 0.8; stroke-linecap: square"/>
    </g>
    <g id="text_1">
-    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="15.426371" y="44.538072" transform="rotate(-0 15.426371 44.538072)">軸</text>
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="15.39639" y="44.538072" transform="rotate(-0 15.39639 44.538072)">軸</text>
    </g>
    <g id="text_2">
-    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="98.701054" y="44.538072" transform="rotate(-0 98.701054 44.538072)">P2P は中央に</text>
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="98.13141" y="44.538072" transform="rotate(-0 98.13141 44.538072)">P2P は中央に</text>
    </g>
    <g id="text_3">
-    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="237.492191" y="44.538072" transform="rotate(-0 237.492191 44.538072)">根拠（P2P 対 中央）</text>
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="236.02311" y="44.538072" transform="rotate(-0 236.02311 44.538072)">根拠（P2P 対 中央）</text>
    </g>
    <g id="text_4">
-    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="602.97552" y="44.538072" transform="rotate(-0 602.97552 44.538072)">条件・仮定</text>
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="599.13792" y="44.538072" transform="rotate(-0 599.13792 44.538072)">条件・仮定</text>
    </g>
    <g id="text_5">
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.426371" y="77.161084" transform="rotate(-0 15.426371 77.161084)">精度</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.39639" y="77.161084" transform="rotate(-0 15.39639 77.161084)">精度</text>
    </g>
    <g id="text_6">
-    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.879071" y="77.161084" transform="rotate(-0 108.879071 77.161084)">× 負ける</text>
+    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.243468" y="77.161084" transform="rotate(-0 108.243468 77.161084)">× 負ける</text>
    </g>
    <g id="text_7">
-    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="237.492191" y="76.591084" transform="rotate(-0 237.492191 76.591084)">0.7741 対 0.7976（差 −0.0235，95% 区間 −0.0391〜−0.0075）</text>
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="236.02311" y="76.591084" transform="rotate(-0 236.02311 76.591084)">0.7714 対 0.7976（差 −0.0262，95% 区間 −0.0422〜−0.0105）</text>
    </g>
    <g id="text_8">
-    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="602.97552" y="76.401084" transform="rotate(-0 602.97552 76.401084)">A6．公平な比較（中央にも同じ再ランク）．持ち主を当てる天井は 0.8126</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="599.13792" y="76.401084" transform="rotate(-0 599.13792 76.401084)">F-7（m = 4）．A6（m = 3）は −0.0235（F-7 との差 −0.0027）．天井 0.8126</text>
    </g>
    <g id="text_9">
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.426371" y="119.898434" transform="rotate(-0 15.426371 119.898434)">露出</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.39639" y="119.898434" transform="rotate(-0 15.39639 119.898434)">露出</text>
    </g>
    <g id="text_10">
-    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.879071" y="119.898434" transform="rotate(-0 108.879071 119.898434)">○ 勝つ</text>
+    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.243468" y="119.898434" transform="rotate(-0 108.243468 119.898434)">○ 勝つ</text>
    </g>
    <g id="text_11">
-    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="237.492191" y="118.815152" transform="rotate(-0 237.492191 118.815152)">重複なしの露出 27.3% 対 100%（hybrid_probe・P4-1）</text>
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="236.02311" y="118.815152" transform="rotate(-0 236.02311 118.815152)">重複なしの露出 27.3% 対 100%（hybrid_probe・P4-1）</text>
    </g>
    <g id="text_12">
-    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="602.97552" y="118.674918" transform="rotate(-0 602.97552 118.674918)">持ち主は公開情報から top-1 72.6% 特定できる．質問の語は probe 先へ届く</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="599.13792" y="118.674918" transform="rotate(-0 599.13792 118.674918)">持ち主は公開情報から top-1 72.6% 特定できる．質問の語は probe 先へ届く</text>
    </g>
    <g id="text_13">
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.426371" y="162.635783" transform="rotate(-0 15.426371 162.635783)">追従</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.39639" y="162.635783" transform="rotate(-0 15.39639 162.635783)">追従</text>
    </g>
    <g id="text_14">
-    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.879071" y="162.635783" transform="rotate(-0 108.879071 162.635783)">△ 条件つき</text>
+    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.243468" y="162.635783" transform="rotate(-0 108.243468 162.635783)">△ 条件つき</text>
    </g>
    <g id="text_15">
-    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="237.492191" y="161.575002" transform="rotate(-0 237.492191 161.575002)">p50 0.394 秒 対 39.3 秒（中央 T = 60 秒）</text>
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="236.02311" y="161.575002" transform="rotate(-0 236.02311 161.575002)">p50 0.394 秒 対 39.3 秒（中央 T = 60 秒）</text>
    </g>
    <g id="text_16">
-    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="602.97552" y="161.875783" transform="rotate(-0 602.97552 161.875783)">事後の見直しで成立．中央が届くたびに転送（T = 0）すれば中央が速い</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="599.13792" y="161.875783" transform="rotate(-0 599.13792 161.875783)">事後の見直しで成立．中央が届くたびに転送（T = 0）すれば中央が速い</text>
    </g>
    <g id="text_17">
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.426371" y="205.373133" transform="rotate(-0 15.426371 205.373133)">負荷</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.39639" y="205.373133" transform="rotate(-0 15.39639 205.373133)">負荷</text>
    </g>
    <g id="text_18">
-    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.879071" y="205.373133" transform="rotate(-0 108.879071 205.373133)">△ 条件つき</text>
+    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.243468" y="205.373133" transform="rotate(-0 108.243468 205.373133)">△ 条件つき</text>
    </g>
    <g id="text_19">
-    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="237.492191" y="204.312351" transform="rotate(-0 237.492191 204.312351)">処理量 0.586 対 0.534 問/秒（parallel 30）</text>
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="236.02311" y="204.312351" transform="rotate(-0 236.02311 204.312351)">処理量 0.586 対 0.534 問/秒（parallel 30）</text>
    </g>
    <g id="text_20">
-    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="602.97552" y="204.149617" transform="rotate(-0 602.97552 204.149617)">GPU の共有の程度で逆転（0.486 対 0.525）．p95 は P2P が長い</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="599.13792" y="204.149617" transform="rotate(-0 599.13792 204.149617)">GPU の共有の程度で逆転（0.486 対 0.525）．p95 は P2P が長い</text>
    </g>
    <g id="text_21">
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.426371" y="248.110482" transform="rotate(-0 15.426371 248.110482)">エネルギー</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.39639" y="248.110482" transform="rotate(-0 15.39639 248.110482)">エネルギー</text>
    </g>
    <g id="text_22">
-    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.879071" y="248.110482" transform="rotate(-0 108.879071 248.110482)">× 負ける</text>
+    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.243468" y="248.110482" transform="rotate(-0 108.243468 248.110482)">× 負ける</text>
    </g>
    <g id="text_23">
-    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="237.492191" y="247.225482" transform="rotate(-0 237.492191 247.225482)">GPU の推定の総 1,100 対 311 J/問</text>
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="236.02311" y="247.225482" transform="rotate(-0 236.02311 247.225482)">GPU の推定の総 1,100 対 311 J/問</text>
    </g>
    <g id="text_24">
-    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="602.97552" y="247.350482" transform="rotate(-0 602.97552 247.350482)">判定の規則なし．GPU のみ．P2P の値は他の研究の電力を含む</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="599.13792" y="247.350482" transform="rotate(-0 599.13792 247.350482)">判定の規則なし．GPU のみ．P2P の値は他の研究の電力を含む</text>
    </g>
    <g id="text_25">
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.426371" y="290.847831" transform="rotate(-0 15.426371 290.847831)">障害</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.39639" y="290.847831" transform="rotate(-0 15.39639 290.847831)">障害</text>
    </g>
    <g id="text_26">
-    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.879071" y="290.847831" transform="rotate(-0 108.879071 290.847831)">△ 条件つき</text>
+    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.243468" y="290.847831" transform="rotate(-0 108.243468 290.847831)">△ 条件つき</text>
    </g>
    <g id="text_27">
-    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="237.492191" y="290.277831" transform="rotate(-0 237.492191 290.277831)">窓の積分 23.8〜53.7 対 22.8</text>
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="236.02311" y="290.277831" transform="rotate(-0 236.02311 290.277831)">窓の積分 23.8〜53.7 対 22.8</text>
    </g>
    <g id="text_28">
-    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="602.97552" y="290.087831" transform="rotate(-0 602.97552 290.087831)">中央が 45 秒止まる仮定に依る．検出と同時に再起動すれば中央が上</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="599.13792" y="290.087831" transform="rotate(-0 599.13792 290.087831)">中央が 45 秒止まる仮定に依る．検出と同時に再起動すれば中央が上</text>
    </g>
    <g id="text_29">
-    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.426371" y="333.585181" transform="rotate(-0 15.426371 333.585181)">参加</text>
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="15.39639" y="333.585181" transform="rotate(-0 15.39639 333.585181)">参加</text>
    </g>
    <g id="text_30">
-    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.879071" y="333.585181" transform="rotate(-0 108.879071 333.585181)">× 負ける</text>
+    <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="108.243468" y="333.585181" transform="rotate(-0 108.243468 333.585181)">× 負ける</text>
    </g>
    <g id="text_31">
-    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="237.492191" y="332.524399" transform="rotate(-0 237.492191 332.524399)">p50 1,283 秒 対 81 秒（15.9 倍）</text>
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="236.02311" y="332.524399" transform="rotate(-0 236.02311 332.524399)">p50 1,283 秒 対 81 秒（15.9 倍）</text>
    </g>
    <g id="text_32">
-    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="602.97552" y="332.825181" transform="rotate(-0 602.97552 332.825181)">転送量は P2P が小さいが，時間の条件を満たさない</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="599.13792" y="332.825181" transform="rotate(-0 599.13792 332.825181)">転送量は P2P が小さいが，時間の条件を満たさない</text>
    </g>
    <g id="text_33">
     <text style="font-size: 10.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start" x="10.8" y="20.16" transform="rotate(-0 10.8 20.16)">中央に対する P2P の成績表（判定は verdict_original．追従だけは事後の見直し）</text>
@@ -283,8 +283,8 @@ L 936.07425 350.963855
   </g>
  </g>
  <defs>
-  <clipPath id="pe0c79a23d3">
-   <rect x="10.8" y="26.16" width="925.27425" height="354.72"/>
+  <clipPath id="p22f6ad239b">
+   <rect x="10.8" y="26.16" width="919.278" height="354.72"/>
   </clipPath>
  </defs>
 </svg>

@@ -1,0 +1,21 @@
+# 2026-10-25T06:01:48
+== 192.168.15.100
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.101
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.102
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.103
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.104
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.105
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.106
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.107
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.108
+Error response from daemon: No such container: atrium-ollama-1
+== 192.168.15.109
+Error response from daemon: No such container: atrium-ollama-1
