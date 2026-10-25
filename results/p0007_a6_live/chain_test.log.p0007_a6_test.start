@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[02:40:31] run p0007_a6_test (kind=e1_routing dataset=enronqa routing=bm25_probe answer_mode=owner_answer)
+Timeout, server 192.168.15.10 not responding.
+[start] ERROR task failed

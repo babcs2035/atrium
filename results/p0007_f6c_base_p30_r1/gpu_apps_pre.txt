@@ -1,0 +1,34 @@
+# 1792772267 2026-10-24T01:17:47
+== wafl-ctrl5
+23.72 W, 4 %, 107 MiB
+pid=1329559  10 MiB /usr/bin/ollama gpu-discover --lib-dir /usr/lib/ollama --lib-dir /usr/lib/ollama/cuda_v13 
+== 192.168.15.100
+12.45 W, 0 %, 6866 MiB
+pid=2048335  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.101
+21.42 W, 0 %, 6843 MiB
+pid=1787493  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.102
+41.85 W, 0 %, 6900 MiB
+pid=1823544  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.103
+14.61 W, 0 %, 6866 MiB
+pid=1826106  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.104
+22.69 W, 0 %, 6843 MiB
+pid=1733832  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.105
+14.17 W, 0 %, 6843 MiB
+pid=1751795  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.106
+11.93 W, 0 %, 6835 MiB
+pid=1734436  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.107
+18.43 W, 0 %, 6835 MiB
+pid=1726551  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.108
+16.07 W, 0 %, 6843 MiB
+pid=3472541  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== 192.168.15.109
+15.05 W, 0 %, 6843 MiB
+pid=3471233  6826 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4

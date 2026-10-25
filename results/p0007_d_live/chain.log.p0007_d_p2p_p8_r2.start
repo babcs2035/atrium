@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[19:21:34] run p0007_d_p2p_p8_r2 (kind=e1_routing dataset=enronqa routing=bm25_probe answer_mode=owner_answer)
+[19:32:08] results: results/p0007_d_p2p_p8_r2 (exit 2)
+[start] ERROR task failed

@@ -1,0 +1,42 @@
+2026-10-22 01:45:03,658 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-10-22 01:45:03,658 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-10-22 01:45:03,658 INFO faiss.loader: Loading faiss.
+2026-10-22 01:45:03,746 INFO faiss.loader: Successfully loaded faiss.
+[W1022 01:45:14.666407829 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 7667712, total: 25298141184).
+[W1022 01:45:14.666537095 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 7667712, total: 25298141184).
+Traceback (most recent call last):
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/bin/atrium", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/src/atrium/cli.py", line 1632, in main
+    code: int = args.func(args, cfg)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/src/atrium/cli.py", line 939, in cmd_select_features
+    rows, question_texts(paths), text_of, CrossEncoderReranker().scores
+                                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/src/atrium/requester.py", line 308, in __init__
+    self._model = CrossEncoder(
+                  ^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/sentence_transformers/cross_encoder/CrossEncoder.py", line 126, in __init__
+    self.model.to(device)
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4343, in to
+    return super().to(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1388, in to
+    return self._apply(convert)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 933, in _apply
+    module._apply(fn)
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 933, in _apply
+    module._apply(fn)
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 933, in _apply
+    module._apply(fn)
+  [Previous line repeated 3 more times]
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 966, in _apply
+    param_applied = fn(param)
+                    ^^^^^^^^^
+  File "/mnt/data-raid/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1374, in convert
+    return t.to(
+           ^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 16.00 MiB. GPU 0 has a total capacity of 23.56 GiB of which 7.31 MiB is free. Process 1945012 has 256.00 MiB memory in use. Process 1945344 has 21.21 GiB memory in use. Including non-PyTorch memory, this process has 2.06 GiB memory in use. Of the allocated memory 1.80 GiB is allocated by PyTorch, and 12.40 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)

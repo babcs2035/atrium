@@ -1,0 +1,16 @@
+[analyze] $ bash scripts/tasks/analyze.sh ${usage_run_id:-}
+results/p0007_a2_p2p_rrf/analysis_report.md
+# 実験結果：p0007_a2_p2p_rrf
+
+- dataset: `enronqa`，routing: `hybrid_probe`，answer_mode: `owner_answer`，merge: `score`
+- git: `cbba45c7b4fc-dirty`，質問数: 2940，失敗: None
+
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| all | 2940 | 1.000 | 0.000 | 0.000 | 0.000 | 0.00 | 0.00 | 1.000 | - | - | - / - | 0.0 | 0.0 |
+| test | 2940 | 1.000 | 0.000 | 0.000 | 0.000 | 0.00 | 0.00 | 1.000 | - | - | - / - | 0.0 | 0.0 |
+
+## 段ごとの待ち時間（all，秒）
+
+| 段 | p50 | p95 |
+|---|---|---|

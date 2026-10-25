@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[12:00:26] run p0007_a4_p2p_bm25 (kind=e1_routing dataset=enronqa routing=bm25_probe answer_mode=owner_answer)
+[12:00:27] previous attempt exited with 2; resuming
+[12:01:56] results: results/p0007_a4_p2p_bm25 (exit 0)

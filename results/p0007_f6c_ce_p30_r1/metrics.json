@@ -1,0 +1,102 @@
+{
+ "all": {
+  "n": 300,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.32,
+   "recall": 0.96,
+   "f1": 0.4799999999999999,
+   "mean_selected_sources": 3.0,
+   "mean_relevant_sources": 1.0,
+   "mean_shards_queried": 3.0,
+   "query_reduction_vs_all": 0.98
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 1.971004530787468e-05,
+    "p95": 0.0002138379961252218,
+    "n": 300
+   },
+   "probe_s": {
+    "p50": 0.12503784894943237,
+    "p95": 1.717587791872211,
+    "n": 300
+   },
+   "route_s": {
+    "p50": 0.007632884895429015,
+    "p95": 0.009494387451559306,
+    "n": 300
+   },
+   "generate_s": {
+    "p50": 7.88861994119361,
+    "p95": 30.821601715590813,
+    "n": 300
+   },
+   "e2e_s": {
+    "p50": 46.428102880949154,
+    "p95": 77.3054378066212,
+    "n": 300
+   }
+  },
+  "mean_bytes_received": 34139.04,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 9.85,
+   "mean_query_recipients": 24.0
+  },
+  "gold_doc_retrieval": null
+ },
+ "test": {
+  "n": 300,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.32,
+   "recall": 0.96,
+   "f1": 0.4799999999999999,
+   "mean_selected_sources": 3.0,
+   "mean_relevant_sources": 1.0,
+   "mean_shards_queried": 3.0,
+   "query_reduction_vs_all": 0.98
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 1.971004530787468e-05,
+    "p95": 0.0002138379961252218,
+    "n": 300
+   },
+   "probe_s": {
+    "p50": 0.12503784894943237,
+    "p95": 1.717587791872211,
+    "n": 300
+   },
+   "route_s": {
+    "p50": 0.007632884895429015,
+    "p95": 0.009494387451559306,
+    "n": 300
+   },
+   "generate_s": {
+    "p50": 7.88861994119361,
+    "p95": 30.821601715590813,
+    "n": 300
+   },
+   "e2e_s": {
+    "p50": 46.428102880949154,
+    "p95": 77.3054378066212,
+    "n": 300
+   }
+  },
+  "mean_bytes_received": 34139.04,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 9.85,
+   "mean_query_recipients": 24.0
+  },
+  "gold_doc_retrieval": null
+ }
+}
