@@ -1,7 +1,7 @@
 {
   "repo": "atrium",
   "iteration": 20,
-  "iteration_name": "p0006 完了（P0〜P5）．次は人間の判断（B56・B57・B58 のレビュー，P6 の開始）",
+  "iteration_name": "p0007 完了（P2P 対 中央集約の多基準比較．精度は非劣性不成立で交換関係として報告．次は人間の判断）",
   "phase": "evaluate",
   "status": "converged",
   "current_lever": null,
@@ -11,5 +11,5 @@
   "last_slack_ts": "1792132817.912919",
   "iteration_thread_ts": null,
   "notion_toggle_created": false,
-  "last_commit": "9d3815c"
+  "last_commit": "d2a52c1"
 }
