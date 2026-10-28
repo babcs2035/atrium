@@ -1,0 +1,101 @@
+node-1  | 2026-10-19 14:41:16,137 INFO faiss.loader: Loading faiss with AVX2 support.
+node-1  | 2026-10-19 14:41:16,137 INFO faiss.loader: Could not load library with AVX2 support due to:
+node-1  | ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+node-1  | 2026-10-19 14:41:16,137 INFO faiss.loader: Loading faiss.
+node-1  | 2026-10-19 14:41:16,176 INFO faiss.loader: Successfully loaded faiss.
+node-1  | 2026-10-19 14:41:16,321 INFO atrium.store: loaded shard panus-s (61 docs, fusion=rrf, bm25 build 0.03 s)
+node-1  | 2026-10-19 14:41:16,357 INFO atrium.store: loaded shard reitmeyer-j (64 docs, fusion=rrf, bm25 build 0.02 s)
+node-1  | 2026-10-19 14:41:16,384 INFO atrium.store: loaded shard ring-a (58 docs, fusion=rrf, bm25 build 0.02 s)
+node-1  | 2026-10-19 14:41:16,410 INFO atrium.store: loaded shard sanchez-m (59 docs, fusion=rrf, bm25 build 0.02 s)
+node-1  | 2026-10-19 14:41:17,533 INFO atrium.store: loaded shard taylor-m (2671 docs, fusion=rrf, bm25 build 1.08 s)
+node-1  | INFO:     Started server process [1]
+node-1  | INFO:     Waiting for application startup.
+node-1  | INFO:     Application startup complete.
+node-1  | INFO:     Uvicorn running on http://0.0.0.0:8100 (Press CTRL+C to quit)
+node-1  | INFO:     192.168.15.10:45352 - "GET /healthz HTTP/1.1" 200 OK
+node-1  | INFO:     192.168.15.10:40092 - "GET /v1/profile HTTP/1.1" 200 OK
+node-1  | INFO:     192.168.15.10:40092 - "GET /healthz HTTP/1.1" 200 OK
+node-1  | INFO:     192.168.15.10:40092 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40092 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40098 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40102 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40114 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40130 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40172 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40130 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40172 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40130 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40234 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40172 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40252 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40264 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40280 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40294 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40316 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40234 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40336 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40252 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40360 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40316 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40234 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40336 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40390 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40392 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40516 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40516 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40606 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40620 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40640 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40646 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40516 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40664 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40640 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40640 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40688 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40716 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40726 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40640 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40688 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40726 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40688 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40726 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40688 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40726 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40860 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:40688 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34900 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34904 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34908 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34904 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34908 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34904 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34908 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34904 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34930 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34960 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34904 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34998 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:35008 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:34998 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:35008 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:35008 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:35008 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:35098 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59678 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59684 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59696 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59684 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59702 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59684 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59732 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59740 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59740 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59740 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:59740 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:52946 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:52946 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:52946 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:52946 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:52976 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:52976 - "POST /v1/probe HTTP/1.1" 400 Bad Request
+node-1  | INFO:     192.168.15.10:52976 - "POST /v1/probe HTTP/1.1" 400 Bad Request

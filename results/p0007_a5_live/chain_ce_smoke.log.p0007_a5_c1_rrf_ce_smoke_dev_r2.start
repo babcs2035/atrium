@@ -1,0 +1,4 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+[17:41:53] run p0007_a5_c1_rrf_ce_smoke_dev_r2 (kind=e1_routing dataset=enronqa routing=central_local answer_mode=snippet_return)
+[18:00:30] results: results/p0007_a5_c1_rrf_ce_smoke_dev_r2 (exit 2)
+[start] ERROR task failed

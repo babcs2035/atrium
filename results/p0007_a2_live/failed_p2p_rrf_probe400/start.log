@@ -1,0 +1,10 @@
+[23:42:53] starting atrium-run-p0007_a2_p2p_rrf on wafl-ctrl5
+ Container atrium-ollama-1 Running 
+ Container atrium-run-p0007_a2_p2p_rrf Creating 
+ Container atrium-run-p0007_a2_p2p_rrf Created 
+bash: line 1: /home/denjo/workspace/ktakahashi/atrium/results/p0007_a2_p2p_rrf/results.jsonl: No such file or directory
+[23:42:56] running: 0 questions done
+[23:43:56] running: 832 questions done
+[23:44:57] running: 1587 questions done
+[23:45:57] running: 2343 questions done
+[23:47:07] requester exited with 1 (see results/p0007_a2_p2p_rrf/requester.log)

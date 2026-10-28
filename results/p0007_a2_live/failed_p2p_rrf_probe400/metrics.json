@@ -1,0 +1,44 @@
+{
+ "all": {
+  "n": 2940,
+  "n_unlabeled": 0,
+  "failure_rate": 1.0,
+  "selection": {
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "mean_selected_sources": 0.0,
+   "mean_relevant_sources": 0.0,
+   "mean_shards_queried": 0.0,
+   "query_reduction_vs_all": 1.0
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {},
+  "mean_bytes_received": 0.0,
+  "mean_snippets_exposed": 0.0,
+  "exposure": null,
+  "gold_doc_retrieval": null
+ },
+ "test": {
+  "n": 2940,
+  "n_unlabeled": 0,
+  "failure_rate": 1.0,
+  "selection": {
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "mean_selected_sources": 0.0,
+   "mean_relevant_sources": 0.0,
+   "mean_shards_queried": 0.0,
+   "query_reduction_vs_all": 1.0
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {},
+  "mean_bytes_received": 0.0,
+  "mean_snippets_exposed": 0.0,
+  "exposure": null,
+  "gold_doc_retrieval": null
+ }
+}

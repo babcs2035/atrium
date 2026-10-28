@@ -1,0 +1,16 @@
+[analyze] $ bash scripts/tasks/analyze.sh ${usage_run_id:-}
+results/p0007_a5_c1_rrf_ce_smoke_dev/analysis_report.md
+# 実験結果：p0007_a5_c1_rrf_ce_smoke_dev
+
+- dataset: `enronqa`，routing: `central_local`，answer_mode: `snippet_return`，merge: `cross_encoder`
+- git: `05d3b7eca8e1-dirty`，質問数: 150，失敗: 150
+
+| 集計 | n | 失敗率 | 適合率 | 再現率 | F1 | 平均問い合わせ源 | 平均関連源 | 削減率 | ラベル一致 | 正答率 [95%CI] | e2e p50 / p95 (s) | 平均受信 (KB) | 平均露出断片 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| all | 150 | 1.000 | 0.000 | 0.000 | 0.000 | 0.00 | 0.00 | 0.000 | - | - | - / - | 0.0 | 0.0 |
+| test | 0 | 0.000 | 0.000 | 0.000 | 0.000 | 0.00 | 0.00 | 0.000 | - | - | - / - | 0.0 | 0.0 |
+
+## 段ごとの待ち時間（all，秒）
+
+| 段 | p50 | p95 |
+|---|---|---|
