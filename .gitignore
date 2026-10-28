@@ -21,3 +21,6 @@ artifacts/
 .claude/research/.claude_turn_state
 .claude/research/.hook_debug.log
 .claude/settings.local.json
+
+# 調査報告書（docs/d0008）が引く原論文の写し．再配布しない
+papers/
