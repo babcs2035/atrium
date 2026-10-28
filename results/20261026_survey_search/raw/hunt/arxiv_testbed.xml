@@ -1,0 +1,250 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/6E0grjnO9Y2u6+iqVa0k095aE6E</id>
+  <title>arXiv Query: search_query=(all:testbed OR all:"Raspberry Pi" OR all:Jetson OR all:"physical devices" OR all:"real devices") AND (all:federated OR all:decentralized OR all:distributed OR all:"peer to peer") AND (all:"retrieval augmented generation" OR all:RAG) AND submittedDate:"202001010000 TO 202610262359"&amp;id_list=&amp;start=0&amp;max_results=50</title>
+  <updated>2026-10-26T05:48:11Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=(all:testbed+OR+(all:%22Raspberry+Pi%22+OR+(all:Jetson+OR+(all:%22physical+devices%22+OR+all:%22real+devices%22))))+AND+((all:federated+OR+(all:decentralized+OR+(all:distributed+OR+all:%22peer+to+peer%22)))+AND+((all:%22retrieval+augmented+generation%22+OR+all:RAG)+AND+submittedDate:%22202001010000+TO+202610262359%22))&amp;start=0&amp;max_results=50&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>50</opensearch:itemsPerPage>
+  <opensearch:totalResults>8</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2504.11197v2</id>
+    <title>Efficient Distributed Retrieval-Augmented Generation for Enhancing Language Model Performance</title>
+    <updated>2025-04-16T03:32:23Z</updated>
+    <link href="https://arxiv.org/abs/2504.11197v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2504.11197v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Small language models (SLMs) support efficient deployments on resource-constrained edge devices, but their limited capacity compromises inference performance. Retrieval-augmented generation (RAG) is a promising solution to enhance model performance by integrating external databases, without requiring intensive on-device model retraining. However, large-scale public databases and user-specific private contextual documents are typically located on the cloud and the device separately, while existing RAG implementations are primarily centralized. To bridge this gap, we propose DRAGON, a distributed RAG framework to enhance on-device SLMs through both general and personal knowledge without the risk of leaking document privacy. Specifically, DRAGON decomposes multi-document RAG into multiple parallel token generation processes performed independently and locally on the cloud and the device, and employs a newly designed Speculative Aggregation, a dual-side speculative algorithm to avoid frequent output synchronization between the cloud and device. A new scheduling algorithm is further introduced to identify the optimal aggregation side based on real-time network conditions. Evaluations on real-world hardware testbed demonstrate a significant performance improvement of DRAGON-up to 1.9x greater gains over standalone SLM compared to the centralized RAG, substantial reduction in per-token latency, and negligible Time to First Token (TTFT) overhead.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-04-15T13:53:08Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Shangyu Liu</name>
+    </author>
+    <author>
+      <name>Zhenzhe Zheng</name>
+    </author>
+    <author>
+      <name>Xiaoyao Huang</name>
+    </author>
+    <author>
+      <name>Fan Wu</name>
+    </author>
+    <author>
+      <name>Guihai Chen</name>
+    </author>
+    <author>
+      <name>Jie Wu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.26938v1</id>
+    <title>GRaSP: Latency-Aware Optimization for Geo-Distributed Retrieval-Augmented Generation</title>
+    <updated>2026-10-17T23:20:16Z</updated>
+    <link href="https://arxiv.org/abs/2610.26938v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.26938v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) is increasingly served across geo-distributed cloud and edge infrastructures, where wide-area latency, cross-region egress cost, and data-residency rules compete with retrieval quality. Conventional pipelines rank by semantic similarity alone and ignore where content lives, inflating tail latency and cost. We formalize the Geo-RAG Selection Problem (GRaSP), a drop-in re-scoring layer that decays relevance by latency and adds an optional cost penalty under a cardinality budget and per-region caps, with no retraining. We first settle its complexity: the base formulation is a linear objective over a partition matroid, solved optimally by an O(N log N) greedy algorithm, rather than NP-hard as a knapsack framing suggests, with hardness entering only under an additive egress budget. On a five-node CloudLab testbed emulating a four-region WAN over the Natural Questions corpus (2.68M passages), GRaSP's benefit is placement-dependent: under uniform placement it cuts fetch latency at negligible quality cost; under topical (residency-like) placement it traces a recall-latency Pareto frontier that dominates relevance-only, nearest-k, and a latency-budgeted baseline. At a moderate latency setting, GRaSP lowers P90 fetch latency by 41% while retaining 78% of relevance-only's recall, with sub-millisecond selection overhead, stable to 200 queries/s. Findings generalize across four public BEIR benchmarks. In end-to-end question answering, GRaSP reduces context-fetch latency by 43% while remaining within 0.062 absolute EM of relevance-only retrieval.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-17T23:20:16Z</published>
+    <arxiv:comment>Accepted at the 4th International ACM SIGIR Conference on Information Retrieval in the Asia Pacific (SIGIR-AP 2026)</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Hardik Ruparel</name>
+    </author>
+    <author>
+      <name>Raj Kumar Pandey</name>
+    </author>
+    <author>
+      <name>Pramod Kumar</name>
+    </author>
+    <arxiv:doi>10.1145/3848000.3850202</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1145/3848000.3850202" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2608.00922v1</id>
+    <title>From Cloud to Crowd: Democratizing LLM Service with Decentralized Edge Collaboration for RAG</title>
+    <updated>2026-08-02T01:28:34Z</updated>
+    <link href="https://arxiv.org/abs/2608.00922v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2608.00922v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The rapid advancement of large language models (LLMs) has increased demand for scalable and cost-effective deployment, especially for mobile and edge devices. Cloud-hosted LLMs are powerful but expensive and difficult to scale due to vendor lock-in and high resource needs, resulting in high expenses and unstable performance under load. Recent efforts focus on deploying small language models (SLMs), distilled or pruned from LLMs, on resource-constrained edge devices to reduce costs and improve scalability. However, edge-based SLMs face limited knowledge coverage and notable accuracy gap compared to cloud-based LLMs. To address this, we present DEFRAG, a decentralized edge collaboration system for retrieval-augmented generation (RAG) that optimizes both retrieval and generation across heterogeneous edge devices. For retrieval, DEFRAG compresses and shares knowledge graphs, using hybrid retrieval to expand knowledge coverage. For generation, DEFRAG introduces an optimizer that adaptively selects SLMs and RAG parameters per query, balancing accuracy and cost. We implement DEFRAG on a heterogeneous edge testbed and evaluate it on benchmark QA datasets. We also test it under mobile route stress, non-uniform data placement, and a domain-specific QA workload. The results show that DEFRAG maintains stable service quality and cost efficiency under these broader settings. Results show that DEFRAG narrows the SLM-LLM accuracy gap, while reducing cost by up to 98.4% and increasing peak throughput by up to 97.8% over centralized services. These findings demonstrate the potential of DEFRAG for democratized LLM services at the edge.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-02T01:28:34Z</published>
+    <arxiv:comment>15 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Jiaxing Li</name>
+    </author>
+    <author>
+      <name>Hengzhi Wang</name>
+    </author>
+    <author>
+      <name>Feng Wang</name>
+    </author>
+    <author>
+      <name>Chi Xu</name>
+    </author>
+    <author>
+      <name>Danyang Song</name>
+    </author>
+    <author>
+      <name>Ruixiao Zhang</name>
+    </author>
+    <author>
+      <name>Edith C. H. Ngai</name>
+    </author>
+    <author>
+      <name>Jiangchuan Liu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2608.19535v1</id>
+    <title>From Retrieved Context to Runtime Control: Adaptive Compression for Edge-based RAG</title>
+    <updated>2026-08-20T01:13:29Z</updated>
+    <link href="https://arxiv.org/abs/2608.19535v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2608.19535v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) improves language-model responses by grounding generation in external passages, which comes with overhead: retrieved context lengthens the prompt, increasing prefill work, KV-cache footprint, memory traffic, latency, and energy. Context compression offers a natural remedy by pruning retrieved text before generation. However, state-of-the-art context-compression methods are typically used with a fixed compression budget, or with the rate selected offline and then applied at inference time. This static view ignores both workload variation and the live state of the edge device. On an edge SoC, compression is not free: the compressor itself runs on the same SoC and consumes latency and energy that can offset any generation savings.
+  This paper proposes a vision for telemetry-informed adaptive compression in edge RAG, grounded in experimental evidence. We characterize the compression tradeoff on the NVIDIA Jetson AGX Thor using Llama and Qwen generators, Natural Questions and HotpotQA datasets, and LLMLingua-2 compression. Our measurements show that generation dominates the RAG budget for larger models, reaching roughly 90% of per-query latency and 91% of GPU energy for 7B-8B generators. Exploring the impact of the compression rate reveals an adaptive operating region: mild compression can miss energy opportunities, and overly aggressive compression can hurt inference quality. Intermediate compression can reduce GPU energy by up to 53.2%, and SoC energy by up to 48.2%, with negligible quality loss. We argue for runtime policies that dynamically manage compression, guided by workload features and edge telemetry.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.PF" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-20T01:13:29Z</published>
+    <arxiv:comment>Accepted to appear in the Proceedings of the ACM AI Leadership Summit 2026. Zlatan Feric and Amir Taherin contributed equally</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Zlatan Feric</name>
+    </author>
+    <author>
+      <name>Amir Taherin</name>
+    </author>
+    <author>
+      <name>Yanzhi Wang</name>
+    </author>
+    <author>
+      <name>David Kaeli</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.15076v1</id>
+    <title>A RAG-Enhanced Bi-Level Cognitive Orchestration Framework for LEO Satellite Networks</title>
+    <updated>2026-06-13T03:15:23Z</updated>
+    <link href="https://arxiv.org/abs/2606.15076v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.15076v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The rapid growth of remote sensing data in Low Earth Orbit (LEO) satellite networks is increasingly constrained by limited downlink capacity to terrestrial networks. Satellite edge computing alleviates this pressure by enabling in-orbit data processing. However, it introduces a new challenge of spatio-temporal resource fragmentation. Variations in onboard computing capability, constrained energy availability, and intermittent inter-satellite and satellite-ground connectivity lead to highly dynamic and uneven resource distribution, which degrades the performance of conventional static routing and scheduling approaches. To address this, we propose a Retrieval-Augmented Generation (RAG)-enhanced bi-level cognitive orchestration framework for knowledge-guided, multi-objective scheduling. The proposed framework explicitly decouples network control across two different operational scales: at the strategic upper level, a Large Language Model (LLM) leverages an offline-distilled Expert Knowledge Base (EKB) to dynamically infer preference weights based on a compact abstract-state descriptor of real-time network conditions. At the lower execution level, a fidelity-aware genetic scheduler utilizes these inferred weights to compute physically feasible, collision-free joint routing and task offloading schedules. Extensive evaluations on a high-fidelity Walker-Delta network testbed under mixed-criticality workloads demonstrate that the proposed framework effectively consolidates fragmented resources, achieving a 30.7% reduction in packet loss, a 30% improvement in energy efficiency over the most competitive learning-based baseline, and an 8.5% decrease in end-to-end latency, while maintaining robust performance under cascading node-failure scenarios.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-13T03:15:23Z</published>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Yuhong Jiang</name>
+    </author>
+    <author>
+      <name>Zhishu Shen</name>
+    </author>
+    <author>
+      <name>Tong Yin</name>
+    </author>
+    <author>
+      <name>Qiushi Zheng</name>
+    </author>
+    <author>
+      <name>Yichao Jin</name>
+    </author>
+    <author>
+      <name>Fidan Mehmeti</name>
+    </author>
+    <author>
+      <name>Jiong Jin</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2601.07978v5</id>
+    <title>Cost and Accuracy of Long-Term Memory in Distributed Multi-Agent Systems Based on Large Language Models</title>
+    <updated>2026-09-03T07:07:59Z</updated>
+    <link href="https://arxiv.org/abs/2601.07978v5" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2601.07978v5" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Long-term memory (LTM) is fundamental to large language model (LLM)-based agents in the emerging Internet of Agents (IoA), where distributed multi-agent systems (DMAS) span cloud and edge networks. Existing evaluations are typically published by framework providers and focus on token usage and latency, rarely accounting for system-level cost or deployment in DMAS. These gaps are addressed with an independent reproducible testbed that evaluates accuracy, latency, CPU time, peak RAM, disk I/O and network usage in a simulated cloud-edge environment. Three venture capital-funded frameworks spanning vector, graph, and hybrid architectures, namely mem0, Graphiti, and cognee, are compared alongside retrieval-augmented generation (RAG) and full-context baselines on the LoCoMo benchmark under unconstrained and constrained network scenarios. Two clusters emerge: mem0, RAG, and full-context reach 77% to 81% accuracy, while Graphiti and cognee reach only 55% to 56%, a gap driven by retrieval incompleteness rather than reasoning failure. The RAG baseline matches the upper cluster at 8.4 times lower total cost of ownership (TCO) than mem0, and both are the only non-dominated backends on the Pareto frontier. Latency and bandwidth constraints as well as jitter leave retrieval quality unchanged for every backend, while vector-based LTM incurs a modest latency penalty of 4% to 5% under edge-cloud constraints. Compression precision rather than context volume determines LTM accuracy, as full-context forwarding underperforms mem0 despite supplying the entire conversation for each question.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-01-12T20:20:35Z</published>
+    <arxiv:comment>11 pages, 3 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Benedict Wolff</name>
+    </author>
+    <author>
+      <name>Jacopo Bennati</name>
+    </author>
+    <arxiv:doi>10.1109/COMPSAC69091.2026.00015</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1109/COMPSAC69091.2026.00015" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.16356v1</id>
+    <title>Toward Experimentation-as-a-Service in 5G/6G: The Plaza6G Prototype for AI-Assisted Trials</title>
+    <updated>2026-03-17T10:37:32Z</updated>
+    <link href="https://arxiv.org/abs/2603.16356v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.16356v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper presents Plaza6G, the first operational Experiment-as-a-Service (ExaS) platform unifying cloud resources with next-generation wireless infrastructure. Developed at CTTC in Barcelona, Plaza6G integrates GPU-accelerated compute clusters, multiple 5G cores, both open-source (e.g., Free5GC) and commercial (e.g., Cumucore), programmable RANs, and physical or emulated user equipment under unified orchestration. In Plaza6G, the experiment design requires minimal expertise as it is expressed in natural language via a web portal or a REST API. The web portal and REST API are enhanced with a Large Language Model (LLM)-based assistant, which employs retrieval-augmented generation (RAG) for up-to-date experiment knowledge and Low-Rank Adaptation (LoRA) for continuous domain fine-tuning. Over-the-air (OTA) trials leverage a four-chamber anechoic facility and a dual-site outdoor 5G network operating in sub-6~GHz and mmWave bands. Demonstrations include automated CI/CD integration with sub-ten-minute setup and interactive OTA testing under programmable propagation conditions. Machine-readable experiment descriptors ensure reproducibility, while future work targets policy-aware orchestration, safety validation, and federated testbed integration toward open, reproducible wireless experimentation.</summary>
+    <category term="cs.NI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-17T10:37:32Z</published>
+    <arxiv:comment>5 pages, 5 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.NI"/>
+    <author>
+      <name>Sergio Barrachina-Muñoz</name>
+    </author>
+    <author>
+      <name>Marc Carrascosa-Zamacois</name>
+    </author>
+    <author>
+      <name>Horacio Bleda</name>
+    </author>
+    <author>
+      <name>Umair Riaz</name>
+    </author>
+    <author>
+      <name>Yasir Maqsood</name>
+    </author>
+    <author>
+      <name>Xavier Calle</name>
+    </author>
+    <author>
+      <name>Selva Vía</name>
+    </author>
+    <author>
+      <name>Miquel Payaró</name>
+    </author>
+    <author>
+      <name>Josep Mangues-Bafalluy</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.15995v1</id>
+    <title>AutoSec-RAN: Specification-Grounded LLM Fine-Tuning for Automated Security Analysis of O-RAN</title>
+    <updated>2026-10-11T23:54:13Z</updated>
+    <link href="https://arxiv.org/abs/2610.15995v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.15995v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper presents AutoSec-RAN, a specification-grounded large language model (LLM) framework for automated security triage of Open Radio Access Network (O-RAN) testing. Unlike approaches relying on static rule sets or privileged access to raw packet captures, AutoSec-RAN fine-tunes Mistral-7B-Instruct through two Low-Rank Adaptation (LoRA) stages over a curated corpus of 69 O-RAN, 3GPP, and adjacent standards documents, then selectively augments inference with retrieval-augmented generation (RAG) over the same specification index. At inference, the model receives only an investigator-style question and a scenario metadata block, simulating an automated analyst operating without raw packet evidence. AutoSec-RAN is validated on a purpose-built 5G/O-RAN testbed across labeled fronthaul distributed denial of service replay scenarios. A Gemma-4-31B judge LLM scores each candidate's answer on faithfulness, correctness, and actionability relative to a reference authored from full packet capture and log evidence. AutoSec-RAN achieves a mean judge overall score of 0.713 across all 313 evaluation items (0.755 restricted to the five supervised taxonomy classes), clearing the 0.70 reporting threshold, and a blended score of 0.778 (0.808 supervised-only) when cosine similarity over Beijing Academy of Artificial Intelligence (BAAI) General Embedding (BGE) is incorporated as a secondary semantic signal. The framework performs strongest on mitigation and threat-model reasoning (with a mean overall of 0.849 and 0.848, respectively) and identifies a measurable gap on the held-out attack-direction class (0.515), a controlled result that exposes a specific training data requirement. These results establish specification-grounded LoRA fine-tuning combined with RAG retrieval as a viable foundation for automated security validation of AI-native O-RAN.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="eess.SP" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-11T23:54:13Z</published>
+    <arxiv:comment>This paper has been accepted in The 14th IEEE Conference on Communications and Network Security (IEEE CNS 2026)</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Anoop Mishra</name>
+    </author>
+    <author>
+      <name>Joshua Moore</name>
+    </author>
+    <author>
+      <name>Aly Sabri Abdalla</name>
+    </author>
+    <author>
+      <name>Vuk Marojevic</name>
+    </author>
+  </entry>
+</feed>

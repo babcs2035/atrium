@@ -1,0 +1,274 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/JQX0YWeM2oVsLUaVnJObxXatX0g</id>
+  <title>arXiv Query: search_query=(all:privacy AND (all:"multiple data sources" OR all:"multi source" OR all:"cross silo" OR all:"data sources") AND (all:"retrieval augmented generation" OR all:RAG) ) AND submittedDate:"202001010000 TO 202610262359"&amp;id_list=&amp;start=0&amp;max_results=200</title>
+  <updated>2026-10-26T05:37:57Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=(all:privacy+AND+((all:%22multiple+data+sources%22+OR+(all:%22multi+source%22+OR+(all:%22cross+silo%22+OR+all:%22data+sources%22)))+AND+(all:%22retrieval+augmented+generation%22+OR+all:RAG)))+AND+submittedDate:%22202001010000+TO+202610262359%22&amp;start=0&amp;max_results=200&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>200</opensearch:itemsPerPage>
+  <opensearch:totalResults>9</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2412.04697v3</id>
+    <title>Privacy-Preserving Retrieval-Augmented Generation with Differential Privacy</title>
+    <updated>2025-11-11T21:38:22Z</updated>
+    <link href="https://arxiv.org/abs/2412.04697v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2412.04697v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>With the recent remarkable advancement of large language models (LLMs), there has been a growing interest in utilizing them in the domains with highly sensitive data that lies outside their training data. For this purpose, retrieval-augmented generation (RAG) is particularly effective -- it assists LLMs by directly providing relevant information from the external knowledge sources. However, without extra privacy safeguards, RAG outputs risk leaking sensitive information from the external data source. In this work, we explore RAG under differential privacy (DP), a formal guarantee of data privacy. The main challenge with differentially private RAG is how to generate long accurate answers within a moderate privacy budget. We address this by proposing an algorithm that smartly spends privacy budget only for the tokens that require the sensitive information and uses the non-private LLM for other tokens. Our extensive empirical evaluations reveal that our algorithm outperforms the non-RAG baseline under a reasonable privacy budget of $ε\approx 10$ across different models and datasets.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-12-06T01:20:16Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Tatsuki Koga</name>
+    </author>
+    <author>
+      <name>Ruihan Wu</name>
+    </author>
+    <author>
+      <name>Zhiyuan Zhang</name>
+    </author>
+    <author>
+      <name>Kamalika Chaudhuri</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2511.07577v1</id>
+    <title>A Decentralized Retrieval Augmented Generation System with Source Reliabilities Secured on Blockchain</title>
+    <updated>2025-11-10T19:40:30Z</updated>
+    <link href="https://arxiv.org/abs/2511.07577v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2511.07577v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Existing retrieval-augmented generation (RAG) systems typically use a centralized architecture, causing a high cost of data collection, integration, and management, as well as privacy concerns. There is a great need for a decentralized RAG system that enables foundation models to utilize information directly from data owners who maintain full control over their sources. However, decentralization brings a challenge: the numerous independent data sources vary significantly in reliability, which can diminish retrieval accuracy and response quality. To address this, our decentralized RAG system has a novel reliability scoring mechanism that dynamically evaluates each source based on the quality of responses it contributes to generate and prioritizes high-quality sources during retrieval. To ensure transparency and trust, the scoring process is securely managed through blockchain-based smart contracts, creating verifiable and tamper-proof reliability records without relying on a central authority. We evaluate our decentralized system with two Llama models (3B and 8B) in two simulated environments where six data sources have different levels of reliability. Our system achieves a +10.7\% performance improvement over its centralized counterpart in the real world-like unreliable data environments. Notably, it approaches the upper-bound performance of centralized systems under ideally reliable data environments. The decentralized infrastructure enables secure and trustworthy scoring management, achieving approximately 56\% marginal cost savings through batched update operations. Our code and system are open-sourced at github.com/yining610/Reliable-dRAG.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-11-10T19:40:30Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Yining Lu</name>
+    </author>
+    <author>
+      <name>Wenyi Tang</name>
+    </author>
+    <author>
+      <name>Max Johnson</name>
+    </author>
+    <author>
+      <name>Taeho Jung</name>
+    </author>
+    <author>
+      <name>Meng Jiang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2509.06444v1</id>
+    <title>HyFedRAG: A Federated Retrieval-Augmented Generation Framework for Heterogeneous and Privacy-Sensitive Data</title>
+    <updated>2025-09-08T08:44:24Z</updated>
+    <link href="https://arxiv.org/abs/2509.06444v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2509.06444v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Centralized RAG pipelines struggle with heterogeneous and privacy-sensitive data, especially in distributed healthcare settings where patient data spans SQL, knowledge graphs, and clinical notes. Clinicians face difficulties retrieving rare disease cases due to privacy constraints and the limitations of traditional cloud-based RAG systems in handling diverse formats and edge devices. To address this, we introduce HyFedRAG, a unified and efficient Federated RAG framework tailored for Hybrid data modalities. By leveraging an edge-cloud collaborative mechanism, HyFedRAG enables RAG to operate across diverse data sources while preserving data privacy. Our key contributions are: (1) We design an edge-cloud collaborative RAG framework built on Flower, which supports querying structured SQL data, semi-structured knowledge graphs, and unstructured documents. The edge-side LLMs convert diverse data into standardized privacy-preserving representations, and the server-side LLMs integrates them for global reasoning and generation. (2) We integrate lightweight local retrievers with privacy-aware LLMs and provide three anonymization tools that enable each client to produce semantically rich, de-identified summaries for global inference across devices. (3) To optimize response latency and reduce redundant computation, we design a three-tier caching strategy consisting of local cache, intermediate representation cache, and cloud inference cache. Experimental results on PMC-Patients demonstrate that HyFedRAG outperforms existing baselines in terms of retrieval quality, generation consistency, and system efficiency. Our framework offers a scalable and privacy-compliant solution for RAG over structural-heterogeneous data, unlocking the potential of LLMs in sensitive and diverse data environments.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-09-08T08:44:24Z</published>
+    <arxiv:comment>9 pages, 7 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Cheng Qian</name>
+    </author>
+    <author>
+      <name>Hainan Zhang</name>
+    </author>
+    <author>
+      <name>Yongxin Tong</name>
+    </author>
+    <author>
+      <name>Hong-Wei Zheng</name>
+    </author>
+    <author>
+      <name>Zhiming Zheng</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.16519v3</id>
+    <title>AquiLLM: Evaluating Faithfulness in Open-Weight RAG-LLM Systems for Scientific Research</title>
+    <updated>2026-09-26T01:09:37Z</updated>
+    <link href="https://arxiv.org/abs/2609.16519v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.16519v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Scientific research increasingly relies on large, heterogeneous data sources, motivating interest in retrieval-augmented generation (RAG) systems that provide natural language access to scientific knowledge and research workflows. Researchers are exploring the viability of these systems as natural language interfaces for document search and for generating analysis code and pipeline components. At the same time, concerns about data privacy and control over research infrastructure have motivated interest in open-weight models and open-source deployments hosted within research institutions. In astronomy, this development follows a long history of computational infrastructure development, from archival databases and Structured Query Language (SQL)-based systems to large language model (LLM)-assisted research tools. This paper presents a domain-expert evaluation of faithfulness for AquiLLM, an open-weight, offline RAG-LLM platform designed to support scientific research groups in the use and preservation of tacit and formal knowledge. We define faithfulness as the extent to which generated responses remain grounded in retrieved scientific context without unsupported claims or omissions. We report results from an astronomy case study evaluating AquiLLM across retrieval and scientific analysis tasks. AquiLLM performs most reliably on explicit retrieval-oriented questions grounded in the RAG collection, while faithfulness degrades for queries requiring synthesis or ambiguity resolution. These results highlight both the promise and limitations of open-weight RAG-LLM systems for scientific research and demonstrate the importance of domain-expert evaluation beyond standard benchmark leaderboards.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-15T02:09:45Z</published>
+    <arxiv:comment>14 pages, 1 figure</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Bernie Boscoe</name>
+    </author>
+    <author>
+      <name>Srinath Saikrishnan</name>
+    </author>
+    <author>
+      <name>Vikram Seenivasan</name>
+    </author>
+    <author>
+      <name>Jack Stark</name>
+    </author>
+    <author>
+      <name>Andrew Lizarraga</name>
+    </author>
+    <author>
+      <name>Morgan Himes</name>
+    </author>
+    <author>
+      <name>Jonathan Soriano</name>
+    </author>
+    <author>
+      <name>PJ Allen</name>
+    </author>
+    <author>
+      <name>Tuan Do</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.26627v1</id>
+    <title>Agents That Know Too Much: A Data-Centric Survey of Privacy in LLM Agents</title>
+    <updated>2026-06-25T05:44:18Z</updated>
+    <link href="https://arxiv.org/abs/2606.26627v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.26627v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Large language model agents increasingly query databases, search document collections, call external APIs, remember past interactions, and act on a user's behalf. As they move from answering questions to operating over sensitive data, privacy becomes harder to enforce. An agent touches many data sources, runs multi-step workflows, keeps state across sessions, and acts with delegated permissions. Sensitive information can therefore leak not only through its final answer but through the queries it issues, the intermediate results it handles, the memory it writes, and the messages it exchanges with other agents. We survey the privacy of LLM agents from a data-centric view, organizing the field around the data an agent touches rather than by attack type, and we use data agent as shorthand for an LLM agent that works with data. Research on these risks is active but scattered across retrieval-augmented generation, text-to-SQL interfaces, agent memory, prompt injection, access control, and contextual privacy. This survey brings that work together: we taxonomize the data sources an agent touches, the privacy risks each source creates, and the governance mechanisms that address them; we map the benchmarks used to measure these risks and identify what is missing; and we set out the open problems. Two findings recur: among governance mechanisms only information-flow control covers both compositional and cross-session inference leakage, the two least-protected risks; and no benchmark drives an agent across its data surfaces under one privacy policy, the instrument the field most lacks. Our goal is a reference that situates the scattered literature and gives future work a common framing.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-25T05:44:18Z</published>
+    <arxiv:comment>17 pages, 4 figures, 7 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Nada Lahjouji</name>
+    </author>
+    <author>
+      <name>Ashwin Gerard Colaco</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2410.15284v1</id>
+    <title>Customized FinGPT Search Agents Using Foundation Models</title>
+    <updated>2024-10-20T04:48:12Z</updated>
+    <link href="https://arxiv.org/abs/2410.15284v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2410.15284v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Current large language models (LLMs) have proven useful for analyzing financial data, but most existing models, such as BloombergGPT and FinGPT, lack customization for specific user needs. In this paper, we address this gap by developing FinGPT Search Agents tailored for two types of users: individuals and institutions. For individuals, we leverage Retrieval-Augmented Generation (RAG) to integrate local documents and user-specified data sources. For institutions, we employ dynamic vector databases and fine-tune models on proprietary data. There are several key issues to address, including data privacy, the time-sensitive nature of financial information, and the need for fast responses. Experiments show that FinGPT agents outperform existing models in accuracy, relevance, and response time, making them practical for real-world applications.</summary>
+    <category term="cs.CE" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.HC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-10-20T04:48:12Z</published>
+    <arxiv:primary_category term="cs.CE"/>
+    <arxiv:journal_ref>5th ACM International Conference on AI in Finance, 2024</arxiv:journal_ref>
+    <author>
+      <name>Felix Tian</name>
+    </author>
+    <author>
+      <name>Ajay Byadgi</name>
+    </author>
+    <author>
+      <name>Daniel Kim</name>
+    </author>
+    <author>
+      <name>Daochen Zha</name>
+    </author>
+    <author>
+      <name>Matt White</name>
+    </author>
+    <author>
+      <name>Kairong Xiao</name>
+    </author>
+    <author>
+      <name>Xiao-Yang Liu Yanglet</name>
+    </author>
+    <arxiv:doi>10.1145/3677052.3698637</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1145/3677052.3698637" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2502.19596v5</id>
+    <title>Reference-Aligned Retrieval-Augmented Question Answering over Heterogeneous Proprietary Documents</title>
+    <updated>2025-08-27T03:09:19Z</updated>
+    <link href="https://arxiv.org/abs/2502.19596v5" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2502.19596v5" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Proprietary corporate documents contain rich domain-specific knowledge, but their overwhelming volume and disorganized structure make it difficult even for employees to access the right information when needed. For example, in the automotive industry, vehicle crash-collision tests, each costing hundreds of thousands of dollars, produce highly detailed documentation. However, retrieving relevant content during decision-making remains time-consuming due to the scale and complexity of the material. While Retrieval-Augmented Generation (RAG)-based Question Answering (QA) systems offer a promising solution, building an internal RAG-QA system poses several challenges: (1) handling heterogeneous multi-modal data sources, (2) preserving data confidentiality, and (3) enabling traceability between each piece of information in the generated answer and its original source document. To address these, we propose a RAG-QA framework for internal enterprise use, consisting of: (1) a data pipeline that converts raw multi-modal documents into a structured corpus and QA pairs, (2) a fully on-premise, privacy-preserving architecture, and (3) a lightweight reference matcher that links answer segments to supporting content. Applied to the automotive domain, our system improves factual correctness (+1.79, +1.94), informativeness (+1.33, +1.16), and helpfulness (+1.08, +1.67) over a non-RAG baseline, based on 1-5 scale ratings from both human and LLM judge.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-02-26T22:20:08Z</published>
+    <arxiv:comment>Accepted to CIKM 2025 Applied Research Track</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Nayoung Choi</name>
+    </author>
+    <author>
+      <name>Grace Byun</name>
+    </author>
+    <author>
+      <name>Andrew Chung</name>
+    </author>
+    <author>
+      <name>Ellie S. Paek</name>
+    </author>
+    <author>
+      <name>Shinsun Lee</name>
+    </author>
+    <author>
+      <name>Jinho D. Choi</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2408.05242v1</id>
+    <title>FLASH: Federated Learning-Based LLMs for Advanced Query Processing in Social Networks through RAG</title>
+    <updated>2024-08-06T22:28:13Z</updated>
+    <link href="https://arxiv.org/abs/2408.05242v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2408.05242v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Our paper introduces a novel approach to social network information retrieval and user engagement through a personalized chatbot system empowered by Federated Learning GPT. The system is designed to seamlessly aggregate and curate diverse social media data sources, including user posts, multimedia content, and trending news. Leveraging Federated Learning techniques, the GPT model is trained on decentralized data sources to ensure privacy and security while providing personalized insights and recommendations. Users interact with the chatbot through an intuitive interface, accessing tailored information and real-time updates on social media trends and user-generated content. The system's innovative architecture enables efficient processing of input files, parsing and enriching text data with metadata, and generating relevant questions and answers using advanced language models. By facilitating interactive access to a wealth of social network information, this personalized chatbot system represents a significant advancement in social media communication and knowledge dissemination.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.SI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-08-06T22:28:13Z</published>
+    <arxiv:comment>This research paper is submitted to ASONAM 2024 conference on Advances in Social Networks Analysis and Mining and going to be published in Springer</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Sai Puppala</name>
+    </author>
+    <author>
+      <name>Ismail Hossain</name>
+    </author>
+    <author>
+      <name>Md Jahangir Alam</name>
+    </author>
+    <author>
+      <name>Sajedul Talukder</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.01990v1</id>
+    <title>According to Me: Long-Term Personalized Referential Memory QA</title>
+    <updated>2026-03-02T15:42:29Z</updated>
+    <link href="https://arxiv.org/abs/2603.01990v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.01990v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Personalized AI assistants must recall and reason over long-term user memory, which naturally spans multiple modalities and sources such as images, videos, and emails. However, existing Long-term Memory benchmarks focus primarily on dialogue history, failing to capture realistic personalized references grounded in lived experience. We introduce ATM-Bench, the first benchmark for multimodal, multi-source personalized referential Memory QA. ATM-Bench contains approximately four years of privacy-preserving personal memory data and human-annotated question-answer pairs with ground-truth memory evidence, including queries that require resolving personal references, multi-evidence reasoning from multi-source and handling conflicting evidence. We propose Schema-Guided Memory (SGM) to structurally represent memory items originated from different sources. In experiments, we implement 5 state-of-the-art memory systems along with a standard RAG baseline and evaluate variants with different memory ingestion, retrieval, and answer generation techniques. We find poor performance (under 20\% accuracy) on the ATM-Bench-Hard set, and that SGM improves performance over Descriptive Memory commonly adopted in prior works. Code available at: https://github.com/JingbiaoMei/ATM-Bench</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-02T15:42:29Z</published>
+    <arxiv:comment>Preprint</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Jingbiao Mei</name>
+    </author>
+    <author>
+      <name>Jinghong Chen</name>
+    </author>
+    <author>
+      <name>Guangyu Yang</name>
+    </author>
+    <author>
+      <name>Xinyu Hou</name>
+    </author>
+    <author>
+      <name>Margaret Li</name>
+    </author>
+    <author>
+      <name>Bill Byrne</name>
+    </author>
+  </entry>
+</feed>

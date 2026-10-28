@@ -1,0 +1,170 @@
+{
+  "query": "peer-to-peer retrieval-augmented generation",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://arxiv.org/html/2505.00443v1",
+      "title": "Distributed Retrieval-Augmented Generation",
+      "content": "To address the aforementioned challenges, this paper introduces Distributed Retrieval-Augmented Generation (DRAG), a novel framework that improves data privacy and scalability of RAG. DRAG eliminates the need for a central knowledge base or direct data sharing by enabling peer-to-peer (P2P) knowledge retrieval and generation across a distributed network. The decentralized design mitigates privacy risks by allowing users to have full control over their data while distributing the computational burden of knowledge base maintenance and retrieval. [...] To address these challenges, this paper introduces Distributed Retrieval-Augmented Generation (DRAG), a novel framework that improves data privacy by eliminating the need for a centralized knowledge base and restoring data control to owners.\nDRAG incorporates a Topic-Aware Random Walk (TARW) algorithm that leverages LLMs to extract query topics and facilitate targeted peer discovery within a peer-to-peer network, enabling efficient knowledge retrieval in decentralized environments.\nExtensive experiments across three diverse datasets and LLMs demonstrate that DRAG with TARW achieves near-centralized RAG performance by using half as many messages as flooding.\nThe code is available at . [...] Distributed Retrieval: Following the discovery of relevant peers, DRAG proceeds to the distributed retrieval phase. Rather than retrieving raw data, DRAG gathers user-filtered knowledge snippets from peers to ensure data privacy. In particular, these filters can be rule-based, relying on predefined patterns and keywords, or LLM-driven, utilizing machine learning models to automatically identify and mask sensitive data. By integrating these privacy-preserving mechanisms, DRAG facilitates secure and efficient knowledge sharing while minimizing the risks of data leakage and privacy violations.\n\nLocal Generation: At this stage, the querying peer combines the retrieved knowledge snippets with its local context to generate an accurate and coherent response using its local LLM.",
+      "score": 0.8793233,
+      "raw_content": null,
+      "id": "db8738-00"
+    },
+    {
+      "url": "https://arxiv.org/pdf/2505.00443",
+      "title": "Distributed Retrieval-Augmented Generation",
+      "content": "To address the aforementioned challenges, this paper intro-duces Distributed Retrieval-Augmented Generation (DRAG), a novel framework that improves data privacy and scalability of RAG. DRAG eliminates the need for a central knowledge base or direct data sharing by enabling peer-to-peer (P2P) knowledge retrieval and generation across a distributed net-work. The decentralized design mitigates privacy risks by allowing users to have full control over their data while distributing the computational burden of knowledge base maintenance and retrieval. To facilitate efficient knowledge discovery within the DRAG network, a novel Topic-Aware Random Walk (TARW) algorithm is proposed. TARW lever-ages LLMs to extract query topics and guide peer discovery while utilizing a local cache to further [...] owners. DRAG incorporates a Topic-Aware Random Walk (TARW) algorithm that leverages LLMs to extract query topics and facilitate targeted peer discovery within a peer-to-peer network, enabling efficient knowledge retrieval in decentralized environments. Extensive experi-ments across three diverse datasets and LLMs demonstrate that DRAG with TARW achieves near-centralized RAG per-formance by using half as many messages as flooding. The code is available at [...] Network Configuration: Peer-to-peer networks are sim-ulated using the NetworkX1 library in Python. Specifically, the Barabási-Albert model  is utilized to mimic real-world network topologies like the Internet or social media. Network sizes are explored with varying numbers of peers, specifi-cally 20, 40, 60, 80, and 100. The default number of peers was set to 20 unless otherwise specified. The connectivity of the network, representing the number of peers each peer is directly connected to, was also varied across values of 2, 4, 6, and 8, with a default connectivity of 4.",
+      "score": 0.8548001,
+      "raw_content": null,
+      "id": "29a10f-01"
+    },
+    {
+      "url": "https://aclanthology.org/2024.findings-acl.267.pdf",
+      "title": "Exploring Privacy Issues in Retrieval-Augmented Generation (RAG)",
+      "content": "1 Introduction Retrieval-augmented generation (RAG) (Liu, 2022; Chase, 2022; Van Veen et al., 2023; Ram et al., 2023; Shi et al., 2023) is an advanced natural lan-guage processing technique that enhances text gen-eration by integrating information retrieved from a large corpus of documents. These techniques enable RAG to produce accurate and contextually relevant outputs with augmented external knowl-edge and have been widely used in various scenar-ios such as domain-specific chatbots (Siriwardhana et al., 2023) and email/code completion (Parvez et al., 2021). RAG systems typically work in two phases, as shown in Fig 1 - retrieval and generation. [...] 2 Related Work 2.1 Retrieval-Augmented Generation (RAG) Retrieval-augmented generation (RAG), first intro-duced by Lewis et al. (2020), has emerged as one of the most popular approaches to enhance the gen-eration ability of LLMs (Liu, 2022; Chase, 2022; Van Veen et al., 2023; Ram et al., 2023; Shi et al., 2023). This synergy markedly boosts the output’s accuracy and relevance (Gao et al., 2023), mitigat-ing essential issues commonly referred to as \"hal-lucinations\" of LLMs (Shuster et al., 2021). One of RAG’s distinctive features is its flexible archi-tecture, allowing for the seamless interchange or update of its three core components: the dataset, the retriever, and the LLM. This flexibility means that adjustments to any of these elements can be made without necessitating re-training or [...] 3 School of Artificial Intelligence, Jilin University 4 International Center of Future Science, Jilin University 5 Engineering Research Center of Knowledge-Driven Human-Machine Intelligence, MOE, China Abstract Retrieval-augmented generation (RAG) is a powerful technique to facilitate language model with proprietary and private data, where data privacy is a pivotal concern. Whereas extensive research has demonstrated the privacy risks of large language models (LLMs), the RAG tech-nique could potentially reshape the inherent behaviors of LLM generation, posing new pri-vacy issues that are currently under-explored.",
+      "score": 0.82288796,
+      "raw_content": null,
+      "id": "62f32c-02"
+    },
+    {
+      "url": "https://www.mdpi.com/2673-2688/6/9/226",
+      "title": "Retrieval-Augmented Generation (RAG) in Healthcare: A Comprehensive Review",
+      "content": "Introduced in 2020, Retrieval-Augmented Generation (RAG) mitigates these limitations by combining a retriever which accesses external sources such as clinical guidelines or EHRs with a generator that conditions responses on both the query and retrieved content . This architecture enables the integration of up-to-date information, enhances transparency, reduces hallucinations, and produces evidence-grounded outputs, making RAG well-suited for medical applications. [...] Retrieval-Augmented Generation (RAG) enhances large language models (LLMs) by integrating external knowledge retrieval to improve factual consistency and reduce hallucinations. Despite growing interest, its use in healthcare remains fragmented. This paper presents a Systematic Literature Review (SLR) following PRISMA guidelines, synthesizing 30 peer-reviewed studies on RAG in clinical domains, focusing on three of its most prevalent and promising applications in diagnostic support, electronic health record (EHR) summarization, and medical question answering. We synthesize the existing architectural variants (naïve, advanced, and modular) and examine their deployment across these applications. Persistent challenges are identified, including retrieval noise (irrelevant or low-quality [...] ### 3.1. Retrieval-Augmented Generation: Foundations\n\nRetrieval-Augmented Generation (RAG) mitigates key limitations of standalone LLMs by integrating non-parametric external memory through a retriever module for enhancing factual grounding. It improves knowledge coverage and enables the dynamic integration of evolving clinical content. A RAG system consists of two main components: a retriever R that identifies relevant documents from a corpus , and a generator G that conditions on both the input query and the retrieved context to produce the output.",
+      "score": 0.7760977,
+      "raw_content": null,
+      "id": "f92114-03"
+    },
+    {
+      "url": "https://arxiv.org/html/2507.18910v1",
+      "title": "A Systematic Review of Key Retrieval-Augmented Generation (RAG) Systems:Progress, Gaps, and Future Directions",
+      "content": "## 9 Conclusion\n\nRetrieval-Augmented Generation (RAG) represents a fundamental advancement in AI, bridging retrieval and generation for improved factuality and adaptability. This review highlights the evolution of RAG from early retrieve-and-read systems to sophisticated architectures integrating neural retrievers and sequence-to-sequence generators. RAG has demonstrated significant benefits across open-domain QA, enterprise applications, and AI-powered search. [...] While RAG enhances generative AI with dynamic knowledge retrieval, several challenges remain. Ensuring high-quality retrieval, handling conflicting retrieved evidence, and scaling retrieval mechanisms for large knowledge bases require further research. Additionally, security considerations in proprietary deployments necessitate privacy-preserving retrieval strategies.\n\nFuture research should focus on optimizing retrieval efficiency, refining document fusion strategies, and developing robust evaluation metrics for retrieval-augmented generation. The continued convergence of information retrieval and AI-powered text generation will define the next generation of intelligent assistants, transforming how users interact with digital knowledge.\n\n## Acknowledgments [...] ##### Impact and open questions.\n\nBy year-end 2020, RAG systems of only a few hundred million parameters were surpassing 11-billion-parameter closed-book LMs (52, 75), demonstrating the efficiency of hybrid parametric + non-parametric memory. Challenges that remained—in retrieval latency at scale, multi-hop reasoning, and tighter faithfulness evaluation—set the agenda for subsequent work. Nonetheless, the 2020 breakthroughs firmly established retrieval-augmented generation as a core methodology for building knowledgeable, transparent, and updatable NLP systems.\n\n##### 2021 — Improving Generation Quality.",
+      "score": 0.7135319,
+      "raw_content": null,
+      "id": "d31df0-04"
+    },
+    {
+      "url": "https://openreview.net/forum?id=5a321ueqgs",
+      "title": "Predictive Prefetching for Retrieval-Augmented Generation",
+      "content": "by W Zhang · Cited by 37 — Retrieval-Augmented Generation (RAG) improves factual grounding in large language models but suffers from substantial latency due to synchronous retrieval.",
+      "score": 0.7089592,
+      "raw_content": null,
+      "id": "d77824-05"
+    },
+    {
+      "url": "https://openreview.net/forum?id=TWMiVfRwSF",
+      "title": "Dynamic Parametric Retrieval Augmented Generation",
+      "content": "by Y Tan — Retrieval-augmented generation (RAG) enhances large language models (LLMs) by injecting externally retrieved documents into the input context.",
+      "score": 0.6836946,
+      "raw_content": null,
+      "id": "a74ce0-06"
+    },
+    {
+      "url": "https://openreview.net/forum?id=yxJzmoEb48",
+      "title": "Beyond Chunks and Graphs: Retrieval-Augmented ...",
+      "content": "by S Gong · Cited by 11 — Retrieval-augmented generation (RAG) is critical for reducing hallucinations and incorporating external knowledge into Large Language Models (LLMs).",
+      "score": 0.6690754,
+      "raw_content": null,
+      "id": "69da8e-07"
+    },
+    {
+      "url": "https://openreview.net/forum?id=J3xRByRqOz",
+      "title": "RETRIEVAL-AUGMENTED GENERATION WITH ...",
+      "content": "by J Hwang · Cited by 60 — Retrieval-augmented generation (RAG) addresses key limitations of large language models (LLMs), such as hallucinations and outdated knowledge,",
+      "score": 0.6638657,
+      "raw_content": null,
+      "id": "4881e8-08"
+    },
+    {
+      "url": "https://openreview.net/forum?id=Y8Txo8vaH7",
+      "title": "LP-RAG: A Link Prediction-Based Framework for Retrieval ...",
+      "content": "by EJF do Nascimento · Cited by 1 — Retrieval-augmented generation (RAG) strategies have empowered large language models (LLMs) through integration with external knowledge sources,",
+      "score": 0.64639384,
+      "raw_content": null,
+      "id": "6549f6-09"
+    },
+    {
+      "url": "https://www.sciencedirect.com/science/article/pii/S2666920X25000578",
+      "title": "Retrieval-augmented generation for educational application",
+      "content": "by Z Li · 2025 · Cited by 351 — RAG is an advanced AI paradigm that integrates information retrieval (IR) with generative models to enhance the response accuracy and reliability (Lewis et al., ...Read more",
+      "score": 0.6205532,
+      "raw_content": null,
+      "id": "77c751-10"
+    },
+    {
+      "url": "https://arxiv.org/abs/2505.00443",
+      "title": "[2505.00443] Distributed Retrieval-Augmented Generation",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Distributed, Parallel, and Cluster Computing\n\n# Title:Distributed Retrieval-Augmented Generation\n\n|  |  |\n --- |\n| Subjects: | Distributed, Parallel, and Cluster Computing (cs.DC) |\n| Cite as: | arXiv:2505.00443 [cs.DC] |\n|  | (or  arXiv:2505.00443v1 [cs.DC] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\nlicense icon\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.5968332,
+      "raw_content": null,
+      "id": "2e7763-11"
+    },
+    {
+      "url": "https://www.mdpi.com/2076-3417/16/1/368",
+      "title": "Retrieval-Augmented Generation (RAG) and Large Language Models (LLMs) for Enterprise Knowledge Management and Document Automation: A Systematic Literature Review",
+      "content": "Recent advances in LLMs, such as GPT, PaLM, and LLaMA, and open-source counterparts, such as OPT, GPT-NeoX, and BLOOM, have improved natural language understanding and generation, evidenced by their performance on benchmark tasks since 2020 [6,12,13,14,15,16]. These models excel in generating coherent text, answering queries, summarizing documents, and producing code, but their reliance on fixed training data limits the precision of niche or dynamic topics, often leading to hallucinations [17,18]. The Retrieval-Augmented Generation (RAG) approach addresses this limitation by integrating real-time knowledge retrieval with LLM generation, anchoring outputs in current domain-specific data [1,2,19,20]. This approach minimizes factual errors and improves accuracy, enabling LLM applications in [...] Image 38\n\nTable 4. Search strings and temporal scope applied across academic databases. \n\n> ((“Retrieval Augmented Generation” OR RAG) AND (“Large Language Model” OR LLM) AND (“Knowledge Management” OR “Document Automation” OR Enterprise))\n\nFigure 2 presents the number of records retrieved from each database in three major stages of the selection process: initial retrieval, after applying exclusion criteria, and after quality assessment.\n\nImage 39: Applsci 16 00368 g002\n\nFigure 2. Distribution of the selected papers after each screening stage. \n\nExclusion Criteria:\n\nE1.\n\nThe paper includes only an abstract (we required full text, peer-reviewed articles).\n\nE2.\n\nThe paper is not written in English.\n\nE3.\n\nThe article is not a primary study.\n\nE4. [...] 54.   Lewis, P.; Perez, E.; Piktus, A.; Petroni, F.; Karpukhin, V.; Goyal, N.; Küttler, H.; Lewis, M.; Yih, W.t.; Rocktäschel, T.; et al. Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. In Proceedings of the Advances in Neural Information Processing Systems, Virtually, 6–12 December 2020; Volume 33, pp. 9459–9474. [Google Scholar]",
+      "score": 0.5957048,
+      "raw_content": null,
+      "id": "253b9d-12"
+    },
+    {
+      "url": "https://openreview.net/forum?id=T0pqsBEQRD",
+      "title": "Retrieval-Augmented Generation: Is Dense Passage ...",
+      "content": "by IDPR Retrieving — Dense passage retrieval (DPR) is the first step in the retrieval augmented generation (RAG) paradigm for improving the performance of large language models",
+      "score": 0.58123237,
+      "raw_content": null,
+      "id": "2580b1-13"
+    },
+    {
+      "url": "https://arxiv.org/abs/2005.11401",
+      "title": "[2005.11401] Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Computation and Language\n\n# Title:Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks\n\n|  |  |\n --- |\n| Comments: | Accepted at NeurIPS 2020 |\n| Subjects: | Computation and Language (cs.CL); Machine Learning (cs.LG) |\n| Cite as: | arXiv:2005.11401 [cs.CL] |\n|  | (or  arXiv:2005.11401v4 [cs.CL] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n### 13 blog links\n\n### DBLP - CS Bibliography\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.49450764,
+      "raw_content": null,
+      "id": "61336a-14"
+    },
+    {
+      "url": "https://openreview.net/forum?id=NdHka08uWn",
+      "title": "RAG-SR: Retrieval-Augmented Generation for Neural ...",
+      "content": "by H Zhang · Cited by 30 — Summary: The paper proposes a novel approach to symbolic regression based on neural-network based Retrieval Augmented Generation (RAG) and semantic descent (SD) ...Read more",
+      "score": 0.47899243,
+      "raw_content": null,
+      "id": "cfbb32-15"
+    },
+    {
+      "url": "https://openreview.net/forum?id=0QNmAvQQqj",
+      "title": "GFM-RAG: Graph Foundation Model for Retrieval ...",
+      "content": "by L Luo · Cited by 141 — The paper introduces GFM-RAG, a graph foundation model designed to advance retrieval-augmented generation (RAG) by incorporating graph neural networks to ...Read more",
+      "score": 0.47329262,
+      "raw_content": null,
+      "id": "a7e254-16"
+    },
+    {
+      "url": "https://arxiv.org/abs/2312.10997",
+      "title": "[2312.10997] Retrieval-Augmented Generation for Large Language Models: A Survey",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Computation and Language\n\n# Title:Retrieval-Augmented Generation for Large Language Models: A Survey\n\n|  |  |\n --- |\n| Comments: | Ongoing Work |\n| Subjects: | Computation and Language (cs.CL); Artificial Intelligence (cs.AI) |\n| Cite as: | arXiv:2312.10997 [cs.CL] |\n|  | (or  arXiv:2312.10997v5 [cs.CL] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n### 4 blog links\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.44956237,
+      "raw_content": null,
+      "id": "1d549e-17"
+    },
+    {
+      "url": "https://openreview.net/forum?id=x7NbaU8RSU",
+      "title": "TurboRAG: Accelerating Retrieval-Augmented Generation ...",
+      "content": "by S Lu · Cited by 105 — The paper introduces a kv caching computational technique that would significantly speed up (during inference time) the conventional RAG system in terms of time",
+      "score": 0.44261298,
+      "raw_content": null,
+      "id": "2d3bb7-18"
+    },
+    {
+      "url": "https://openreview.net/forum?id=5DfhoxRPXh",
+      "title": "Private Retrieval Augmented Generation with Random ...",
+      "content": "by D Yao · Cited by 14 — In this work, we propose a private randomized mechanism to project both the queries and the datastore into a lower-dimensional space using Gaussian matrices, ...Read more",
+      "score": 0.33300465,
+      "raw_content": null,
+      "id": "53cc6a-19"
+    }
+  ],
+  "response_time": 2.64,
+  "request_id": "b68af571-31a2-4c2e-b387-36d30308cf2a"
+}

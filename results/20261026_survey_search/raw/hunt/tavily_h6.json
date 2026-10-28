@@ -1,0 +1,90 @@
+{
+  "query": "federated retrieval augmented generation real deployment hospitals accuracy centralized baseline",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://arxiv.org/pdf/2505.18906",
+      "title": "Federated Retrieval-Augmented Generation",
+      "content": "Federated Retrieval-Augmented Generation: A Systematic Mapping Study Abhijit Chakraborty1 and Chahana Dahal2 and Vivek Gupta1 1Arizona State University 2University of Nevada, Las Vegas {achakr40,vgupt140}@asu.edu {chahana.dahal}@unlv.edu Abstract Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learn-ing (FL),which enables distributed model train-ing without exposing raw data, with Retrieval-Augmented Generation (RAG), which im-proves the factual accuracy of language mod-els by grounding outputs in external knowl-edge. As large language models are increas-ingly deployed in privacy-sensitive domains such as healthcare, finance, and personalized assistance, Federated RAG offers a promising framework for secure, knowledge-intensive nat-ural language processing [...] motivates designs that avoid raw data centralization. FedE4RAG exem-plifies this by performing local augmentation at inference, ensuring data minimization. However, privacy-preserving techniques often introduce la-tency and limit cross-silo reasoning, raising the challenge of balancing security with system util-ity. Future work must formalize threat models and quantify trade-offs between confidentiality, ac-curacy, and responsiveness in real-world deploy-ments. [...] Where it already helps – Early deployments demonstrate clear value in compliance-sensitive set-tings: C-FedRAG answers clinical questions while keeping electronic health-record data in-hospital; FedE4RAG powers enterprise knowledge assis-tants without centralizing proprietary documents; and RAGRoute cuts 75% of redundant cross-silo queries, lowering latency for finance workloads.\nAcross these use cases, federated RAG improves factual grounding, reduces hallucinations, and up-holds data-sovereignty requirements that vanilla RAG or centralized LLM serving cannot meet.",
+      "score": 0.6685563,
+      "raw_content": null,
+      "id": "38cf2b-00"
+    },
+    {
+      "url": "https://www.ijcrt.org/papers/IJCRT2603963.pdf",
+      "title": "Augmented Generation For Healthcare Intelligence Systems",
+      "content": "and clinician trust in AI-assisted decision-making. Additionally, real-world deployment of RAG systems in hospitals requires optimization for scalability, latency reduction, and interoperability with existing healthcare infrastructures. Finally, integrating multimodal data sources such as medical images, signals, and genomic data will further enhance the capabilities of RAG systems in complex clinical scenarios. XV. CONCLUSION The proposed Healthcare Retrieval-Augmented Generation (RAG) System successfully demonstrates an efficient and secure approach to managing, retrieving, and generating clinically accurate medical information. By integrating hybrid retrieval techniques with a domain-tuned Large Language Model, the system ensures that responses are grounded in real patient data, [...] actions  No data leakage during inference The system meets modern healthcare security standards. E. Overall System Performance  End-to-end query → retrieval → response time: 2–5 seconds  High accuracy in retrieving and summarizing patient data  Stable performance with increasing data size The system demonstrates reliability for real-world hospital deployment. XI. USE CASE / CASE STUDY A practical use case of Retrieval-Augmented Generation in healthcare is intelligent clinical decision support in hospital environments. In this scenario, a doctor inputs a clinical query related to a patient’s condition, such as symptoms, diagnosis, or treatment options. The RAG system retrieves relevant patient records, laboratory results, clinical guidelines, and historical medical data from hospital [...] patient record analysis. However, standalone Large Language Models (LLMs) frequently suffer from hallucination, factual inconsistency, limited domain grounding, and privacy concerns, making them unreliable for high-stakes medical deployment. Retrieval-Augmented Generation (RAG) has emerged as a robust paradigm that integrates external knowledge retrieval with generative modelling to improve factual accuracy and contextual relevance in healthcare systems. Recent research demonstrates the effectiveness of RAG in secure federated medical diagnosis, clinical decision workflows, privacy-aware telehealth systems, multimodal healthcare question answering, ontology-guided retrieval, hybrid sparse–dense optimization, and automated radiology and pathology report generation. Additionally, studies",
+      "score": 0.6504012,
+      "raw_content": null,
+      "id": "c69c4d-01"
+    },
+    {
+      "url": "https://www.mdpi.com/2673-2688/6/9/226",
+      "title": "Retrieval-Augmented Generation (RAG) in Healthcare: A Comprehensive Review",
+      "content": "Hsu et al. present a two-stage RAG-based system combining LLMs with clinical guidelines . Unlike single-pass models, it first generates assessments from subjective and objective inputs, then produces personalized treatment plans using patient history and cross-patient data. Evaluation on real EHR data shows improved accuracy and relevance over baselines. However, the model’s hospital-specific training limits generalizability, and it remains susceptible to LLM biases. [...] Critical challenges also persist for real-world deployment, including institutional resistance to AI adoption, regulatory alignment, interoperability with EHR systems, performance drift, and establishing clinician trust. Future research should emphasize continual learning, multimodal integration, standardized evaluation, and human-in-the-loop designs to advance scalable, interpretable, and trustworthy RAG systems. [...] ## 9. Conclusions\n\nRAG represents a significant advancement in aligning LLMs with clinical knowledge needs by enabling dynamic retrieval, improving factual accuracy, and enhancing decision support. This review synthesized 30 peer-reviewed studies, categorizing RAG architectures, examining their deployment across diagnostic support, EHR summarization, and medical question answering, comparing evaluation metrics, and identifying persistent challenges in healthcare contexts.",
+      "score": 0.63452125,
+      "raw_content": null,
+      "id": "5a65be-02"
+    },
+    {
+      "url": "https://mspace.lib.umanitoba.ca/server/api/core/bitstreams/9a0fecc0-b2ff-4b40-aff5-f733af5a3693/content",
+      "title": "Privacy-Preserving Federated Learning Model for Healthcare ...",
+      "content": "by TU Islam · 2023 · Cited by 86 — ... comparing them with the baseline centralized model. Our approach achieves at most 77% accuracy against the baseline model with 84% maximum score.",
+      "score": 0.6077801,
+      "raw_content": null,
+      "id": "3c14a9-03"
+    },
+    {
+      "url": "https://www.linkedin.com/pulse/advancing-retrieval-augmented-generation-rag-future-ai-ramachandran-ffsve",
+      "title": "Advancing Retrieval-Augmented Generation (RAG)",
+      "content": "Federated Retrieval-Augmented AI (FRAI) offers decentralized retrieval pipelines, ensuring real-time knowledge updates without centralized data storage.",
+      "score": 0.5835125,
+      "raw_content": null,
+      "id": "da030a-04"
+    },
+    {
+      "url": "https://www.mdpi.com/2079-9292/14/16/3261",
+      "title": "FED-EHR: A Privacy-Preserving Federated Learning Framework for Decentralized Healthcare Analytics",
+      "content": "Among the federated configurations, the FED four-client setup demonstrated convergence curves closely aligned with those of the centralized baseline, which was attributed to a more balanced and diverse distribution of training data across clients. Conversely, the FED two-client configuration exhibited slower convergence and a lower final accuracy, reflecting the limited local data available per client. LR showed a more gradual convergence trend, especially on the Diabetes dataset, which was further emphasized in the federated settings. This effect was particularly pronounced for LR on the Diabetes dataset, where the combination of challenging feature distributions and the model’s linear decision boundary resulted in a more significant accuracy decline compared to the MLP model. [...] As seen in the Results section, using LR, the centralized model achieved an AUC of 0.83 on the Diabetes dataset, while FL achieved an AUC of 0.74 with two clients and improved to 0.78 with four clients. On the Breast Cancer dataset, centralized LR yielded an AUC of 0.93, with FL obtaining AUCs of 0.88 and 0.92 with two and four clients, respectively. Similarly, with the MLP model, the centralized model achieved an AUC of 0.81 on the Diabetes dataset, and FL attained AUCs of 0.79 (2 clients) and 0.81 (4 clients). On the Breast Cancer dataset, FL achieved AUCs of 0.96 (two clients) and 0.98 (four clients), closely approximating the centralized result of 1.0. These findings emphasize that FED-EHR retains high predictive accuracy even under decentralized settings, validating its suitability [...] In the proposed FED-EHR framework, a central server distributes a base ML model to participating clients, such as hospitals, medical data centers, or IoMT devices. Each client trains the model locally on its private dataset and only transmits updated model parameters (e.g., weight gradients) back to the central server. Raw data never leaves the local environment. The server aggregates these updates using techniques such as Federated Averaging (FedAvg) to generate an improved global model, which is then redistributed to the clients for subsequent training rounds. This iterative process continues until the global model reaches the desired performance threshold, preserving data privacy while minimizing risks associated with centralized storage and transfer.",
+      "score": 0.56575525,
+      "raw_content": null,
+      "id": "072bd7-05"
+    },
+    {
+      "url": "https://nirmitee.io/blog/federated-learning-healthcare-training-across-hospitals-no-data-sharing",
+      "title": "Federated Learning for Healthcare AI Explained",
+      "content": "Model convergence: With highly non-IID data across hospitals, FL models may converge to suboptimal solutions compared to centralized training on pooled data. The accuracy gap is typically 2-5% AUC.\n Debugging difficulty: When a FL model underperforms, it is hard to diagnose whether the issue is bad data at one hospital, a communication error, or an algorithm problem — because you cannot inspect the data at other sites.\n Governance complexity: Who owns the federated model? Who is liable when it makes an error? How are hospitals compensated for their computational contributions? These governance questions do not have standard answers yet. [...] What is federated learning in healthcare?\n\nFederated learning is a machine learning paradigm where a model is trained across multiple decentralized data sources without exchanging raw data: instead of bringing data to the model, you bring the model to the data. A coordinator distributes a global model to participating hospitals, each trains locally on its own patient data, only model updates such as gradients are sent back, and the coordinator aggregates them with algorithms like Federated Averaging until the model converges.\n\nWhy do hospitals need federated learning instead of sharing patient data? [...] The key parameter is epsilon — the privacy budget:\n\n Epsilon = 0.1: Very strong privacy. Model accuracy degrades significantly. Suitable for highly sensitive psychiatric or HIV data.\n Epsilon = 1.0: Strong privacy with moderate accuracy impact. The sweet spot for most clinical models.\n Epsilon = 10.0: Weak privacy but near-baseline accuracy. Acceptable when data is already low-sensitivity (e.g., anonymized population health statistics).\n\nA practical approach for healthcare is local differential privacy, where each hospital clips gradients and adds Gaussian noise before transmission:",
+      "score": 0.5185224,
+      "raw_content": null,
+      "id": "307262-06"
+    },
+    {
+      "url": "https://mobile-systems.cl.cam.ac.uk/papers/FL-KDD23.pdf",
+      "title": "Uncertainty Quantification in Federated Learning for ...",
+      "content": "Results indicate that MC-dropout and deep ensembles can be extended to fit real-world health applications in federated learning.\nNevertheless, the uncertainty estimation obtained by federated models degrades along with the accuracy when compared with centralized models. The difference in uncertainty quality can be observed in Fig. 1. The reported values of the two settings can be found in Appendix C, along with classification accuracy. [...] 5 DISCUSSION AND FUTURE WORK This paper presents the first evaluation of different uncertainty quantification methods in FL settings under data heterogeneity using real-world health datasets. Experimental results show that personalization in FL not only improves classification accuracy but also increases the quality of estimated uncertainty. Thus personal-ization is a promising research direction in local client deployment and uncertainty quantification for healthcare applications. One limitation is that many other FL and pFL baselines could be tested to validate our hypothesis. It is possible that in some cases per-sonalization methods might increase accuracy but produce worse estimated uncertainty due to overfitting. [...] Dataset Strategy Accuracy Vanilla MC-Dropout Deep Ensembles Heart-Disease Centralized 0.736 ± 0.014 0.737 ± 0.014 0.743 ± 0.008 FedAvg 0.648 ± 0.026 0.648 ± 0.028 0.665 ± 0.008 FedProx 0.665 ± 0.022 0.664 ± 0.023 0.670 ± 0.009 FedBN 0.771 ± 0.007 0.770 ± 0.006 0.779 ± 0.006 FedAP 0.775 ± 0.007 0.775 ± 0.007 0.774 ± 0.005 FedAvg-FT 0.772 ± 0.009 0.773 ± 0.010 0.781 ± 0.009 FedProx-FT 0.779 ± 0.008 0.780 ± 0.009 0.791 ± 0.005 ISIC-2019 Centralized 0.736 ± 0.007 0.737 ± 0.006 0.797 ± 0.004 FedAvg 0.710 ± 0.018 0.710 ± 0.018 0.725 ± 0.004 FedProx 0.754 ± 0.015 0.754 ± 0.015 0.771 ± 0.003 FedBN 0.756 ± 0.047 0.756 ± 0.047 0.808 ± 0.005 FedAP 0.794 ± 0.017 0.794 ± 0.017 0.817 ± 0.005 FedAvg-FT 0.760 ± 0.033 0.756 ± 0.020 0.783 ± 0.005 FedProx-FT 0.757 ± 0.024 0.750 ± 0.020 0.796 ± 0.013 PAMAP2",
+      "score": 0.50930125,
+      "raw_content": null,
+      "id": "28b3ed-07"
+    },
+    {
+      "url": "https://link.springer.com/article/10.1007/s00521-025-11666-9",
+      "title": "A survey on retrieval-augmentation generation (RAG) models for healthcare applications | Neural Computing and Applications | Springer Nature Link",
+      "content": "Clinical Trial Optimization: TrialGPT [99 Matching patients to clinical trials with large language models. \n                  arXiv:2307.15051\n                  \n                \")]’s achievement of 87.3% accuracy in criterion-level matching while reducing screening time by 42.6% illustrates advanced RAG’s potential for operational efficiency. The system’s ability to outperform baseline methods by 43.8% in ranking and excluding trials demonstrates how hybrid retrieval (BM25 + MedCPT) with chain-of-thought prompting can streamline complex medical workflows.\n\n### 6.3 Modular RAG: clinical-grade specialization\n\nModular architectures achieve clinical deployment standards by solving domain-specific challenges that generic approaches cannot address (Table 8): [...] The system combines dense retrieval over FAISS-indexed medical embeddings, a learning-to-rank model trained on relevance judgments (pairwise or listwise ranking), and a standard RAG generation stage. After training with only ten positive labels, Cheng-RAG-Rank-EMR reached Precision at 10 (±0.60) on EMR relevance metrics and outperformed baseline retrieval methods, even when baselines had access to far more label data. Learned ranking preferences generalize: on unseen EMR collections involving cancer progression diagnosis, accuracy rose dramatically from approximately 0.14 to 0.50 in RAG-based question answering. Access to just the top-ranked passages enables the LLM to synthesize responses that are both succinct and clinically relevant—supporting real-world tasks such as chart [...] Key technical components of TrialGPT include a hybrid retrieval system combining BM25 and MedCPT for initial trial filtering, a criterion-level matching module that generates natural language explanations and eligibility predictions, and a ranking module that aggregates results for final recommendations. The framework utilizes GPT-4 and GPT\\(-\\)3.5 as backbone models, employing chain-of-thought prompting to ensure interpretable outputs. Evaluations on synthetic patient cohorts demonstrate that TrialGPT achieves 87.3% accuracy in criterion-level matching, closely approximating expert performance, and reduces screening time by 42.6% in a user study. The model also outperforms baseline methods by 43.8% in ranking and excluding trials, highlighting its potential to improve efficiency and",
+      "score": 0.48557588,
+      "raw_content": null,
+      "id": "5c2502-08"
+    },
+    {
+      "url": "https://www.facebook.com/groups/705252597049252/posts/2101480067426491",
+      "title": "Federated learning model achieves 87.9% accuracy in ...",
+      "content": "Federated learning model achieves 87.9% accuracy in medical diagnosis. The model achieved 87.9% Accuracy, outperforms the state-of-the-art FL baselines in",
+      "score": 0.462061,
+      "raw_content": null,
+      "id": "644c95-09"
+    }
+  ],
+  "response_time": 3.87,
+  "request_id": "9f5b0a6a-4c93-4522-bcab-1d1bbf8f5ff7"
+}

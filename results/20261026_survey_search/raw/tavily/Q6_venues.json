@@ -1,0 +1,90 @@
+{
+  "query": "peer-to-peer retrieval-augmented generation",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3777378",
+      "title": "Graph Retrieval-Augmented Generation: A Survey",
+      "content": "Despite their remarkable language comprehension and text generation capabilities, LLMs may exhibit limitations due to a lack of domain-specific knowledge, real-time updated information, and proprietary knowledge, which are outside LLMs’ pre-training corpus. These gaps can lead to a phenomenon known as “hallucination”  where the model generates inaccurate or even fabricated information. Consequently, it is imperative to supplement LLMs with external knowledge to mitigate this problem. Retrieval-Augmented Generation (RAG) [48, 59, 81, 86, 239, 262, 273] emerged as a significant evolution, which aims to enhance the quality and relevance of generated content by integrating a retrieval component within the generation process. The essence of RAG lies in its ability to dynamically query a large [...] In the generation phase, besides converting the retrieved graph data into formats acceptable by the generator and inputting it together with the query to generate the final response, many researchers explore various methods of generation enhancement techniques to improve the quality of output responses. These methods can be classified into three categories based on their application stages: pre-generation enhancement, mid-generation enhancement, and post-generation enhancement. Pre-generation enhancement focuses on augmenting the generator’s input, primarily aiming to more tightly integrate the retrieved graphs with the query. Mid-generation enhancement mainly employs constrained decoding approaches and reasoning paradigms like CoT to refine the generation process. Post-generation [...] G-Generation integrates the rich contextual and relational data from the graph to produce more coherent and comprehensive generated content, thereby improving the overall quality and depth of the output. In this stage, suitable generation models must be selected based on the downstream tasks. The retrieved graph data are then transformed into formats compatible with the generators. The generator takes both the query and the transformed graph data as inputs to produce the final response. Beyond these fundamental processes, generation enhancement techniques can further improve the output by intensifying the interaction between the query and the graph data and enriching the content generation itself. The organization of this section and the overview of G-Generation are depicted in Figure 6.",
+      "score": 0.7120925,
+      "raw_content": null,
+      "id": "61edf3-00"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.769.pdf",
+      "title": "pFedRAG: A Personalized Federated Retrieval-Augmented ...",
+      "content": "However, LLMs remain susceptible to halluci-nations, producing plausible-sounding but factu-ally incorrect content, which is problematic in do-mains such as healthcare and law (Ji et al., 2023).\nRetrieval-Augmented Generation (RAG) mitigates hallucinations by incorporating external knowl-edge. A retriever selects relevant documents from a knowledge base, and the generator conditions its responses on these documents. The effectiveness heavily depends on retrieval quality. [...] Retrieval Results(Out-of-domain)✅ 1. ...consolidation appears as a dense, opaque area in the lung field on X-ray, indicating alveoli filled with fluid...\n2. ...look for localized or diffuse infiltrates, which represent inflammation or infection within the lung tissue...\nLLM Response(Out-of-domain)✅ Chest X-ray findings that suggest pneumonia typically include airspace opacities like consolidation or infiltrates, and possibly pleural effusions.\n(a) (b) (c) Figure 1: Overview of retrieval-augmented generation workflows under different embedding strategies: Pre-trained, Fine-tuned, and pFedRAG.\ntuning requires structured supervised data, specifi-cally for query-document pairs with hard negatives.\nGenerating such data is labor-intensive. [...] Eugenia Kim, Jingjing Wang, and Shandong Wu. 2024.\nFederated learning-enhanced retrieval augmented generation (RAG). Technical Report 8089, Technical Disclosure Commons.\nVinayak Kulkarni, Milind Kulkarni, and Anirudh Pant.\n2020. Survey of personalization techniques for feder-ated learning.\nPatrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Mazar Komeili, et al. 2020a.\nRetrieval-augmented gen-eration for knowledge-intensive nlp tasks. In Ad-vances in Neural Information Processing Systems, volume 33, pages 9459–9474.",
+      "score": 0.7011614,
+      "raw_content": null,
+      "id": "996203-01"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3706598.3713749",
+      "title": "Retrieving from Group Interactions to Socially Ground AI ...",
+      "content": "Retrieval-augmented generation (RAG) techniques augment LLMs by incorporating external knowledge that may not be part of the training data",
+      "score": 0.6999322,
+      "raw_content": null,
+      "id": "32dc55-02"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3726302.3730340",
+      "title": "LexRAG: Benchmarking Retrieval-Augmented Generation ...",
+      "content": "Retrieval-augmented generation (RAG) has proven highly effective in improving large language models (LLMs) across various domains.",
+      "score": 0.67192334,
+      "raw_content": null,
+      "id": "1c51a6-03"
+    },
+    {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3711992.3711996",
+      "title": "TelecomRAG: Taming Telecom Standards with Retrieval ...",
+      "content": "by GM Yilma · 2025 · Cited by 46 — Retrieval- Augmented Generation (RAG) can offer a way to create precise, factual answers.",
+      "score": 0.62358373,
+      "raw_content": null,
+      "id": "ee5bc9-04"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3733155.3733192",
+      "title": "Integration of Retrieval-Augmented Generation Technique ...",
+      "content": "This paper presents an AI-powered tool for differential diagnosis and disease comparison, utilizing an LLM enhanced by Retrieval-Augmented Generation (RAG).",
+      "score": 0.48499045,
+      "raw_content": null,
+      "id": "2fb448-05"
+    },
+    {
+      "url": "https://aclanthology.org/2025.naacl-industry.53.pdf",
+      "title": "Benchmarking Customized LLM-Based Retrieval- ...",
+      "content": "Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Tim Rock-täschel, et al. 2020. Retrieval-Augmented Genera-tion for Knowledge-Intensive NLP Tasks. Advances in Neural Information Processing Systems, 33:9459– 9474.\nYi Liu, Lianzhe Huang, Shicheng Li, Sishuo Chen, Hao Zhou, Fandong Meng, Jie Zhou, and Xu Sun.\n2023. RECALL: A Benchmark for LLMs Robust-ness against External Counterfactual Knowledge.\narXiv preprint arXiv:2311.08147.\nYuanjie Lyu, Zhiyu Li, Simin Niu, Feiyu Xiong, Bo Tang, Wenjin Wang, Hao Wu, Huanyong Liu, Tong Xu, and Enhong Chen. 2024. CRUD-RAG: A Comprehensive Chinese Benchmark for Retrieval-Augmented Generation of Large Language Models.\narXiv preprint arXiv:2401.17043. [...] arXiv preprint arXiv:2401.17043.\nSubash Neupane, Elias Hossain, Jason Keith, Himanshu Tripathi, Farbod Ghiasi, Noorbakhsh Amiri Golilarz, Amin Amirlatifi, Sudip Mittal, and Shahram Rahimi.\n2024. From Questions to Insightful Answers: Build-ing an Informed Chatbot for University Resources.\nPreprint, arXiv:2405.08120.\nKeivalya Pandya and Mehfuza Holia. 2023. Automating Customer Service using LangChain: Building custom open-source GPT Chatbot for organizations. arXiv preprint arXiv:2310.05421.\nYixuan Tang and Yi Yang. 2024.\nMultiHop-RAG: Benchmarking Retrieval-Augmented Gen-eration for Multi-Hop Queries.\narXiv preprint arXiv:2401.15391.\nKevin Wang and Ramon Lawrence. 2024. HelpMe: Student Help Seeking using Office Hours and Email. [...] In 55th ACM Technical Symposium on Computer Science Education V. 1, pages 1388–1394.\nKevin Wang, Jason Ramos, and Ramon Lawrence. 2023.\nChatEd: A Chatbot Leveraging ChatGPT for an En-hanced Learning Experience in Higher Education.\narXiv preprint arXiv:2401.00052.\nShuting Wang, Jiongnan Liu Shiren Song, Jiehan Cheng, Yuqi Fu, Peidong Guo, Kun Fang, Yutao Zhu, and Zhicheng Dou. 2024.\nDomainRAG: A Chinese Benchmark for Evaluating Domain-specific Retrieval-Augmented Generation.\narXiv preprint arXiv:2406.05654.\nDi Wu, Wasi Uddin Ahmad, Dejiao Zhang, Murali Kr-ishna Ramanathan, and Xiaofei Ma. 2024. REPO-FORMER: Selective retrieval for repository-level code completion. arXiv preprint arXiv:2403.10059.",
+      "score": 0.48396602,
+      "raw_content": null,
+      "id": "72eeda-06"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11080430.pdf",
+      "title": "RAG-Driven Memory Architectures in Conversational LLMs ...",
+      "content": "by NA Akbar · 2025 · Cited by 24 — We analyze how vector databases and Retrieval-Augmented Generation (RAG) address fundamental challenges in storing and retrieving conversational context,",
+      "score": 0.44059017,
+      "raw_content": null,
+      "id": "0c212b-07"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3805774",
+      "title": "A Survey on Retrieval-Augmented Text Generation for ...",
+      "content": "by Y Huang · 2026 · Cited by 624 — The retrieval stage is a combination of search and ranking. It focuses on selecting and prioritizing documents from a dataset to enhance the quality of the",
+      "score": 0.4315129,
+      "raw_content": null,
+      "id": "6021b7-08"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3725843.3756020",
+      "title": "Accelerating Retrieval Augmented Language Model via ...",
+      "content": "Retrieval-Augmented Language Models (RALMs) integrate a language model with an external database to generate high-quality outputs utilizing up-to-date",
+      "score": 0.3648686,
+      "raw_content": null,
+      "id": "795466-09"
+    }
+  ],
+  "response_time": 4.44,
+  "request_id": "b772aaba-b1f3-491a-a743-94a254d234b4"
+}

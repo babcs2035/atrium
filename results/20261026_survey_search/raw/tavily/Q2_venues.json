@@ -1,0 +1,90 @@
+{
+  "query": "federated RAG",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.388",
+      "title": "Federated Retrieval-Augmented Generation: A Systematic Mapping Study - ACL Anthology",
+      "content": "Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL),which enables distributed model training without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are increasingly deployed in privacy-sensitive domains such as healthcare, finance, and personalized assistance, Federated RAG offers a promising framework for secure, knowledge-intensive natural language processing (NLP). To the best of our knowledge, this paper presents the first systematic mapping study of Federated RAG, covering literature published between 2020 and 2025. Following Kitchenham’s guidelines for evidence-based software engineering, we develop a [...] without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are increasingly deployed in privacy-sensitive domains such as healthcare, finance, and personalized assistance, Federated RAG offers a promising framework for secure, knowledge-intensive natural language processing (NLP). To the best of our knowledge, this paper presents the first systematic mapping study of Federated RAG, covering literature published between 2020 and 2025. Following Kitchenham{'}s guidelines for evidence-based software engineering, we develop a structured classification of research focuses, contribution types, and application domains. We analyze architectural patterns, temporal [...] Federated Retrieval-Augmented Generation: A Systematic Mapping Study   Abhijit Chakraborty  author    Chahana Dahal  author    Vivek Gupta  author    2025-11  text   Findings of the Association for Computational Linguistics: EMNLP 2025   Christos Christodoulopoulos  editor    Tanmoy Chakraborty  editor    Carolyn Rose  editor    Violet Peng  editor    Association for Computational Linguistics  Suzhou, China   conference publication 979-8-89176-335-7  Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL),which enables distributed model training without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are",
+      "score": 0.8875269,
+      "raw_content": null,
+      "id": "551df7-00"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.769",
+      "title": "pFedRAG: A Personalized Federated Retrieval-Augmented Generation System with Depth-Adaptive Tiered Embedding Tuning - ACL Anthology",
+      "content": "Large Language Models (LLMs) can undergo hallucinations in specialized domains, and standard Retrieval-Augmented Generation (RAG) often falters due to general-purpose embeddings ill-suited for domain-specific terminology. Though domain-specific fine-tuning enhances retrieval, centralizing data introduces privacy risks. The use of federated learning (FL) can alleviate this to some extent, but faces challenges of data heterogeneity, poor personalization, and expensive training data generation. We propose pFedRAG, a novel Personalized Federated RAG framework, which enables efficient collaborative fine-tuning of embedding models to address these challenges. The key contribution is a new Depth-Adaptive Tiered Embedding (DATE) architecture, which comprises a Global Shared Layer, combined using [...] domains, and standard Retrieval-Augmented Generation (RAG) often falters due to general-purpose embeddings ill-suited for domain-specific terminology. Though domain-specific fine-tuning enhances retrieval, centralizing data introduces privacy risks. The use of federated learning (FL) can alleviate this to some extent, but faces challenges of data heterogeneity, poor personalization, and expensive training data generation. We propose pFedRAG, a novel Personalized Federated RAG framework, which enables efficient collaborative fine-tuning of embedding models to address these challenges. The key contribution is a new Depth-Adaptive Tiered Embedding (DATE) architecture, which comprises a Global Shared Layer, combined using FL to capture common knowledge, and a Personalized Layer with [...] terminology. Though domain-specific fine-tuning enhances retrieval, centralizing data introduces privacy risks. The use of federated learning (FL) can alleviate this to some extent, but faces challenges of data heterogeneity, poor personalization, and expensive training data generation. We propose pFedRAG, a novel Personalized Federated RAG framework, which enables efficient collaborative fine-tuning of embedding models to address these challenges. The key contribution is a new Depth-Adaptive Tiered Embedding (DATE) architecture, which comprises a Global Shared Layer, combined using FL to capture common knowledge, and a Personalized Layer with adjustable depth tailored for local data and training results of each client. The depth is locally controlled based on crafted metrics and scoring",
+      "score": 0.826278,
+      "raw_content": null,
+      "id": "952bbb-01"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.769.pdf",
+      "title": "pFedRAG: A Personalized Federated Retrieval-Augmented ...",
+      "content": "Federated Learning (FL) offers a promising framework for domain-specific fine-tuning in col-laborative environments. It enables multiple parties to jointly train models without sharing raw data, instead exchanging and aggregating model parame-ters, thus preserving data privacy. However, apply-ing FL to the fine-tuning of embedding models in RAG systems introduces several unique challenges: Cost of Full-Parameter Fine-Tuning. Modern embedding models contain hundreds of millions of parameters, making full-model tuning resource-intensive in FL settings. It imposes high communi-cation and computation costs on clients. [...] Generating such data is labor-intensive.\nContributions. In this paper, we propose a novel Personalized Federated RAG (pFedRAG) frame-work designed to address these challenges. Unlike existing federated RAG methods that either per-form centralized embedding fine-tuning on pooled data or apply a uniform retrieval mechanism across all clients, pFedRAG integrates a Depth-Adaptive Tiered Embedding (DATE) architecture to balance global knowledge sharing and local personaliza-tion, and incorporates a fully client-side supervised dataset generation pipeline to autonomously con-struct high-quality query–document pairs. The key contributions of this paper are as follows.\nPersonalized Adaptation to Data Heterogeneity. [...] We propose pFedRAG, a novel Personalized Federated RAG framework, which enables ef-ficient collaborative fine-tuning of embedding models to address these challenges. The key contribution is a new Depth-Adaptive Tiered Embedding (DATE) architecture, which com-prises a Global Shared Layer, combined using FL to capture common knowledge, and a Per-sonalized Layer with adjustable depth tailored for local data and training results of each client.",
+      "score": 0.79484755,
+      "raw_content": null,
+      "id": "55536c-02"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/10920885",
+      "title": "Federated Learning and RAG Integration: A Scalable Approach for Medical Large Language Models",
+      "content": "This study analyzes the performance of domain-specific Large Language Models (LLMs) for the medical field by integrating Retrieval-Augmented Generation (RAG) systems within a Federated Learning (FL) framework. Leveraging the inherent advantages of FL, such as preserving data privacy and enabling distributed computation, this research explores the integration of RAG systems with models trained under varying client configurations to optimize performance. Exper-imental results demonstrate that the FL-based models integrated with RAG systems consistently outperform their non-integrated counterparts across all evaluation metrics. This study highlights the potential of combining FL and RAG systems for developing domain-specific LLMs in the medical field, providing a scalable and [...] Skip to main content\n\nOpens in a new window Opens an external website Opens an external website in a new window\n\nThis website utilizes technologies such as cookies to enable essential site functionality, as well as for analytics, personalization, and targeted advertising. To learn more, view the following link: Privacy Policy\n\nStorage Preferences\n\nLoading [MathJax]/extensions/MathMenu.js\n\nFederated Learning and RAG Integration: A Scalable Approach for Medical Large Language Models | IEEE Conference Publication | IEEE Xplore\n\n. On Tuesday, 27 October, IEEE _Xplore_ will undergo scheduled maintenance from 1:00-4:00 PM ET (17:00-20:00 UTC). During this time, there may be intermittent impact on performance. We apologize for any inconvenience. [...] Authors\n\nFigures\n\nReferences\n\nCitations\n\nKeywords\n\nMetrics\n\nMore Like This\n\n   Download PDF\n   Download References)\n   [)](\n   Request Permissions\n   Save to\n   Alerts\n\n## Abstract:\n\nThis study analyzes the performance of domain-specific Large Language Models (LLMs) for the medical field by integrating Retrieval-Augmented Generation (RAG) systems with...Show More\n\n## Metadata\n\n## Abstract:",
+      "score": 0.78670514,
+      "raw_content": null,
+      "id": "9237c2-03"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3721146.3721942",
+      "title": "Efficient Federated Search for Retrieval-Augmented ...",
+      "content": "We introduce RAGRoute, a novel mechanism for federated RAG search. RAGRoute dynamically selects relevant data sources at query time using a lightweight neural",
+      "score": 0.7711725,
+      "raw_content": null,
+      "id": "7748ce-04"
+    },
+    {
+      "url": "https://dl.acm.org/doi/abs/10.1145/3805712.3809655",
+      "title": "FedMosaic: Federated Retrieval-Augmented Generation ...",
+      "content": "by Z Liang · 2026 · Cited by 6 — We present FedMosaic, the first federated RAG framework built on parametric adapters. FedMosaic clusters semantically related documents into multi-document",
+      "score": 0.72207695,
+      "raw_content": null,
+      "id": "817455-05"
+    },
+    {
+      "url": "https://aclanthology.org/2025.coling-industry.33.pdf",
+      "title": "Federated Retrieval Augmented Generation for Multi- ...",
+      "content": "To address these challenges, we propose MKP-QA , a novel Multi-domain Knowledge-augmented Product RAG-QA framework that optimizes multi-domain question answering.\nMKP-QA is designed to meet the specific needs of enterprise software ecosystems, where accurate cross-product information retrieval is essential.\nThe core of MKP-QA employs a federated search mechanism (Shokouhi and Si, 2011) that intelligently navigates across multiple product 388 domains and their associated relevant corpus. This approach allows MKP-QA to search across a diverse range of enterprise products and their associated documentation without the need to centralize all information into a single, monolithic database – a significant advantage in large-scale enterprise deployments. [...] Query Processing, allowing flexible and context-aware searching. By aggregating query-domain and query-document relevance scores through this mechanism, MKP-QA enhances multi-domain document retrieval for RAG-QA systems. This adaptation of federated learning techniques (Ash-man et al., 2022; Huang et al., 2022) to our specific challenges enables more accurate, cross-domain product knowledge integration, particularly valu-able in complex enterprise software ecosystems. [...] Federated search approaches (Shokouhi and Si, 2011) enable querying multi-ple distributed indexes simultaneously, while do-main adaptation techniques (Shi et al., 2020) han-dle transfer across diverse search domains. Recent work leveraging LLMs for retrieval resource selec-tion (Wang et al., 2024b) has also shown strong zero-shot performance. Our work extends these efforts by introducing a stochastic gating mecha-nism combined with federated search, tailored for RAG-QA pipelines in complex environments with cross-product queries.\n3 Methodology Our MKP-QA framework, shown in Fig. 1, integrates components for domain relevance, exploration-exploitation, retrieval, and multi-domain aggregation, detailed below.",
+      "score": 0.6780931,
+      "raw_content": null,
+      "id": "be2692-06"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3626772.3657853",
+      "title": "FeB4RAG: Evaluating Federated Search in the Context of ...",
+      "content": "Federated search systems aggregate results from multiple search engines, selecting appropriate sources to enhance result quality and align with user intent.",
+      "score": 0.57666177,
+      "raw_content": null,
+      "id": "462dc0-07"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/abstract/document/11497500",
+      "title": "Campus Assistant: A Scalable Conversational AI using ...",
+      "content": "by N Vurukonda · 2026 — To address this challenge, we developed Campus Assistant, a conversational system built on a Federated Retrieval Augmented Generation (F-RAG) framework. In",
+      "score": 0.5059329,
+      "raw_content": null,
+      "id": "870449-08"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/10919472/10920631/10920885.pdf",
+      "title": "Federated Learning and RAG Integration: A Scalable ...",
+      "content": "by J Jung · 2025 · Cited by 18 — This study highlights the potential of combining FL and RAG systems for developing domain-specific LLMs in the medical field, providing a scalable and privacy-",
+      "score": 0.487918,
+      "raw_content": null,
+      "id": "b38277-09"
+    }
+  ],
+  "response_time": 3.04,
+  "request_id": "44dda169-2d8a-4df0-bea6-099eb5b85b13"
+}

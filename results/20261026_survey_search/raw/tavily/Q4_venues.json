@@ -1,0 +1,130 @@
+{
+  "query": "decentralized retrieval-augmented generation",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://ieeexplore.ieee.org/document/11014986",
+      "title": "An Architecture and Protocol for Decentralized Retrieval Augmented Generation",
+      "content": "Retrieval-augmented generation (RAG) has become a widely adopted approach for the integration of knowledge bases and large language models (LLMs). This paper proposes a decentralized software architecture for RAG, where retrieval, augmentation, and generation components are operated independently by distributed entities. This approach addresses challenges like efficient usage of resources when building LLM-based software systems as well as data protection issues in centralized systems. By allowing data providers to implement their own retrieval mechanisms, they fully retain control over data access and the flexibility to use their own data infrastructure. An interaction platform implements communication between client applications, data providers, and model providers. To standardize this [...] Citations\n\nKeywords\n\nMetrics\n\nMore Like This\n\nFootnotes\n\n   Download PDF\n   Download References)\n   [)](\n   Request Permissions\n   Save to\n   Alerts\n\n## Abstract:\n\nRetrieval-augmented generation (RAG) has become a widely adopted approach for the integration of knowledge bases and large language models (LLMs). This paper proposes a d...Show More\n\n## Metadata\n\n## Abstract: [...] data providers, and model providers. To standardize this process, the paper introduces introduces an architecture and protocol called External Retrieval Interface (ERI), which ensures compatibility of services, enforces data restrictions, and simplifies the development of decentralized RAG systems.",
+      "score": 0.9381752,
+      "raw_content": null,
+      "id": "a5907e-00"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11642577",
+      "title": "Democratizing LLM Service With Decentralized Edge ...",
+      "content": "DEFRAG, a decentralized edge collaboration system for retrieval-augmented generation (RAG) that optimizes both retrieval and generation across heterogeneous",
+      "score": 0.86052185,
+      "raw_content": null,
+      "id": "99e460-01"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/10885343",
+      "title": "DeRAG: Decentralized Multi-Source RAG System with ...",
+      "content": "by J Yu · 2024 · Cited by 4 — This paper introduces DeRAG (Decentralized Multi-Source Retrieval-Augmented Generation), a novel approach that leverages blockchain technology and advanced",
+      "score": 0.83225065,
+      "raw_content": null,
+      "id": "6ea28f-02"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/11014767/11014770/11014986.pdf",
+      "title": "An Architecture and Protocol for Decentralized Retrieval ...",
+      "content": "by T Hecking · 2025 · Cited by 7 — This paper proposes a decentralized software architecture for RAG, where retrieval, augmentation, and generation components are operated indepen- dently by",
+      "score": 0.7180613,
+      "raw_content": null,
+      "id": "77f2e9-03"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.769.pdf",
+      "title": "pFedRAG: A Personalized Federated Retrieval-Augmented ...",
+      "content": "2 Related Work FL for Retrieval-Augmented Generation.\nFL (McMahan et al., 2017) enables privacy-14256 preserving collaborative training across decen-tralized data sources (Kairouz et al., 2021), while RAG (Lewis et al., 2020b) enhances LLM factuality by grounding responses in external knowledge. The integration of these paradigms into FedRAG systems (Jung et al., 2024; Addison et al., 2024) leverages distributed knowledge while maintaining privacy in sensitive domains. [...] However, LLMs remain susceptible to halluci-nations, producing plausible-sounding but factu-ally incorrect content, which is problematic in do-mains such as healthcare and law (Ji et al., 2023).\nRetrieval-Augmented Generation (RAG) mitigates hallucinations by incorporating external knowl-edge. A retriever selects relevant documents from a knowledge base, and the generator conditions its responses on these documents. The effectiveness heavily depends on retrieval quality. [...] Eugenia Kim, Jingjing Wang, and Shandong Wu. 2024.\nFederated learning-enhanced retrieval augmented generation (RAG). Technical Report 8089, Technical Disclosure Commons.\nVinayak Kulkarni, Milind Kulkarni, and Anirudh Pant.\n2020. Survey of personalization techniques for feder-ated learning.\nPatrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Mazar Komeili, et al. 2020a.\nRetrieval-augmented gen-eration for knowledge-intensive nlp tasks. In Ad-vances in Neural Information Processing Systems, volume 33, pages 9459–9474.",
+      "score": 0.69024646,
+      "raw_content": null,
+      "id": "3a7bd2-04"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3777378",
+      "title": "Graph Retrieval-Augmented Generation: A Survey",
+      "content": "Despite their remarkable language comprehension and text generation capabilities, LLMs may exhibit limitations due to a lack of domain-specific knowledge, real-time updated information, and proprietary knowledge, which are outside LLMs’ pre-training corpus. These gaps can lead to a phenomenon known as “hallucination”  where the model generates inaccurate or even fabricated information. Consequently, it is imperative to supplement LLMs with external knowledge to mitigate this problem. Retrieval-Augmented Generation (RAG) [48, 59, 81, 86, 239, 262, 273] emerged as a significant evolution, which aims to enhance the quality and relevance of generated content by integrating a retrieval component within the generation process. The essence of RAG lies in its ability to dynamically query a large [...] In the generation phase, besides converting the retrieved graph data into formats acceptable by the generator and inputting it together with the query to generate the final response, many researchers explore various methods of generation enhancement techniques to improve the quality of output responses. These methods can be classified into three categories based on their application stages: pre-generation enhancement, mid-generation enhancement, and post-generation enhancement. Pre-generation enhancement focuses on augmenting the generator’s input, primarily aiming to more tightly integrate the retrieved graphs with the query. Mid-generation enhancement mainly employs constrained decoding approaches and reasoning paradigms like CoT to refine the generation process. Post-generation [...] G-Generation integrates the rich contextual and relational data from the graph to produce more coherent and comprehensive generated content, thereby improving the overall quality and depth of the output. In this stage, suitable generation models must be selected based on the downstream tasks. The retrieved graph data are then transformed into formats compatible with the generators. The generator takes both the query and the transformed graph data as inputs to produce the final response. Beyond these fundamental processes, generation enhancement techniques can further improve the output by intensifying the interaction between the query and the graph data and enriching the content generation itself. The organization of this section and the overview of G-Generation are depicted in Figure 6.",
+      "score": 0.64478505,
+      "raw_content": null,
+      "id": "334e18-05"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3731806.3731827",
+      "title": "LLM-Net: Democratizing LLMs-as-a-Service through ...",
+      "content": "by ZK Chong · 2025 · Cited by 12 — On the other hand, researchers have developed Retrieval-Augmented Generation (RAG), a hybrid architecture where LLMs are augmented with external knowledge",
+      "score": 0.6266047,
+      "raw_content": null,
+      "id": "79bd91-06"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/10825604",
+      "title": "MediRAG: Secure Question Answering for Healthcare Data",
+      "content": "by E Jiang · 2024 · Cited by 12 — Retrieval augmented generation (RAG) allows large language models to answer domain-specific questions by using external knowledge bases without training on",
+      "score": 0.5874941,
+      "raw_content": null,
+      "id": "59afb3-07"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3770855.3817782",
+      "title": "From Evidence to Trajectory: Abductive Reasoning Path ...",
+      "content": "Retrieval-augmented generation (RAG) agent development is hindered by the lack of executable ground-truth agent-environment interaction trajectories.",
+      "score": 0.5423064,
+      "raw_content": null,
+      "id": "498627-08"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3696410.3714756",
+      "title": "Traceback of Poisoning Attacks to Retrieval-Augmented ...",
+      "content": "Large language models (LLMs) integrated with retrieval-augmented generation (RAG) systems improve accuracy by leveraging external knowledge sources.",
+      "score": 0.4845514,
+      "raw_content": null,
+      "id": "fef350-09"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3701716.3715313",
+      "title": "FlashRAG: A Modular Toolkit for Efficient Retrieval- ...",
+      "content": "This video introduces FlashRAG: a modular toolkit for efficient Retrieval-Augmented Generation (RAG) research. FlashRAG simplifies the RAG process with its easy",
+      "score": 0.43813655,
+      "raw_content": null,
+      "id": "b5921f-10"
+    },
+    {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3793217.3793229",
+      "title": "Retrieval-augmented Generation (RAG)",
+      "content": "by A Khan · 2026 · Cited by 9 — RAG architectures are evolving to take advantage of the capabilities of long-context LLMs through techniques such as fine-grained retrieval, itera- tive",
+      "score": 0.42648935,
+      "raw_content": null,
+      "id": "8d668c-11"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3805712.3809702",
+      "title": "SRAG: A Lightweight and Specialized Retrieval ...",
+      "content": "Experiments show that SRAG improves retrieval relevance, generation quality, and storage efficiency, while reducing end-to-end latency.",
+      "score": 0.20904993,
+      "raw_content": null,
+      "id": "d8f18e-12"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3762669",
+      "title": "RAG-IoE: IoT context-aware information retrieval with ...",
+      "content": "by M Arazzi · 2025 · Cited by 11 — We propose a RAG-based method to select the most suitable device for an agent based on user context. Structured data in a KG is used for pre-filtering through",
+      "score": 0.02876438,
+      "raw_content": null,
+      "id": "16d163-13"
+    },
+    {
+      "url": "https://aclanthology.org/2024.findings-emnlp.791",
+      "title": "Dense Passage Retrieval: Is it Retrieving? - ACL Anthology",
+      "content": "ACL Logo\n\n###### Details\n\n## Dense Passage Retrieval: Is it Retrieving?\n\nBenjamin Reichman,\nLarry Heck\n\n##### Correct Metadata for\n\n##### Abstract\n\n##### Export citation\n\n##### Markdown (Informal)\n\nDense Passage Retrieval: Is it Retrieving? (Reichman & Heck, Findings 2024)\n\n##### ACL\n\nCreative Commons License\nACL materials are Copyright © 1963–2026 ACL; other materials are copyrighted by their respective copyright holders. Materials prior to 2016 here are licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 International License. Permission is granted to make copies for the purposes of teaching and research. Materials published in or after 2016 are licensed on a Creative Commons Attribution 4.0 International License.\n\nCreative Commons License [...] Creative Commons License\n\nThe ACL Anthology is managed and built by the ACL Anthology team of volunteers.\n\nSite last built on 24 October 2026 at 10:04 UTC with commit e9b28ec.",
+      "score": 0.027483363,
+      "raw_content": null,
+      "id": "2e3e94-14"
+    }
+  ],
+  "response_time": 2.57,
+  "request_id": "3cc4a13b-ca1a-4e87-ab2a-e88e93c56bfd"
+}

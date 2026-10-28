@@ -1,0 +1,90 @@
+{
+  "query": "peer-to-peer RAG testbed Raspberry Pi devices question answering private documents",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/11407433/11407501/11407661.pdf",
+      "title": "iccids 2026",
+      "content": "Document Visual Question Answering (DocVQA) is a key task within Visual Document Understanding ... deployed on resource-constrained Raspberry Pi devices.",
+      "score": 0.37669244,
+      "raw_content": null,
+      "id": "02a5aa-00"
+    },
+    {
+      "url": "https://www.ares-conference.eu/conference/program",
+      "title": "ARES | Program",
+      "content": "In recent years, the use of artificial intelligence on resource-constrained IoT devices has grown significantly. However, existing approaches to AI task partitioning and offloading across the edge-cloud continuum typically rely on static methods that ignore runtime dynamics. Furthermore, they are often evaluated in simulated environments rather than on real hardware. To address this gap, we propose a framework that dynamically splits neural network layers across the heterogeneous continuum. The framework profiles the model at startup, measures network link conditions between nodes, and periodically re-evaluates the partition to adapt to environmental changes. We created a physical testbed comprising a Raspberry Pi edge device, a laptop fog, and a high-performance desktop PC as the [...] segments between charging events. The input features also combine calendar, historical demand, and weather descriptors. We evaluate local, centralized, cross-device, and cross-silo FL across three deep learning architectures, and implement a buffered asynchronous FL orchestration pipeline on a Raspberry Pi testbed to assess practical deployment. The results show that distributed EV energy demand models can approach centralized performance while preserving data locality, and that buffered asynchronous FL is practical for heterogeneous EV deployments. [...] 3. workshop Privacy by Design in AI-Assisted Cybersecurity Policy Generation: Benchmarking Private RAG Against Frontier AI Models",
+      "score": 0.18943146,
+      "raw_content": null,
+      "id": "ac9a12-01"
+    },
+    {
+      "url": "https://www.linkedin.com/posts/dr-saikat-gochhait-honoris-causa-73643229_artificialintelligence-healthcareanalytics-activity-7473211771768508416-JJMS",
+      "title": "5 New Papers Induced by Real Problems in AI, Healthcare ...",
+      "content": "My hardware includes low-power Raspberry Pi units. I had to choose between Retrieval-Augmented Generation (RAG) and fine-tuning. I started with fine-tuning",
+      "score": 0.17968917,
+      "raw_content": null,
+      "id": "20848c-02"
+    },
+    {
+      "url": "https://www.mdpi.com/2673-2688/6/9/226",
+      "title": "Retrieval-Augmented Generation (RAG) in Healthcare: A Comprehensive Review",
+      "content": "## 9. Conclusions\n\nRAG represents a significant advancement in aligning LLMs with clinical knowledge needs by enabling dynamic retrieval, improving factual accuracy, and enhancing decision support. This review synthesized 30 peer-reviewed studies, categorizing RAG architectures, examining their deployment across diagnostic support, EHR summarization, and medical question answering, comparing evaluation metrics, and identifying persistent challenges in healthcare contexts. [...] An overview of the RAG architecture and its advantages over standalone language models.\n A survey of RAG applications in healthcare across tasks such as question answering, summarization, and evidence retrieval.\n A review of domain-specific and standard evaluation metrics.\n A detailed discussion of challenges, including retrieval instability, generation latency, domain shift, and limited transparency.\n A synthesis of emerging directions such as multimodal retrieval, continual learning, federated architectures, and clinically aligned evaluation strategies. [...] Retrieval-Augmented Generation (RAG) enhances large language models (LLMs) by integrating external knowledge retrieval to improve factual consistency and reduce hallucinations. Despite growing interest, its use in healthcare remains fragmented. This paper presents a Systematic Literature Review (SLR) following PRISMA guidelines, synthesizing 30 peer-reviewed studies on RAG in clinical domains, focusing on three of its most prevalent and promising applications in diagnostic support, electronic health record (EHR) summarization, and medical question answering. We synthesize the existing architectural variants (naïve, advanced, and modular) and examine their deployment across these applications. Persistent challenges are identified, including retrieval noise (irrelevant or low-quality",
+      "score": 0.17200519,
+      "raw_content": null,
+      "id": "a95f19-03"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3821566",
+      "title": "Towards Pervasive Distributed Agentic Generative AI–A ...",
+      "content": "by G Molinari · 2026 · Cited by 16 — These nodes include physical components such as Raspberry Pi, NVIDIA Jetson ... For domain-specific instructions, they used Retrieval-Augmented Generation (RAG)",
+      "score": 0.14032473,
+      "raw_content": null,
+      "id": "df4a10-04"
+    },
+    {
+      "url": "https://tailscale.com/docs/features/taildrop",
+      "title": "Taildrop · Tailscale Docs",
+      "content": "Taildrop provides an easy way to share your sensitive files between any of your devices. And no matter where your devices are, the files are sent over encrypted peer-to-peer connections. So, you're guaranteed the only machines that will ever have access to the files during the transfer are the sending and receiving devices.\n\nVideo 2\n## Example: Send family photos from your phone to your computer\n\nTaildrop lets you share your photos cross-platform without needing to upload them anywhere.\n\nVideo 3\n## Example: Share screenshots to your computer [...] Image 23: The modal window with a list of devices. The selected device has a progress bar to indicate the transfer is in progress.Image 24: The modal window with a list of devices. The selected device has a checkmark to indicate the transfer is complete.\n6.   After the transfer completes, you can delete the zip file from your original device.\n\nOn this page\n\n   Enable Taildrop for your network\n   Client setup\n   Send files with Taildrop\n       Resume interrupted transfers [...] Taildrop permits you to share files between devices that you are logged in to, even if access control policies are used to restrict access to the devices. You cannot use Taildrop to send files to and from nodes you have tagged.\n\nTaildrop also requires both devices to be running Tailscale.\n\nmacOSiOSWindowsAndroidLinux\n\nBefore using Taildrop for the first time, it must be enabled in System Settings>General>Login Items & Extensions>Sharing. Enable sharing for Tailscale.\n\nImage 19: The macOS System Settings window for the Tailscale extension with 'Sharing' checked.\nSend files to other devices by using the right-click Share menu.",
+      "score": 0.09695367,
+      "raw_content": null,
+      "id": "d06c84-05"
+    },
+    {
+      "url": "https://opus.bibliothek.uni-augsburg.de/opus4/files/112863/112863.pdf",
+      "title": "Machine learning with computer networks: techniques, ...",
+      "content": "E. TESTBEDS As previously outlined, it is hard to replicate realistic network conditions, and using existing datasets might not always fit the problem. While simulation tools can help with that, there is also the possibility of using existing testbeds or building your own. Access is usually open or free to researchers for the existing real-world testbeds, but you might have to schedule your experiments and wait depending on utilization.\nIn the following, some popular real-world testbeds and some devices one could use to build a testbed will be introduced.\nThere are two types of testbeds, wired ones, and wireless ones. The wireless ones are wireless sensor networks without any routers or switches, and communication is broadcasted. [...] 2) BUILDING YOUR OWN TESTBED When seeking greater control over a testbed, building a customized one emerges as a viable option. Fortunately, there are several cost-effective devices available for this purpose, with some even incorporating machine learning accelerators . These accelerators enable the deployment of machine learning models for training and inference within the testbed and offer a variety of communication approaches.\nIn this section, we will provide a list of the most common and popular devices used for this purpose, along with detailed explanations of their respective advantages. [...] Testbeds are relatively versatile and can be used to either test ML applications that rely on networks like Distributed ML or to test ML algorithms that do traffic routing, for example.\n1) REAL-WORLD TESTBEDS For a more extensive overview, , , , and  provide surveys that either include a section about testbeds or are entirely about testbeds. We present a selection of popular testbeds, starting with wireless testbeds.\nFlockLab  is an experimental platform that enables researchers to test and evaluate the performance of wireless sensor networks (WSN) and IoT systems. It is a flexible, open-source testbed that provides a controlled and repeatable environment for the evaluation of various applications.",
+      "score": 0.09674864,
+      "raw_content": null,
+      "id": "dedd4b-06"
+    },
+    {
+      "url": "https://www.nsf.gov/funding/opportunities/pcl-test-bed-test-bed-toward-network-programmable-cloud-laboratories/nsf25-541/solicitation",
+      "title": "NSF 25-541: Test Bed: Toward a Network of Programmable Cloud Laboratories (PCL Test Bed) | NSF - U.S. National Science Foundation",
+      "content": "1. What is the potential for the proposed activity to\n   1. Advance knowledge and understanding within its own field or across different fields (Intellectual Merit); and\n   2. Benefit society or advance desired societal outcomes (Broader Impacts)?\n2. To what extent do the proposed activities suggest and explore creative, original, or potentially transformative concepts?\n3. Is the plan for carrying out the proposed activities well-reasoned, well-organized, and based on a sound rationale? Does the plan incorporate a mechanism to assess success?\n4. How well qualified is the individual, team, or organization to conduct the proposed activities?\n5. Are there adequate resources available to the PI (either at the home organization or through collaborations) to carry out the proposed activities? [...] 5. Data and AI capabilities and expertise. This section should describe how the proposers plan to support the data management and AI needs of the Node, both to support reliability and consistency of Node operation and to support the range of scientific experiments executed on the Node. A strong proposal will contain a co-PI with extensive data and AI expertise. How will the proposers account for the range of data inputs and outputs across the Node and Test bed? What AI expertise will be leveraged to support the deployment of AI into experimental design? [...] Once an award or declination decision has been made, Principal Investigators are provided feedback about their proposals. In all cases, reviews are treated as confidential documents. Verbatim copies of reviews, excluding the names of the reviewers or any reviewer-identifying information, are sent to the Principal Investigator/Project Director by the Program Officer. In addition, the proposer will receive an explanation of the decision to award or decline funding.\n\n### VII. Award Administration Information\n\n#### A. Notification of the Award",
+      "score": 0.08943091,
+      "raw_content": null,
+      "id": "64fe20-07"
+    },
+    {
+      "url": "https://arxiv.org/html/2506.13324v2",
+      "title": "Towards Pervasive Distributed Agentic Generative AI - A State of The Art",
+      "content": "Information Management and Retrieval: Agents go beyond static information extraction by autonomously optimizing when and how to retrieve and process data. They are increasingly used for collaborative pipeline optimization, where individual RAG components (e.g., query rewriters, selectors) operate as cooperative agents trained via Multi-Agent Reinforcement Learning to maximize global answer quality (Chen et al., 2025b). Additionally, agents facilitate dynamic knowledge reasoning, exemplified by frameworks that autonomously trigger searches during chain-of-thought processes and employ dedicated modules to refine retrieved documents into logic-compatible insights (Li et al., 2025). [...] To bridge the gap between these distributed edge devices and the centralized cloud, the architecture incorporates an intermediate infrastructure layer, historically referred to as Fog Computing. Functioning as a high-performance tier within the edge continuum, these nodes reside physically between smart end-devices and centralized services to facilitate connectivity and heavy processing. As defined by NIST, this infrastructure ’facilitates the deployment of distributed, latency-aware applications and services, and consists of fog nodes (physical or virtual), residing between smart end-devices and centralised services’ (Iorga et al., 2017). These nodes include physical components such as Raspberry Pi, NVIDIA Jetson platforms, gateways, routers, or nano-servers, which are capable of [...] Other strategies work on collaborative inference among edge devices such as Distributed Mixture-of-Agents (MoA) (Mitra et al., 2024). This architecture enables multiple edge devices, each hosting a localised LLM, to collaborate through decentralised gossip protocols, achieving high-quality responses without a centralised server. Each device can independently process prompts and share intermediate results with neighboring devices using decentralized gossip algorithms. Devices act as \"proposers\" generating answers and \"aggregators\" refining or selecting the best response. This distributed setup enhances robustness, reduces latency, and improves answer quality compared to relying on a single device, while also ensuring queue stability despite resource limitations and varying workloads.",
+      "score": 0.077190235,
+      "raw_content": null,
+      "id": "a12596-08"
+    },
+    {
+      "url": "https://www.researchgate.net/publication/263930348_IPFS_-_Content_Addressed_Versioned_P2P_File_System",
+      "title": "IPFS - Content Addressed, Versioned, P2P File System",
+      "content": "The InterPlanetary File System (IPFS) is a peer-to-peer distributed file system that seeks to connect all computing devices with the same system of files.",
+      "score": 0.06124987,
+      "raw_content": null,
+      "id": "28b19d-09"
+    }
+  ],
+  "response_time": 3.41,
+  "request_id": "13450bd7-bac5-4251-84d6-9035168d0c18"
+}

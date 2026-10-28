@@ -1,0 +1,1708 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/V00zbMcp+oHzSxZq2iEQZLClGc4</id>
+  <title>arXiv Query: search_query=(all:federated AND (all:"retrieval augmented generation" OR all:RAG) ) AND submittedDate:"202001010000 TO 202610262359"&amp;id_list=&amp;start=0&amp;max_results=200</title>
+  <updated>2026-10-26T05:37:30Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=(all:federated+AND+(all:%22retrieval+augmented+generation%22+OR+all:RAG))+AND+submittedDate:%22202001010000+TO+202610262359%22&amp;start=0&amp;max_results=200&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>200</opensearch:itemsPerPage>
+  <opensearch:totalResults>61</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2605.27432v1</id>
+    <title>FD-RAG: Federated Dual-System Retrieval-Augmented Generation</title>
+    <updated>2026-05-22T05:21:39Z</updated>
+    <link href="https://arxiv.org/abs/2605.27432v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.27432v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) has emerged as a paradigm for grounding large language models in external knowledge, yet most existing RAG systems assume centralized knowledge access and ample computation. These assumptions break down in edge environments, where knowledge is fragmented across devices, raw data cannot be shared, and repeated LLM calls are prohibitively expensive. We propose FD-RAG, a federated dual-system RAG framework that decouples lightweight memory access from on-demand LLM reasoning for decentralized deployment. Specifically, FD-RAG learns semantic-aware adaptive hypergraphs over local corpora and distills them into compact QA memories. At inference time, it answers well-covered queries via direct memory matching and invokes LLM-based reasoning only when necessary, while tracing retrieved memories to hypergraph-grounded evidence. To mitigate cross-device knowledge fragmentation, FD-RAG aggregates anonymized memories across devices without exposing raw documents. Experiments on QA benchmarks show that FD-RAG improves accuracy by up to 7.8\% while reducing latency by 8.4$\times$ compared with strong local and federated baselines. We also provide theoretical analysis establishing an $\mathcal{O}(1/ε^{2})$ convergence rate for the proposed hypergraph learning, supporting its tractable deployment in edge settings.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-22T05:21:39Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Tianhao Gao</name>
+    </author>
+    <author>
+      <name>Kai Yang</name>
+    </author>
+    <author>
+      <name>Yiyang Li</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.18906v2</id>
+    <title>Federated Retrieval-Augmented Generation: A Systematic Mapping Study</title>
+    <updated>2025-09-02T06:08:11Z</updated>
+    <link href="https://arxiv.org/abs/2505.18906v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.18906v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL), which enables distributed model training without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are increasingly deployed in privacy-sensitive domains such as healthcare, finance, and personalized assistance, Federated RAG offers a promising framework for secure, knowledge-intensive natural language processing (NLP). To the best of our knowledge, this paper presents the first systematic mapping study of Federated RAG, covering literature published between 2020 and 2025. Following Kitchenham's guidelines for evidence-based software engineering, we develop a structured classification of research focuses, contribution types, and application domains. We analyze architectural patterns, temporal trends, and key challenges, including privacy-preserving retrieval, cross-client heterogeneity, and evaluation limitations. Our findings synthesize a rapidly evolving body of research, identify recurring design patterns, and surface open questions, providing a foundation for future work at the intersection of RAG and federated systems.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-24T23:45:12Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Abhijit Chakraborty</name>
+    </author>
+    <author>
+      <name>Chahana Dahal</name>
+    </author>
+    <author>
+      <name>Vivek Gupta</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2403.04256v1</id>
+    <title>Federated Recommendation via Hybrid Retrieval Augmented Generation</title>
+    <updated>2024-03-07T06:38:41Z</updated>
+    <link href="https://arxiv.org/abs/2403.04256v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2403.04256v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Federated Recommendation (FR) emerges as a novel paradigm that enables privacy-preserving recommendations. However, traditional FR systems usually represent users/items with discrete identities (IDs), suffering from performance degradation due to the data sparsity and heterogeneity in FR. On the other hand, Large Language Models (LLMs) as recommenders have proven effective across various recommendation scenarios. Yet, LLM-based recommenders encounter challenges such as low inference efficiency and potential hallucination, compromising their performance in real-world scenarios. To this end, we propose GPT-FedRec, a federated recommendation framework leveraging ChatGPT and a novel hybrid Retrieval Augmented Generation (RAG) mechanism. GPT-FedRec is a two-stage solution. The first stage is a hybrid retrieval process, mining ID-based user patterns and text-based item features. Next, the retrieved results are converted into text prompts and fed into GPT for re-ranking. Our proposed hybrid retrieval mechanism and LLM-based re-rank aims to extract generalized features from data and exploit pretrained knowledge within LLM, overcoming data sparsity and heterogeneity in FR. In addition, the RAG approach also prevents LLM hallucination, improving the recommendation performance for real-world users. Experimental results on diverse benchmark datasets demonstrate the superior performance of GPT-FedRec against state-of-the-art baseline methods.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-03-07T06:38:41Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Huimin Zeng</name>
+    </author>
+    <author>
+      <name>Zhenrui Yue</name>
+    </author>
+    <author>
+      <name>Qian Jiang</name>
+    </author>
+    <author>
+      <name>Dong Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2402.11891v1</id>
+    <title>FeB4RAG: Evaluating Federated Search in the Context of Retrieval Augmented Generation</title>
+    <updated>2024-02-19T07:06:52Z</updated>
+    <link href="https://arxiv.org/abs/2402.11891v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2402.11891v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Federated search systems aggregate results from multiple search engines, selecting appropriate sources to enhance result quality and align with user intent. With the increasing uptake of Retrieval-Augmented Generation (RAG) pipelines, federated search can play a pivotal role in sourcing relevant information across heterogeneous data sources to generate informed responses. However, existing datasets, such as those developed in the past TREC FedWeb tracks, predate the RAG paradigm shift and lack representation of modern information retrieval challenges. To bridge this gap, we present FeB4RAG, a novel dataset specifically designed for federated search within RAG frameworks. This dataset, derived from 16 sub-collections of the widely used \beir benchmarking collection, includes 790 information requests (akin to conversational queries) tailored for chatbot applications, along with top results returned by each resource and associated LLM-derived relevance judgements. Additionally, to support the need for this collection, we demonstrate the impact on response generation of a high quality federated search system for RAG compared to a naive approach to federated search. We do so by comparing answers generated through the RAG pipeline through a qualitative side-by-side comparison. Our collection fosters and supports the development and evaluation of new federated search methods, especially in the context of RAG pipelines.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-02-19T07:06:52Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Shuai Wang</name>
+    </author>
+    <author>
+      <name>Ekaterina Khramtsova</name>
+    </author>
+    <author>
+      <name>Shengyao Zhuang</name>
+    </author>
+    <author>
+      <name>Guido Zuccon</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2412.13163v2</id>
+    <title>C-FedRAG: A Confidential Federated Retrieval-Augmented Generation System</title>
+    <updated>2024-12-18T21:26:14Z</updated>
+    <link href="https://arxiv.org/abs/2412.13163v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2412.13163v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Organizations seeking to utilize Large Language Models (LLMs) for knowledge querying and analysis often encounter challenges in maintaining an LLM fine-tuned on targeted, up-to-date information that keeps answers relevant and grounded. Retrieval Augmented Generation (RAG) has quickly become a feasible solution for organizations looking to overcome the challenges of maintaining proprietary models and to help reduce LLM hallucinations in their query responses. However, RAG comes with its own issues regarding scaling data pipelines across tiered-access and disparate data sources. In many scenarios, it is necessary to query beyond a single data silo to provide richer and more relevant context for an LLM. Analyzing data sources within and across organizational trust boundaries is often limited by complex data-sharing policies that prohibit centralized data storage, therefore, inhibit the fast and effective setup and scaling of RAG solutions. In this paper, we introduce Confidential Computing (CC) techniques as a solution for secure Federated Retrieval Augmented Generation (FedRAG). Our proposed Confidential FedRAG system (C-FedRAG) enables secure connection and scaling of a RAG workflows across a decentralized network of data providers by ensuring context confidentiality. We also demonstrate how to implement a C-FedRAG system using the NVIDIA FLARE SDK and assess its performance using the MedRAG toolkit and MIRAGE benchmarking dataset.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-12-17T18:42:21Z</published>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Parker Addison</name>
+    </author>
+    <author>
+      <name>Minh-Tuan H. Nguyen</name>
+    </author>
+    <author>
+      <name>Tomislav Medan</name>
+    </author>
+    <author>
+      <name>Jinali Shah</name>
+    </author>
+    <author>
+      <name>Mohammad T. Manzari</name>
+    </author>
+    <author>
+      <name>Brendan McElrone</name>
+    </author>
+    <author>
+      <name>Laksh Lalwani</name>
+    </author>
+    <author>
+      <name>Aboli More</name>
+    </author>
+    <author>
+      <name>Smita Sharma</name>
+    </author>
+    <author>
+      <name>Holger R. Roth</name>
+    </author>
+    <author>
+      <name>Isaac Yang</name>
+    </author>
+    <author>
+      <name>Chester Chen</name>
+    </author>
+    <author>
+      <name>Daguang Xu</name>
+    </author>
+    <author>
+      <name>Yan Cheng</name>
+    </author>
+    <author>
+      <name>Andrew Feng</name>
+    </author>
+    <author>
+      <name>Ziyue Xu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2504.19101v1</id>
+    <title>Privacy-Preserving Federated Embedding Learning for Localized Retrieval-Augmented Generation</title>
+    <updated>2025-04-27T04:26:02Z</updated>
+    <link href="https://arxiv.org/abs/2504.19101v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2504.19101v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) has recently emerged as a promising solution for enhancing the accuracy and credibility of Large Language Models (LLMs), particularly in Question &amp; Answer tasks. This is achieved by incorporating proprietary and private data from integrated databases. However, private RAG systems face significant challenges due to the scarcity of private domain data and critical data privacy issues. These obstacles impede the deployment of private RAG systems, as developing privacy-preserving RAG systems requires a delicate balance between data security and data availability. To address these challenges, we regard federated learning (FL) as a highly promising technology for privacy-preserving RAG services. We propose a novel framework called Federated Retrieval-Augmented Generation (FedE4RAG). This framework facilitates collaborative training of client-side RAG retrieval models. The parameters of these models are aggregated and distributed on a central-server, ensuring data privacy without direct sharing of raw data. In FedE4RAG, knowledge distillation is employed for communication between the server and client models. This technique improves the generalization of local RAG retrievers during the federated learning process. Additionally, we apply homomorphic encryption within federated learning to safeguard model parameters and mitigate concerns related to data leakage. Extensive experiments conducted on the real-world dataset have validated the effectiveness of FedE4RAG. The results demonstrate that our proposed framework can markedly enhance the performance of private RAG systems while maintaining robust data privacy protection.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-04-27T04:26:02Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Qianren Mao</name>
+    </author>
+    <author>
+      <name>Qili Zhang</name>
+    </author>
+    <author>
+      <name>Hanwen Hao</name>
+    </author>
+    <author>
+      <name>Zhentao Han</name>
+    </author>
+    <author>
+      <name>Runhua Xu</name>
+    </author>
+    <author>
+      <name>Weifeng Jiang</name>
+    </author>
+    <author>
+      <name>Qi Hu</name>
+    </author>
+    <author>
+      <name>Zhijun Chen</name>
+    </author>
+    <author>
+      <name>Tyler Zhou</name>
+    </author>
+    <author>
+      <name>Bo Li</name>
+    </author>
+    <author>
+      <name>Yangqiu Song</name>
+    </author>
+    <author>
+      <name>Jin Dong</name>
+    </author>
+    <author>
+      <name>Jianxin Li</name>
+    </author>
+    <author>
+      <name>Philip S. Yu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2506.09200v2</id>
+    <title>FedRAG: A Framework for Fine-Tuning Retrieval-Augmented Generation Systems</title>
+    <updated>2025-06-12T13:48:57Z</updated>
+    <link href="https://arxiv.org/abs/2506.09200v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2506.09200v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) systems have been shown to be effective in addressing many of the drawbacks of relying solely on the parametric memory of large language models. Recent work has demonstrated that RAG systems can be improved via fine-tuning of their retriever and generator models. In this work, we introduce FedRAG, a framework for fine-tuning RAG systems across centralized and federated architectures. FedRAG supports state-of-the-art fine-tuning methods, offering a simple and intuitive interface and a seamless conversion from centralized to federated training tasks. FedRAG is also deeply integrated with the modern RAG ecosystem, filling a critical gap in available tools.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-06-10T19:42:07Z</published>
+    <arxiv:comment>9 pages, 4 figures, 2 tables. Accepted for the CODEML Workshop at ICML 2025. Framework code available at https://github.com/VectorInstitute/fed-rag</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Val Andrei Fajardo</name>
+    </author>
+    <author>
+      <name>David B. Emerson</name>
+    </author>
+    <author>
+      <name>Amandeep Singh</name>
+    </author>
+    <author>
+      <name>Veronica Chatrath</name>
+    </author>
+    <author>
+      <name>Marcelo Lotif</name>
+    </author>
+    <author>
+      <name>Ravi Theja</name>
+    </author>
+    <author>
+      <name>Alex Cheung</name>
+    </author>
+    <author>
+      <name>Izuki Matsuba</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2502.19280v2</id>
+    <title>Efficient Federated Search for Retrieval-Augmented Generation using Lightweight Routing</title>
+    <updated>2026-04-09T13:52:15Z</updated>
+    <link href="https://arxiv.org/abs/2502.19280v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2502.19280v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Large language models (LLMs) achieve remarkable performance across domains but remain prone to hallucinations and inconsistencies. Retrieval-augmented generation (RAG) mitigates these issues by augmenting model inputs with relevant documents retrieved from external sources. In many real-world scenarios, relevant knowledge is fragmented across organizations or institutions, motivating the need for federated search mechanisms that can aggregate results from heterogeneous data sources without centralizing the data. We introduce RAGRoute, a lightweight routing mechanism for federated search in RAG systems that dynamically selects relevant data sources at query time using a neural classifier, avoiding indiscriminate querying. This selective routing reduces communication overhead and end-to-end latency while preserving retrieval quality, achieving up to 80.65% reductions in communication volume and 52.50% reductions in latency across three benchmarks, while matching the accuracy of querying all sources.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-02-26T16:36:24Z</published>
+    <arxiv:comment>To appear in the proceedings of DAIS 2026 (Distributed Applications and Interoperable Systems). An earlier version appeared at EuroMLSys 2025</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Akash Dhasade</name>
+    </author>
+    <author>
+      <name>Rachid Guerraoui</name>
+    </author>
+    <author>
+      <name>Anne-Marie Kermarrec</name>
+    </author>
+    <author>
+      <name>Diana Petrescu</name>
+    </author>
+    <author>
+      <name>Rafael Pires</name>
+    </author>
+    <author>
+      <name>Mathis Randl</name>
+    </author>
+    <author>
+      <name>Martijn de Vos</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2602.05235v2</id>
+    <title>FedMosaic: Federated Retrieval-Augmented Generation via Parametric Adapters</title>
+    <updated>2026-07-11T16:39:43Z</updated>
+    <link href="https://arxiv.org/abs/2602.05235v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2602.05235v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) enhances Large Language Models (LLMs) by grounding generation in external knowledge to improve factuality and reduce hallucinations. Yet most deployments assume a centralized corpus, which is infeasible in privacy aware domains where knowledge remains siloed. This motivates federated RAG (FedRAG), where a central LLM server collaborates with distributed silos without sharing raw documents. In context RAG violates this requirement by transmitting verbatim documents, whereas parametric RAG encodes documents into lightweight adapters that merge with a frozen LLM at inference, avoiding raw-text exchange. We adopt the parametric approach but face two unique challenges induced by FedRAG: high storage and communication from per-document adapters, and destructive aggregation caused by indiscriminately merging multiple adapters. We present FedMosaic, the first federated RAG framework built on parametric adapters. FedMosaic clusters semantically related documents into multi-document adapters with document-specific masks to reduce overhead while preserving specificity, and performs selective adapter aggregation to combine only relevance-aligned, nonconflicting adapters. Experiments show that FedMosaic achieves an average 10.9% higher accuracy than state-of-the-art methods in four categories, while lowering storage costs by 78.8% to 86.3% and communication costs by 91.4%, and never sharing raw documents.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-02-05T02:52:49Z</published>
+    <arxiv:comment>11 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Zhilin Liang</name>
+    </author>
+    <author>
+      <name>Yuxiang Wang</name>
+    </author>
+    <author>
+      <name>Zimu Zhou</name>
+    </author>
+    <author>
+      <name>Hainan Zhang</name>
+    </author>
+    <author>
+      <name>Boyi Liu</name>
+    </author>
+    <author>
+      <name>Yongxin Tong</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2501.14998v1</id>
+    <title>Federated Retrieval Augmented Generation for Multi-Product Question Answering</title>
+    <updated>2025-01-25T00:22:27Z</updated>
+    <link href="https://arxiv.org/abs/2501.14998v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2501.14998v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Recent advancements in Large Language Models and Retrieval-Augmented Generation have boosted interest in domain-specific question-answering for enterprise products. However, AI Assistants often face challenges in multi-product QA settings, requiring accurate responses across diverse domains. Existing multi-domain RAG-QA approaches either query all domains indiscriminately, increasing computational costs and LLM hallucinations, or rely on rigid resource selection, which can limit search results. We introduce MKP-QA, a novel multi-product knowledge-augmented QA framework with probabilistic federated search across domains and relevant knowledge. This method enhances multi-domain search quality by aggregating query-domain and query-passage probabilistic relevance. To address the lack of suitable benchmarks for multi-product QAs, we also present new datasets focused on three Adobe products: Adobe Experience Platform, Target, and Customer Journey Analytics. Our experiments show that MKP-QA significantly boosts multi-product RAG-QA performance in terms of both retrieval accuracy and response quality.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-01-25T00:22:27Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Parshin Shojaee</name>
+    </author>
+    <author>
+      <name>Sai Sree Harsha</name>
+    </author>
+    <author>
+      <name>Dan Luo</name>
+    </author>
+    <author>
+      <name>Akash Maharaj</name>
+    </author>
+    <author>
+      <name>Tong Yu</name>
+    </author>
+    <author>
+      <name>Yunyao Li</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.30728v1</id>
+    <title>Federated Graph Retrieval-Augmented Generation</title>
+    <updated>2026-10-22T04:56:03Z</updated>
+    <link href="https://arxiv.org/abs/2610.30728v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.30728v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Graph Retrieval-Augmented Generation (GraphRAG) leverages centralized knowledge graphs to enhance large language models with structured knowledge retrieval. However, real-world knowledge is inherently distributed across multiple organizations rather than being centrally accessible. Privacy constraints further prohibit sharing entire local knowledge graphs, preventing GraphRAG from effectively retrieving and utilizing distributed knowledge. To this end, we propose Federated GraphRAG (FedGRAG), a unified framework for distributed graph retrieval and knowledge-enhanced generation over multiple clients with knowledge graphs. Specifically, we address two fundamental challenges in federated GraphRAG. First, the absence of a global knowledge graph makes unified retrieval impossible. To address this, we develop a Federated Knowledge Routing mechanism that efficiently identifies relevant clients through lightweight knowledge indices without exposing local graph structures. Second, local graph memory cannot be shared directly because it contains sensitive entities and knowledge information. We therefore propose a controlled-disclosure evidence construction method. It extracts retrieved evidence subgraphs and converts them into an evidence abstract, enabling evidence conversion and reconstruction on the server. Extensive experiments demonstrate that Federated GraphRAG consistently outperforms existing baselines in both retrieval and downstream generation tasks, establishing a new paradigm for deploying GraphRAG in federated environments.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-22T04:56:03Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Xiaobao Wang</name>
+    </author>
+    <author>
+      <name>Renda Han</name>
+    </author>
+    <author>
+      <name>Zhiliang Xia</name>
+    </author>
+    <author>
+      <name>Meng Liu</name>
+    </author>
+    <author>
+      <name>Renxiang Guan</name>
+    </author>
+    <author>
+      <name>Di Jin</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2410.13272v1</id>
+    <title>FRAG: Toward Federated Vector Database Management for Collaborative and Secure Retrieval-Augmented Generation</title>
+    <updated>2024-10-17T06:57:29Z</updated>
+    <link href="https://arxiv.org/abs/2410.13272v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2410.13272v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper introduces \textit{Federated Retrieval-Augmented Generation (FRAG)}, a novel database management paradigm tailored for the growing needs of retrieval-augmented generation (RAG) systems, which are increasingly powered by large-language models (LLMs). FRAG enables mutually-distrusted parties to collaboratively perform Approximate $k$-Nearest Neighbor (ANN) searches on encrypted query vectors and encrypted data stored in distributed vector databases, all while ensuring that no party can gain any knowledge about the queries or data of others. Achieving this paradigm presents two key challenges: (i) ensuring strong security guarantees, such as Indistinguishability under Chosen-Plaintext Attack (IND-CPA), under practical assumptions (e.g., we avoid overly optimistic assumptions like non-collusion among parties); and (ii) maintaining performance overheads comparable to traditional, non-federated RAG systems. To address these challenges, FRAG employs a single-key homomorphic encryption protocol that simplifies key management across mutually-distrusted parties. Additionally, FRAG introduces a \textit{multiplicative caching} technique to efficiently encrypt floating-point numbers, significantly improving computational performance in large-scale federated environments. We provide a rigorous security proof using standard cryptographic reductions and demonstrate the practical scalability and efficiency of FRAG through extensive experiments on both benchmark and real-world datasets.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DB" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-10-17T06:57:29Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Dongfang Zhao</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2412.13720v2</id>
+    <title>Federated Learning and RAG Integration: A Scalable Approach for Medical Large Language Models</title>
+    <updated>2025-01-08T07:03:42Z</updated>
+    <link href="https://arxiv.org/abs/2412.13720v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2412.13720v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This study analyzes the performance of domain-specific Large Language Models (LLMs) for the medical field by integrating Retrieval-Augmented Generation (RAG) systems within a federated learning framework. Leveraging the inherent advantages of federated learning, such as preserving data privacy and enabling distributed computation, this research explores the integration of RAG systems with models trained under varying client configurations to optimize performance. Experimental results demonstrate that the federated learning-based models integrated with RAG systems consistently outperform their non-integrated counterparts across all evaluation metrics. This study highlights the potential of combining federated learning and RAG systems for developing domain-specific LLMs in the medical field, providing a scalable and privacy-preserving solution for enhancing text generation capabilities.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-12-18T11:00:58Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Jincheol Jung</name>
+    </author>
+    <author>
+      <name>Hongju Jeong</name>
+    </author>
+    <author>
+      <name>Eui-Nam Huh</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.22162v1</id>
+    <title>Beyond Raw Context Transfer: Representation-based Federated Retrieval-Augmented Generation</title>
+    <updated>2026-08-26T17:31:23Z</updated>
+    <link href="https://arxiv.org/abs/2609.22162v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.22162v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) improves the factuality of large language models (LLMs) and vision-language models (VLMs) by grounding generation in external knowledge. However, most existing RAG frameworks assume a centralized retrieval corpus, which is often impractical in sensitive domains such as healthcare, where data are inherently distributed and raw content cannot be directly shared across institutions. Recent efforts on decentralized RAG primarily follow prompt-based paradigms that exchange raw, human-readable retrieved content, leading to substantial inference-time computational overhead and direct exposure of retrieved information. To address these limitations, we propose Representation-based Federated RAG (FedRepRAG), a decentralized RAG framework that keeps raw documents at their owning clients and exchanges only compact latent representations during cross-client retrieval. To integrate retrieved knowledge, we introduce a collaboratively trained projector that converts retrieval embeddings into generator-compatible representation tokens for a frozen LLM/VLM backbone. Experiments across decentralized visual question answering (VQA) and question answering (QA) benchmarks show that FedRepRAG consistently outperforms direct inference and local retrieval baselines while substantially reducing retrieval-context length and inference-time computational overhead compared with raw-context transfer. Further analyses confirm the importance of query-relevant retrieved representations and characterize the residual representation-level leakage associated with representation exchange. Overall, FedRepRAG provides an effective and efficient framework for federated RAG without transferring raw retrieved content.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-26T17:31:23Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Can Peng</name>
+    </author>
+    <author>
+      <name>Yu Liu</name>
+    </author>
+    <author>
+      <name>Yingyu Yang</name>
+    </author>
+    <author>
+      <name>Anjie Le</name>
+    </author>
+    <author>
+      <name>Yuyuan Liu</name>
+    </author>
+    <author>
+      <name>Qianye Yang</name>
+    </author>
+    <author>
+      <name>J. Alison Noble</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2506.00054v1</id>
+    <title>Retrieval-Augmented Generation: A Comprehensive Survey of Architectures, Enhancements, and Robustness Frontiers</title>
+    <updated>2025-05-28T22:57:04Z</updated>
+    <link href="https://arxiv.org/abs/2506.00054v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2506.00054v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) has emerged as a powerful paradigm to enhance large language models (LLMs) by conditioning generation on external evidence retrieved at inference time. While RAG addresses critical limitations of parametric knowledge storage-such as factual inconsistency and domain inflexibility-it introduces new challenges in retrieval quality, grounding fidelity, pipeline efficiency, and robustness against noisy or adversarial inputs. This survey provides a comprehensive synthesis of recent advances in RAG systems, offering a taxonomy that categorizes architectures into retriever-centric, generator-centric, hybrid, and robustness-oriented designs. We systematically analyze enhancements across retrieval optimization, context filtering, decoding control, and efficiency improvements, supported by comparative performance analyses on short-form and multi-hop question answering tasks. Furthermore, we review state-of-the-art evaluation frameworks and benchmarks, highlighting trends in retrieval-aware evaluation, robustness testing, and federated retrieval settings. Our analysis reveals recurring trade-offs between retrieval precision and generation flexibility, efficiency and faithfulness, and modularity and coordination. We conclude by identifying open challenges and future research directions, including adaptive retrieval architectures, real-time retrieval integration, structured reasoning over multi-hop evidence, and privacy-preserving retrieval mechanisms. This survey aims to consolidate current knowledge in RAG research and serve as a foundation for the next generation of retrieval-augmented language modeling systems.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-28T22:57:04Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Chaitanya Sharma</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2608.07913v1</id>
+    <title>Private Anytime Selective-Risk Certification for Federated Retrieval-Augmented Generation: Guarantees and Empirical Limits</title>
+    <updated>2026-08-08T04:38:35Z</updated>
+    <link href="https://arxiv.org/abs/2608.07913v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2608.07913v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Selective-risk certificates promise that accepted outputs meet a declared error target. We develop Fed-SRC, a score-agnostic certificate for federated, differentially private, adaptively monitored retrieval-augmented generation. Clients release only Gaussian-perturbed score and loss histograms. Record-indexed and noise-variance-indexed martingales jointly bound target-risk contrast and accepted mass over all registered thresholds and rounds, permitting predictable recruitment, dropout, threshold selection, and optional stopping. A range-one total-variation term transfers the calibration mixture to a declared deployment mixture. The contribution is this private, federated, anytime combination, rather than the contrast statistic or acceptance floor individually. Empirically, no simultaneous-bound violation occurs in any evaluated cell, privacy level, or policy. Operational power depends on the score and population: the primary target r*=0.10 never certifies, and on RAGTruth the secondary target r*=0.20 never certifies either, whereas on HaluEval question answering it certifies in all 200 non-private trials, with held-out risk below the target. Naively privatized non-private certificates violate their bounds in 146 to 198 of 200 trials. As an exploratory comparison, we also evaluate a private betting-capital heuristic for which we do not establish e-process validity. This heuristic stops certifying at epsilon &lt;= 4, where Fed-SRC still certifies. Certification nevertheless consumes roughly 30 times more stream events than unique calibration items.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-08T04:38:35Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Sanjeda Akter</name>
+    </author>
+    <author>
+      <name>Ibne Farabi Shihab</name>
+    </author>
+    <author>
+      <name>Anuj Sharma</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2504.07022v1</id>
+    <title>Evaluating Retrieval Augmented Generative Models for Document Queries in Transportation Safety</title>
+    <updated>2025-04-09T16:37:03Z</updated>
+    <link href="https://arxiv.org/abs/2504.07022v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2504.07022v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Applications of generative Large Language Models LLMs are rapidly expanding across various domains, promising significant improvements in workflow efficiency and information retrieval. However, their implementation in specialized, high-stakes domains such as hazardous materials transportation is challenging due to accuracy and reliability concerns. This study evaluates the performance of three fine-tuned generative models, ChatGPT, Google's Vertex AI, and ORNL Retrieval Augmented Generation augmented LLaMA 2 and LLaMA in retrieving regulatory information essential for hazardous material transportation compliance in the United States. Utilizing approximately 40 publicly available federal and state regulatory documents, we developed 100 realistic queries relevant to route planning and permitting requirements. Responses were qualitatively rated based on accuracy, detail, and relevance, complemented by quantitative assessments of semantic similarity between model outputs. Results demonstrated that the RAG-augmented LLaMA models significantly outperformed Vertex AI and ChatGPT, providing more detailed and generally accurate information, despite occasional inconsistencies. This research introduces the first known application of RAG in transportation safety, emphasizing the need for domain-specific fine-tuning and rigorous evaluation methodologies to ensure reliability and minimize the risk of inaccuracies in high-stakes environments.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-04-09T16:37:03Z</published>
+    <arxiv:comment>14 pages, 3 Figures, 3 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Chad Melton</name>
+    </author>
+    <author>
+      <name>Alex Sorokine</name>
+    </author>
+    <author>
+      <name>Steve Peterson</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.21654v1</id>
+    <title>Towards Secure Retrieval-Augmented Generation: A Comprehensive Review of Threats, Defenses and Benchmarks</title>
+    <updated>2026-03-23T07:32:59Z</updated>
+    <link href="https://arxiv.org/abs/2603.21654v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.21654v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) significantly mitigates the hallucinations and domain knowledge deficiency in large language models by incorporating external knowledge bases. However, the multi-module architecture of RAG introduces complex system-level security vulnerabilities. Guided by the RAG workflow, this paper analyzes the underlying vulnerability mechanisms and systematically categorizes core threat vectors such as data poisoning, adversarial attacks, and membership inference attacks. Based on this threat assessment, we construct a taxonomy of RAG defense technologies from a dual perspective encompassing both input and output stages. The input-side analysis reviews data protection mechanisms including dynamic access control, homomorphic encryption retrieval, and adversarial pre-filtering. The output-side examination summarizes advanced leakage prevention techniques such as federated learning isolation, differential privacy perturbation, and lightweight data sanitization. To establish a unified benchmark for future experimental design, we consolidate authoritative test datasets, security standards, and evaluation frameworks. To the best of our knowledge, this paper presents the first end-to-end survey dedicated to the security of RAG systems. Distinct from existing literature that isolates specific vulnerabilities, we systematically map the entire pipeline-providing a unified analysis of threat models, defense mechanisms, and evaluation benchmarks. By enabling deep insights into potential risks, this work seeks to foster the development of highly robust and trustworthy next-generation RAG systems.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-23T07:32:59Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Yanming Mu</name>
+    </author>
+    <author>
+      <name>Hao Hu</name>
+    </author>
+    <author>
+      <name>Feiyang Li</name>
+    </author>
+    <author>
+      <name>Qiao Yuan</name>
+    </author>
+    <author>
+      <name>Jiang Wu</name>
+    </author>
+    <author>
+      <name>Zichuan Liu</name>
+    </author>
+    <author>
+      <name>Pengcheng Liu</name>
+    </author>
+    <author>
+      <name>Mei Wang</name>
+    </author>
+    <author>
+      <name>Hongwei Zhou</name>
+    </author>
+    <author>
+      <name>Yuling Liu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2608.20372v1</id>
+    <title>Edge-Based Agentic Retrieval-Augmented Generation for Autonomous FHWA Bridge Inspection Compliance</title>
+    <updated>2026-06-23T15:15:56Z</updated>
+    <link href="https://arxiv.org/abs/2608.20372v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2608.20372v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The Federal Highway Administration (FHWA) mandates that over 600,000 bridges in the United States be evaluated against the Recording and Coding Guide for the National Bridge Inventory (NBI). Manual compliance verification is labor-intensive, error-prone, and impractical in connectivity-limited field environments. This paper introduces BridgeGuard, a fully air-gapped agentic Retrieval-Augmented Generation (RAG) system for autonomous bridge inspection compliance. BridgeGuard integrates vector search over the FHWA Recording and Coding Guide with structured SQL queries against NBI tabular data, orchestrated by a stateful multi-step ReAct planning loop executing locally on commodity edge hardware. A section-aware chunking algorithm preserves hierarchical regulatory item boundaries, achieving 94.2% chunk integrity compared with 28.4% for naive fixed-size splitting. Evaluated on the full Delaware 2023 NBI inventory (874 bridges) and a Texas sample (200 bridges), the system achieves 99.77% and 100.0% classification accuracy, respectively, for Structurally Deficient bridge identification, with 100.0% citation accuracy, at 197.0 bridges per hour with out external network access. Ablation experiments confirm that both vector search and the multi-step agentic loop are necessary for correct compliance reasoning.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-23T15:15:56Z</published>
+    <arxiv:comment>27 pages, 1 figure, 5 tables. Pre-print submitted to the ASCE Journal of Computing in Civil Engineering. Code and data available at: https://github.com/virajdarji/bridgeguard</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Viraj Nishesh Darji</name>
+    </author>
+    <author>
+      <name>Hemaliben Rakeshkumar Darji</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.25533v1</id>
+    <title>Security and Privacy in Retrieval-Augmented Generation: Architectures, Threats, Defenses, and Future Directions for Building Trustworthy Systems</title>
+    <updated>2026-06-24T08:08:10Z</updated>
+    <link href="https://arxiv.org/abs/2606.25533v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.25533v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) has emerged as a dominant paradigm for enhancing large language models with external knowledge. By coupling retrieval mechanisms with generative models, RAG systems improve factual grounding and adaptability across domains. However, integrating retrieval pipelines introduces new security and privacy risks that extend beyond conventional language modeling threats. Sensitive information may be exposed through retrieval indices, query logs, context construction, or federated updates, while adversarial manipulation of knowledge bases can undermine trust in generated outputs. This survey provides a comprehensive examination of privacy and security challenges across RAG systems deployed in centralized, on-device (Micro-RAG), federated, and hybrid paradigms. We present a unified taxonomy of threat surfaces spanning the retrieval, context construction, and generation stages and systematically analyze attack classes, including membership inference, index inference, poisoning, gradient leakage, and collusion. We further review architectural, algorithmic, and cryptographic defenses, highlighting privacy-utility trade-offs and deployment considerations. Finally, we outline open research challenges toward building trustworthy, secure, and resilient RAG systems for real-world applications.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-24T08:08:10Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Balamurugan Palanisamy</name>
+    </author>
+    <author>
+      <name>G S S Chalapathi</name>
+    </author>
+    <author>
+      <name>Vikas Hassija</name>
+    </author>
+    <author>
+      <name>Rajkumar Buyya</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.29139v2</id>
+    <title>Certified Adaptive Refresh: Anytime-Valid Monitoring for Federated Conformal RAG</title>
+    <updated>2026-09-29T05:00:56Z</updated>
+    <link href="https://arxiv.org/abs/2605.29139v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.29139v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Question-answering services built on retrieval-augmented generation (RAG), in which a language model answers from retrieved documents, are inspected continuously and upgraded repeatedly, so their reliability guarantee must survive both. We study federated conformal RAG: nodes holding private corpora score candidate answers with a shared language model and send compressed scores to a hub that returns an answer set; a miss omits the true answer. We formulate monitoring as a sequential test: alarm when misses exceed a certified bound on the miss rate (the allowance). But a conformal certificate covers one frozen configuration at one look fixed in advance, so it gives no anytime-valid alarm; a threshold calibrated for one model certifies nothing about its replacement; and re-certifying each upgrade at full error level compounds failures. We propose Anytime-FC-RAG with three auditable rules: pick each configuration before its fresh calibration, charge every certificate attempt to one trajectory-wide budget $δ_{\rm cal}$, and fix threshold, allowance and bet before each query. One betting wealth $E_t$, growing in expectation only when misses exceed the allowance, never resets across deployments. Our certified adaptive-refresh theorem shows that, with evidence budget $δ_e$, alarming when $E_t$ reaches $1/δ_e$ has false-alarm probability at most $δ_e + δ_{\rm cal}$ under a random number of history-selected, evidence-driven refreshes of model, retriever, corpus, score or threshold; $δ_{\rm cal}$ pays for wrong certificates. With an exact order-statistic certificate the bound is distribution-free, architecture-agnostic and about misses, not per-input coverage or distribution shift as such. On Qwen2.5/MMLU-Pro the alarm separated audited-harmful from benign shifts completely at a 5% budget; in a model swap, only fresh calibration kept a downgrade's miss rate in check.</summary>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-27T22:06:57Z</published>
+    <arxiv:primary_category term="stat.ML"/>
+    <author>
+      <name>Prasanjit Dubey</name>
+    </author>
+    <author>
+      <name>Xiaoming Huo</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.18426v1</id>
+    <title>Retrieval Augmented Generation-based Large Language Models for Bridging Transportation Cybersecurity Legal Knowledge Gaps</title>
+    <updated>2025-05-23T23:40:10Z</updated>
+    <link href="https://arxiv.org/abs/2505.18426v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.18426v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>As connected and automated transportation systems evolve, there is a growing need for federal and state authorities to revise existing laws and develop new statutes to address emerging cybersecurity and data privacy challenges. This study introduces a Retrieval-Augmented Generation (RAG) based Large Language Model (LLM) framework designed to support policymakers by extracting relevant legal content and generating accurate, inquiry-specific responses. The framework focuses on reducing hallucinations in LLMs by using a curated set of domain-specific questions to guide response generation. By incorporating retrieval mechanisms, the system enhances the factual grounding and specificity of its outputs. Our analysis shows that the proposed RAG-based LLM outperforms leading commercial LLMs across four evaluation metrics: AlignScore, ParaScore, BERTScore, and ROUGE, demonstrating its effectiveness in producing reliable and context-aware legal insights. This approach offers a scalable, AI-driven method for legislative analysis, supporting efforts to update legal frameworks in line with advancements in transportation technologies.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-23T23:40:10Z</published>
+    <arxiv:comment>Presented at the Transportation Research Board (TRB) Annual Meeting 2025, and subsequently submitted for publication consideration in the Transportation Research Record (TRR)</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Khandakar Ashrafi Akbar</name>
+    </author>
+    <author>
+      <name>Md Nahiyan Uddin</name>
+    </author>
+    <author>
+      <name>Latifur Khan</name>
+    </author>
+    <author>
+      <name>Trayce Hockstad</name>
+    </author>
+    <author>
+      <name>Mizanur Rahman</name>
+    </author>
+    <author>
+      <name>Mashrur Chowdhury</name>
+    </author>
+    <author>
+      <name>Bhavani Thuraisingham</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.33037v2</id>
+    <title>Byzantine-Robust Federated RAG via Aligned Calibration and Fixed-Membership Conformal Prediction</title>
+    <updated>2026-09-29T04:12:25Z</updated>
+    <link href="https://arxiv.org/abs/2609.33037v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.33037v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) lets language models answer questions more accurately by consulting relevant documents. Many valuable collections, such as medical records, cannot be pooled because of privacy rules. Federated RAG leaves each collection with its owner, or node, which scores candidate answers from its own documents; a central hub combines the scores. Some nodes, called Byzantine, may be compromised, faulty, or misled by instructions hidden in documents, and report arbitrary scores. Conformal prediction returns a set containing the correct answer with a chosen probability, using a cutoff set in a calibration step on questions with known answers. An unknown group of nodes, no larger than a declared bound, may misreport both in this step and at query time. Existing methods assume every node is honest or protect only the calibration step. We observe that the honest nodes are the same in both steps. The hub therefore has all nodes score the same calibration questions, and keeps a candidate only if some plausible group of honest nodes, using its own scores in both steps, would keep it. We prove that the resulting sets contain the correct answer with the chosen probability in finite samples, whatever the Byzantine nodes report. No method using the same information can return smaller sets without risking the loss of an answer the honest nodes support. If nodes fail at random, the guarantee weakens only by the probability that more nodes fail than declared. In simulations, on real question-answering tasks including medical exams, and with language models as nodes, some hijacked, our sets reached the target whenever no more nodes misbehaved than declared, while plain averaging could miss it. They were also clearly smaller than those of simpler methods with the same protection, most of all when the declared bound was generous, so a cautious bound costs little.</summary>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-27T00:07:31Z</published>
+    <arxiv:primary_category term="stat.ML"/>
+    <author>
+      <name>Prasanjit Dubey</name>
+    </author>
+    <author>
+      <name>Aritra Guha</name>
+    </author>
+    <author>
+      <name>Xiaoming Huo</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.25716v1</id>
+    <title>An Efficient and Privacy-Preserving Architecture for Cross-Institutional Collaborative RAG</title>
+    <updated>2026-05-25T11:18:19Z</updated>
+    <link href="https://arxiv.org/abs/2605.25716v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.25716v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) empowers LLMs with external knowledge, making cross-institutional domain-specific knowledge base integration a highly promising deployment paradigm. Despite this potential, strict privacy regulations create severe "data silos" that obstruct such collaboration. Building federated RAG systems requires distributed inference, but the Transformer's self-attention mechanism fundamentally conflicts with this by mandating cross-node access to distributed Key-Value caches. To address this challenge, we present FedRAG, a high-throughput, privacy-preserving federated RAG framework. At its core is a novel Scrambled Distributed Attention protocol that utilizes numerically stable feature scrambling and token permutation. By dynamically delegating scrambled computations to collaborating nodes, our system successfully decouples attention execution from data localization without exposing plaintext. Crucially, our approach requires no specialized hardware or model retraining, circumventing the prohibitive latency and communication overheads of cryptographic solutions while robustly defending against intermediate state inversion attacks. Extensive evaluations demonstrate our framework preserves negligible (&lt;0.1\%) model utility degradation and achieves up to a 62$\times$ latency reduction over existing secure baselines, sustaining practical, human-reading throughput for cross-institutional knowledge synergy.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-25T11:18:19Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Chenxin Mao</name>
+    </author>
+    <author>
+      <name>Shangyu Liu</name>
+    </author>
+    <author>
+      <name>Zhenzhe Zheng</name>
+    </author>
+    <author>
+      <name>Fan Wu</name>
+    </author>
+    <author>
+      <name>Jie Wu</name>
+    </author>
+    <author>
+      <name>Guihai Chen</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.28112v2</id>
+    <title>A Wolf in Sheep's Clothing: Targeted Routing Hijacking in Federated RAG</title>
+    <updated>2026-08-28T14:52:00Z</updated>
+    <link href="https://arxiv.org/abs/2605.28112v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.28112v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Federated Retrieval-Augmented Generation (FedRAG) is attractive for privacy-sensitive applications because full local corpora remain on clients. As a result, routing must rely on client-provided semantic profiles, creating a new opportunity for manipulation. We introduce Routing Hijacking, a routing-stage attack in which a malicious client forges its profile to attract target queries despite having irrelevant underlying data. We show that this vulnerability is severe. Across three representative FedRAG routing architectures, Routing Hijacking consistently misroutes target queries and leads to downstream disruptions and failures, including missing evidence, poisoning, incorrect answers, and hallucinations. In a controlled MedQA-USMLE stress test, we further show that poisoned retrieved evidence can mislead models across scales, leading to incorrect answers, hallucinations, and sycophantic failures. Existing defenses do not close this gap: encrypted routing preserves the exploited ranking, and Byzantine-robust Federated Learning (FL) rules transfer poorly to heterogeneous routing profiles. To address this gap, we propose a trust-aware post-routing framework that reweights clients using returned-evidence feedback, including retrieval relevance, profile consistency, and cross-client agreement; online experiments show that it suppresses persistent hijacking over recurring queries and transfers to a learned neural router. Our findings establish routing integrity as a security challenge in FedRAG and highlight the need for stronger defenses for secure federated retrieval.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-27T08:06:10Z</published>
+    <arxiv:comment>Accepted to the EMNLP 2026 Main Conference. Code available at https://github.com/Junjie-Mu/routing-hijacking-fedrag</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Junjie Mu</name>
+    </author>
+    <author>
+      <name>Qiongxiu Li</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2502.10497v2</id>
+    <title>Hallucinations and Truth: A Comprehensive Accuracy Evaluation of RAG, LoRA and DoRA</title>
+    <updated>2026-07-29T21:40:12Z</updated>
+    <link href="https://arxiv.org/abs/2502.10497v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2502.10497v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Recent advancements in Generative AI have significantly improved the efficiency and adaptability of natural language processing (NLP) systems, particularly through Retrieval-Augmented Generation (RAG), Low-Rank Adaptation (LoRA), and Weight-Decomposed Low-Rank Adaptation (DoRA). RAG integrates external knowledge to enhance factual consistency in generative outputs, while LoRA enables parameter-efficient fine-tuning of large language models (LLMs). DoRA further refines this process by optimizing fine-tuning through adaptive parameter ranking and domain-aware weight adjustments, improving learning efficiency while maintaining inference performance.
+  This paper presents a large-scale empirical evaluation of RAG, LoRA, and DoRA, with model fine-tuning and generation performance assessed on 20,000 FAQ-based queries, while the knowledge base spans 400,000 entries. The study analyzes key performance metrics such as accuracy, relevance, and inference latency. Experimental results demonstrate that DoRA achieves the highest accuracy (90.1%), relevance score (0.88), and lowest latency (110 ms per query), outperforming both LoRA and RAG in real-world, domain-specific generative AI applications.
+  Furthermore, this study examines the trade-offs between fine-tuning efficiency, computational cost, and real-time adaptability across different models. Findings highlight RAG's effectiveness in knowledge grounding, LoRA's cost-efficient domain adaptation, and DoRA's ability to balance fine-tuning efficiency with model precision. These insights provide practical guidance for deploying AI-driven generative systems in accuracy-critical domains such as healthcare, finance, and legal services, ensuring scalability, reliability, and optimal performance in dynamic environments.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-02-14T17:38:25Z</published>
+    <arxiv:comment>10 Pages</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <arxiv:journal_ref>2026 2nd International Conference on Federated Learning and Intelligent Computing Systems (FLICS), 10.1109/FLICS70075.2026</arxiv:journal_ref>
+    <author>
+      <name>Mohammad Baqar</name>
+    </author>
+    <author>
+      <name>Rajat Khanda</name>
+    </author>
+    <arxiv:doi>10.1109/FLICS70075.2026.11621926</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1109/FLICS70075.2026.11621926" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2604.09541v1</id>
+    <title>Trans-RAG: Query-Centric Vector Transformation for Secure Cross-Organizational Retrieval</title>
+    <updated>2026-04-10T17:58:06Z</updated>
+    <link href="https://arxiv.org/abs/2604.09541v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2604.09541v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval Augmented Generation (RAG) systems deployed across organizational boundaries face fundamental tensions between security, accuracy, and efficiency. Current encryption methods expose plaintext during decryption, while federated architectures prevent resource integration and incur substantial overhead. We introduce Trans-RAG, implementing a novel vector space language paradigm where each organization's knowledge exists in a mathematically isolated semantic space. At the core lies vector2Trans, a multi-stage transformation technique that enables queries to dynamically "speak" each organization's vector space "language" through query-centric transformations, eliminating decryption overhead while maintaining native retrieval efficiency. Security evaluations demonstrate near-orthogonal vector spaces with 89.90° angular separation and 99.81% isolation rates. Experiments across 8 retrievers, 3 datasets, and 3 LLMs show minimal accuracy degradation (3.5% decrease in nDCG@10) and significant efficiency improvements over homomorphic encryption.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-04-10T17:58:06Z</published>
+    <arxiv:comment>Accepted by DASFAA 2026</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Yu Liu</name>
+    </author>
+    <author>
+      <name>Kun Peng</name>
+    </author>
+    <author>
+      <name>Wenxiao Zhang</name>
+    </author>
+    <author>
+      <name>Fangfang Yuan</name>
+    </author>
+    <author>
+      <name>Cong Cao</name>
+    </author>
+    <author>
+      <name>Wenxuan Lu</name>
+    </author>
+    <author>
+      <name>Yanbing Liu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2503.15569v1</id>
+    <title>RAG-based User Profiling for Precision Planning in Mixed-precision Over-the-Air Federated Learning</title>
+    <updated>2025-03-19T09:26:11Z</updated>
+    <link href="https://arxiv.org/abs/2503.15569v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2503.15569v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Mixed-precision computing, a widely applied technique in AI, offers a larger trade-off space between accuracy and efficiency. The recent purposed Mixed-Precision Over-the-Air Federated Learning (MP-OTA-FL) enables clients to operate at appropriate precision levels based on their heterogeneous hardware, taking advantages of the larger trade-off space while covering the quantization overheads in the mixed-precision modulation scheme for the OTA aggregation process. A key to further exploring the potential of the MP-OTA-FL framework is the optimization of client precision levels. The choice of precision level hinges on multifaceted factors including hardware capability, potential client contribution, and user satisfaction, among which factors can be difficult to define or quantify.
+  In this paper, we propose a RAG-based User Profiling for precision planning framework that integrates retrieval-augmented LLMs and dynamic client profiling to optimize satisfaction and contributions. This includes a hybrid interface for gathering device/user insights and an RAG database storing historical quantization decisions with feedback. Experiments show that our method boosts satisfaction, energy savings, and global model accuracy in MP-OTA-FL systems.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.HC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-03-19T09:26:11Z</published>
+    <arxiv:comment>5 pages, 4 figures, 2 tables, submitted to IEEE VTC 2025 fall for possible publication</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Jinsheng Yuan</name>
+    </author>
+    <author>
+      <name>Yun Tang</name>
+    </author>
+    <author>
+      <name>Weisi Guo</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2410.06062v4</id>
+    <title>LLM-based SPARQL Query Generation from Natural Language over Federated Knowledge Graphs</title>
+    <updated>2025-02-10T10:55:08Z</updated>
+    <link href="https://arxiv.org/abs/2410.06062v4" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2410.06062v4" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We introduce a Retrieval-Augmented Generation (RAG) system for translating user questions into accurate federated SPARQL queries over bioinformatics knowledge graphs (KGs) leveraging Large Language Models (LLMs). To enhance accuracy and reduce hallucinations in query generation, our system utilises metadata from the KGs, including query examples and schema information, and incorporates a validation step to correct generated queries. The system is available online at chat.expasy.org.</summary>
+    <category term="cs.DB" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-10-08T14:09:12Z</published>
+    <arxiv:primary_category term="cs.DB"/>
+    <author>
+      <name>Vincent Emonet</name>
+    </author>
+    <author>
+      <name>Jerven Bolleman</name>
+    </author>
+    <author>
+      <name>Severine Duvaud</name>
+    </author>
+    <author>
+      <name>Tarcisio Mendes de Farias</name>
+    </author>
+    <author>
+      <name>Ana Claudia Sima</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2601.00526v1</id>
+    <title>Federated Customization of Large Models: Approaches, Experiments, and Insights</title>
+    <updated>2026-01-02T01:45:52Z</updated>
+    <link href="https://arxiv.org/abs/2601.00526v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2601.00526v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>In this article, we explore federated customization of large models and highlight the key challenges it poses within the federated learning framework. We review several popular large model customization techniques, including full fine-tuning, efficient fine-tuning, prompt engineering, prefix-tuning, knowledge distillation, and retrieval-augmented generation. Then, we discuss how these techniques can be implemented within the federated learning framework. Moreover, we conduct experiments on federated prefix-tuning, which, to the best of our knowledge, is the first trial to apply prefix-tuning in the federated learning setting. The conducted experiments validate its feasibility with performance close to centralized approaches. Further comparison with three other federated customization methods demonstrated its competitive performance, satisfactory efficiency, and consistent robustness.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-01-02T01:45:52Z</published>
+    <arxiv:comment>8 pages, 1 figure</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Yuchuan Ye</name>
+    </author>
+    <author>
+      <name>Ming Ding</name>
+    </author>
+    <author>
+      <name>Youjia Chen</name>
+    </author>
+    <author>
+      <name>Peng Cheng</name>
+    </author>
+    <author>
+      <name>Dusit Niyato</name>
+    </author>
+    <arxiv:doi>10.1109/MNET.2025.3648812</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1109/MNET.2025.3648812" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2509.06444v1</id>
+    <title>HyFedRAG: A Federated Retrieval-Augmented Generation Framework for Heterogeneous and Privacy-Sensitive Data</title>
+    <updated>2025-09-08T08:44:24Z</updated>
+    <link href="https://arxiv.org/abs/2509.06444v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2509.06444v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Centralized RAG pipelines struggle with heterogeneous and privacy-sensitive data, especially in distributed healthcare settings where patient data spans SQL, knowledge graphs, and clinical notes. Clinicians face difficulties retrieving rare disease cases due to privacy constraints and the limitations of traditional cloud-based RAG systems in handling diverse formats and edge devices. To address this, we introduce HyFedRAG, a unified and efficient Federated RAG framework tailored for Hybrid data modalities. By leveraging an edge-cloud collaborative mechanism, HyFedRAG enables RAG to operate across diverse data sources while preserving data privacy. Our key contributions are: (1) We design an edge-cloud collaborative RAG framework built on Flower, which supports querying structured SQL data, semi-structured knowledge graphs, and unstructured documents. The edge-side LLMs convert diverse data into standardized privacy-preserving representations, and the server-side LLMs integrates them for global reasoning and generation. (2) We integrate lightweight local retrievers with privacy-aware LLMs and provide three anonymization tools that enable each client to produce semantically rich, de-identified summaries for global inference across devices. (3) To optimize response latency and reduce redundant computation, we design a three-tier caching strategy consisting of local cache, intermediate representation cache, and cloud inference cache. Experimental results on PMC-Patients demonstrate that HyFedRAG outperforms existing baselines in terms of retrieval quality, generation consistency, and system efficiency. Our framework offers a scalable and privacy-compliant solution for RAG over structural-heterogeneous data, unlocking the potential of LLMs in sensitive and diverse data environments.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-09-08T08:44:24Z</published>
+    <arxiv:comment>9 pages, 7 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Cheng Qian</name>
+    </author>
+    <author>
+      <name>Hainan Zhang</name>
+    </author>
+    <author>
+      <name>Yongxin Tong</name>
+    </author>
+    <author>
+      <name>Hong-Wei Zheng</name>
+    </author>
+    <author>
+      <name>Zhiming Zheng</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2503.08175v1</id>
+    <title>Privacy-Enhancing Paradigms within Federated Multi-Agent Systems</title>
+    <updated>2025-03-11T08:38:45Z</updated>
+    <link href="https://arxiv.org/abs/2503.08175v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2503.08175v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>LLM-based Multi-Agent Systems (MAS) have proven highly effective in solving complex problems by integrating multiple agents, each performing different roles. However, in sensitive domains, they face emerging privacy protection challenges. In this paper, we introduce the concept of Federated MAS, highlighting the fundamental differences between Federated MAS and traditional FL. We then identify key challenges in developing Federated MAS, including: 1) heterogeneous privacy protocols among agents, 2) structural differences in multi-party conversations, and 3) dynamic conversational network structures. To address these challenges, we propose Embedded Privacy-Enhancing Agents (EPEAgent), an innovative solution that integrates seamlessly into the Retrieval-Augmented Generation (RAG) phase and the context retrieval stage. This solution minimizes data flows, ensuring that only task-relevant, agent-specific information is shared. Additionally, we design and generate a comprehensive dataset to evaluate the proposed paradigm. Extensive experiments demonstrate that EPEAgent effectively enhances privacy protection while maintaining strong system performance. The code will be availiable at https://github.com/ZitongShi/EPEAgent</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-03-11T08:38:45Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Zitong Shi</name>
+    </author>
+    <author>
+      <name>Guancheng Wan</name>
+    </author>
+    <author>
+      <name>Wenke Huang</name>
+    </author>
+    <author>
+      <name>Guibin Zhang</name>
+    </author>
+    <author>
+      <name>Jiawei Shao</name>
+    </author>
+    <author>
+      <name>Mang Ye</name>
+    </author>
+    <author>
+      <name>Carl Yang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2604.00387v2</id>
+    <title>RAGShield: Detecting Numerical Claim Manipulation in Government RAG Systems</title>
+    <updated>2026-04-04T07:18:50Z</updated>
+    <link href="https://arxiv.org/abs/2604.00387v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2604.00387v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) systems are deployed across federal agencies for citizen-facing tax guidance, benefits eligibility, and legal information, where a single incorrect number causes direct financial harm. This paper proves that all embedding-based RAG defenses share a fundamental blind spot: changing a tax deduction by $50,000 produces cosine similarity 0.9998, invisible to every known detection threshold. Across 174 manipulation pairs and two embedding models, the mean sensitivity gap is 1,459x. The blind spot is confirmed on real IRS documents.The root cause is that embeddings encode topic, not numerical precision. RAGShield sidesteps this by operating on extracted values directly: a pattern-based engine identifies dollar amounts and percentages in government text, links each value to its governing entity through two-pass context propagation (99.8% entity detection on 2,742 real IRS passages), and verifies every claim against a cross-source registry built from the corpus itself. A temporal tracker flags value changes that fall outside known government update schedules. On 430 attacks generated from real IRS document content, RAGShield detects every one (0.0% ASR, 95% CI [0%, 1%]) while embedding-based defenses miss 79-90% of the same attacks.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-04-01T02:16:42Z</published>
+    <arxiv:comment>12 pages, 15 tables, 1 figure, 2 algorithms</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>KrishnaSaiReddy Patil</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2412.08054v1</id>
+    <title>Federated In-Context LLM Agent Learning</title>
+    <updated>2024-12-11T03:00:24Z</updated>
+    <link href="https://arxiv.org/abs/2412.08054v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2412.08054v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Large Language Models (LLMs) have revolutionized intelligent services by enabling logical reasoning, tool use, and interaction with external systems as agents. The advancement of LLMs is frequently hindered by the scarcity of high-quality data, much of which is inherently sensitive. Federated learning (FL) offers a potential solution by facilitating the collaborative training of distributed LLMs while safeguarding private data. However, FL frameworks face significant bandwidth and computational demands, along with challenges from heterogeneous data distributions. The emerging in-context learning capability of LLMs offers a promising approach by aggregating natural language rather than bulky model parameters. Yet, this method risks privacy leakage, as it necessitates the collection and presentation of data samples from various clients during aggregation. In this paper, we propose a novel privacy-preserving Federated In-Context LLM Agent Learning (FICAL) algorithm, which to our best knowledge for the first work unleashes the power of in-context learning to train diverse LLM agents through FL. In our design, knowledge compendiums generated by a novel LLM-enhanced Knowledge Compendiums Generation (KCG) module are transmitted between clients and the server instead of model parameters in previous FL methods. Apart from that, an incredible Retrieval Augmented Generation (RAG) based Tool Learning and Utilizing (TLU) module is designed and we incorporate the aggregated global knowledge compendium as a teacher to teach LLM agents the usage of tools. We conducted extensive experiments and the results show that FICAL has competitive performance compared to other SOTA baselines with a significant communication cost decrease of $\mathbf{3.33\times10^5}$ times.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-12-11T03:00:24Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Panlong Wu</name>
+    </author>
+    <author>
+      <name>Kangshuo Li</name>
+    </author>
+    <author>
+      <name>Junbao Nan</name>
+    </author>
+    <author>
+      <name>Fangxin Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2604.14220v1</id>
+    <title>Knowledge Graph RAG: Agentic Crawling and Graph Construction in Enterprise Documents</title>
+    <updated>2026-04-14T05:26:50Z</updated>
+    <link href="https://arxiv.org/abs/2604.14220v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2604.14220v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This research paper addresses the limitations of semantic search in complex enterprise document ecosystems. Traditional RAG pipelines often fail to capture hierarchical and interconnected information, leading to retrieval inaccuracies. We propose Agentic Knowledge Graphs featuring Recursive Crawling as a robust solution for navigating superseding logic and multi-hop references. Our benchmark evaluation using the Code of Federal Regulations (CFR) demonstrates that this Knowledge Graph-enhanced approach achieves a 70% accuracy improvement over standard vector-based RAG systems, providing exhaustive and precise answers for complex regulatory queries.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-04-14T05:26:50Z</published>
+    <arxiv:comment>15 pages, 4 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Koushik Chakraborty</name>
+    </author>
+    <author>
+      <name>Koyel Guha</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2401.17645v1</id>
+    <title>ReSLLM: Large Language Models are Strong Resource Selectors for Federated Search</title>
+    <updated>2024-01-31T07:58:54Z</updated>
+    <link href="https://arxiv.org/abs/2401.17645v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2401.17645v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Federated search, which involves integrating results from multiple independent search engines, will become increasingly pivotal in the context of Retrieval-Augmented Generation pipelines empowering LLM-based applications such as chatbots. These systems often distribute queries among various search engines, ranging from specialized (e.g., PubMed) to general (e.g., Google), based on the nature of user utterances. A critical aspect of federated search is resource selection - the selection of appropriate resources prior to issuing the query to ensure high-quality and rapid responses, and contain costs associated with calling the external search engines. However, current SOTA resource selection methodologies primarily rely on feature-based learning approaches. These methods often involve the labour intensive and expensive creation of training labels for each resource. In contrast, LLMs have exhibited strong effectiveness as zero-shot methods across NLP and IR tasks. We hypothesise that in the context of federated search LLMs can assess the relevance of resources without the need for extensive predefined labels or features. In this paper, we propose ReSLLM. Our ReSLLM method exploits LLMs to drive the selection of resources in federated search in a zero-shot setting. In addition, we devise an unsupervised fine tuning protocol, the Synthetic Label Augmentation Tuning (SLAT), where the relevance of previously logged queries and snippets from resources is predicted using an off-the-shelf LLM and then in turn used to fine-tune ReSLLM with respect to resource selection. Our empirical evaluation and analysis details the factors influencing the effectiveness of LLMs in this context. The results showcase the merits of ReSLLM for resource selection: not only competitive effectiveness in the zero-shot setting, but also obtaining large when fine-tuned using SLAT-protocol.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-01-31T07:58:54Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Shuai Wang</name>
+    </author>
+    <author>
+      <name>Shengyao Zhuang</name>
+    </author>
+    <author>
+      <name>Bevan Koopman</name>
+    </author>
+    <author>
+      <name>Guido Zuccon</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.25374v1</id>
+    <title>Supercharging Federated Intelligence Retrieval</title>
+    <updated>2026-03-26T12:23:53Z</updated>
+    <link href="https://arxiv.org/abs/2603.25374v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.25374v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>RAG typically assumes centralized access to documents, which breaks down when knowledge is distributed across private data silos. We propose a secure Federated RAG system built using Flower that performs local silo retrieval, while server-side aggregation and text generation run inside an attested, confidential compute environment, enabling confidential remote LLM inference even in the presence of honest-but-curious or compromised servers. We also propose a cascading inference approach that incorporates a non-confidential third-party model (e.g., Amazon Nova) as auxiliary context without weakening confidentiality.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-26T12:23:53Z</published>
+    <arxiv:comment>6 pages, 1 figure, 2 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Dimitris Stripelis</name>
+    </author>
+    <author>
+      <name>Patrick Foley</name>
+    </author>
+    <author>
+      <name>Mohammad Naseri</name>
+    </author>
+    <author>
+      <name>William Lindskog-Münzing</name>
+    </author>
+    <author>
+      <name>Chong Shen Ng</name>
+    </author>
+    <author>
+      <name>Daniel Janes Beutel</name>
+    </author>
+    <author>
+      <name>Nicholas D. Lane</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.06907v2</id>
+    <title>A Survey on Foundation Models for Personalized Federated Intelligence</title>
+    <updated>2026-05-18T08:23:00Z</updated>
+    <link href="https://arxiv.org/abs/2505.06907v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.06907v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The rise of large language models (LLMs), such as ChatGPT, Gemini, and Grok, has reshaped the AI landscape. As prominent instances of foundational models (FMs), they exhibit remarkable capabilities in generating human-like content, pushing the boundaries towards artificial general intelligence (AGI). However, their large-scale nature, privacy sensitivity, and substantial computational demands pose significant challenges for personalized customization for end users. To bridge this gap, we present the vision of artificial personalized intelligence (API), which focuses on adapting FMs to individual users while ensuring privacy. As a central enabler of API, we propose personalized federated intelligence (PFI), a new paradigm that not only integrates the privacy benefits of federated learning (FL) with the generalization capabilities of FMs but also places personalization at its core. To this end, we first survey recent advances in FL and FMs that lay the foundation for PFI. We then explore core stages of the PFI pipeline: efficient personalization at the edge, trustworthy adaptation, and adaptive refinement via retrieval-augmented generation. Finally, we highlight future directions for enabling PFI. Overall, this survey aims to lay a foundation for the development of API as a complementary direction to AGI, with PFI as a key enabling paradigm.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.NE" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-11T08:57:53Z</published>
+    <arxiv:comment>Accepted ACM Computing Survey</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <arxiv:journal_ref>ACM Comput. Surv. (2026)</arxiv:journal_ref>
+    <author>
+      <name>Yu Qiao</name>
+    </author>
+    <author>
+      <name>Huy Q. Le</name>
+    </author>
+    <author>
+      <name>Avi Deb Raha</name>
+    </author>
+    <author>
+      <name>Phuong-Nam Tran</name>
+    </author>
+    <author>
+      <name>Apurba Adhikary</name>
+    </author>
+    <author>
+      <name>Mengchun Zhang</name>
+    </author>
+    <author>
+      <name>Loc X. Nguyen</name>
+    </author>
+    <author>
+      <name>Eui-Nam Huh</name>
+    </author>
+    <author>
+      <name>Dusit Niyato</name>
+    </author>
+    <author>
+      <name>Choong Seon Hong</name>
+    </author>
+    <arxiv:doi>10.1145/3844947</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1145/3844947" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2408.05242v1</id>
+    <title>FLASH: Federated Learning-Based LLMs for Advanced Query Processing in Social Networks through RAG</title>
+    <updated>2024-08-06T22:28:13Z</updated>
+    <link href="https://arxiv.org/abs/2408.05242v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2408.05242v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Our paper introduces a novel approach to social network information retrieval and user engagement through a personalized chatbot system empowered by Federated Learning GPT. The system is designed to seamlessly aggregate and curate diverse social media data sources, including user posts, multimedia content, and trending news. Leveraging Federated Learning techniques, the GPT model is trained on decentralized data sources to ensure privacy and security while providing personalized insights and recommendations. Users interact with the chatbot through an intuitive interface, accessing tailored information and real-time updates on social media trends and user-generated content. The system's innovative architecture enables efficient processing of input files, parsing and enriching text data with metadata, and generating relevant questions and answers using advanced language models. By facilitating interactive access to a wealth of social network information, this personalized chatbot system represents a significant advancement in social media communication and knowledge dissemination.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.SI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-08-06T22:28:13Z</published>
+    <arxiv:comment>This research paper is submitted to ASONAM 2024 conference on Advances in Social Networks Analysis and Mining and going to be published in Springer</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Sai Puppala</name>
+    </author>
+    <author>
+      <name>Ismail Hossain</name>
+    </author>
+    <author>
+      <name>Md Jahangir Alam</name>
+    </author>
+    <author>
+      <name>Sajedul Talukder</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.09986v3</id>
+    <title>Federated Language Models Under Bandwidth Budgets: Distillation Rates and Conformal Coverage</title>
+    <updated>2026-10-09T22:15:33Z</updated>
+    <link href="https://arxiv.org/abs/2605.09986v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.09986v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Hospitals, companies, and research consortia want language models that learn from, and answer questions over, data that must stay where it is held, over links with limited bandwidth, such as the satellite links of remote clinics and ships. Averaging the sites' model parameters makes each message grow with the model and requires one shared architecture; methods that exchange predictions avoid both limits, but, to our knowledge, none bounds what compressing those predictions costs. We introduce two methods that compress every message at a small and predictable cost. Federated Probe-Logit Distillation (FPLD) trains a shared language model: each site sends compressed logits on shared unlabeled probes, and a hub distills one model from their average. Federated Conformal Retrieval-Augmented Generation (FC-RAG) answers questions: each site scores candidate answers using its own documents and sends compressed scores, and the hub returns a conformal prediction set that contains the correct answer at a guaranteed rate. Both use one codec, which centers each message and rounds it after adding a random offset known to the receiver. For logits within a fixed clipping range, we bound the expected log-loss added by compression independently of vocabulary size; the bound depends only on the bits, the range, and the number of sites, falls as more sites take part, and lets the bit budget be set before deployment. We also prove that recalibrating after compression keeps the coverage guarantee, and that FPLD's training error bounds how far coverage can slip when a threshold is reused after a model update. In experiments with GPT-2 and Qwen2.5, 8 bits per number cause no detectable loss in the trained model or in coverage. FPLD also trains a shared model across different architectures, where parameter averaging does not apply; with one shared architecture, parameter averaging remains more accurate.</summary>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T05:01:43Z</published>
+    <arxiv:primary_category term="stat.ML"/>
+    <author>
+      <name>Prasanjit Dubey</name>
+    </author>
+    <author>
+      <name>Xiaoming Huo</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.00080v1</id>
+    <title>From Static Repositories to Agentic Knowledge Webs: ResearchTwin and the S-Index for Federated Human-AI Research Discovery</title>
+    <updated>2026-02-13T22:37:40Z</updated>
+    <link href="https://arxiv.org/abs/2603.00080v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.00080v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The exponential growth of scientific literature, datasets, and code repositories has created a discovery bottleneck that impedes knowledge synthesis and reproducibility. Traditional dissemination formats -- static PDFs, siloed code hosting, and fragmented data repositories -- fail to represent the interconnected narrative of modern research, while conventional metrics such as the H-index neglect contributions from reusable code and shared datasets. We present ResearchTwin, an open-source federated platform that transforms a researcher's scholarly output into a conversational digital twin, with a preliminary evaluation of its deployed prototype. The system uses a Bimodal Glial-Neural Optimization (BGNO) architecture comprising a Multi-Modal Connector Layer, a Glial Layer for caching and rate management, and a Neural Layer implementing Retrieval-Augmented Generation with a provider-agnostic LLM backend. We formalize the S-index, building on our earlier QIC framework, into a composite metric that extends FAIR principles -- via a binary accessibility/licensing gate, field-normalized impact scoring, and geometric collaboration scaling -- to quantify multimodal research impact. A case study comparing two researchers with similar H-indexes but substantially different S-indexes demonstrates that the metric captures dimensions of impact -- particularly dataset and code contributions -- invisible to citation-based measures alone. ResearchTwin exposes an inter-agentic discovery API using Schema.org typed responses and HATEOAS navigation, enabling AI agents to discover cross-lab synergies. A three-tier federated architecture preserves data sovereignty while enabling global discoverability.</summary>
+    <category term="cs.DL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-02-13T22:37:40Z</published>
+    <arxiv:comment>15 pages, 1 figure, https://github.com/martinfrasch/ResearchTwin</arxiv:comment>
+    <arxiv:primary_category term="cs.DL"/>
+    <author>
+      <name>Martin G. Frasch</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2509.16508v1</id>
+    <title>Federated Learning with Ad-hoc Adapter Insertions: The Case of Soft-Embeddings for Training Classifier-as-Retriever</title>
+    <updated>2025-09-20T03:07:03Z</updated>
+    <link href="https://arxiv.org/abs/2509.16508v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2509.16508v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>When existing retrieval-augmented generation (RAG) solutions are intended to be used for new knowledge domains, it is necessary to update their encoders, which are taken to be pretrained large language models (LLMs). However, fully finetuning these large models is compute- and memory-intensive, and even infeasible when deployed on resource-constrained edge devices. We propose a novel encoder architecture in this work that addresses this limitation by using a frozen small language model (SLM), which satisfies the memory constraints of edge devices, and inserting a small adapter network before the transformer blocks of the SLM. The trainable adapter takes the token embeddings of the new corpus and learns to produce enhanced soft embeddings for it, while requiring significantly less compute power to update than full fine-tuning. We further propose a novel retrieval mechanism by attaching a classifier head to the SLM encoder, which is trained to learn a similarity mapping of the input embeddings to their corresponding documents. Finally, to enable the online fine-tuning of both (i) the encoder soft embeddings and (ii) the classifier-as-retriever on edge devices, we adopt federated learning (FL) and differential privacy (DP) to achieve an efficient, privacy-preserving, and product-grade training solution. We conduct a theoretical analysis of our methodology, establishing convergence guarantees under mild assumptions on gradient variance when deployed for general smooth nonconvex loss functions. Through extensive numerical experiments, we demonstrate (i) the efficacy of obtaining soft embeddings to enhance the encoder, (ii) training a classifier to improve the retriever, and (iii) the role of FL in achieving speedup.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-09-20T03:07:03Z</published>
+    <arxiv:comment>22 pages, 7 figures, 3 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Marijan Fofonjka</name>
+    </author>
+    <author>
+      <name>Shahryar Zehtabi</name>
+    </author>
+    <author>
+      <name>Alireza Behtash</name>
+    </author>
+    <author>
+      <name>Tyler Mauer</name>
+    </author>
+    <author>
+      <name>David Stout</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2607.07529v1</id>
+    <title>FedMark-FM: Auditable, Risk-Adjusted Data Markets for Federated Foundation-Model Adaptation</title>
+    <updated>2026-07-08T15:23:30Z</updated>
+    <link href="https://arxiv.org/abs/2607.07529v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2607.07529v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Federated foundation-model adaptation increasingly relies on heterogeneous private artifacts (retrieval corpora, prompts and demonstrations, LoRA adapters, preference and safety data, and update sketches), yet existing federated-learning incentive mechanisms price clients as homogeneous data or update providers. This assumption poorly matches foundation-model pipelines, where contribution value is heterogeneous, non-IID, pipeline-dependent, privacy-constrained, and vulnerable to strategic behavior. We propose FedMark-FM, an auditable, risk-adjusted data-market framework that models clients as sellers of typed artifacts, estimates marginal contribution with S3Val, a stratified, uncertainty-aware Shapley estimator supporting pipeline-ordered valuation, and converts lower-confidence-bound values into budget-feasible payments penalizing duplication, sybil splitting, poisoned adapters, privacy-budget gaming, and cost inflation. We evaluate FedMark-FM-Bench across FEVER retrieval, held-out generator-backed RAG, and trained PEFT/LoRA tracks. Under a held-out prompt-injection poisoner, FedMark-FM improves downstream accuracy by 7.5-8.1 points over volume, leave-one-out, and FL-Shapley while selecting zero strategic clients. Split-conformal calibration reaches full lower-bound coverage at mean width 0.0141, versus 0.33 for naive intervals. We prove pipeline-ordered valuation is the unique credit rule respecting serving causality, and show it materially changes credit assignment (Spearman 0.76, selected-set overlap 0.67) while leaving held-out task quality unchanged; the market preserves rare specialists with audit-ready ledgers at 200-1000-client scale. FedMark-FM shows incentives for federated foundation models can be engineered as auditable data infrastructure coupling valuation, mechanism design, privacy interfaces, and pipeline-order semantics.</summary>
+    <category term="cs.GT" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-07-08T15:23:30Z</published>
+    <arxiv:primary_category term="cs.GT"/>
+    <author>
+      <name>Phat T. Tran-Truong</name>
+    </author>
+    <author>
+      <name>Xuan-Bach Le</name>
+    </author>
+    <author>
+      <name>Minh Nhat Nguyen</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2503.09637v2</id>
+    <title>Complementarity, Augmentation, or Substitutivity? The Impact of Generative Artificial Intelligence on the U.S. Federal Workforce</title>
+    <updated>2026-10-08T20:11:57Z</updated>
+    <link href="https://arxiv.org/abs/2503.09637v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2503.09637v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This study applies a multi-stage Retrieval-Augmented Generation system, which grounds large language model assessments in curated evidence, to evaluate generative AI's near-term impact on knowledge, skills, and abilities across several hundred federal occupational series. Each occupation is scored along three dimensions of complementarity (AI enhances existing competencies), augmentation (AI requires workers to transform competencies), and substitutivity (AI replaces human tasks). Results reveal that generative AI primarily complements and augments federal roles, with limited substitution potential. Even occupations scoring highest on substitutivity reflect partial automation of routine subtasks rather than position elimination. These findings caution against blunt workforce reductions premised on displacement and instead support targeted reskilling, competency-based planning, and human-AI collaboration. The framework is adaptable to other organizations with structured competency models and job documentation.</summary>
+    <category term="cs.CY" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="econ.GN" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-03-12T01:19:52Z</published>
+    <arxiv:comment>58 pages, 11 figures, 3 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.CY"/>
+    <author>
+      <name>William G. Resh</name>
+    </author>
+    <author>
+      <name>Yi Ming</name>
+    </author>
+    <author>
+      <name>Xinyao Xia</name>
+    </author>
+    <author>
+      <name>Michael Overton</name>
+    </author>
+    <author>
+      <name>Gul Nisa Gurbuz</name>
+    </author>
+    <author>
+      <name>Brandon De Bruhl</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2406.07257v1</id>
+    <title>Scholarly Question Answering using Large Language Models in the NFDI4DataScience Gateway</title>
+    <updated>2024-06-11T13:36:19Z</updated>
+    <link href="https://arxiv.org/abs/2406.07257v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2406.07257v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper introduces a scholarly Question Answering (QA) system on top of the NFDI4DataScience Gateway, employing a Retrieval Augmented Generation-based (RAG) approach. The NFDI4DS Gateway, as a foundational framework, offers a unified and intuitive interface for querying various scientific databases using federated search. The RAG-based scholarly QA, powered by a Large Language Model (LLM), facilitates dynamic interaction with search results, enhancing filtering capabilities and fostering a conversational engagement with the Gateway search. The effectiveness of both the Gateway and the scholarly QA system is demonstrated through experimental analysis.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-06-11T13:36:19Z</published>
+    <arxiv:comment>13 pages main content, 16 pages overall, 3 Figures, accepted for publication at NSLP 2024 workshop at ESWC 2024</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Hamed Babaei Giglou</name>
+    </author>
+    <author>
+      <name>Tilahun Abedissa Taffa</name>
+    </author>
+    <author>
+      <name>Rana Abdullah</name>
+    </author>
+    <author>
+      <name>Aida Usmanova</name>
+    </author>
+    <author>
+      <name>Ricardo Usbeck</name>
+    </author>
+    <author>
+      <name>Jennifer D'Souza</name>
+    </author>
+    <author>
+      <name>Sören Auer</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2608.23241v1</id>
+    <title>Retrieval-Augmented Classification of Environmental Mitigations in Hydropower Licensing Documents</title>
+    <updated>2026-08-24T13:27:18Z</updated>
+    <link href="https://arxiv.org/abs/2608.23241v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2608.23241v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Identifying and classifying environmental mitigation obligations in Federal Energy Regulatory Commission hydropower licensing documents is a labor-intensive task requiring deep domain expertise. We formulate this as a multi-label classification problem over a structured 135-category taxonomy and address the central challenge of severe label scarcity: 40 of 135 categories have no training examples, and 26 have fewer than five. A supervised Bidirectional Encoder Representations from Transformers (BERT)-based pipeline, while effective on well-represented categories, achieves F1 of zero on unseen classes regardless of augmentation strategy. We introduce a Retrieval-Augmented Generation (RAG) pipeline that conditions classification on retrieved category definitions, enabling zero-shot generalization across the full label space. We further propose a hybrid system that combines BERT detection with RAG classification, exploiting the high recall of fine-tuned detection and the zero-shot coverage of retrieval-augmented reasoning. Evaluated on the full set of 2017 license documents (5,860 paragraphs, 135 categories), the hybrid achieves a Micro F1 of 0.524, outperforming the BERT-only pipeline (0.477) and the RAG-only pipeline (0.416) across all training-support buckets.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-24T13:27:18Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Hong-Jun Yoon</name>
+    </author>
+    <author>
+      <name>Tom Ruggles</name>
+    </author>
+    <author>
+      <name>Joanna Lee</name>
+    </author>
+    <author>
+      <name>Debjani Singh</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2504.10508v1</id>
+    <title>Poly-Vector Retrieval: Reference and Content Embeddings for Legal Documents</title>
+    <updated>2025-04-09T17:54:11Z</updated>
+    <link href="https://arxiv.org/abs/2504.10508v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2504.10508v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) has emerged as an effective paradigm for generating contextually accurate answers by integrating Large Language Models (LLMs) with retrieval mechanisms. However, in legal contexts, users frequently reference norms by their labels or nicknames (e.g., Article 5 of the Constitution or Consumer Defense Code (CDC)), rather than by their content, posing challenges for traditional RAG approaches that rely solely on semantic embeddings of text. Furthermore, legal texts themselves heavily rely on explicit cross-references (e.g., "pursuant to Article 34") that function as pointers. Both scenarios pose challenges for traditional RAG approaches that rely solely on semantic embeddings of text, often failing to retrieve the necessary referenced content. This paper introduces Poly-Vector Retrieval, a method assigning multiple distinct embeddings to each legal provision: one embedding captures the content (the full text), another captures the label (the identifier or proper name), and optionally additional embeddings capture alternative denominations. Inspired by Frege's distinction between Sense and Reference, this poly-vector retrieval approach treats labels, identifiers and reference markers as rigid designators and content embeddings as carriers of semantic substance. Experiments on the Brazilian Federal Constitution demonstrate that Poly-Vector Retrieval significantly improves retrieval accuracy for label-centric queries and potential to resolve internal and external cross-references, without compromising performance on purely semantic queries. The study discusses philosophical and practical implications of explicitly separating reference from content in vector embeddings and proposes future research directions for applying this approach to broader legal datasets and other domains characterized by explicit reference identifiers.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-04-09T17:54:11Z</published>
+    <arxiv:comment>39 pages, 5 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>João Alberto de Oliveira Lima</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2512.06240v1</id>
+    <title>AI Application in Anti-Money Laundering for Sustainable and Transparent Financial Systems</title>
+    <updated>2025-12-06T01:37:24Z</updated>
+    <link href="https://arxiv.org/abs/2512.06240v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2512.06240v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Money laundering and financial fraud remain major threats to global financial stability, costing trillions annually and challenging regulatory oversight. This paper reviews how artificial intelligence (AI) applications can modernize Anti-Money Laundering (AML) workflows by improving detection accuracy, lowering false-positive rates, and reducing the operational burden of manual investigations, thereby supporting more sustainable development. It further highlights future research directions including federated learning for privacy-preserving collaboration, fairness-aware and interpretable AI, reinforcement learning for adaptive defenses, and human-in-the-loop visualization systems to ensure that next-generation AML architectures remain transparent, accountable, and robust. In the final part, the paper proposes an AI-driven KYC application that integrates graph-based retrieval-augmented generation (RAG Graph) with generative models to enhance efficiency, transparency, and decision support in KYC processes related to money-laundering detection. Experimental results show that the RAG-Graph architecture delivers high faithfulness and strong answer relevancy across diverse evaluation settings, thereby enhancing the efficiency and transparency of KYC CDD/EDD workflows and contributing to more sustainable, resource-optimized compliance practices.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-12-06T01:37:24Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Chuanhao Nie</name>
+    </author>
+    <author>
+      <name>Yunbo Liu</name>
+    </author>
+    <author>
+      <name>Chao Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2407.07321v3</id>
+    <title>Benchmarking LLMs for Environmental Review and Permitting</title>
+    <updated>2025-06-12T03:39:58Z</updated>
+    <link href="https://arxiv.org/abs/2407.07321v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2407.07321v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The National Environment Policy Act (NEPA) stands as a foundational piece of environmental legislation in the United States, requiring federal agencies to consider the environmental impacts of their proposed actions. The primary mechanism for achieving this is through the preparation of Environmental Assessments (EAs) and, for significant impacts, comprehensive Environmental Impact Statements (EIS). Large Language Model (LLM)s' effectiveness in specialized domains like NEPA remains untested for adoption in federal decision-making processes. To address this gap, we present NEPA Question and Answering Dataset (NEPAQuAD), the first comprehensive benchmark derived from EIS documents, along with a modular and transparent evaluation pipeline, MAPLE, to assess LLM performance on NEPA-focused regulatory reasoning tasks. Our benchmark leverages actual EIS documents to create diverse question types, ranging from factual to complex problem-solving ones. We built a modular and transparent evaluation pipeline to test both closed- and open-source models in zero-shot or context-driven QA benchmarks. We evaluate five state-of-the-art LLMs using our framework to assess both their prior knowledge and their ability to process NEPA-specific information. The experimental results reveal that all the models consistently achieve their highest performance when provided with the gold passage as context. While comparing the other context-driven approaches for each model, Retrieval Augmented Generation (RAG)-based approaches substantially outperform PDF document contexts, indicating that neither model is well suited for long-context question-answering tasks. Our analysis suggests that NEPA-focused regulatory reasoning tasks pose a significant challenge for LLMs, particularly in terms of understanding the complex semantics and effectively processing the lengthy regulatory documents.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-07-10T02:33:09Z</published>
+    <arxiv:comment>15 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Rounak Meyur</name>
+    </author>
+    <author>
+      <name>Hung Phan</name>
+    </author>
+    <author>
+      <name>Koby Hayashi</name>
+    </author>
+    <author>
+      <name>Ian Stewart</name>
+    </author>
+    <author>
+      <name>Shivam Sharma</name>
+    </author>
+    <author>
+      <name>Sarthak Chaturvedi</name>
+    </author>
+    <author>
+      <name>Mike Parker</name>
+    </author>
+    <author>
+      <name>Dan Nally</name>
+    </author>
+    <author>
+      <name>Sadie Montgomery</name>
+    </author>
+    <author>
+      <name>Karl Pazdernik</name>
+    </author>
+    <author>
+      <name>Ali Jannesari</name>
+    </author>
+    <author>
+      <name>Mahantesh Halappanavar</name>
+    </author>
+    <author>
+      <name>Sai Munikoti</name>
+    </author>
+    <author>
+      <name>Sameera Horawalavithana</name>
+    </author>
+    <author>
+      <name>Anurag Acharya</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.16356v1</id>
+    <title>Toward Experimentation-as-a-Service in 5G/6G: The Plaza6G Prototype for AI-Assisted Trials</title>
+    <updated>2026-03-17T10:37:32Z</updated>
+    <link href="https://arxiv.org/abs/2603.16356v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.16356v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper presents Plaza6G, the first operational Experiment-as-a-Service (ExaS) platform unifying cloud resources with next-generation wireless infrastructure. Developed at CTTC in Barcelona, Plaza6G integrates GPU-accelerated compute clusters, multiple 5G cores, both open-source (e.g., Free5GC) and commercial (e.g., Cumucore), programmable RANs, and physical or emulated user equipment under unified orchestration. In Plaza6G, the experiment design requires minimal expertise as it is expressed in natural language via a web portal or a REST API. The web portal and REST API are enhanced with a Large Language Model (LLM)-based assistant, which employs retrieval-augmented generation (RAG) for up-to-date experiment knowledge and Low-Rank Adaptation (LoRA) for continuous domain fine-tuning. Over-the-air (OTA) trials leverage a four-chamber anechoic facility and a dual-site outdoor 5G network operating in sub-6~GHz and mmWave bands. Demonstrations include automated CI/CD integration with sub-ten-minute setup and interactive OTA testing under programmable propagation conditions. Machine-readable experiment descriptors ensure reproducibility, while future work targets policy-aware orchestration, safety validation, and federated testbed integration toward open, reproducible wireless experimentation.</summary>
+    <category term="cs.NI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-17T10:37:32Z</published>
+    <arxiv:comment>5 pages, 5 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.NI"/>
+    <author>
+      <name>Sergio Barrachina-Muñoz</name>
+    </author>
+    <author>
+      <name>Marc Carrascosa-Zamacois</name>
+    </author>
+    <author>
+      <name>Horacio Bleda</name>
+    </author>
+    <author>
+      <name>Umair Riaz</name>
+    </author>
+    <author>
+      <name>Yasir Maqsood</name>
+    </author>
+    <author>
+      <name>Xavier Calle</name>
+    </author>
+    <author>
+      <name>Selva Vía</name>
+    </author>
+    <author>
+      <name>Miquel Payaró</name>
+    </author>
+    <author>
+      <name>Josep Mangues-Bafalluy</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2510.01363v1</id>
+    <title>Retrieval-Augmented Framework for LLM-Based Clinical Decision Support</title>
+    <updated>2025-10-01T18:45:25Z</updated>
+    <link href="https://arxiv.org/abs/2510.01363v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2510.01363v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The increasing complexity of clinical decision-making, alongside the rapid expansion of electronic health records (EHR), presents both opportunities and challenges for delivering data-informed care. This paper proposes a clinical decision support system powered by Large Language Models (LLMs) to assist prescribing clinicians. The system generates therapeutic suggestions by analyzing historical EHR data, including patient demographics, presenting complaints, clinical symptoms, diagnostic information, and treatment histories. The framework integrates natural language processing with structured clinical inputs to produce contextually relevant recommendations. Rather than replacing clinician judgment, it is designed to augment decision-making by retrieving and synthesizing precedent cases with comparable characteristics, drawing on local datasets or federated sources where applicable. At its core, the system employs a retrieval-augmented generation (RAG) pipeline that harmonizes unstructured narratives and codified data to support LLM-based inference. We outline the system's technical components, including representation representation alignment and generation strategies. Preliminary evaluations, conducted with de-identified and synthetic clinical datasets, examine the clinical plausibility and consistency of the model's outputs. Early findings suggest that LLM-based tools may provide valuable decision support in prescribing workflows when appropriately constrained and rigorously validated. This work represents an initial step toward integration of generative AI into real-world clinical decision-making with an emphasis on transparency, safety, and alignment with established practices.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-10-01T18:45:25Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Leon Garza</name>
+    </author>
+    <author>
+      <name>Anantaa Kotal</name>
+    </author>
+    <author>
+      <name>Michael A. Grasso</name>
+    </author>
+    <author>
+      <name>Emre Umucu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2412.07687v2</id>
+    <title>Privacy-Preserving Customer Support: A Framework for Secure and Scalable Interactions</title>
+    <updated>2024-12-30T08:29:09Z</updated>
+    <link href="https://arxiv.org/abs/2412.07687v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2412.07687v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The growing reliance on artificial intelligence (AI) in customer support has significantly improved operational efficiency and user experience. However, traditional machine learning (ML) approaches, which require extensive local training on sensitive datasets, pose substantial privacy risks and compliance challenges with regulations like the General Data Protection Regulation (GDPR) and California Consumer Privacy Act (CCPA). Existing privacy-preserving techniques, such as anonymization, differential privacy, and federated learning, address some concerns but face limitations in utility, scalability, and complexity. This paper introduces the Privacy-Preserving Zero-Shot Learning (PP-ZSL) framework, a novel approach leveraging large language models (LLMs) in a zero-shot learning mode. Unlike conventional ML methods, PP-ZSL eliminates the need for local training on sensitive data by utilizing pre-trained LLMs to generate responses directly. The framework incorporates real-time data anonymization to redact or mask sensitive information, retrieval-augmented generation (RAG) for domain-specific query resolution, and robust post-processing to ensure compliance with regulatory standards. This combination reduces privacy risks, simplifies compliance, and enhances scalability and operational efficiency. Empirical analysis demonstrates that the PP-ZSL framework provides accurate, privacy-compliant responses while significantly lowering the costs and complexities of deploying AI-driven customer support systems. The study highlights potential applications across industries, including financial services, healthcare, e-commerce, legal support, telecommunications, and government services. By addressing the dual challenges of privacy and performance, this framework establishes a foundation for secure, efficient, and regulatory-compliant AI applications in customer interactions.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="stat.AP" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="stat.ME" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-12-10T17:20:47Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Anant Prakash Awasthi</name>
+    </author>
+    <author>
+      <name>Girdhar Gopal Agarwal</name>
+    </author>
+    <author>
+      <name>Chandraketu Singh</name>
+    </author>
+    <author>
+      <name>Rakshit Varma</name>
+    </author>
+    <author>
+      <name>Sanchit Sharma</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2503.22064v1</id>
+    <title>Multi-Task Semantic Communications via Large Models</title>
+    <updated>2025-03-28T00:57:34Z</updated>
+    <link href="https://arxiv.org/abs/2503.22064v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2503.22064v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Artificial intelligence (AI) promises to revolutionize the design, optimization and management of next-generation communication systems. In this article, we explore the integration of large AI models (LAMs) into semantic communications (SemCom) by leveraging their multi-modal data processing and generation capabilities. Although LAMs bring unprecedented abilities to extract semantics from raw data, this integration entails multifaceted challenges including high resource demands, model complexity, and the need for adaptability across diverse modalities and tasks. To overcome these challenges, we propose a LAM-based multi-task SemCom (MTSC) architecture, which includes an adaptive model compression strategy and a federated split fine-tuning approach to facilitate the efficient deployment of LAM-based semantic models in resource-limited networks. Furthermore, a retrieval-augmented generation scheme is implemented to synthesize the most recent local and global knowledge bases to enhance the accuracy of semantic extraction and content generation, thereby improving the inference performance. Finally, simulation results demonstrate the efficacy of the proposed LAM-based MTSC architecture, highlighting the performance enhancements across various downstream tasks under varying channel conditions.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="eess.SY" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-03-28T00:57:34Z</published>
+    <arxiv:comment>7 pages, 6 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Wanli Ni</name>
+    </author>
+    <author>
+      <name>Zhijin Qin</name>
+    </author>
+    <author>
+      <name>Haofeng Sun</name>
+    </author>
+    <author>
+      <name>Xiaoming Tao</name>
+    </author>
+    <author>
+      <name>Zhu Han</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.17076v1</id>
+    <title>CMIP-Forge: An Agentic System that Retrieves, Computes, and Self-Reviews Climate Science</title>
+    <updated>2026-06-10T14:52:01Z</updated>
+    <link href="https://arxiv.org/abs/2606.17076v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.17076v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The Coupled Model Intercomparison Project Phase 6 (CMIP6) has generated thousands of peer-reviewed publications documenting model configurations, evaluation procedures, emergent constraints, and projection uncertainties. As the community transitions toward CMIP7, efficiently extracting and operationalizing this unstructured knowledge alongside live data analysis represents a critical bottleneck. Here we present CMIP-Forge, a hybrid retrieval-augmented generation (RAG) and autonomous analysis system that bridges the gap between scientific literature and Earth System Grid Federation (ESGF) data archives. The system pairs a curated corpus of 6,581 CMIP6-related open-access publications (101,828 indexed chunks) with an agentic pipeline in which a tool-augmented worker plans and executes Python workflows over live climate data, while a panel of independent reviewer models audits its methodology end to end. CMIP-Forge introduces a multi-layered Defense-in-Depth architecture that enforces physical and methodological invariants through executable mechanisms: Abstract Syntax Tree (AST) static analysis, audited scientific primitives, and an autonomous adversarial peer-review protocol. We demonstrate the system's capabilities through end-to-end autonomous research pipelines spanning atmospheric teleconnections, ocean dynamics, regional extremes, and global warming projections. An agentic analysis system grounded in peer-reviewed literature, constrained by automated code guardrails, and audited by an independent adversarial review loop can complete complex climate-research workflows autonomously. The same experiments expose concrete failure modes of the review loop (sycophantic regression, REVISE verdicts that are never resolved, and the submission of stub code for review), each diagnosable from the immutable telemetry and provenance record released with the article.</summary>
+    <category term="physics.ao-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-10T14:52:01Z</published>
+    <arxiv:comment>28 pages, 9 figures. Code available at https://github.com/CliDyn/cmip6_gpt</arxiv:comment>
+    <arxiv:primary_category term="physics.ao-ph"/>
+    <author>
+      <name>Dmitrii Pantiukhin</name>
+    </author>
+    <author>
+      <name>Boris Shapkin</name>
+    </author>
+    <author>
+      <name>Ivan Kuznetsov</name>
+    </author>
+    <author>
+      <name>Thomas Jung</name>
+    </author>
+    <author>
+      <name>Nikolay Koldunov</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.25622v1</id>
+    <title>Probabilistic Agents in Deterministic Audits: Evaluating Multi-Agent Systems for Automated Audits Based on the German IT-Grundschutz</title>
+    <updated>2026-06-24T09:31:06Z</updated>
+    <link href="https://arxiv.org/abs/2606.25622v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.25622v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The NIS-2 Directive mandates robust Risk Management from thousands of small and medium enterprises. To ensure compliance, companies rely on established standards such as the German IT-Grundschutz (IT-GS) of the Federal Office for Information Security. However, IT-GS certification is resource-intensive and requires a high level of manual effort for documentation, validation, and revision, making scalable implementation difficult and expensive.
+  Building upon our previous conceptual framework, this paper presents the technical implementation and empirical evaluation of a Multi-Agent System (MAS) architecture combined with Hybrid Retrieval Augmented Generation (HybridRAG) for the partial automation of IT-GS certification. We introduce two novel technical contributions to the MAS architecture to enforce the compliance rigor. The Hypothesis-Verification Loop in the Structural Analysis (SA) phase that cross-references agent-inferred dependencies against the Knowledge Graph to reduce hallucinations, and a Decoupled Reasoning Pipeline that separates agent-driven semantic extraction from the deterministic protection need inheritance. We utilize the BSI's "RecPlast GmbH" case study as a human expert-generated reference data set for end-to-end evaluation of the architecture and to quantify Precision, Recall, and F1-scores. The performance of the system is investigated across the phases of SA, Protection Needs Assessment (PNA), Modeling, and IT-GS Check.
+  The empirical results reveal noticeable differences throughout the different steps of IT-GS. While the MAS demonstrates high efficacy in semantic tasks (SA and Modeling), significantly reducing manual effort through automated information extraction, quantitative results reveal limitations in logical reasoning phases (PNA and IT-GS Check) as the probabilistic nature of current LLMs struggles to meet the deterministic rigor required by IT-GS.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-24T09:31:06Z</published>
+    <arxiv:comment>Accepted for publication at the 2026 IEEE International Systems Conference (SysCon), Halifax, NS, Canada, April 6-9, 2026. 8 pages, 1 figure</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Lea Roxanne Muth</name>
+    </author>
+    <author>
+      <name>Marian Margraf</name>
+    </author>
+    <arxiv:doi>10.1109/SysCon66367.2026.11503560</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1109/SysCon66367.2026.11503560" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2512.23132v1</id>
+    <title>Multi-Agent Framework for Threat Mitigation and Resilience in AI-Based Systems</title>
+    <updated>2025-12-29T01:27:19Z</updated>
+    <link href="https://arxiv.org/abs/2512.23132v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2512.23132v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Machine learning (ML) underpins foundation models in finance, healthcare, and critical infrastructure, making them targets for data poisoning, model extraction, prompt injection, automated jailbreaking, and preference-guided black-box attacks that exploit model comparisons. Larger models can be more vulnerable to introspection-driven jailbreaks and cross-modal manipulation. Traditional cybersecurity lacks ML-specific threat modeling for foundation, multimodal, and RAG systems. Objective: Characterize ML security risks by identifying dominant TTPs, vulnerabilities, and targeted lifecycle stages. Methods: We extract 93 threats from MITRE ATLAS (26), AI Incident Database (12), and literature (55), and analyze 854 GitHub/Python repositories. A multi-agent RAG system (ChatGPT-4o, temp 0.4) mines 300+ articles to build an ontology-driven threat graph linking TTPs, vulnerabilities, and stages. Results: We identify unreported threats including commercial LLM API model stealing, parameter memorization leakage, and preference-guided text-only jailbreaks. Dominant TTPs include MASTERKEY-style jailbreaking, federated poisoning, diffusion backdoors, and preference optimization leakage, mainly impacting pre-training and inference. Graph analysis reveals dense vulnerability clusters in libraries with poor patch propagation. Conclusion: Adaptive, ML-specific security frameworks, combining dependency hygiene, threat intelligence, and monitoring, are essential to mitigate supply-chain and inference risks across the ML lifecycle.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-12-29T01:27:19Z</published>
+    <arxiv:comment>56 pages, 18 Figures, 22 Tables, TOSEM</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Armstrong Foundjem</name>
+    </author>
+    <author>
+      <name>Lionel Nganyewou Tidjon</name>
+    </author>
+    <author>
+      <name>Leuson Da Silva</name>
+    </author>
+    <author>
+      <name>Foutse Khomh</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2607.13754v1</id>
+    <title>PriEval-Protect: A Unified Framework for Privacy Evaluation and Protection in Healthcare Systems</title>
+    <updated>2026-07-15T12:12:48Z</updated>
+    <link href="https://arxiv.org/abs/2607.13754v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2607.13754v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Safeguarding patient privacy while enabling meaningful healthcare data use remains critical under GDPR and HIPAA. Existing compliance methods are manual, error-prone, and separate policy audits from data-level assessments. This paper presents PriEval-Protect, a two-phase framework for unified privacy risk evaluation and mitigation. The evaluation phase combines regulatory compliance scoring using a fine-tuned legal LLM with RAG, and technical analysis via encryption type, data architecture, and metrics including similarity, uncertainty, adversary success, and information gain/loss. A composite risk score uses weighted aggregation via Analytic Hierarchy Process. The protection phase recommends countermeasures including federated learning and differential privacy based on assessed risk. Results on hospital documents and datasets demonstrate regulation-aligned, explainable assessments, bridging legal conformance and data-level risk analysis.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-07-15T12:12:48Z</published>
+    <arxiv:comment>10 pages, 3 figures. Accepted at IDT 2026</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Ilef Chebil</name>
+    </author>
+    <author>
+      <name>Asma El Hadj</name>
+    </author>
+    <author>
+      <name>Souheib Yousfi</name>
+    </author>
+    <author>
+      <name>Aroua Hedhili</name>
+    </author>
+    <author>
+      <name>Layth Sliman</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.15335v1</id>
+    <title>Privacy-Preserving Text Sanitization for Distributed Agents Collaboration via Disentangled Representations</title>
+    <updated>2026-06-13T14:55:26Z</updated>
+    <link href="https://arxiv.org/abs/2606.15335v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.15335v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>When distributed agents exchange text across organizational boundaries, privacy leakage arises not only from explicit identifiers but also from distributional signatures such as formatting conventions, vocabulary choices, and syntactic patterns. We propose DiSan(Disentangled Sanitization), a privacy-preserving sanitization framework and a built-in component of Intern-Shannon for multi-agent collaboration. DiSan uses a two-stream encoder to factorize text into a source-invariant role subspace that preserves task semantics and a source-identifying style subspace that remains local. Federated proto-type alignment and adversarial regularization enable joint training without centralizing raw text. Experiments show that identifier-level masking is insufficient: masking 19.2% of tokens reduces TF-IDF stylometric attribution by only 18.6%. By contrast, DiSan reduces answer-level PII exposure by 20 times while maintaining 83% answer faithfulness on a distributed multi-agent RAG benchmark, and lowers Enron stylometric attribution by 73.2% under TF-IDF and 70.6% under a neural probe.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-13T14:55:26Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Xuan Liu</name>
+    </author>
+    <author>
+      <name>Hefeng Zhou</name>
+    </author>
+    <author>
+      <name>Sicheng Chen</name>
+    </author>
+    <author>
+      <name>Chao Yang</name>
+    </author>
+    <author>
+      <name>Xingcheng Xu</name>
+    </author>
+    <author>
+      <name>Jingjing Qu</name>
+    </author>
+    <author>
+      <name>Jiong Lou</name>
+    </author>
+    <author>
+      <name>Jie LI</name>
+    </author>
+    <author>
+      <name>Xia Hu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.05225v2</id>
+    <title>QualBench: Benchmarking Chinese LLMs with Localized Professional Qualifications for Vertical Domain Evaluation</title>
+    <updated>2025-09-03T11:11:28Z</updated>
+    <link href="https://arxiv.org/abs/2505.05225v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.05225v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The rapid advancement of Chinese LLMs underscores the need for vertical-domain evaluations to ensure reliable applications. However, existing benchmarks often lack domain coverage and provide limited insights into the Chinese working context. Leveraging qualification exams as a unified framework for expertise evaluation, we introduce QualBench, the first multi-domain Chinese QA benchmark dedicated to localized assessment of Chinese LLMs. The dataset includes over 17,000 questions across six vertical domains, drawn from 24 Chinese qualifications to align with national policies and professional standards. Results reveal an interesting pattern of Chinese LLMs consistently surpassing non-Chinese models, with the Qwen2.5 model outperforming the more advanced GPT-4o, emphasizing the value of localized domain knowledge in meeting qualification requirements. The average accuracy of 53.98% reveals the current gaps in domain coverage within model capabilities. Furthermore, we identify performance degradation caused by LLM crowdsourcing, assess data contamination, and illustrate the effectiveness of prompt engineering and model fine-tuning, suggesting opportunities for future improvements through multi-domain RAG and Federated Learning.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-08T13:16:49Z</published>
+    <arxiv:comment>Accepted by EMNLP 2025 Main Conference. Homepage: https://github.com/mengze-hong/QualBench</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Mengze Hong</name>
+    </author>
+    <author>
+      <name>Wailing Ng</name>
+    </author>
+    <author>
+      <name>Chen Jason Zhang</name>
+    </author>
+    <author>
+      <name>Di Jiang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.13005v1</id>
+    <title>Tasks over Application Manuals: Revealing Gaps in Long-Horizon Procedural Reasoning for Language Models</title>
+    <updated>2026-09-11T16:04:00Z</updated>
+    <link href="https://arxiv.org/abs/2609.13005v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.13005v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Large language models (LLMs) have achieved strong performance on a wide range of natural language tasks, and recent benchmarks suggest that they are increasingly adept at multi-hop reasoning. However, these benchmarks are typically short-horizon, requiring only a small number of retrieval or inference steps, and provide limited evidence of reliability on real-world tasks that involve following manuals spanning hundreds of pages with complex, interdependent guidelines. In this paper, we introduce Tasks over Application Manuals (TAM), a benchmark for evaluating long-horizon procedural reasoning. We construct TAM by curating real-world tasks from two domains: ICD-10-CM clinical coding (mapping medical conditions to diagnostic codes) and U.S. federal sentencing (computing crime sentencing guideline outcomes, specifically offense levels), with human-validated labels. Each task requires following an authoritative manual with tens of thousands of rules and executing a sequence of interdependent steps across different sections to produce an exact answer. We evaluate general-purpose prompting approaches, including retrieval-augmented generation, ReAct-style prompting, and an agent-harness baseline on GPT-5, and find that the best exact-match performance remains extremely low: 1% on ICD-10-CM coding and 15.5% on sentencing tasks. These results show that current benchmarks may overestimate LLM reasoning ability and miss a key challenge: reliably following long, rule-based procedures. The complete TAM data and code are publicly available.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-11T16:04:00Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Utkarsh Soni</name>
+    </author>
+    <author>
+      <name>Syed Shariyar Murtaza</name>
+    </author>
+    <author>
+      <name>Yifan Nie</name>
+    </author>
+    <author>
+      <name>Sachin Chandrasekhar</name>
+    </author>
+    <author>
+      <name>Eugene Wen</name>
+    </author>
+    <arxiv:doi>10.1145/3799682.3841039</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1145/3799682.3841039" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2510.19670v4</id>
+    <title>CoSense-LLM: Semantics at the Edge with Cost- and Uncertainty-Aware Cloud-Edge Cooperation</title>
+    <updated>2026-01-14T22:53:47Z</updated>
+    <link href="https://arxiv.org/abs/2510.19670v4" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2510.19670v4" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We present CoSense-LLM, an edge-first framework that turns continuous multimodal sensor streams (for example Wi-Fi CSI, IMU, audio, RFID, and lightweight vision) into compact, verifiable semantic tokens and coordinates with large language models under explicit latency, energy, bandwidth, and privacy constraints. CoSense-LLM has four parts: (i) SenseFusion, a lightweight encoder that aligns sensor embeddings with language and compresses them into short discrete code sequences; (ii) Edge-RAG, a local hybrid retrieval layer that grounds generation in site specific policies and notes; (iii) PromptRouter, a cost and uncertainty aware policy that selects edge only generation, edge plus retrieval, or compact cloud escalation; and (iv) Secure Execution, an auditable redaction path that enforces data minimization so raw waveforms never leave the device. The system works with modern serving optimizations, including paged or streaming KV caches, FlashAttention style kernels, speculative decoding, and quantized LoRA adapters, and supports on device personalization and federated updates under non IID drift. Across home, office, and clinic deployments, CoSense-LLM delivers grounded explanations while meeting tight service level objectives: it sustains sub second (p95) end to end latency on edge dominant paths, reduces inter tier token and bandwidth costs by preferring local retrieval grounded responses, and preserves privacy by transmitting only discrete codes and redacted metadata. Ablations show that Edge-RAG improves factual consistency and reduces contradictions, calibrated uncertainty enables selective abstention and controlled escalations, and KV plus decoding accelerators lower energy per decision. The results support an edge first design that treats semantics, privacy, and predictable latency as co equal goals for large model deployments in interference prone environments.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-10-22T15:16:56Z</published>
+    <arxiv:comment>arXiv admin note: This paper has been withdrawn by arXiv due to unverifiable authorship and affiliation</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Hasan Akgul</name>
+    </author>
+    <author>
+      <name>Mari Eplik</name>
+    </author>
+    <author>
+      <name>Javier Rojas</name>
+    </author>
+    <author>
+      <name>Aina Binti Abdullah</name>
+    </author>
+    <author>
+      <name>Pieter van der Merwe</name>
+    </author>
+  </entry>
+</feed>

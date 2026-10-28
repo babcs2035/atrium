@@ -1,0 +1,170 @@
+{
+  "query": "RAG data silos",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://arxiv.org/html/2602.05235v2",
+      "title": "FedMosaic: Federated Retrieval-Augmented Generation via Parametric Adapters",
+      "content": "## 2. Preliminaries\n\n### 2.1. Federated RAG\n\nProblem Setting.\nConsider a federation with a central LLM server 𝒢\\mathcal{G} and MM data silos {𝒮1,…,𝒮M}\\{\\mathcal{S}\\_{1},\\ldots,\\mathcal{S}\\_{M}\\} (e.g. distinct organizations or geo-distributed data centers).\nEach silo 𝒮m\\mathcal{S}\\_{m} maintains a local knowledge corpus 𝒟m={dm1,…,dmNm}\\mathcal{D}\\_{m}=\\{d^{1}\\_{m},\\ldots,d^{N\\_{m}}\\_{m}\\}, where each dmid^{i}\\_{m} is a document.\nThe silos act as distributed external knowledge providers, while the server is responsible for generating responses. [...] Retrieval-Augmented Generation (RAG) enhances Large Language Models (LLMs) by grounding generation in external knowledge to improve factuality and reduce hallucinations.\nYet most deployments assume a centralized corpus, which is infeasible in privacy-aware domains where knowledge remains siloed.\nThis motivates federated RAG (FedRAG), where a central LLM server collaborates with distributed silos without sharing raw documents.\nIn-context RAG violates this requirement by transmitting verbatim documents, whereas parametric RAG encodes documents into lightweight adapters that merge with a frozen LLM at inference, avoiding raw-text exchange. [...] Federated Retrieval-Augmented Generation (FedRAG).\nFedRAG extends RAG to settings where knowledge is distributed across silos that cannot share raw documents.\nRecent efforts have explored various strategies for federated search, yet rely on in-context RAG.\nFor example, FeB4RAG (Wang et al., 2024a) provides a benchmark for federated search pipelines,\nMKPQA (Shojaee et al., 2025) enables probabilistic cross-domain search, and\nRAGRoute (Guerraoui et al., 2025) improves efficiency via query routing.\nOther variants target aggregation or search security.\nFor example, C-FedRAG (Addison et al., 2024) prevent the leakage of raw documents during aggregation and FRAG (Zhao, 2024) leverage encrypted similarity search.",
+      "score": 0.7128128,
+      "raw_content": null,
+      "id": "057c6d-00"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/abstract/document/11393771",
+      "title": "Lineage-Driven Retrieval Over Apache Iceberg on S3 to ...",
+      "content": "by V Venkatesan · 2026 · Cited by 1 — existing RAG pipelines often operate as ungoverned silos detached from enterprise data contracts, lineage, or compliance controls.",
+      "score": 0.6894943,
+      "raw_content": null,
+      "id": "6e7f47-01"
+    },
+    {
+      "url": "https://arxiv.org/pdf/2412.13163",
+      "title": "C-FedRAG: A Confidential Federated Retrieval-Augmented ...",
+      "content": "to help reduce LLM hallucinations in their query responses. However, RAG comes with its own issues regarding scaling data pipelines across tiered-access and disparate data sources. In many scenarios, it is necessary to query beyond a single data silo to provide richer and more relevant context for an LLM. Analyzing data sources within and across organizational trust boundaries is often limited by complex data-sharing policies that prohibit centralized data storage, therefore, inhibit the fast and effective setup and scaling of RAG solutions. In this paper, we introduce Confidential Computing (CC) techniques as a solution for secure Federated Retrieval Augmented Generation (FedRAG). Our proposed Confidential FedRAG system (C-FedRAG) enables secure connection and scaling of a RAG workflows [...] Nevertheless, proof-of-concept LLM applications using RAG-based techniques can face challenges, including barri-ers to data access and ineffective retrieval methods. More-over, many RAG-based systems are designed with the as-sumption of a centralized data architecture and relatively unfettered access to the required data by the LLM appli-cation (Xu et al., 2024). As the key component of a RAG system, the contextual information yielded by the retrieval determines the quality of the final output. Therefore, to unlock the full potential of RAG, users may want to fetch information from many relevant sources, rather than being limited by a siloed dataset. (Hardjono & Pentland, 2017; Jiang, 2024). With preliminary works investigating such dis-tributed systems on several applications, one [...] C-FedRAG: Confidential Federated RAG 1 Query Documents Vectorized Chunks Relevant Documents Embedding Retrieval Refined Documents Refinement LLM Augmented Input Answer Generation Figure 1. RAG pipeline illustration 2.1 Flow of RAG As shown in Figure 1, the basic RAG flow can be described as the following: 1. To prepare for the retrieval, an offline process is first performed over a given database to formulate the doc-uments into vectorized chunks where each chunk is represented by an embedding vector. The step is done by an “embedding model”.",
+      "score": 0.6211049,
+      "raw_content": null,
+      "id": "f774ad-02"
+    },
+    {
+      "url": "https://arxiv.org/html/2510.25518v1",
+      "title": "Retrieval Augmented Generation (RAG) for Fintech: Agentic Design and Evaluation",
+      "content": "which are then assessed using a mix of LLM scoring and manual spot-checking. This allows for a secure, efficient, and consistent evaluation process that scales across teams and data silos. [...] ###### Index Terms:\n\n## I Introduction\n\nRefer to caption\n\nRetrieval Augmented Generation (RAG) combines large language models (LLMs) with external document retrieval, allowing models to access information beyond their training data. These systems have shown impressive results in general-purpose applications such as technical support , coding assistants , and document summarization , especially when operating as proof-of-concepts on publicly available or loosely structured data.\nHowever, deploying such systems at scale in highly specialized and tightly regulated domains such as financial technology is far from straightforward [4, 5]. [...] Fintech-specific use cases often involve structured-unstructured data (or tightly regulated free text), such as proprietary knowledge bases, role-based access to information, and stringent compliance constraints , all of which make it difficult to repurpose existing tools and methodologies designed for open-domain settings or Software-as-a-Service (SaaS)-based environments. These complexities are both technical and organizational. Regulatory restrictions prohibit data from leaving organisational boundaries, making cloud-hosted APIs or third-party evaluation platforms unsuitable for most practical deployments. In addition, often fintech firms follow a compartmentalized structure with clear divisions of responsibility between product managers, analysts, compliance officers, and engineers.",
+      "score": 0.61695945,
+      "raw_content": null,
+      "id": "28bc6a-03"
+    },
+    {
+      "url": "https://www.mdpi.com/2079-8954/13/11/987",
+      "title": "Multimodal Semantic Fusion of Heterogeneous Data Silos",
+      "content": "21. Lewis, P.; Perez, E.; Piktus, A.; Petroni, F.; Karpukhin, V.; Goyal, N.; Küttler, H.; Lewis, M.; Yih, W.t.; Rocktäschel, T.; et al. Retrieval-augmented generation for knowledge-intensive nlp tasks. Adv. Neural Inf. Process. Syst. 2020, 33, 9459–9474. [Google Scholar]\n22. Arslan, M.; Ghanem, H.; Munawar, S.; Cruz, C. A Survey on RAG with LLMs. Procedia Comput. Sci. 2024, 246, 3781–3790. [Google Scholar] [CrossRef] [Scilit]\n23. OpenAI. GPT-5. 2025. Available online:  (accessed on 1 September 2025).\n24. U.S. General Services Administration. Data.gov—The Home of the U.S. Government’s Open Data. Available online:  (accessed on 1 September 2025).\n25. U.S. Department of Agriculture. USDA.gov—United States Department of Agriculture. Available online:  (accessed on 1 September 2025). [...] 1. Denton, N.; Molloy, M.; Charleston, S.; Lipset, C.; Hirsch, J.; Mulberg, A.E.; Howard, P.; Marsh, E.D. Data silos are undermining drug development and failing rare disease patients. Orphanet J. Rare Dis. 2021, 16, 161. [Google Scholar] [CrossRef] [Scilit] [PubMed]\n2. IBM. What Are Data Silos? 2025. Available online:  (accessed on 1 September 2025).\n3. Sohl-Dickstein, J.; Weiss, E.; Maheswaranathan, N.; Ganguli, S. Deep unsupervised learning using nonequilibrium thermodynamics. In Proceedings of the International Conference on Machine Learning, PMLR, Lille, France, 6–11 July 2015; pp. 2256–2265. [Google Scholar] [...] The Algorithm 1 illustrates the reasoning procedure in each iteration. The iteration can take place upon the emergence of a new silo. We replicate this in our experiment by segregating the data into separate folders and creating a new folder in each iteration. In practice, this can be undertaken by introducing new data files, streams, or other forms of data virtualization. Benefiting from the reasoning and multimodal capacity of the underlying model significantly mitigates barriers to building more seamless, automated integration of emerging silos. We will discuss details about the conducted experiment in Section 5.4.\n\n|  |",
+      "score": 0.559411,
+      "raw_content": null,
+      "id": "fdb8b3-04"
+    },
+    {
+      "url": "https://arxiv.org/html/2503.07993v1",
+      "title": "LLM-Powered Knowledge Graphs for Enterprise Intelligence and Analytics",
+      "content": "Several studies highlight the application of LLMs in enterprise settings, such as task prioritization, analytics-driven insights, and expertise discovery . These works emphasize the value of combining LLM with retrieval-augmented generation (RAG) techniques to enhance precision in contextual retrieval and entity-relationship extraction. In addition, applications such as contextual search and task alignment have demonstrated the ability to improve productivity and decision making by bridging data silos . Although prior efforts have largely focused on specific domains or static datasets, this paper extends the literature by presenting a dynamic, system-agnostic framework capable of adapting to evolving enterprise needs, providing actionable insights, and addressing real-world challenges [...] #### III-C1 Contextual Retrieval\n\nhe Contextual Retrieval Module (CRM) employs Retrieval-Augmented Generation (RAG) techniques to enhance a given summary by retrieving additional information about related entities and their relationships from the Knowledge Graph (KG). By integrating relevant entity summaries and associated relations, the CRM provides enriched context to ensure greater precision in downstream entity and relationship extraction tasks. This added context enables a more comprehensive understanding of interactions and supports better decision making. Fig. 3. is an example of contextual information extracted for summarized text from KG through RAG.\n\nRefer to caption\n\n#### III-C2 Entity Extraction [...] data silos, and enables intelligent, scalable solutions tailored to dynamic organizational needs. Future work will expand the system’s applications and further refine its scalability and adaptability.",
+      "score": 0.5559422,
+      "raw_content": null,
+      "id": "6ed9d5-05"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11080430.pdf",
+      "title": "RAG-Driven Memory Architectures in Conversational LLMs ...",
+      "content": "by NA Akbar · 2025 · Cited by 24 — The data silos challenge necessitates federated memory architectures, while temporal variance in agricultural data requires sophisticated time-aware",
+      "score": 0.5370662,
+      "raw_content": null,
+      "id": "8dd26f-06"
+    },
+    {
+      "url": "https://openreview.net/forum?id=A6TiR6Fm2i",
+      "title": "Federated Training, Fine-Tuning, RAG, and Inference ...",
+      "content": "We begin by exploring federated fine-tuning of LLMs, demonstrating how models can be collaboratively adapted across distributed, private data silos without",
+      "score": 0.47110215,
+      "raw_content": null,
+      "id": "2cf54f-07"
+    },
+    {
+      "url": "https://arxiv.org/html/2412.11854v1",
+      "title": "Towards Understanding Systems Trade-offs in Retrieval-Augmented Generation Model Inference",
+      "content": "The design and implementation of this non-parametric datastore include important design decisions that can impact the behavior of the retrieval process and the end-to-end online RAG inference.\nSalient design decisions include:\n\nSize: The amount of content within the datastore and the resulting memory footprint impact the potential search time required for the RAG model to find relevant chunks.\n\nContent: Datastore contents can comprise of chunks, chunk vectors, and optionally chunk metadata for additional filtering. [...] ## II Retrieval-Augmented Generation\n\nTraditional pretrained (decoder-only) language models for text generation work by processing an input query and then generating output tokens autoregressively, leveraging the attention mechanism that allows the model to accurately weigh the importance of different parts of the input and previously generated output tokens.\n\nRAG differs from this traditional workflow by incorporating a dynamic, non-parametric datastore that is queried for relevant context before the inference model processes the query (as seen in  Figure 1).\nThis workflow can be divided into two distinct stages:\n\nOffline Datastore Preprocessing: where the datastore along with efficient indices for chunk retrieval are constructed. [...] Finally, we show that RAG introduces significant scalability challenges, especially in production-like environments with large datastore sizes and high query volumes.\nAs the datastore size grows from 1 million to 100 million chunks, the throughput of the retrieval stage degrades by up to 20×\\times.\nFurthermore, billion-scale datastores can require TB-scale memory capacity; while memory-efficient retrieval algorithms can reduce the memory capacity overhead, they scale poorly compared to memory-inefficient retrieval algorithms at comparable recall rates (yielding up to 2.2×\\times lower throughput at larger batch sizes).\n\n## II Retrieval-Augmented Generation",
+      "score": 0.43108177,
+      "raw_content": null,
+      "id": "1b5b3b-08"
+    },
+    {
+      "url": "https://www.sciencedirect.com/science/article/pii/S2666792425000551",
+      "title": "A RAG data pipeline transforming heterogeneous data into ...",
+      "content": "by H Li · 2025 · Cited by 17 — Introduces a novel RAG data pipeline that integrates domain-adapted extraction to convert building documents into accurate, provenance-grounded answers.",
+      "score": 0.39922652,
+      "raw_content": null,
+      "id": "3ee577-09"
+    },
+    {
+      "url": "https://arxiv.org/html/2411.11895v1",
+      "title": "Deploying Large Language Models with Retrieval Augmented Generation",
+      "content": "Knowing that the generative capabilities of large language models (LLM) are sometimes hampered by tendencies to hallucinate or create non-factual responses, researchers have increasingly focused on methods to ground generated outputs in factual data. Retrieval-Augmented Generation (RAG) has emerged as a key approach for integrating knowledge from data sources outside of the LLM’s training set, including proprietary and up-to-date information. While many research papers explore various RAG strategies, their true efficacy is tested in real-world applications with actual data. The journey from conceiving an idea to actualizing it in the real world is a lengthy process. We present insights from the development and field-testing of a pilot project that integrates LLMs with RAG for information [...] Selecting the right vector store is crucial for effectively implementing RAG systems in industry settings. The choice depends on factors such as the required scalability, the nature of the data, and integration needs with existing systems. For successful RAG deployment, organizations must match the vector store’s features with their specific use cases and operational requirements. For example, businesses needing robust distributed deployment and flexibility might opt for Weaviate or Qdrant, while those focusing on real-time search and personalization could benefit from Chroma. Understanding these differences ensures that the selected vector store aligns with the project’s goals, optimizing performance and efficiency in handling diverse data sources and retrieval tasks. [...] ### 2.1 Retrieval Augmented Generation\n\nRetrieval-Augmented Generation (RAG) is an approach that enhances the capabilities of Large Language Models (LLMs) by augmenting their prompts with information retrieved from a knowledge base that the LLM has not seen during training. This method adds domain-specific context to the generated responses, leveraging the LLM’s ability to generate text while incorporating embeddings from existing documents stored in vector databases. These databases are specifically designed to store, query, and retrieve sentence embeddings, making them integral to the RAG approach.\n\nThe field of RAG has rapidly evolved, as highlighted by various studies such as those surveying various RAG methodologies , , , ,  and exploring advanced implementations like RAG-end2end .",
+      "score": 0.35763538,
+      "raw_content": null,
+      "id": "64b154-10"
+    },
+    {
+      "url": "https://www.sciencedirect.com/science/article/pii/S097308262200103X",
+      "title": "Supporting a self-sustained energy planning ecosystem",
+      "content": "by F Gardumi · 2022 · Cited by 6 — red-amber-green (RAG) rating system, based on a three-colour scale (Green = good; Amber = some challenges; Red = serious deficiencies). data management",
+      "score": 0.26295936,
+      "raw_content": null,
+      "id": "77fed1-11"
+    },
+    {
+      "url": "https://link.springer.com/article/10.1186/s12302-026-01470-0",
+      "title": "Preventing regrettable substitution through regulatory frameworks: using REACH regulation and Stockholm Convention as case studies | Environmental Sciences Europe | Springer Nature Link",
+      "content": "strengthening regulatory frameworks in several key ways. These include introducing early hazard screening mechanisms, improving data availability and transparency, coordinating assessments across regulatory silos, and embedding precautionary action before chemicals become widely used in commerce. [...] earlier regulatory action on emerging risks, improve efficiency, and reduce opportunities for companies to shift hazardous substances between regulatory silos. It may also lower compliance costs by providing clearer and more predictable regulatory expectations while better aligning chemical safety assessments with broader objectives under the European Green Deal [48 Proposal for a regulation of the European parliament and of the council establishing a common data platform on chemicals, laying down rules to ensure that the data contained in it are findable, accessible, interoperable and reusable and establishing a monitoring and outlook framework for chemicals\")]. However, significant issues remain. Differences in protection goals and risk assessment approaches across EU regulatory [...] Partnership challenges extend beyond European regulatory frameworks to global conventions. Under the Stockholm Convention, Article 9 requires Parties to promote information exchange and cooperation. However, communication remains fragmented across jurisdictions and regulatory silos, where disparities in technical capacity and access to toxicological data, particularly between developed and developing countries, limit shared learning and hinder informed decision‑making [2 Implementation of the Stockholm Convention on persistent organic pollutants (POPs) in Africa—progress, challenges, and recommendations after 20 years. Environ Sci Adv.",
+      "score": 0.1386369,
+      "raw_content": null,
+      "id": "5dc51c-12"
+    },
+    {
+      "url": "https://arxiv.org/abs/2605.25716",
+      "title": "[2605.25716] An Efficient and Privacy-Preserving Architecture for Cross-Institutional Collaborative RAG",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Cryptography and Security\n\n# Title:An Efficient and Privacy-Preserving Architecture for Cross-Institutional Collaborative RAG\n\n|  |  |\n --- |\n| Subjects: | Cryptography and Security (cs.CR); Distributed, Parallel, and Cluster Computing (cs.DC) |\n| Cite as: | arXiv:2605.25716 [cs.CR] |\n|  | (or  arXiv:2605.25716v1 [cs.CR] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.12886485,
+      "raw_content": null,
+      "id": "5004cf-13"
+    },
+    {
+      "url": "https://link.springer.com/article/10.1007/s42452-026-08620-2",
+      "title": "Research on the application of wearable intelligent devices in college sports training | Discover Applied Sciences | Springer Nature Link",
+      "content": "### 1.2 Problem statement and research gaps\n\nDespite the demonstrated potential of wearable technology, several critical research gaps impede its optimal application within the resource-conscious and diverse context of university sports programs.\n\n### 1) Fragmented data silos [...] ### 1) Fragmented data silos\n\nMany existing studies and commercial systems focus on a single data modality, such as GPS for external load or HR for internal load [7:1–9. \n                  \n                  \n                .\")]. This provides a fragmented view of the athlete, neglecting the critical interplay between biomechanical execution and physiological response. An athlete may maintain running speed (external load) while exhibiting a fatigued, inefficient gait pattern (biomechanical degradation)—a significant injury risk factor that isolated data streams would miss [8:1–4. \n                  \n                  \n                .\")].\n\n### 2) Algorithmic opacity [...] ### 1) Data ingestion and storage\n\nRaw and processed data from the edge device is ingested via a Cloud Pub/Sub topic, ensuring reliable message delivery. Data is stored in a data lake on Cloud Storage and structured feature sets are loaded into BigQuery for efficient SQL-like querying.\n\n### 2) Biomechanical modeling",
+      "score": 0.1153716,
+      "raw_content": null,
+      "id": "8d256d-14"
+    },
+    {
+      "url": "https://link.springer.com/article/10.1007/s42461-026-01498-z",
+      "title": "Improving Mineworker Safety Using a Mineworker Administration Shell | Mining, Metallurgy & Exploration | Springer Nature Link",
+      "content": "The review of literature on I4.0 in the mining context reveals some interesting gaps. While innovations in wearable technology have resulted in devices for individual health monitoring, these devices typically function as discrete data loggers and are not integrated with mine information and control systems – resulting in data silos that limit holistic safety management. The reported applications tend have a strong focus on surface mining contexts where GPS and LTE connectivity are readily available. These technologies are not always effective in underground environments due to signal reflection and the lack of satellite positioning. Furthermore, many studies focus on efficiency and business process optimisation, with mineworker safety often treated as a secondary, isolated function. [...] The core components are generic to any implementation of the architecture, allowing development in any platform or language.\n\nThe components are well-distinguished, thus there is no ambiguity when choosing where functionality or data should reside. This enables developers to easily use their domain-specific knowledge to develop plugins without worrying about interdependencies.\n\nThe architecture promotes modularity meaning incremental and concurrent development is possible.\n\nThe data components are separated over time and the decision-making components are separate, which facilitates the plug-and-play of components without affecting other parts of the system.\n\nThe distinction between old, new and in-use data allows for better upgradability due to the modularity and separation of data. [...] ### Reflection Plugins\n\nThe primary function of Reflection plugins is to manage the storage of data in the Biography component. Essentially, Reflection plugins act as intermediary processes – refining and curating the data from the Execution component before it is stored in the Biography component. Additionally, Reflection plugins prepare the data for further analysis by other components of the BASE administration shell.\n\n### Analysis Plugins",
+      "score": 0.08857578,
+      "raw_content": null,
+      "id": "435238-15"
+    },
+    {
+      "url": "https://link.springer.com/content/pdf/10.1007/s00187-025-00401-z.pdf",
+      "title": "Cyber risk management: an illusion of a risk-based approach",
+      "content": "In contrast, a qualitative culture10 is adopted when managers are skeptical about rigorous risk quantification (Power, 2007; Mikes, 2009). They perceive that not all risks can be objectively quantified, so they assess risks qualitatively and use the assessment to flexibly guide compliance-based risk management. Senior managers have little trust in numbers produced by risk analysts and regard them merely as trend indicators that they often override by managerial judgment. In this approach, risk indicators are used interactively (Posch, 2020; Simons, 1990); that is, they are used to guide senior management in high-level strategic decision-making (Mikes, 2009). Risk specialists (financial and IT risk managers) deal with specific risk cat­ egories in silos and may quantify risk therein (Arena [...] Despite the efforts to integrate risk management with a common methodology (Arena et al., 2017), cyber risk management remains disintegrated and managed in silos within a silo (Power, 2009; Mikes, 2011; Giovannoni et al., 2016; Slapničar et al., 2023). [...] cat­ egories in silos and may quantify risk therein (Arena et al., 2010). However, risks are assessed qualitatively using tools and techniques such as ERM frameworks, managed by executive risk committees, risk champions, internal audits, risk registers and key risk indicators (McShane, 2018).",
+      "score": 0.06491988,
+      "raw_content": null,
+      "id": "81acd9-16"
+    },
+    {
+      "url": "https://link.springer.com/article/10.1186/s12913-026-14176-z",
+      "title": "Bridging public health emergency and pharmaceutical supply chain preparedness: a scoping review and framework synthesis | BMC Health Services Research | Springer Nature Link",
+      "content": ".\")]; however, it presents a significant challenge for assessing holistic readiness. By evaluating products in silos, these tools may hinder the assessment of cross-commodity coordination, where shared resources such as cold chain capacity or transport must be managed concurrently during large-scale outbreaks. Overall, PHE tools are strong on governance, coordination, and the transparency of formal capacities but tend to under-specify pharmaceutical and logistics functions, whereas HSC tools provide granular operational insights but are often fragmented by product and not routinely integrated into health security governance. Integrated HSC–PHE tools begin to link these dimensions but remain partial in scope and lack harmonised indicators, meaning that no single instrument [...] Conceptual frameworks or best practice guidelines without measurable indicators, tools unrelated to supply chain management, or those intended solely for internal, or facility-level use were excluded.\n\nThe final inclusion and exclusion criteria are summarized in Table 1 below.\n\nFollowing the inclusion and exclusion criteria, data extraction was performed independently by two independents researchers (KT, ML). A third senior researcher resolved any disagreements.\n\n### Charting data and study selection summary (PRISMA-ScR flow diagram)\n\nThe PRISMA-ScR flow diagram  (Fig. 1) illustrates the identification, screening, and inclusion process of records and assessment tools. [...] #### General tool characteristics\n\nTo map the existing assessment tools and determine their analytical methodology, data charting was conducted using eleven defined categories as shown in Table 2. Following the iterative approach suggested by Levac, Colquhoun and O’Brien , the data extraction form was continuously refined as information was retrieved from the selected studies, ensuring a comprehensive and accurate comparative analysis.\n\n#### Flower framework\n\nThe conceptual foundation for mapping and synthesizing the assessment instruments included in this study is the Flower Framework (Fig. 2).\n\nFig. 2\n\nFlower framework",
+      "score": 0.058222674,
+      "raw_content": null,
+      "id": "561fd5-17"
+    },
+    {
+      "url": "https://link.springer.com/article/10.1007/s00187-025-00401-z",
+      "title": "Cyber risk management: an illusion of a risk-based approach | Journal of Management Control | Springer Nature Link",
+      "content": "\"); Simons, 1990. The role of management accounting in creating competitive advantage: New perspectives. Accounting, Organizations & Society, 12(4), 127–143.\")); that is, they are used to guide senior management in high-level strategic decision-making (Mikes, 2009. Risk management and calculative cultures. Management Accounting Research, 20(1), 18–40.\")). Risk specialists (financial and IT risk managers) deal with specific risk categories in silos and may quantify risk therein (Arena et al., 2010. The organizational dynamics of enterprise risk management. Accounting, Organizations & Society, 35(7), 659–675. [...] Despite the efforts to integrate risk management with a common methodology (Arena et al., 2017. The dynamics of (dis)integrated risk management: A comparative field study. Accounting, Organizations & Society, 62, 65–81.\")), cyber risk management remains disintegrated and managed in silos within a silo (Power, 2009. The risk management of nothing. Accounting, Organizations & Society, 34, 6–7, 849–855. [...] ### 5.2 Cyber risk measurement\n\n#### 5.2.1 Cyber risk identification\n\nThe dominance of technical professionals leads to a qualitative approach in measuring cyber risks, which starts by identifying risks that could happen to all digital assets (the asset centered approach). This approach aligns closely with the responsibilities of the first two lines (IT managers and CISOs), assisting them in managing digital assets and prioritizing investments for risk mitigation. Assigning the responsibility of measuring cyber risks to technical experts rather than business lines results in a failure of some organizations to recognize data as a crucial digital asset rather than the hardware holding the data.",
+      "score": 0.047096178,
+      "raw_content": null,
+      "id": "cb15e8-18"
+    },
+    {
+      "url": "https://arxiv.org/abs/2412.13163",
+      "title": "[2412.13163] C-FedRAG: A Confidential Federated Retrieval-Augmented Generation System",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Distributed, Parallel, and Cluster Computing\n\n# Title:C-FedRAG: A Confidential Federated Retrieval-Augmented Generation System\n\n|  |  |\n --- |\n| Subjects: | Distributed, Parallel, and Cluster Computing (cs.DC); Information Retrieval (cs.IR) |\n| Cite as: | arXiv:2412.13163 [cs.DC] |\n|  | (or  arXiv:2412.13163v2 [cs.DC] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\nlicense icon\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.04291841,
+      "raw_content": null,
+      "id": "611cb6-19"
+    }
+  ],
+  "response_time": 4.18,
+  "request_id": "f7c0effe-a8af-4ce3-bf19-1ae2802f59dc"
+}

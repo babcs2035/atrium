@@ -1,0 +1,1438 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/ooDtsif2O/Ek7jcyGClsSWqxd5I</id>
+  <title>arXiv Query: search_query=( (all:decentralized OR all:decentralised) AND (all:"retrieval augmented generation" OR all:RAG) ) AND submittedDate:"202001010000 TO 202610262359"&amp;id_list=&amp;start=0&amp;max_results=200</title>
+  <updated>2026-10-26T05:37:43Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=((all:decentralized+OR+all:decentralised)+AND+(all:%22retrieval+augmented+generation%22+OR+all:RAG))+AND+submittedDate:%22202001010000+TO+202610262359%22&amp;start=0&amp;max_results=200&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>200</opensearch:itemsPerPage>
+  <opensearch:totalResults>29</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2511.07577v1</id>
+    <title>A Decentralized Retrieval Augmented Generation System with Source Reliabilities Secured on Blockchain</title>
+    <updated>2025-11-10T19:40:30Z</updated>
+    <link href="https://arxiv.org/abs/2511.07577v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2511.07577v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Existing retrieval-augmented generation (RAG) systems typically use a centralized architecture, causing a high cost of data collection, integration, and management, as well as privacy concerns. There is a great need for a decentralized RAG system that enables foundation models to utilize information directly from data owners who maintain full control over their sources. However, decentralization brings a challenge: the numerous independent data sources vary significantly in reliability, which can diminish retrieval accuracy and response quality. To address this, our decentralized RAG system has a novel reliability scoring mechanism that dynamically evaluates each source based on the quality of responses it contributes to generate and prioritizes high-quality sources during retrieval. To ensure transparency and trust, the scoring process is securely managed through blockchain-based smart contracts, creating verifiable and tamper-proof reliability records without relying on a central authority. We evaluate our decentralized system with two Llama models (3B and 8B) in two simulated environments where six data sources have different levels of reliability. Our system achieves a +10.7\% performance improvement over its centralized counterpart in the real world-like unreliable data environments. Notably, it approaches the upper-bound performance of centralized systems under ideally reliable data environments. The decentralized infrastructure enables secure and trustworthy scoring management, achieving approximately 56\% marginal cost savings through batched update operations. Our code and system are open-sourced at github.com/yining610/Reliable-dRAG.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-11-10T19:40:30Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Yining Lu</name>
+    </author>
+    <author>
+      <name>Wenyi Tang</name>
+    </author>
+    <author>
+      <name>Max Johnson</name>
+    </author>
+    <author>
+      <name>Taeho Jung</name>
+    </author>
+    <author>
+      <name>Meng Jiang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.27432v1</id>
+    <title>FD-RAG: Federated Dual-System Retrieval-Augmented Generation</title>
+    <updated>2026-05-22T05:21:39Z</updated>
+    <link href="https://arxiv.org/abs/2605.27432v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.27432v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) has emerged as a paradigm for grounding large language models in external knowledge, yet most existing RAG systems assume centralized knowledge access and ample computation. These assumptions break down in edge environments, where knowledge is fragmented across devices, raw data cannot be shared, and repeated LLM calls are prohibitively expensive. We propose FD-RAG, a federated dual-system RAG framework that decouples lightweight memory access from on-demand LLM reasoning for decentralized deployment. Specifically, FD-RAG learns semantic-aware adaptive hypergraphs over local corpora and distills them into compact QA memories. At inference time, it answers well-covered queries via direct memory matching and invokes LLM-based reasoning only when necessary, while tracing retrieved memories to hypergraph-grounded evidence. To mitigate cross-device knowledge fragmentation, FD-RAG aggregates anonymized memories across devices without exposing raw documents. Experiments on QA benchmarks show that FD-RAG improves accuracy by up to 7.8\% while reducing latency by 8.4$\times$ compared with strong local and federated baselines. We also provide theoretical analysis establishing an $\mathcal{O}(1/ε^{2})$ convergence rate for the proposed hypergraph learning, supporting its tractable deployment in edge settings.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-22T05:21:39Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Tianhao Gao</name>
+    </author>
+    <author>
+      <name>Kai Yang</name>
+    </author>
+    <author>
+      <name>Yiyang Li</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2412.13163v2</id>
+    <title>C-FedRAG: A Confidential Federated Retrieval-Augmented Generation System</title>
+    <updated>2024-12-18T21:26:14Z</updated>
+    <link href="https://arxiv.org/abs/2412.13163v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2412.13163v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Organizations seeking to utilize Large Language Models (LLMs) for knowledge querying and analysis often encounter challenges in maintaining an LLM fine-tuned on targeted, up-to-date information that keeps answers relevant and grounded. Retrieval Augmented Generation (RAG) has quickly become a feasible solution for organizations looking to overcome the challenges of maintaining proprietary models and to help reduce LLM hallucinations in their query responses. However, RAG comes with its own issues regarding scaling data pipelines across tiered-access and disparate data sources. In many scenarios, it is necessary to query beyond a single data silo to provide richer and more relevant context for an LLM. Analyzing data sources within and across organizational trust boundaries is often limited by complex data-sharing policies that prohibit centralized data storage, therefore, inhibit the fast and effective setup and scaling of RAG solutions. In this paper, we introduce Confidential Computing (CC) techniques as a solution for secure Federated Retrieval Augmented Generation (FedRAG). Our proposed Confidential FedRAG system (C-FedRAG) enables secure connection and scaling of a RAG workflows across a decentralized network of data providers by ensuring context confidentiality. We also demonstrate how to implement a C-FedRAG system using the NVIDIA FLARE SDK and assess its performance using the MedRAG toolkit and MIRAGE benchmarking dataset.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-12-17T18:42:21Z</published>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Parker Addison</name>
+    </author>
+    <author>
+      <name>Minh-Tuan H. Nguyen</name>
+    </author>
+    <author>
+      <name>Tomislav Medan</name>
+    </author>
+    <author>
+      <name>Jinali Shah</name>
+    </author>
+    <author>
+      <name>Mohammad T. Manzari</name>
+    </author>
+    <author>
+      <name>Brendan McElrone</name>
+    </author>
+    <author>
+      <name>Laksh Lalwani</name>
+    </author>
+    <author>
+      <name>Aboli More</name>
+    </author>
+    <author>
+      <name>Smita Sharma</name>
+    </author>
+    <author>
+      <name>Holger R. Roth</name>
+    </author>
+    <author>
+      <name>Isaac Yang</name>
+    </author>
+    <author>
+      <name>Chester Chen</name>
+    </author>
+    <author>
+      <name>Daguang Xu</name>
+    </author>
+    <author>
+      <name>Yan Cheng</name>
+    </author>
+    <author>
+      <name>Andrew Feng</name>
+    </author>
+    <author>
+      <name>Ziyue Xu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.00443v1</id>
+    <title>Distributed Retrieval-Augmented Generation</title>
+    <updated>2025-05-01T10:37:06Z</updated>
+    <link href="https://arxiv.org/abs/2505.00443v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.00443v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>As large language models (LLMs) become increasingly adopted on edge devices, Retrieval-Augmented Generation (RAG) is gaining prominence as a solution to address factual deficiencies and hallucinations by integrating external knowledge. However, centralized RAG architectures face significant challenges in data privacy and scalability. For instance, smart healthcare services often rely on collecting sensitive patient data and building a centralized knowledge base to provide better diagnosis and treatment advice, while privacy concerns significantly impede this process. Besides, maintaining a comprehensive and continuously updated knowledge base is costly, particularly in response to regional epidemics and rapidly mutating viruses. To address these challenges, this paper introduces Distributed Retrieval-Augmented Generation (DRAG), a novel framework that improves data privacy by eliminating the need for a centralized knowledge base and restoring data control to owners. DRAG incorporates a Topic-Aware Random Walk (TARW) algorithm that leverages LLMs to extract query topics and facilitate targeted peer discovery within a peer-to-peer network, enabling efficient knowledge retrieval in decentralized environments. Extensive experiments across three diverse datasets and LLMs demonstrate that DRAG with TARW achieves near-centralized RAG performance by using half as many messages as flooding. The code is available at https://github.com/xuchenhao001/DRAG.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-01T10:37:06Z</published>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Chenhao Xu</name>
+    </author>
+    <author>
+      <name>Longxiang Gao</name>
+    </author>
+    <author>
+      <name>Yuan Miao</name>
+    </author>
+    <author>
+      <name>Xi Zheng</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2602.22217v1</id>
+    <title>RAGdb: A Zero-Dependency, Embeddable Architecture for Multimodal Retrieval-Augmented Generation on the Edge</title>
+    <updated>2025-12-09T15:12:13Z</updated>
+    <link href="https://arxiv.org/abs/2602.22217v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2602.22217v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) has established itself as the standard paradigm for grounding Large Language Models (LLMs) in domain-specific, up-to-date data. However, the prevailing architecture for RAG has evolved into a complex, distributed stack requiring cloud-hosted vector databases, heavy deep learning frameworks (e.g., PyTorch, CUDA), and high-latency embedding inference servers. This ``infrastructure bloat'' creates a significant barrier to entry for edge computing, air-gapped environments, and privacy-constrained applications where data sovereignty is paramount.
+  This paper introduces RAGdb, a novel monolithic architecture that consolidates automated multimodal ingestion, ONNX-based extraction, and hybrid vector retrieval into a single, portable SQLite container. We propose a deterministic Hybrid Scoring Function (HSF) that combines sublinear TF-IDF vectorization with exact substring boosting, eliminating the need for GPU inference at query time. Experimental evaluation on an Intel i7-1165G7 consumer laptop demonstrates that RAGdb achieves 100\% Recall@1 for entity retrieval and an ingestion efficiency gain of 31.6x during incremental updates compared to cold starts. Furthermore, the system reduces disk footprint by approximately 99.5\% compared to standard Docker-based RAG stacks, establishing the ``Single-File Knowledge Container'' as a viable primitive for decentralized, local-first AI.
+  Keywords: Edge AI, Retrieval-Augmented Generation, Vector Search, Green AI, Serverless Architecture, Knowledge Graphs, Efficient Computing.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-12-09T15:12:13Z</published>
+    <arxiv:comment>6 pages, 2 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Ahmed Bin Khalid</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.22162v1</id>
+    <title>Beyond Raw Context Transfer: Representation-based Federated Retrieval-Augmented Generation</title>
+    <updated>2026-08-26T17:31:23Z</updated>
+    <link href="https://arxiv.org/abs/2609.22162v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.22162v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) improves the factuality of large language models (LLMs) and vision-language models (VLMs) by grounding generation in external knowledge. However, most existing RAG frameworks assume a centralized retrieval corpus, which is often impractical in sensitive domains such as healthcare, where data are inherently distributed and raw content cannot be directly shared across institutions. Recent efforts on decentralized RAG primarily follow prompt-based paradigms that exchange raw, human-readable retrieved content, leading to substantial inference-time computational overhead and direct exposure of retrieved information. To address these limitations, we propose Representation-based Federated RAG (FedRepRAG), a decentralized RAG framework that keeps raw documents at their owning clients and exchanges only compact latent representations during cross-client retrieval. To integrate retrieved knowledge, we introduce a collaboratively trained projector that converts retrieval embeddings into generator-compatible representation tokens for a frozen LLM/VLM backbone. Experiments across decentralized visual question answering (VQA) and question answering (QA) benchmarks show that FedRepRAG consistently outperforms direct inference and local retrieval baselines while substantially reducing retrieval-context length and inference-time computational overhead compared with raw-context transfer. Further analyses confirm the importance of query-relevant retrieved representations and characterize the residual representation-level leakage associated with representation exchange. Overall, FedRepRAG provides an effective and efficient framework for federated RAG without transferring raw retrieved content.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-26T17:31:23Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Can Peng</name>
+    </author>
+    <author>
+      <name>Yu Liu</name>
+    </author>
+    <author>
+      <name>Yingyu Yang</name>
+    </author>
+    <author>
+      <name>Anjie Le</name>
+    </author>
+    <author>
+      <name>Yuyuan Liu</name>
+    </author>
+    <author>
+      <name>Qianye Yang</name>
+    </author>
+    <author>
+      <name>J. Alison Noble</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.19847v2</id>
+    <title>DGRAG: Distributed Graph-based Retrieval-Augmented Generation in Edge-Cloud Systems</title>
+    <updated>2026-01-28T10:55:29Z</updated>
+    <link href="https://arxiv.org/abs/2505.19847v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.19847v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) improves factuality by grounding LLMs in external knowledge, yet conventional centralized RAG requires aggregating distributed data, raising privacy risks and incurring high retrieval latency and cost. We present DGRAG, a distributed graph-driven RAG framework for edge-cloud collaborative systems. Each edge device organizes local documents into a knowledge graph and periodically uploads subgraph-level summaries to the cloud for lightweight global indexing without exposing raw data. At inference time, queries are first answered on the edge; a gate mechanism assesses the confidence and consistency of multiple local generations to decide whether to return a local answer or escalate the query. For escalated queries, the cloud performs summary-based matching to identify relevant edges, retrieves supporting evidence from them, and generates the final response with a cloud LLM. Experiments on distributed question answering show that DGRAG consistently outperforms decentralized baselines while substantially reducing cloud overhead.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-26T11:31:58Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Wenqing Zhou</name>
+    </author>
+    <author>
+      <name>Yuxuan Yan</name>
+    </author>
+    <author>
+      <name>Qianqian Yang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2407.14838v1</id>
+    <title>Retrieval Augmented Generation Integrated Large Language Models in Smart Contract Vulnerability Detection</title>
+    <updated>2024-07-20T10:46:42Z</updated>
+    <link href="https://arxiv.org/abs/2407.14838v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2407.14838v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The rapid growth of Decentralized Finance (DeFi) has been accompanied by substantial financial losses due to smart contract vulnerabilities, underscoring the critical need for effective security auditing. With attacks becoming more frequent, the necessity and demand for auditing services has escalated. This especially creates a financial burden for independent developers and small businesses, who often have limited available funding for these services. Our study builds upon existing frameworks by integrating Retrieval-Augmented Generation (RAG) with large language models (LLMs), specifically employing GPT-4-1106 for its 128k token context window. We construct a vector store of 830 known vulnerable contracts, leveraging Pinecone for vector storage, OpenAI's text-embedding-ada-002 for embeddings, and LangChain to construct the RAG-LLM pipeline. Prompts were designed to provide a binary answer for vulnerability detection. We first test 52 smart contracts 40 times each against a provided vulnerability type, verifying the replicability and consistency of the RAG-LLM. Encouraging results were observed, with a 62.7% success rate in guided detection of vulnerabilities. Second, we challenge the model under a "blind" audit setup, without the vulnerability type provided in the prompt, wherein 219 contracts undergo 40 tests each. This setup evaluates the general vulnerability detection capabilities without hinted context assistance. Under these conditions, a 60.71% success rate was observed. While the results are promising, we still emphasize the need for human auditing at this time. We provide this study as a proof of concept for a cost-effective smart contract auditing process, moving towards democratic access to security.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-07-20T10:46:42Z</published>
+    <arxiv:comment>17 pages, 3 figures, 4 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Jeffy Yu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2608.00922v1</id>
+    <title>From Cloud to Crowd: Democratizing LLM Service with Decentralized Edge Collaboration for RAG</title>
+    <updated>2026-08-02T01:28:34Z</updated>
+    <link href="https://arxiv.org/abs/2608.00922v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2608.00922v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The rapid advancement of large language models (LLMs) has increased demand for scalable and cost-effective deployment, especially for mobile and edge devices. Cloud-hosted LLMs are powerful but expensive and difficult to scale due to vendor lock-in and high resource needs, resulting in high expenses and unstable performance under load. Recent efforts focus on deploying small language models (SLMs), distilled or pruned from LLMs, on resource-constrained edge devices to reduce costs and improve scalability. However, edge-based SLMs face limited knowledge coverage and notable accuracy gap compared to cloud-based LLMs. To address this, we present DEFRAG, a decentralized edge collaboration system for retrieval-augmented generation (RAG) that optimizes both retrieval and generation across heterogeneous edge devices. For retrieval, DEFRAG compresses and shares knowledge graphs, using hybrid retrieval to expand knowledge coverage. For generation, DEFRAG introduces an optimizer that adaptively selects SLMs and RAG parameters per query, balancing accuracy and cost. We implement DEFRAG on a heterogeneous edge testbed and evaluate it on benchmark QA datasets. We also test it under mobile route stress, non-uniform data placement, and a domain-specific QA workload. The results show that DEFRAG maintains stable service quality and cost efficiency under these broader settings. Results show that DEFRAG narrows the SLM-LLM accuracy gap, while reducing cost by up to 98.4% and increasing peak throughput by up to 97.8% over centralized services. These findings demonstrate the potential of DEFRAG for democratized LLM services at the edge.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-02T01:28:34Z</published>
+    <arxiv:comment>15 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Jiaxing Li</name>
+    </author>
+    <author>
+      <name>Hengzhi Wang</name>
+    </author>
+    <author>
+      <name>Feng Wang</name>
+    </author>
+    <author>
+      <name>Chi Xu</name>
+    </author>
+    <author>
+      <name>Danyang Song</name>
+    </author>
+    <author>
+      <name>Ruixiao Zhang</name>
+    </author>
+    <author>
+      <name>Edith C. H. Ngai</name>
+    </author>
+    <author>
+      <name>Jiangchuan Liu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2403.10408v1</id>
+    <title>SocialGenPod: Privacy-Friendly Generative AI Social Web Applications with Decentralised Personal Data Stores</title>
+    <updated>2024-03-15T15:43:02Z</updated>
+    <link href="https://arxiv.org/abs/2403.10408v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2403.10408v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We present SocialGenPod, a decentralised and privacy-friendly way of deploying generative AI Web applications. Unlike centralised Web and data architectures that keep user data tied to application and service providers, we show how one can use Solid -- a decentralised Web specification -- to decouple user data from generative AI applications. We demonstrate SocialGenPod using a prototype that allows users to converse with different Large Language Models, optionally leveraging Retrieval Augmented Generation to generate answers grounded in private documents stored in any Solid Pod that the user is allowed to access, directly or indirectly. SocialGenPod makes use of Solid access control mechanisms to give users full control of determining who has access to data stored in their Pods. SocialGenPod keeps all user data (chat history, app configuration, personal documents, etc) securely in the user's personal Pod; separate from specific model or application providers. Besides better privacy controls, this approach also enables portability across different services and applications. Finally, we discuss challenges, posed by the large compute requirements of state-of-the-art models, that future research in this area should address. Our prototype is open-source and available at: https://github.com/Vidminas/socialgenpod/.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CY" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.SI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-03-15T15:43:02Z</published>
+    <arxiv:comment>Demo paper accepted in Companion Proceedings of the ACM Web Conference 2024</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Vidminas Vizgirda</name>
+      <arxiv:affiliation>University of Edinburgh</arxiv:affiliation>
+    </author>
+    <author>
+      <name>Rui Zhao</name>
+      <arxiv:affiliation>University of Oxford</arxiv:affiliation>
+    </author>
+    <author>
+      <name>Naman Goel</name>
+      <arxiv:affiliation>University of Oxford</arxiv:affiliation>
+    </author>
+    <arxiv:doi>10.1145/3589335.3651251</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1145/3589335.3651251" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2504.06135v1</id>
+    <title>Decentralizing AI Memory: SHIMI, a Semantic Hierarchical Memory Index for Scalable Agent Reasoning</title>
+    <updated>2025-04-08T15:31:00Z</updated>
+    <link href="https://arxiv.org/abs/2504.06135v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2504.06135v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) and vector-based search have become foundational tools for memory in AI systems, yet they struggle with abstraction, scalability, and semantic precision - especially in decentralized environments. We present SHIMI (Semantic Hierarchical Memory Index), a unified architecture that models knowledge as a dynamically structured hierarchy of concepts, enabling agents to retrieve information based on meaning rather than surface similarity. SHIMI organizes memory into layered semantic nodes and supports top-down traversal from abstract intent to specific entities, offering more precise and explainable retrieval. Critically, SHIMI is natively designed for decentralized ecosystems, where agents maintain local memory trees and synchronize them asynchronously across networks. We introduce a lightweight sync protocol that leverages Merkle-DAG summaries, Bloom filters, and CRDT-style conflict resolution to enable partial synchronization with minimal overhead. Through benchmark experiments and use cases involving decentralized agent collaboration, we demonstrate SHIMI's advantages in retrieval accuracy, semantic fidelity, and scalability - positioning it as a core infrastructure layer for decentralized cognitive systems.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-04-08T15:31:00Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Tooraj Helmi</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2504.00587v2</id>
+    <title>AgentNet: Decentralized Evolutionary Coordination for LLM-based Multi-Agent Systems</title>
+    <updated>2025-05-29T18:55:08Z</updated>
+    <link href="https://arxiv.org/abs/2504.00587v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2504.00587v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The rapid advancement of large language models (LLMs) has enabled the development of multi-agent systems where multiple LLM-based agents collaborate on complex tasks. However, existing systems often rely on centralized coordination, leading to scalability bottlenecks, reduced adaptability, and single points of failure. Privacy and proprietary knowledge concerns further hinder cross-organizational collaboration, resulting in siloed expertise. We propose AgentNet, a decentralized, Retrieval-Augmented Generation (RAG)-based framework that enables LLM-based agents to specialize, evolve, and collaborate autonomously in a dynamically structured Directed Acyclic Graph (DAG). Unlike prior approaches with static roles or centralized control, AgentNet allows agents to adjust connectivity and route tasks based on local expertise and context. AgentNet introduces three key innovations: (1) a fully decentralized coordination mechanism that eliminates the need for a central orchestrator, enhancing robustness and emergent intelligence; (2) dynamic agent graph topology that adapts in real time to task demands, ensuring scalability and resilience; and (3) a retrieval-based memory system for agents that supports continual skill refinement and specialization. By minimizing centralized control and data exchange, AgentNet enables fault-tolerant, privacy-preserving collaboration across organizations. Experiments show that AgentNet achieves higher task accuracy than both single-agent and centralized multi-agent baselines.</summary>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-04-01T09:45:25Z</published>
+    <arxiv:primary_category term="cs.MA"/>
+    <author>
+      <name>Yingxuan Yang</name>
+    </author>
+    <author>
+      <name>Huacan Chai</name>
+    </author>
+    <author>
+      <name>Shuai Shao</name>
+    </author>
+    <author>
+      <name>Yuanyi Song</name>
+    </author>
+    <author>
+      <name>Siyuan Qi</name>
+    </author>
+    <author>
+      <name>Renting Rui</name>
+    </author>
+    <author>
+      <name>Weinan Zhang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2402.11035v3</id>
+    <title>Dense Passage Retrieval: Is it Retrieving?</title>
+    <updated>2024-10-03T23:40:56Z</updated>
+    <link href="https://arxiv.org/abs/2402.11035v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2402.11035v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Dense passage retrieval (DPR) is the first step in the retrieval augmented generation (RAG) paradigm for improving the performance of large language models (LLM). DPR fine-tunes pre-trained networks to enhance the alignment of the embeddings between queries and relevant textual data. A deeper understanding of DPR fine-tuning will be required to fundamentally unlock the full potential of this approach. In this work, we explore DPR-trained models mechanistically by using a combination of probing, layer activation analysis, and model editing. Our experiments show that DPR training decentralizes how knowledge is stored in the network, creating multiple access pathways to the same information. We also uncover a limitation in this training style: the internal knowledge of the pre-trained model bounds what the retrieval model can retrieve. These findings suggest a few possible directions for dense retrieval: (1) expose the DPR training process to more knowledge so more can be decentralized, (2) inject facts as decentralized representations, (3) model and incorporate knowledge uncertainty in the retrieval process, and (4) directly map internal model knowledge to a knowledge base.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-02-16T19:28:52Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Benjamin Reichman</name>
+    </author>
+    <author>
+      <name>Larry Heck</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.21969v4</id>
+    <title>DORAEMON: Decentralized Ontology-aware Reliable Agent with Enhanced Memory Oriented Navigation</title>
+    <updated>2025-09-25T15:34:10Z</updated>
+    <link href="https://arxiv.org/abs/2505.21969v4" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.21969v4" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Adaptive navigation in unfamiliar environments is crucial for household service robots but remains challenging due to the need for both low-level path planning and high-level scene understanding. While recent vision-language model (VLM) based zero-shot approaches reduce dependence on prior maps and scene-specific training data, they face significant limitations: spatiotemporal discontinuity from discrete observations, unstructured memory representations, and insufficient task understanding leading to navigation failures. We propose DORAEMON (Decentralized Ontology-aware Reliable Agent with Enhanced Memory Oriented Navigation), a novel cognitive-inspired framework consisting of Ventral and Dorsal Streams that mimics human navigation capabilities. The Dorsal Stream implements the Hierarchical Semantic-Spatial Fusion and Topology Map to handle spatiotemporal discontinuities, while the Ventral Stream combines RAG-VLM and Policy-VLM to improve decision-making. Our approach also develops Nav-Ensurance to ensure navigation safety and efficiency. We evaluate DORAEMON on the HM3D, MP3D, and GOAT datasets, where it achieves state-of-the-art performance on both success rate (SR) and success weighted by path length (SPL) metrics, significantly outperforming existing methods. We also introduce a new evaluation metric (AORI) to assess navigation intelligence better. Comprehensive experiments demonstrate DORAEMON's effectiveness in zero-shot autonomous navigation without requiring prior map building or pre-training.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-28T04:46:13Z</published>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Tianjun Gu</name>
+    </author>
+    <author>
+      <name>Linfeng Li</name>
+    </author>
+    <author>
+      <name>Xuhong Wang</name>
+    </author>
+    <author>
+      <name>Chenghua Gong</name>
+    </author>
+    <author>
+      <name>Jingyu Gong</name>
+    </author>
+    <author>
+      <name>Zhizhong Zhang</name>
+    </author>
+    <author>
+      <name>Yuan Xie</name>
+    </author>
+    <author>
+      <name>Lizhuang Ma</name>
+    </author>
+    <author>
+      <name>Xin Tan</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.11216v1</id>
+    <title>Great Disappearance Acts Generative Search and Shadow Banning</title>
+    <updated>2026-05-03T10:34:13Z</updated>
+    <link href="https://arxiv.org/abs/2606.11216v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.11216v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The internet, once celebrated as a decentralized public sphere, is increasingly undermined by practices such as generative search and shadow banning, which divert traffic and suppress visibility. Generative search, powered by Retrieval Augmented Generation RAG, synthesizes content into direct answers, bypassing websites and depriving them of traffic and revenue. This threatens the sustainability of independent content creators, small enterprises, and the open web ecosystem. Shadow banning, a practice that intentionally reduces the visibility of social media posts through algorithmic moderation, exacerbates these issues by chilling free expression and limiting transparency and accountability.
+  This article explores these opaque practices through a legal and regulatory lens. The first part examines the rise of generative search, analyzing its technological and legal implications, including copyright infringement, unfair competition, and unjust enrichment. It also evaluates potential solutions such as licensing agreements and agentic AI. The second part focuses on shadow banning: algorithmic dissuasion, de-ranking, and the reduction of traffic, with specific attention to Chinas Regulation on Algorithmic Recommendations RAR and the EUs Artificial Intelligence Act AIA. Both frameworks offer partial solutions but fall short of ensuring fairness, transparency, and redress mechanisms.
+  Ultimately, the shift toward centralized control by dominant platforms prioritizes profit and risk management over innovation, fairness, and diversity in online expression. To counteract these trends, regulatory interventions, algorithmic transparency, and equitable frameworks are essential. Without such measures, the internet risks losing its character as a democratized public sphere for free expression and innovation.</summary>
+    <category term="cs.CY" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.SI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-03T10:34:13Z</published>
+    <arxiv:primary_category term="cs.CY"/>
+    <arxiv:journal_ref>27 German Law Journal 1211 - 1234 (2025)</arxiv:journal_ref>
+    <author>
+      <name>Danny Friedmann</name>
+    </author>
+    <arxiv:doi>10.1017/glj.2026.10194</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1017/glj.2026.10194" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2504.00698v2</id>
+    <title>Command A: An Enterprise-Ready Large Language Model</title>
+    <updated>2025-04-14T12:37:51Z</updated>
+    <link href="https://arxiv.org/abs/2504.00698v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2504.00698v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>In this report we describe the development of Command A, a powerful large language model purpose-built to excel at real-world enterprise use cases. Command A is an agent-optimised and multilingual-capable model, with support for 23 languages of global business, and a novel hybrid architecture balancing efficiency with top of the range performance. It offers best-in-class Retrieval Augmented Generation (RAG) capabilities with grounding and tool use to automate sophisticated business processes. These abilities are achieved through a decentralised training approach, including self-refinement algorithms and model merging techniques. We also include results for Command R7B which shares capability and architectural similarities to Command A. Weights for both models have been released for research purposes. This technical report details our original training pipeline and presents an extensive evaluation of our models across a suite of enterprise-relevant tasks and public benchmarks, demonstrating excellent performance and efficiency.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-04-01T12:08:07Z</published>
+    <arxiv:comment>55 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Team Cohere</name>
+    </author>
+    <author>
+      <name> :</name>
+    </author>
+    <author>
+      <name> Aakanksha</name>
+    </author>
+    <author>
+      <name>Arash Ahmadian</name>
+    </author>
+    <author>
+      <name>Marwan Ahmed</name>
+    </author>
+    <author>
+      <name>Jay Alammar</name>
+    </author>
+    <author>
+      <name>Milad Alizadeh</name>
+    </author>
+    <author>
+      <name>Yazeed Alnumay</name>
+    </author>
+    <author>
+      <name>Sophia Althammer</name>
+    </author>
+    <author>
+      <name>Arkady Arkhangorodsky</name>
+    </author>
+    <author>
+      <name>Viraat Aryabumi</name>
+    </author>
+    <author>
+      <name>Dennis Aumiller</name>
+    </author>
+    <author>
+      <name>Raphaël Avalos</name>
+    </author>
+    <author>
+      <name>Zahara Aviv</name>
+    </author>
+    <author>
+      <name>Sammie Bae</name>
+    </author>
+    <author>
+      <name>Saurabh Baji</name>
+    </author>
+    <author>
+      <name>Alexandre Barbet</name>
+    </author>
+    <author>
+      <name>Max Bartolo</name>
+    </author>
+    <author>
+      <name>Björn Bebensee</name>
+    </author>
+    <author>
+      <name>Neeral Beladia</name>
+    </author>
+    <author>
+      <name>Walter Beller-Morales</name>
+    </author>
+    <author>
+      <name>Alexandre Bérard</name>
+    </author>
+    <author>
+      <name>Andrew Berneshawi</name>
+    </author>
+    <author>
+      <name>Anna Bialas</name>
+    </author>
+    <author>
+      <name>Phil Blunsom</name>
+    </author>
+    <author>
+      <name>Matt Bobkin</name>
+    </author>
+    <author>
+      <name>Adi Bongale</name>
+    </author>
+    <author>
+      <name>Sam Braun</name>
+    </author>
+    <author>
+      <name>Maxime Brunet</name>
+    </author>
+    <author>
+      <name>Samuel Cahyawijaya</name>
+    </author>
+    <author>
+      <name>David Cairuz</name>
+    </author>
+    <author>
+      <name>Jon Ander Campos</name>
+    </author>
+    <author>
+      <name>Cassie Cao</name>
+    </author>
+    <author>
+      <name>Kris Cao</name>
+    </author>
+    <author>
+      <name>Roman Castagné</name>
+    </author>
+    <author>
+      <name>Julián Cendrero</name>
+    </author>
+    <author>
+      <name>Leila Chan Currie</name>
+    </author>
+    <author>
+      <name>Yash Chandak</name>
+    </author>
+    <author>
+      <name>Diane Chang</name>
+    </author>
+    <author>
+      <name>Giannis Chatziveroglou</name>
+    </author>
+    <author>
+      <name>Hongyu Chen</name>
+    </author>
+    <author>
+      <name>Claire Cheng</name>
+    </author>
+    <author>
+      <name>Alexis Chevalier</name>
+    </author>
+    <author>
+      <name>Justin T. Chiu</name>
+    </author>
+    <author>
+      <name>Eugene Cho</name>
+    </author>
+    <author>
+      <name>Eugene Choi</name>
+    </author>
+    <author>
+      <name>Eujeong Choi</name>
+    </author>
+    <author>
+      <name>Tim Chung</name>
+    </author>
+    <author>
+      <name>Volkan Cirik</name>
+    </author>
+    <author>
+      <name>Ana Cismaru</name>
+    </author>
+    <author>
+      <name>Pierre Clavier</name>
+    </author>
+    <author>
+      <name>Henry Conklin</name>
+    </author>
+    <author>
+      <name>Lucas Crawhall-Stein</name>
+    </author>
+    <author>
+      <name>Devon Crouse</name>
+    </author>
+    <author>
+      <name>Andres Felipe Cruz-Salinas</name>
+    </author>
+    <author>
+      <name>Ben Cyrus</name>
+    </author>
+    <author>
+      <name>Daniel D'souza</name>
+    </author>
+    <author>
+      <name>Hugo Dalla-Torre</name>
+    </author>
+    <author>
+      <name>John Dang</name>
+    </author>
+    <author>
+      <name>William Darling</name>
+    </author>
+    <author>
+      <name>Omar Darwiche Domingues</name>
+    </author>
+    <author>
+      <name>Saurabh Dash</name>
+    </author>
+    <author>
+      <name>Antoine Debugne</name>
+    </author>
+    <author>
+      <name>Théo Dehaze</name>
+    </author>
+    <author>
+      <name>Shaan Desai</name>
+    </author>
+    <author>
+      <name>Joan Devassy</name>
+    </author>
+    <author>
+      <name>Rishit Dholakia</name>
+    </author>
+    <author>
+      <name>Kyle Duffy</name>
+    </author>
+    <author>
+      <name>Ali Edalati</name>
+    </author>
+    <author>
+      <name>Ace Eldeib</name>
+    </author>
+    <author>
+      <name>Abdullah Elkady</name>
+    </author>
+    <author>
+      <name>Sarah Elsharkawy</name>
+    </author>
+    <author>
+      <name>Irem Ergün</name>
+    </author>
+    <author>
+      <name>Beyza Ermis</name>
+    </author>
+    <author>
+      <name>Marzieh Fadaee</name>
+    </author>
+    <author>
+      <name>Boyu Fan</name>
+    </author>
+    <author>
+      <name>Lucas Fayoux</name>
+    </author>
+    <author>
+      <name>Yannis Flet-Berliac</name>
+    </author>
+    <author>
+      <name>Nick Frosst</name>
+    </author>
+    <author>
+      <name>Matthias Gallé</name>
+    </author>
+    <author>
+      <name>Wojciech Galuba</name>
+    </author>
+    <author>
+      <name>Utsav Garg</name>
+    </author>
+    <author>
+      <name>Matthieu Geist</name>
+    </author>
+    <author>
+      <name>Mohammad Gheshlaghi Azar</name>
+    </author>
+    <author>
+      <name>Ellen Gilsenan-McMahon</name>
+    </author>
+    <author>
+      <name>Seraphina Goldfarb-Tarrant</name>
+    </author>
+    <author>
+      <name>Tomas Goldsack</name>
+    </author>
+    <author>
+      <name>Aidan Gomez</name>
+    </author>
+    <author>
+      <name>Victor Machado Gonzaga</name>
+    </author>
+    <author>
+      <name>Nithya Govindarajan</name>
+    </author>
+    <author>
+      <name>Manoj Govindassamy</name>
+    </author>
+    <author>
+      <name>Nathan Grinsztajn</name>
+    </author>
+    <author>
+      <name>Nikolas Gritsch</name>
+    </author>
+    <author>
+      <name>Patrick Gu</name>
+    </author>
+    <author>
+      <name>Shangmin Guo</name>
+    </author>
+    <author>
+      <name>Kilian Haefeli</name>
+    </author>
+    <author>
+      <name>Rod Hajjar</name>
+    </author>
+    <author>
+      <name>Tim Hawes</name>
+    </author>
+    <author>
+      <name>Jingyi He</name>
+    </author>
+    <author>
+      <name>Sebastian Hofstätter</name>
+    </author>
+    <author>
+      <name>Sungjin Hong</name>
+    </author>
+    <author>
+      <name>Sara Hooker</name>
+    </author>
+    <author>
+      <name>Tom Hosking</name>
+    </author>
+    <author>
+      <name>Stephanie Howe</name>
+    </author>
+    <author>
+      <name>Eric Hu</name>
+    </author>
+    <author>
+      <name>Renjie Huang</name>
+    </author>
+    <author>
+      <name>Hemant Jain</name>
+    </author>
+    <author>
+      <name>Ritika Jain</name>
+    </author>
+    <author>
+      <name>Nick Jakobi</name>
+    </author>
+    <author>
+      <name>Madeline Jenkins</name>
+    </author>
+    <author>
+      <name>JJ Jordan</name>
+    </author>
+    <author>
+      <name>Dhruti Joshi</name>
+    </author>
+    <author>
+      <name>Jason Jung</name>
+    </author>
+    <author>
+      <name>Trushant Kalyanpur</name>
+    </author>
+    <author>
+      <name>Siddhartha Rao Kamalakara</name>
+    </author>
+    <author>
+      <name>Julia Kedrzycki</name>
+    </author>
+    <author>
+      <name>Gokce Keskin</name>
+    </author>
+    <author>
+      <name>Edward Kim</name>
+    </author>
+    <author>
+      <name>Joon Kim</name>
+    </author>
+    <author>
+      <name>Wei-Yin Ko</name>
+    </author>
+    <author>
+      <name>Tom Kocmi</name>
+    </author>
+    <author>
+      <name>Michael Kozakov</name>
+    </author>
+    <author>
+      <name>Wojciech Kryściński</name>
+    </author>
+    <author>
+      <name>Arnav Kumar Jain</name>
+    </author>
+    <author>
+      <name>Komal Kumar Teru</name>
+    </author>
+    <author>
+      <name>Sander Land</name>
+    </author>
+    <author>
+      <name>Michael Lasby</name>
+    </author>
+    <author>
+      <name>Olivia Lasche</name>
+    </author>
+    <author>
+      <name>Justin Lee</name>
+    </author>
+    <author>
+      <name>Patrick Lewis</name>
+    </author>
+    <author>
+      <name>Jeffrey Li</name>
+    </author>
+    <author>
+      <name>Jonathan Li</name>
+    </author>
+    <author>
+      <name>Hangyu Lin</name>
+    </author>
+    <author>
+      <name>Acyr Locatelli</name>
+    </author>
+    <author>
+      <name>Kevin Luong</name>
+    </author>
+    <author>
+      <name>Raymond Ma</name>
+    </author>
+    <author>
+      <name>Lukáš Mach</name>
+    </author>
+    <author>
+      <name>Marina Machado</name>
+    </author>
+    <author>
+      <name>Joanne Magbitang</name>
+    </author>
+    <author>
+      <name>Brenda Malacara Lopez</name>
+    </author>
+    <author>
+      <name>Aryan Mann</name>
+    </author>
+    <author>
+      <name>Kelly Marchisio</name>
+    </author>
+    <author>
+      <name>Olivia Markham</name>
+    </author>
+    <author>
+      <name>Alexandre Matton</name>
+    </author>
+    <author>
+      <name>Alex McKinney</name>
+    </author>
+    <author>
+      <name>Dominic McLoughlin</name>
+    </author>
+    <author>
+      <name>Jozef Mokry</name>
+    </author>
+    <author>
+      <name>Adrien Morisot</name>
+    </author>
+    <author>
+      <name>Autumn Moulder</name>
+    </author>
+    <author>
+      <name>Harry Moynehan</name>
+    </author>
+    <author>
+      <name>Maximilian Mozes</name>
+    </author>
+    <author>
+      <name>Vivek Muppalla</name>
+    </author>
+    <author>
+      <name>Lidiya Murakhovska</name>
+    </author>
+    <author>
+      <name>Hemangani Nagarajan</name>
+    </author>
+    <author>
+      <name>Alekhya Nandula</name>
+    </author>
+    <author>
+      <name>Hisham Nasir</name>
+    </author>
+    <author>
+      <name>Shauna Nehra</name>
+    </author>
+    <author>
+      <name>Josh Netto-Rosen</name>
+    </author>
+    <author>
+      <name>Daniel Ohashi</name>
+    </author>
+    <author>
+      <name>James Owers-Bardsley</name>
+    </author>
+    <author>
+      <name>Jason Ozuzu</name>
+    </author>
+    <author>
+      <name>Dennis Padilla</name>
+    </author>
+    <author>
+      <name>Gloria Park</name>
+    </author>
+    <author>
+      <name>Sam Passaglia</name>
+    </author>
+    <author>
+      <name>Jeremy Pekmez</name>
+    </author>
+    <author>
+      <name>Laura Penstone</name>
+    </author>
+    <author>
+      <name>Aleksandra Piktus</name>
+    </author>
+    <author>
+      <name>Case Ploeg</name>
+    </author>
+    <author>
+      <name>Andrew Poulton</name>
+    </author>
+    <author>
+      <name>Youran Qi</name>
+    </author>
+    <author>
+      <name>Shubha Raghvendra</name>
+    </author>
+    <author>
+      <name>Miguel Ramos</name>
+    </author>
+    <author>
+      <name>Ekagra Ranjan</name>
+    </author>
+    <author>
+      <name>Pierre Richemond</name>
+    </author>
+    <author>
+      <name>Cécile Robert-Michon</name>
+    </author>
+    <author>
+      <name>Aurélien Rodriguez</name>
+    </author>
+    <author>
+      <name>Sudip Roy</name>
+    </author>
+    <author>
+      <name>Sebastian Ruder</name>
+    </author>
+    <author>
+      <name>Laura Ruis</name>
+    </author>
+    <author>
+      <name>Louise Rust</name>
+    </author>
+    <author>
+      <name>Anubhav Sachan</name>
+    </author>
+    <author>
+      <name>Alejandro Salamanca</name>
+    </author>
+    <author>
+      <name>Kailash Karthik Saravanakumar</name>
+    </author>
+    <author>
+      <name>Isha Satyakam</name>
+    </author>
+    <author>
+      <name>Alice Schoenauer Sebag</name>
+    </author>
+    <author>
+      <name>Priyanka Sen</name>
+    </author>
+    <author>
+      <name>Sholeh Sepehri</name>
+    </author>
+    <author>
+      <name>Preethi Seshadri</name>
+    </author>
+    <author>
+      <name>Ye Shen</name>
+    </author>
+    <author>
+      <name>Tom Sherborne</name>
+    </author>
+    <author>
+      <name>Sylvie Shang Shi</name>
+    </author>
+    <author>
+      <name>Sanal Shivaprasad</name>
+    </author>
+    <author>
+      <name>Vladyslav Shmyhlo</name>
+    </author>
+    <author>
+      <name>Anirudh Shrinivason</name>
+    </author>
+    <author>
+      <name>Inna Shteinbuk</name>
+    </author>
+    <author>
+      <name>Amir Shukayev</name>
+    </author>
+    <author>
+      <name>Mathieu Simard</name>
+    </author>
+    <author>
+      <name>Ella Snyder</name>
+    </author>
+    <author>
+      <name>Ava Spataru</name>
+    </author>
+    <author>
+      <name>Victoria Spooner</name>
+    </author>
+    <author>
+      <name>Trisha Starostina</name>
+    </author>
+    <author>
+      <name>Florian Strub</name>
+    </author>
+    <author>
+      <name>Yixuan Su</name>
+    </author>
+    <author>
+      <name>Jimin Sun</name>
+    </author>
+    <author>
+      <name>Dwarak Talupuru</name>
+    </author>
+    <author>
+      <name>Eugene Tarassov</name>
+    </author>
+    <author>
+      <name>Elena Tommasone</name>
+    </author>
+    <author>
+      <name>Jennifer Tracey</name>
+    </author>
+    <author>
+      <name>Billy Trend</name>
+    </author>
+    <author>
+      <name>Evren Tumer</name>
+    </author>
+    <author>
+      <name>Ahmet Üstün</name>
+    </author>
+    <author>
+      <name>Bharat Venkitesh</name>
+    </author>
+    <author>
+      <name>David Venuto</name>
+    </author>
+    <author>
+      <name>Pat Verga</name>
+    </author>
+    <author>
+      <name>Maxime Voisin</name>
+    </author>
+    <author>
+      <name>Alex Wang</name>
+    </author>
+    <author>
+      <name>Donglu Wang</name>
+    </author>
+    <author>
+      <name>Shijian Wang</name>
+    </author>
+    <author>
+      <name>Edmond Wen</name>
+    </author>
+    <author>
+      <name>Naomi White</name>
+    </author>
+    <author>
+      <name>Jesse Willman</name>
+    </author>
+    <author>
+      <name>Marysia Winkels</name>
+    </author>
+    <author>
+      <name>Chen Xia</name>
+    </author>
+    <author>
+      <name>Jessica Xie</name>
+    </author>
+    <author>
+      <name>Minjie Xu</name>
+    </author>
+    <author>
+      <name>Bowen Yang</name>
+    </author>
+    <author>
+      <name>Tan Yi-Chern</name>
+    </author>
+    <author>
+      <name>Ivan Zhang</name>
+    </author>
+    <author>
+      <name>Zhenyu Zhao</name>
+    </author>
+    <author>
+      <name>Zhoujie Zhao</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2502.13167v1</id>
+    <title>SmartLLM: Smart Contract Auditing using Custom Generative AI</title>
+    <updated>2025-02-17T06:22:05Z</updated>
+    <link href="https://arxiv.org/abs/2502.13167v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2502.13167v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Smart contracts are essential to decentralized finance (DeFi) and blockchain ecosystems but are increasingly vulnerable to exploits due to coding errors and complex attack vectors. Traditional static analysis tools and existing vulnerability detection methods often fail to address these challenges comprehensively, leading to high false-positive rates and an inability to detect dynamic vulnerabilities. This paper introduces SmartLLM, a novel approach leveraging fine-tuned LLaMA 3.1 models with Retrieval-Augmented Generation (RAG) to enhance the accuracy and efficiency of smart contract auditing. By integrating domain-specific knowledge from ERC standards and employing advanced techniques such as QLoRA for efficient fine-tuning, SmartLLM achieves superior performance compared to static analysis tools like Mythril and Slither, as well as zero-shot large language model (LLM) prompting methods such as GPT-3.5 and GPT-4. Experimental results demonstrate a perfect recall of 100% and an accuracy score of 70%, highlighting the model's robustness in identifying vulnerabilities, including reentrancy and access control issues. This research advances smart contract security by offering a scalable and effective auditing solution, supporting the secure adoption of decentralized applications.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-02-17T06:22:05Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Jun Kevin</name>
+    </author>
+    <author>
+      <name>Pujianto Yugopuspito</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2501.07288v2</id>
+    <title>LLM-Net: Democratizing LLMs-as-a-Service through Blockchain-based Expert Networks</title>
+    <updated>2025-02-02T00:43:45Z</updated>
+    <link href="https://arxiv.org/abs/2501.07288v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2501.07288v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The centralization of Large Language Models (LLMs) development has created significant barriers to AI advancement, limiting the democratization of these powerful technologies. This centralization, coupled with the scarcity of high-quality training data and mounting complexity of maintaining comprehensive expertise across rapidly expanding knowledge domains, poses critical challenges to the continued growth of LLMs. While solutions like Retrieval-Augmented Generation (RAG) offer potential remedies, maintaining up-to-date expert knowledge across diverse domains remains a significant challenge, particularly given the exponential growth of specialized information. This paper introduces LLMs Networks (LLM-Net), a blockchain-based framework that democratizes LLMs-as-a-Service through a decentralized network of specialized LLM providers. By leveraging collective computational resources and distributed domain expertise, LLM-Net incorporates fine-tuned expert models for various specific domains, ensuring sustained knowledge growth while maintaining service quality through collaborative prompting mechanisms. The framework's robust design includes blockchain technology for transparent transaction and performance validation, establishing an immutable record of service delivery. Our simulation, built on top of state-of-the-art LLMs such as Claude 3.5 Sonnet, Llama 3.1, Grok-2, and GPT-4o, validates the effectiveness of the reputation-based mechanism in maintaining service quality by selecting high-performing respondents (LLM providers). Thereby it demonstrates the potential of LLM-Net to sustain AI advancement through the integration of decentralized expertise and blockchain-based accountability.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-01-13T12:56:05Z</published>
+    <arxiv:comment>8 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Zan-Kai Chong</name>
+    </author>
+    <author>
+      <name>Hiroyuki Ohsaki</name>
+    </author>
+    <author>
+      <name>Bryan Ng</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2511.16700v1</id>
+    <title>RAG-Driven Data Quality Governance for Enterprise ERP Systems</title>
+    <updated>2025-11-18T12:08:44Z</updated>
+    <link href="https://arxiv.org/abs/2511.16700v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2511.16700v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Enterprise ERP systems managing hundreds of thousands of employee records face critical data quality challenges when human resources departments perform decentralized manual entry across multiple languages. We present an end-to-end pipeline combining automated data cleaning with LLM-driven SQL query generation, deployed on a production system managing 240,000 employee records over six months.
+  The system operates in two integrated stages: a multi-stage cleaning pipeline that performs translation normalization, spelling correction, and entity deduplication during periodic synchronization from Microsoft SQL Server to PostgreSQL; and a retrieval-augmented generation framework powered by GPT-4o that translates natural-language questions in Turkish, Russian, and English into validated SQL queries. The query engine employs LangChain orchestration, FAISS vector similarity search, and few-shot learning with 500+ validated examples.
+  Our evaluation demonstrates 92.5% query validity, 95.1% schema compliance, and 90.7\% semantic accuracy on 2,847 production queries. The system reduces query turnaround time from 2.3 days to under 5 seconds while maintaining 99.2% uptime, with GPT-4o achieving 46% lower latency and 68% cost reduction versus GPT-3.5. This modular architecture provides a reproducible framework for AI-native enterprise data governance, demonstrating real-world viability at enterprise scale with 4.3/5.0 user satisfaction.</summary>
+    <category term="cs.DB" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-11-18T12:08:44Z</published>
+    <arxiv:primary_category term="cs.DB"/>
+    <author>
+      <name>Sedat Bin Vedat</name>
+    </author>
+    <author>
+      <name>Enes Kutay Yarkan</name>
+    </author>
+    <author>
+      <name>Meftun Akarsu</name>
+    </author>
+    <author>
+      <name>Recep Kaan Karaman</name>
+    </author>
+    <author>
+      <name>Arda Sar</name>
+    </author>
+    <author>
+      <name>Çağrı Çelikbilek</name>
+    </author>
+    <author>
+      <name>Savaş Saygılı</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.19911v2</id>
+    <title>Multi-Agent Transactive Memory</title>
+    <updated>2026-10-15T01:05:52Z</updated>
+    <link href="https://arxiv.org/abs/2606.19911v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.19911v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Decentralized deployment of LLM agents with diverse capabilities motivates infrastructure for knowledge sharing across heterogeneous agent populations. Just as search engines index human-generated artifacts for human problem solving, retrieval systems can organize agent-generated artifacts for reuse across agents, extending retrieval-augmented generation from human-authored documents to agent-generated ones. Agent trajectories in particular encode reusable procedural knowledge, yet are typically discarded after a single use or retained only by the producing agent, forcing newly instantiated agents to rediscover existing solutions. We propose Multi-Agent Transactive Memory (MATM), a framework for population-level storage and retrieval of agent trajectories, where producer agents contribute trajectories to a shared repository and consumer agents retrieve them to improve task execution. In interactive environments with long, procedurally rich trajectories (ALFWorld and WebArena), retrieving from MATM improves downstream task performance and reduces interaction steps without coordination or joint training, positioning MATM as a design pattern for population-level experience sharing in open agent ecosystems.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-18T08:04:59Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>To Eun Kim</name>
+    </author>
+    <author>
+      <name>Xuhong He</name>
+    </author>
+    <author>
+      <name>Dishank Jain</name>
+    </author>
+    <author>
+      <name>Ambuj Agrawal</name>
+    </author>
+    <author>
+      <name>Negar Arabzadeh</name>
+    </author>
+    <author>
+      <name>Fernando Diaz</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2604.13705v1</id>
+    <title>Beyond Arrow's Impossibility: Fairness as an Emergent Property of Multi-Agent Collaboration</title>
+    <updated>2026-04-15T10:34:35Z</updated>
+    <link href="https://arxiv.org/abs/2604.13705v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2604.13705v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Fairness in language models is typically studied as a property of a single, centrally optimized model. As large language models become increasingly agentic, we propose that fairness emerges through interaction and exchange. We study this via a controlled hospital triage framework in which two agents negotiate over three structured debate rounds. One agent is aligned to a specific ethical framework via retrieval-augmented generation (RAG), while the other is either unaligned or adversarially prompted to favor demographic groups over clinical need. We find that alignment systematically shapes negotiation strategies and allocation patterns, and that neither agent's allocation is ethically adequate in isolation, yet their joint final allocation can satisfy fairness criteria that neither would have reached alone. Aligned agents partially moderate bias through contestation rather than override, acting as corrective patches that restore access for marginalized groups without fully converting a biased counterpart. We further observe that even explicitly aligned agents exhibit intrinsic biases toward certain frameworks, consistent with known left-leaning tendencies in LLMs. We connect these limits to Arrow's Impossibility Theorem: no aggregation mechanism can simultaneously satisfy all desiderata of collective rationality, and multi-agent deliberation navigates rather than resolves this constraint. Our results reposition fairness as an emergent, procedural property of decentralized agent interaction, and the system rather than the individual agent as the appropriate unit of evaluation.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.GT" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-04-15T10:34:35Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Sayan Kumar Chaki</name>
+    </author>
+    <author>
+      <name>Antoine Gourru</name>
+    </author>
+    <author>
+      <name>Julien Velcin</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2512.22135v1</id>
+    <title>SoDA: An Efficient Interaction Paradigm for the Agentic Web</title>
+    <updated>2025-12-11T00:44:08Z</updated>
+    <link href="https://arxiv.org/abs/2512.22135v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2512.22135v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>As the internet evolves from the mobile App-dominated Attention Economy to the Intent-Interconnection of the Agentic Web era, existing interaction modes fail to address the escalating challenges of data lock-in and cognitive overload. Addressing this, we defines a future-oriented user sovereignty interaction paradigm, aiming to realize a fundamental shift from killing time to saving time. Specifically, we argue that decoupling memory from application logic eliminates the structural basis of data lock-in, while shifting from explicit manual instruction to implicit intent alignment resolves cognitive overload by offloading execution complexity. This paradigm is implemented via the Sovereign Digital Avatar (SoDA), which employs an orthogonal decoupling design of storage, computation, and interaction. This establishes the architectural principle of data as a persistent asset, model as a transient tool, fundamentally breaking the platform monopoly on user memory. To support the operation of this new paradigm in zero-trust environments, we design an Intent-Permission Handshake Mechanism based on A2A protocols, utilizing dual-factor (Sensitivity Coefficient and Strictness Parameter) adaptive routing to achieve active risk governance. Empirical evaluation with a high-fidelity simulation environment indicates that this paradigm reduces token consumption by approximately 27-35\% during cross-platform service migration and complex task execution. Furthermore, in the orchestration of multi-modal complex tasks, it reduces user cognitive load by 72\% compared to standard Retrieval-Augmented Generation (RAG) architectures, by 88\% relative to manual workflows, while significantly boosting the Information Signal-to-Noise Ratio (SNR). These results demonstrate that the SoDA is the essential interaction infrastructure for building an efficient, low-friction, and decentralized Agentic Web.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.HC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-12-11T00:44:08Z</published>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Zicai Cui</name>
+    </author>
+    <author>
+      <name>Zhouyuan Jian</name>
+    </author>
+    <author>
+      <name>Weiwen Liu</name>
+    </author>
+    <author>
+      <name>Weinan Zhang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2506.07940v2</id>
+    <title>Gradients: When Markets Meet Fine-tuning -- A Distributed Approach to Model Optimisation</title>
+    <updated>2025-09-03T09:39:22Z</updated>
+    <link href="https://arxiv.org/abs/2506.07940v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2506.07940v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Current AutoML platforms leave substantial performance untapped. Testing 180 fine-tuning tasks across models from 70M to 70B parameters, we found that HuggingFace AutoTrain, TogetherAI, Databricks, and Google Cloud consistently produce suboptimal configurations. Gradients, built on the Bittensor network, attacks this problem through competition. Independent miners race to find optimal hyperparameters, earning rewards proportional to their models' performance. This tournament drives exploration of configuration spaces that single-strategy methods never examine. In our experiments, Gradients achieved a 100\% win rate against TogetherAI, Databricks, and Google Cloud, and beat HuggingFace AutoTrain in 82.8\% of experiments. Mean improvements reached 42.1\% against commercial platforms. Retrieval-augmented generation tasks saw 30-40\% gains; diffusion models improved 23.4\% on person-specific generation. When miners compete for rewards, they develop optimization strategies that centralized approaches overlook. These findings demonstrate that decentralized systems with economic incentives can systematically outperform traditional AutoML, suggesting market dynamics may be key to achieving superior fine-tuning results. Code is available at https://github.com/rayonlabs/G.O.D.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-06-09T17:00:38Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Christopher Subia-Waud</name>
+      <arxiv:affiliation>Rayonlabs Team</arxiv:affiliation>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.17416v1</id>
+    <title>LLM-BSCVM: An LLM-Based Blockchain Smart Contract Vulnerability Management Framework</title>
+    <updated>2025-05-23T03:05:09Z</updated>
+    <link href="https://arxiv.org/abs/2505.17416v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.17416v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Smart contracts are a key component of the Web 3.0 ecosystem, widely applied in blockchain services and decentralized applications. However, the automated execution feature of smart contracts makes them vulnerable to potential attacks due to inherent flaws, which can lead to severe security risks and financial losses, even threatening the integrity of the entire decentralized finance system. Currently, research on smart contract vulnerabilities has evolved from traditional program analysis methods to deep learning techniques, with the gradual introduction of Large Language Models. However, existing studies mainly focus on vulnerability detection, lacking systematic cause analysis and Vulnerability Repair. To address this gap, we propose LLM-BSCVM, a Large Language Model-based smart contract vulnerability management framework, designed to provide end-to-end vulnerability detection, analysis, repair, and evaluation capabilities for Web 3.0 ecosystem. LLM-BSCVM combines retrieval-augmented generation technology and multi-agent collaboration, introducing a three-stage method of Decompose-Retrieve-Generate. This approach enables smart contract vulnerability management through the collaborative efforts of six intelligent agents, specifically: vulnerability detection, cause analysis, repair suggestion generation, risk assessment, vulnerability repair, and patch evaluation. Experimental results demonstrate that LLM-BSCVM achieves a vulnerability detection accuracy and F1 score exceeding 91\% on benchmark datasets, comparable to the performance of state-of-the-art (SOTA) methods, while reducing the false positive rate from 7.2\% in SOTA methods to 5.1\%, thus enhancing the reliability of vulnerability management. Furthermore, LLM-BSCVM supports continuous security monitoring and governance of smart contracts through a knowledge base hot-swapping dynamic update mechanism.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-23T03:05:09Z</published>
+    <arxiv:comment>10 pages, 8 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Yanli Jin</name>
+    </author>
+    <author>
+      <name>Chunpei Li</name>
+    </author>
+    <author>
+      <name>Peng Fan</name>
+    </author>
+    <author>
+      <name>Peng Liu</name>
+    </author>
+    <author>
+      <name>Xianxian Li</name>
+    </author>
+    <author>
+      <name>Chen Liu</name>
+    </author>
+    <author>
+      <name>Wangjie Qiu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2507.23735v2</id>
+    <title>Distributed AI Agents for Cognitive Underwater Robot Autonomy</title>
+    <updated>2025-08-04T08:56:21Z</updated>
+    <link href="https://arxiv.org/abs/2507.23735v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2507.23735v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Achieving robust cognitive autonomy in robots navigating complex, unpredictable environments remains a fundamental challenge in robotics. This paper presents Underwater Robot Self-Organizing Autonomy (UROSA), a groundbreaking architecture leveraging distributed Large Language Model AI agents integrated within the Robot Operating System 2 (ROS 2) framework to enable advanced cognitive capabilities in Autonomous Underwater Vehicles. UROSA decentralises cognition into specialised AI agents responsible for multimodal perception, adaptive reasoning, dynamic mission planning, and real-time decision-making. Central innovations include flexible agents dynamically adapting their roles, retrieval-augmented generation utilising vector databases for efficient knowledge management, reinforcement learning-driven behavioural optimisation, and autonomous on-the-fly ROS 2 node generation for runtime functional extensibility. Extensive empirical validation demonstrates UROSA's promising adaptability and reliability through realistic underwater missions in simulation and real-world deployments, showing significant advantages over traditional rule-based architectures in handling unforeseen scenarios, environmental uncertainties, and novel mission objectives. This work not only advances underwater autonomy but also establishes a scalable, safe, and versatile cognitive robotics framework capable of generalising to a diverse array of real-world applications.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-07-31T17:18:55Z</published>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Markus Buchholz</name>
+    </author>
+    <author>
+      <name>Ignacio Carlucho</name>
+    </author>
+    <author>
+      <name>Michele Grimaldi</name>
+    </author>
+    <author>
+      <name>Yvan R. Petillot</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2408.05242v1</id>
+    <title>FLASH: Federated Learning-Based LLMs for Advanced Query Processing in Social Networks through RAG</title>
+    <updated>2024-08-06T22:28:13Z</updated>
+    <link href="https://arxiv.org/abs/2408.05242v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2408.05242v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Our paper introduces a novel approach to social network information retrieval and user engagement through a personalized chatbot system empowered by Federated Learning GPT. The system is designed to seamlessly aggregate and curate diverse social media data sources, including user posts, multimedia content, and trending news. Leveraging Federated Learning techniques, the GPT model is trained on decentralized data sources to ensure privacy and security while providing personalized insights and recommendations. Users interact with the chatbot through an intuitive interface, accessing tailored information and real-time updates on social media trends and user-generated content. The system's innovative architecture enables efficient processing of input files, parsing and enriching text data with metadata, and generating relevant questions and answers using advanced language models. By facilitating interactive access to a wealth of social network information, this personalized chatbot system represents a significant advancement in social media communication and knowledge dissemination.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.SI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-08-06T22:28:13Z</published>
+    <arxiv:comment>This research paper is submitted to ASONAM 2024 conference on Advances in Social Networks Analysis and Mining and going to be published in Springer</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Sai Puppala</name>
+    </author>
+    <author>
+      <name>Ismail Hossain</name>
+    </author>
+    <author>
+      <name>Md Jahangir Alam</name>
+    </author>
+    <author>
+      <name>Sajedul Talukder</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.24937v3</id>
+    <title>The Hitchhiker's Guide to Agentic AI: From Foundations to Systems</title>
+    <updated>2026-09-29T08:53:18Z</updated>
+    <link href="https://arxiv.org/abs/2606.24937v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.24937v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The Hitchhiker's Guide to Agentic AI is a comprehensive practitioner's reference for building autonomous AI systems, covering the full stack from first principles to production deployment. The central thesis: building great agentic systems requires understanding every layer of the pipeline, not just one. The book opens with the LLM substrate, covering transformer architecture, GPU systems, training and fine-tuning (SFT, LoRA, MoE), model compression, and inference optimization, as essential foundations. It then develops the alignment and reasoning layer: RLHF, PPO, DPO and its variants, GRPO, reward modeling, and RL for large reasoning models including chain-of-thought and test-time scaling. The second half is devoted to agentic AI proper: agentic training and trajectory-based RL, RAG and Agentic RAG, memory systems (in-context, external, episodic, and semantic), agent harness design, loop engineering, graph-based orchestration, and a taxonomy of agent design patterns covering security, red teaming, and gateway infrastructure. Inter-agent coordination is covered in depth: the Model Context Protocol (MCP), agent skills and tool use, the Agent-to-Agent (A2A) protocol, and multi-agent architectures spanning centralized, decentralized, and hierarchical topologies. The book concludes with agent development frameworks, agentic UI design, evaluation methodology (non-deterministic evaluation, reasoning collapse, LLM-as-Judge), production deployment, and the regulatory environment (EU AI Act, California SB 942) as an engineering requirement. Each chapter pairs theory with implementation guidance, executable notebooks, and references to the primary literature.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-22T17:48:54Z</published>
+    <arxiv:comment>version 1.4</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Haggai Roitman</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2602.14219v1</id>
+    <title>The Agent Economy: A Blockchain-Based Foundation for Autonomous AI Agents</title>
+    <updated>2026-02-15T16:20:43Z</updated>
+    <link href="https://arxiv.org/abs/2602.14219v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2602.14219v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We propose the Agent Economy, a blockchain-based foundation where autonomous AI agents operate as economic peers to humans. Current agents lack independent legal identity, cannot hold assets, and cannot receive payments directly. We established fundamental differences between human and machine economic actors and demonstrated that existing human-centric infrastructure cannot support genuine agent autonomy. We showed that blockchain technology provides three critical properties enabling genuine agent autonomy: permissionless participation, trustless settlement, and machine-to-machine micropayments. We propose a five-layer architecture: (1) Physical Infrastructure (hardware &amp; energy) through DePIN protocols; (2) Identity &amp; Agency establishing on-chain sovereignty through W3C DIDs and reputation capital; (3) Cognitive &amp; Tooling enabling intelligence via RAG and MCP; (4) Economic &amp; Settlement ensuring financial autonomy through account abstraction; and (5) Collective Governance coordinating multi-agent systems through Agentic DAOs. We identify six core research challenges and examine ethical and regulatory implications. This paper lays groundwork for the Internet of Agents (IoA), a global decentralized network where autonomous machines and humans interact as equal economic participants.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-02-15T16:20:43Z</published>
+    <arxiv:comment>17 pages, 2 figure</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Minghui Xu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2511.15074v1</id>
+    <title>Knowledge-Informed Automatic Feature Extraction via Collaborative Large Language Model Agents</title>
+    <updated>2025-11-19T03:27:14Z</updated>
+    <link href="https://arxiv.org/abs/2511.15074v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2511.15074v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The performance of machine learning models on tabular data is critically dependent on high-quality feature engineering. While Large Language Models (LLMs) have shown promise in automating feature extraction (AutoFE), existing methods are often limited by monolithic LLM architectures, simplistic quantitative feedback, and a failure to systematically integrate external domain knowledge. This paper introduces Rogue One, a novel, LLM-based multi-agent framework for knowledge-informed automatic feature extraction. Rogue One operationalizes a decentralized system of three specialized agents-Scientist, Extractor, and Tester-that collaborate iteratively to discover, generate, and validate predictive features. Crucially, the framework moves beyond primitive accuracy scores by introducing a rich, qualitative feedback mechanism and a "flooding-pruning" strategy, allowing it to dynamically balance feature exploration and exploitation. By actively incorporating external knowledge via an integrated retrieval-augmented (RAG) system, Rogue One generates features that are not only statistically powerful but also semantically meaningful and interpretable. We demonstrate that Rogue One significantly outperforms state-of-the-art methods on a comprehensive suite of 19 classification and 9 regression datasets. Furthermore, we show qualitatively that the system surfaces novel, testable hypotheses, such as identifying a new potential biomarker in the myocardial dataset, underscoring its utility as a tool for scientific discovery.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-11-19T03:27:14Z</published>
+    <arxiv:comment>19 pages, 4 figures, in review</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Henrik Bradland</name>
+    </author>
+    <author>
+      <name>Morten Goodwin</name>
+    </author>
+    <author>
+      <name>Vladimir I. Zadorozhny</name>
+    </author>
+    <author>
+      <name>Per-Arne Andersen</name>
+    </author>
+  </entry>
+</feed>

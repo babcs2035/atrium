@@ -1,0 +1,138 @@
+{
+  "query": "distributed retrieval-augmented generation",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://ieeexplore.ieee.org/document/11014986",
+      "title": "An Architecture and Protocol for Decentralized Retrieval Augmented Generation",
+      "content": "Retrieval-augmented generation (RAG) has become a widely adopted approach for the integration of knowledge bases and large language models (LLMs). This paper proposes a decentralized software architecture for RAG, where retrieval, augmentation, and generation components are operated independently by distributed entities. This approach addresses challenges like efficient usage of resources when building LLM-based software systems as well as data protection issues in centralized systems. By allowing data providers to implement their own retrieval mechanisms, they fully retain control over data access and the flexibility to use their own data infrastructure. An interaction platform implements communication between client applications, data providers, and model providers. To standardize this [...] Citations\n\nKeywords\n\nMetrics\n\nMore Like This\n\nFootnotes\n\n   Download PDF\n   Download References)\n   [)](\n   Request Permissions\n   Save to\n   Alerts\n\n## Abstract:\n\nRetrieval-augmented generation (RAG) has become a widely adopted approach for the integration of knowledge bases and large language models (LLMs). This paper proposes a d...Show More\n\n## Metadata\n\n## Abstract: [...] data providers, and model providers. To standardize this process, the paper introduces introduces an architecture and protocol called External Retrieval Interface (ERI), which ensures compatibility of services, enforces data restrictions, and simplifies the development of decentralized RAG systems.",
+      "score": 0.9336793,
+      "raw_content": null,
+      "id": "3885a6-00"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3789692.3789782",
+      "title": "O-Rag Ontology-Enhanced Retrieval-Augmented ...",
+      "content": "May 5, 2026 — Retrieval-Augmented Generation is the process of automating all the production, processing, and distribution stages to minimize errors and waste (Levi, 2015).Read more",
+      "score": 0.82254606,
+      "raw_content": null,
+      "id": "db2f62-01"
+    },
+    {
+      "url": "https://aclanthology.org/2026.findings-eacl.150.pdf",
+      "title": "DF-RAG: Query-Aware Diversity for Retrieval-Augmented ...",
+      "content": "1 Introduction Retrieval-Augmented Generation (RAG) (Lewis et al., 2020; Guu et al., 2020) is a common technique for grounding Large Language Models’ (LLMs) outputs in external knowledge due to its lightweight and composable architecture. However, RAG is often challenged by complex, reasoning-intensive question answering (QA) tasks as these questions involve retrieving and integrating rele-vant information scattered across multiple contexts Majority of work done during internship at Capital One (Li et al., 2025; Liu et al., 2024). One central limi-tation of common RAG implementations is its re-liance on cosine similarity, which frequently over-selects semantically redundant content (Carbonell and Goldstein, 1998; Liu et al., 2025) and excludes complementary evidence that is crucial for [...] To address this, we introduce Diversity-Focused Retrieval-Augmented Generation (DF-RAG) that sys-tematically incorporates diversity into the re-trieval step to improve performance on com-plex, reasoning-intensive QA benchmarks. DF-RAG builds upon the Maximal Marginal Rele-vance framework to select information chunks that are both relevant to the query and maxi-mally dissimilar from each other. A key inno-vation of DF-RAG is its ability to optimize the level of diversity for each query dynamically at test time without requiring any additional fine-tuning or prior information.\nWe show that DF-RAG improves F1 performance on reasoning-intensive QA benchmarks by 4–10% over vanilla RAG using cosine similarity and also outperforms other established baselines. [...] To this end, we introduce Diversity-Focused Retrieval-Augmented Generation (DF-RAG), a RAG pipeline designed to approximate the Oracle’s performance without access to the ground truth. DF-RAG adaptively determines the optimal λ for each query at test time through a multi-step process: (1) decomposing each query into individual steps with a planner LLM, (2) retrieving multiple candidate sets of chunks, each generated at predefined λ levels; and (3) selecting the chunk set with the highest potential to address the decomposed steps with an Evaluator LLM.",
+      "score": 0.8047902,
+      "raw_content": null,
+      "id": "e8e14f-02"
+    },
+    {
+      "url": "https://aclanthology.org/2024.findings-acl.267.pdf",
+      "title": "Exploring Privacy Issues in Retrieval-Augmented Generation (RAG)",
+      "content": "1 Introduction Retrieval-augmented generation (RAG) (Liu, 2022; Chase, 2022; Van Veen et al., 2023; Ram et al., 2023; Shi et al., 2023) is an advanced natural lan-guage processing technique that enhances text gen-eration by integrating information retrieved from a large corpus of documents. These techniques enable RAG to produce accurate and contextually relevant outputs with augmented external knowl-edge and have been widely used in various scenar-ios such as domain-specific chatbots (Siriwardhana et al., 2023) and email/code completion (Parvez et al., 2021). RAG systems typically work in two phases, as shown in Fig 1 - retrieval and generation. [...] 2 Related Work 2.1 Retrieval-Augmented Generation (RAG) Retrieval-augmented generation (RAG), first intro-duced by Lewis et al. (2020), has emerged as one of the most popular approaches to enhance the gen-eration ability of LLMs (Liu, 2022; Chase, 2022; Van Veen et al., 2023; Ram et al., 2023; Shi et al., 2023). This synergy markedly boosts the output’s accuracy and relevance (Gao et al., 2023), mitigat-ing essential issues commonly referred to as \"hal-lucinations\" of LLMs (Shuster et al., 2021). One of RAG’s distinctive features is its flexible archi-tecture, allowing for the seamless interchange or update of its three core components: the dataset, the retriever, and the LLM. This flexibility means that adjustments to any of these elements can be made without necessitating re-training or [...] 3 School of Artificial Intelligence, Jilin University 4 International Center of Future Science, Jilin University 5 Engineering Research Center of Knowledge-Driven Human-Machine Intelligence, MOE, China Abstract Retrieval-augmented generation (RAG) is a powerful technique to facilitate language model with proprietary and private data, where data privacy is a pivotal concern. Whereas extensive research has demonstrated the privacy risks of large language models (LLMs), the RAG tech-nique could potentially reshape the inherent behaviors of LLM generation, posing new pri-vacy issues that are currently under-explored.",
+      "score": 0.8021998,
+      "raw_content": null,
+      "id": "5a1c24-03"
+    },
+    {
+      "url": "https://aclanthology.org/2025.emnlp-main.1793.pdf",
+      "title": "[PDF] D-RAG: Differentiable Retrieval-Augmented Generation for ...",
+      "content": "To balance the significantly different gradient magnitudes between the retriever pre-training and generation objectives, we apply a direct gradient normalization approach: Ljoint = λ L1 ||∇βL1|| + (1 −λ) L2 ||∇βL2||, (13) where λ is a balancing hyperparameter and ||∇βLi|| represents the norm of gradients with re-spect to the retriever parameters.\nDuring inference, D-RAG performs subgraph sampling through three steps: (1) computing fact selection probabilities via the GNN retriever, lin-ear layer, and sigmoid activation without Gumbel-Softmax reparameterization, (2) ranking all facts by their probabilities, and (3) applying a hybrid selection strategy that selects the top-k facts while filtering out those below probability threshold p. [...] These improvements stem from the end-to-end op-timization strategy, which effectively reduces re-trieval noise and enhances answer generation qual-ity.\nThe main contributions of this work are as fol-lows: • We propose D-RAG, the first differentiable RAG-based KGQA approach, to the best of our knowledge, that enables end-to-end opti-mization with gradient flow from the genera-tor to the retriever. [...] RAG-based KGQA.\nThe RAG paradigm for KGQA involves two independent modules: a re-triever Rβ that identifies the question-relevant sub-graph gsub with probability pβ(gsub|G, q), and a generator Gγ that generates the answer a with prob-ability pγ(a|gsub, q). β and γ denote the parame-ters of the retriever and the generator, respectively.\nThe overall answer generation probability can be formulated as: pθ(a|q, G) = X gsub⊆G pγ(a|q, gsub)pβ(gsub|q, G), (1) where θ denotes all parameters in the above two modules.",
+      "score": 0.78214747,
+      "raw_content": null,
+      "id": "ebfc9d-04"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/abstract/document/11633116",
+      "title": "Network-Coded Retrieval-Augmented Generation for ...",
+      "content": "by YE Rivera-Julio · 2026 — Retrieval-Augmented Generation (RAG) has emerged as a key pattern to ground large language models (LLMs) on external knowledge sources.",
+      "score": 0.74785584,
+      "raw_content": null,
+      "id": "e0f16a-05"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3704413.3764419",
+      "title": "DRAGON: Enhancing On-Device Model Performance with ...",
+      "content": "Dec 23, 2025 — Retrieval-augmented generation (RAG) is a promising solution to enhance model performance by integrating external databases, without requiring intensive on- ...Read more",
+      "score": 0.72042775,
+      "raw_content": null,
+      "id": "22c26c-06"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-acl.522.pdf",
+      "title": "Fine-grained Knowledge Enhancement for Retrieval- ...",
+      "content": "Findings of the Association for Computational Linguistics: ACL 2025, pages 10031–10044 July 27 - August 1, 2025 ©2025 Association for Computational Linguistics Fine-grained Knowledge Enhancement for Retrieval-Augmented Generation Jingxuan Han1, Zhendong Mao1∗ , Yi Liu3, Yexuan Che1 Zheren Fu1 and Quan Wang2 1University of Science and Technology of China, Hefei, China 2MOE Key Laboratory of Trustworthy Distributed Computing and Service, Beijing University of Posts and Telecommunications, Beijing, China 3State Key Laboratory of Communication Content Cognition, People’s Daily Online {hjx999222,yexuanche,fzr}@mail.ustc.edu.cn, liuyi2023@people.cn wangquan@bupt.edu.cn, zdmao@ustc.edu.cn Abstract Retrieval-augmented generation (RAG) effec-tively mitigates hallucinations in large language models [...] 5 Related Work Retrieval-Augmented Generation Retrieval-Augmented Generation (RAG) (Lewis et al., 2020) can effectively alleviate the hallucination caused by knowledge gaps in large language models (LLMs) (Huang et al., 2023). Existing RAG methods can be roughly divided into two groups. [...] 2024c. Generate-then-ground in retrieval-augmented generation for multi-hop question answering. In Pro-ceedings of the 62nd Annual Meeting of the Associa-tion for Computational Linguistics (Volume 1: Long Papers), pages 7339–7353, Bangkok, Thailand. As-sociation for Computational Linguistics.\nWeihang Su, Yichen Tang, Qingyao Ai, Zhijing Wu, and Yiqun Liu. 2024. Dragin: Dynamic retrieval aug-mented generation based on the real-time informa-tion needs of large language models. arXiv preprint arXiv:2403.10081.\nHongru Wang, Wenyu Huang, Yang Deng, Rui Wang, Zezhong Wang, Yufei Wang, Fei Mi, Jeff Z Pan, and Kam-Fai Wong. 2024a.\nUnims-rag: A uni-fied multi-source retrieval-augmented generation for personalized dialogue systems. arXiv preprint arXiv:2401.13256.",
+      "score": 0.69274646,
+      "raw_content": null,
+      "id": "70d6d1-07"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3774904.3792361",
+      "title": "FlowRAG: Continual Learning for Dynamic Retriever in ...",
+      "content": "Retrieval-Augmented Generation (RAG) enhances Large Language Models (LLMs) by leveraging external knowledge, where retrieval accuracy directly affects",
+      "score": 0.69274646,
+      "raw_content": null,
+      "id": "bd5a8b-08"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3721146.3721942",
+      "title": "Efficient Federated Search for Retrieval-Augmented ...",
+      "content": "Feb 26, 2025 — Retrieval-augmented generation (RAG) mitigates these issues by grounding model responses in external knowledge sources. Existing RAG workflows often leverage a ...Read more",
+      "score": 0.66621506,
+      "raw_content": null,
+      "id": "bb7c3d-09"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11224764.pdf",
+      "title": "Permission-Aware RAG: Identity and Access Management ...",
+      "content": "by J Jeong · 2025 · Cited by 13 — ABSTRACT Retrieval-Augmented Generation (RAG) enhances large language models (LLMs) by integrating external knowledge sources, which significantly improves ...Read more",
+      "score": 0.63288915,
+      "raw_content": null,
+      "id": "e9c828-10"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3805712.3809702",
+      "title": "SRAG: A Lightweight and Specialized Retrieval ...",
+      "content": "Aug 10, 2025 — Retrieval-augmented generation (RAG) has shown strong potential for deploying large language models at the edge, yet existing designs largely rely on ...Read more",
+      "score": 0.61251885,
+      "raw_content": null,
+      "id": "3e1cc6-11"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3695053.3731076",
+      "title": "Hermes: Algorithm-System Co-design for Efficient Retrieval ...",
+      "content": "Jun 21, 2025 — The high computational cost required to constantly retrain models to handle evolving data has led to the development of Retrieval-Augmented Generation (RAG).Read more",
+      "score": 0.532839,
+      "raw_content": null,
+      "id": "bf3dc7-12"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11071540.pdf",
+      "title": "Leveraging RAG and LLMs for Access Control Policy ...",
+      "content": "by S Aboukadri · 2025 · Cited by 11 — One such strategy is Retrieval-Augmented Generation. (RAG), which addresses these challenges by integrating external knowledge into the generation process [17].Read more",
+      "score": 0.5274388,
+      "raw_content": null,
+      "id": "e10d2f-13"
+    },
+    {
+      "url": "https://aclanthology.org/2025.emnlp-main.1793",
+      "title": "D-RAG: Differentiable Retrieval-Augmented Generation for Knowledge Graph Question Answering - ACL Anthology",
+      "content": "ACL Logo\n\n###### Details\n\n## D-RAG: Differentiable Retrieval-Augmented Generation for Knowledge Graph Question Answering\n\nGuangze Gao,\nZixuan Li,\nChunfeng Yuan,\nJiawei Li,\nWu Jianzhuo,\nYuehao Zhang,\nXiaolong Jin,\nBing Li,\nWeiming Hu\n\n##### Correct Metadata for\n\n##### Abstract\n\n##### Export citation\n\n##### Markdown (Informal)\n\nD-RAG: Differentiable Retrieval-Augmented Generation for Knowledge Graph Question Answering (Gao et al., EMNLP 2025)\n\n##### ACL [...] ##### ACL\n\nCreative Commons License\nACL materials are Copyright © 1963–2026 ACL; other materials are copyrighted by their respective copyright holders. Materials prior to 2016 here are licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 International License. Permission is granted to make copies for the purposes of teaching and research. Materials published in or after 2016 are licensed on a Creative Commons Attribution 4.0 International License.\n\nCreative Commons License\n\nThe ACL Anthology is managed and built by the ACL Anthology team of volunteers.\n\nSite last built on 23 October 2026 at 12:48 UTC with commit 223bfac.",
+      "score": 0.47504577,
+      "raw_content": null,
+      "id": "0f3529-14"
+    },
+    {
+      "url": "https://aclanthology.org/2024.emnlp-main.321",
+      "title": "REAR: A Relevance-Aware Retrieval-Augmented Framework for Open-Domain Question Answering - ACL Anthology",
+      "content": "##### ACL\n\nCreative Commons License\nACL materials are Copyright © 1963–2026 ACL; other materials are copyrighted by their respective copyright holders. Materials prior to 2016 here are licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 International License. Permission is granted to make copies for the purposes of teaching and research. Materials published in or after 2016 are licensed on a Creative Commons Attribution 4.0 International License.\n\nCreative Commons License\n\nThe ACL Anthology is managed and built by the ACL Anthology team of volunteers.\n\nSite last built on 24 October 2026 at 10:04 UTC with commit e9b28ec. [...] ACL Logo\n\n###### Details\n\n## REAR: A Relevance-Aware Retrieval-Augmented Framework for Open-Domain Question Answering\n\nYuhao Wang,\nRuiyang Ren,\nJunyi Li,\nWayne Xin Zhao,\nJing Liu,\nJi-Rong Wen\n\n##### Correct Metadata for\n\n##### Abstract\n\n##### Export citation\n\n##### Markdown (Informal)\n\nREAR: A Relevance-Aware Retrieval-Augmented Framework for Open-Domain Question Answering (Wang et al., EMNLP 2024)\n\n##### ACL",
+      "score": 0.10071066,
+      "raw_content": null,
+      "id": "904d4a-15"
+    }
+  ],
+  "response_time": 2.59,
+  "request_id": "2bbdc83d-e903-4440-a25f-1406a7194896"
+}

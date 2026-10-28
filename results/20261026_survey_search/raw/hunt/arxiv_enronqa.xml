@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/L8dpdkOi7r50QoNXo0NGf9D/4yY</id>
+  <title>arXiv Query: search_query=all:EnronQA&amp;id_list=&amp;start=0&amp;max_results=50</title>
+  <updated>2026-10-26T05:48:03Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:EnronQA&amp;start=0&amp;max_results=50&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>50</opensearch:itemsPerPage>
+  <opensearch:totalResults>1</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2505.00263v1</id>
+    <title>EnronQA: Towards Personalized RAG over Private Documents</title>
+    <updated>2025-05-01T03:07:30Z</updated>
+    <link href="https://arxiv.org/abs/2505.00263v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.00263v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval Augmented Generation (RAG) has become one of the most popular methods for bringing knowledge-intensive context to large language models (LLM) because of its ability to bring local context at inference time without the cost or data leakage risks associated with fine-tuning. A clear separation of private information from the LLM training has made RAG the basis for many enterprise LLM workloads as it allows the company to augment LLM's understanding using customers' private documents. Despite its popularity for private documents in enterprise deployments, current RAG benchmarks for validating and optimizing RAG pipelines draw their corpora from public data such as Wikipedia or generic web pages and offer little to no personal context. Seeking to empower more personal and private RAG we release the EnronQA benchmark, a dataset of 103,638 emails with 528,304 question-answer pairs across 150 different user inboxes. EnronQA enables better benchmarking of RAG pipelines over private data and allows for experimentation on the introduction of personalized retrieval settings over realistic data. Finally, we use EnronQA to explore the tradeoff in memorization and retrieval when reasoning over private documents.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-01T03:07:30Z</published>
+    <arxiv:comment>26 pages, 4 figures, 6 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Michael J. Ryan</name>
+    </author>
+    <author>
+      <name>Danmei Xu</name>
+    </author>
+    <author>
+      <name>Chris Nivera</name>
+    </author>
+    <author>
+      <name>Daniel Campos</name>
+    </author>
+  </entry>
+</feed>

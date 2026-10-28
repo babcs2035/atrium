@@ -1,0 +1,170 @@
+{
+  "query": "edge-cloud retrieval-augmented generation edge RAG",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://ieeexplore.ieee.org/document/11629482",
+      "title": "EC-RAG: Towards Efficient Edge-Cloud Retrieval-Augmented ...",
+      "content": "Retrieval-augmented generation (RAG) grounds the desired responses of large language models (LLMs) by connecting to external knowledge databases.",
+      "score": 0.84948516,
+      "raw_content": null,
+      "id": "78d111-00"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3832810.3832878",
+      "title": "Edge-Cloud Collaborative RAG with Multi-State Semantic Caching",
+      "content": "Retrieval Augmented Generation (RAG) frameworks that synergize Small Language Models (SLMs) at the network edge with Large Language Models (",
+      "score": 0.79542017,
+      "raw_content": null,
+      "id": "bca816-01"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3704413.3764419",
+      "title": "Enhancing On-Device Model Performance with Distributed Retrieval ...",
+      "content": "Retrieval-augmented generation (RAG) is a promising solution to enhance model performance by integrating external databases, without requiring intensive on-",
+      "score": 0.7578844,
+      "raw_content": null,
+      "id": "dce2b0-02"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11642577",
+      "title": "Democratizing LLM Service With Decentralized Edge Collaboration ...",
+      "content": "DEFRAG, a decentralized edge collaboration system for retrieval-augmented generation (RAG) that optimizes both retrieval and generation across",
+      "score": 0.72605723,
+      "raw_content": null,
+      "id": "91bd8f-03"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11281178",
+      "title": "Edge-AI Multimodal RAG Chat bot with Personalized Knowledge ...",
+      "content": "This paper presents EMR-PKG, an Edge-AI multimodal Retrieval-Augmented Generation (RAG) chat bot system that operates entirely on edge devices,",
+      "score": 0.7128128,
+      "raw_content": null,
+      "id": "e4b1df-04"
+    },
+    {
+      "url": "http://ieeexplore.ieee.org/iel8/65/10759075/10620276.pdf",
+      "title": "Toward Effective Retrieval Augmented Generative Services in 6G ...",
+      "content": "Retrieval augmented generation (RAG) empowers generative language services by inte- grating extensive context from external data.",
+      "score": 0.71040785,
+      "raw_content": null,
+      "id": "8f560e-05"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3770855.3817674",
+      "title": "Accelerating Graph-Based RAG Retrieval via Locality-Aware Device ...",
+      "content": "Retrieval-Augmented Generation (RAG) grounds large language models in external knowledge and has become a key technique for knowledge-intensive",
+      "score": 0.64880073,
+      "raw_content": null,
+      "id": "1f5ba8-06"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11661242",
+      "title": "HawkEye: Hierarchical Intent Inference for Critical Targets ...",
+      "content": "On the cloud, we tailor the Retrieval-Augmented Generation (RAG) architecture for long-term tactical-level intents. A domain knowledge base embedded with",
+      "score": 0.6219319,
+      "raw_content": null,
+      "id": "8a9a25-07"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3768628",
+      "title": "RAGCache: Efficient Knowledge Caching for Retrieval-Augmented ...",
+      "content": "RAG enhances generative models by dynamically retrieving relevant information from a corpus during the generation process, leading to more accurate, relevant,",
+      "score": 0.6191726,
+      "raw_content": null,
+      "id": "d9c9f2-08"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/11323511/11511687.pdf",
+      "title": "Resource-Constrained Evaluation of Quantized Local LLMs for ...",
+      "content": "This paper studies retrieval-augmented generation (RAG) under a realistic local deployment constraint. a smaller version of cloud-scale",
+      "score": 0.585789,
+      "raw_content": null,
+      "id": "fb6b2e-09"
+    },
+    {
+      "url": "https://aclanthology.org/2025.emnlp-main.1793.pdf",
+      "title": "[PDF] D-RAG: Differentiable Retrieval-Augmented Generation for ...",
+      "content": "The red arrows highlight the end-to-end gradient flow.\ndeep understanding of natural language questions and the ability to perform complex reasoning over KGs. Considering that Large Language Models (LLMs) (DeepSeek, 2025; OpenAI, 2024b; Meta, 2024) have shown strong capabilities in natural lan-guage understanding and reasoning, some recent approaches (Peng et al., 2024; Luo et al., 2024a; He et al., 2024) incorporate LLMs into KGQA via the Retrieval-Augmented Generation (RAG) paradigm (Lewis et al., 2020). Specifically, they adopt a retriever to select a question-relevant sub-graph from the KG. Then, they serialize the sub-graph into the prompt and adopt LLMs as the gen-erator to reason for answers. [...] RAG-based KGQA.\nThe RAG paradigm for KGQA involves two independent modules: a re-triever Rβ that identifies the question-relevant sub-graph gsub with probability pβ(gsub|G, q), and a generator Gγ that generates the answer a with prob-ability pγ(a|gsub, q). β and γ denote the parame-ters of the retriever and the generator, respectively.\nThe overall answer generation probability can be formulated as: pθ(a|q, G) = X gsub⊆G pγ(a|q, gsub)pβ(gsub|q, G), (1) where θ denotes all parameters in the above two modules. [...] Abstract Knowledge Graph Question Answering (KGQA) aims to answer natural language questions based on knowledge graphs. Recent approaches apply the Retrieval-Augmented Generation (RAG) paradigm to incorporate Large Language Models (LLMs) to this task, where a retriever selects a question-related subgraph and an LLM-based generator is then adopted to predict answers based on the retrieved subgraph. However, the subgraph selection process is non-differentiable, pre-venting end-to-end training of the retriever and the generator, which leads to sub-optimal performance.",
+      "score": 0.55449516,
+      "raw_content": null,
+      "id": "74d81c-10"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11080430.pdf",
+      "title": "RAG-Driven Memory Architectures in Conversational LLMs ...",
+      "content": "by NA Akbar · 2025 · Cited by 24 — This integration heightens privacy risks through granular geospatial exposure, requiring tiered encryption protocols during edge-cloud data retrieval operations",
+      "score": 0.4135014,
+      "raw_content": null,
+      "id": "26c3a4-11"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11148675",
+      "title": "Privacy-Preserving LLM-based RAG with Split Inference and ...",
+      "content": "To address this, we propose a privacy-enhanced retrieval-augmented generation framework (PE-RAG). It uses split inference by deploying the embedding and output",
+      "score": 0.3941782,
+      "raw_content": null,
+      "id": "c6ce15-12"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3805712.3809702",
+      "title": "SRAG: A Lightweight and Specialized Retrieval-augmented ...",
+      "content": "Experiments show that SRAG improves retrieval relevance, generation quality, and storage efficiency, while reducing end-to-end latency.",
+      "score": 0.36983892,
+      "raw_content": null,
+      "id": "b9e8dc-13"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11407160",
+      "title": "Hybrid Edge–Cloud Architectures for Vision-Based RAG in ...",
+      "content": "by AM Sivagnanam · 2025 — The edge (hospital or ambulance) provides low-latency, privacy-first image analysis, while the cloud handles long-term model training, analytics, governance,",
+      "score": 0.35113358,
+      "raw_content": null,
+      "id": "1fffc3-14"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3762669",
+      "title": "RAG-IoE: IoT context-aware information retrieval with ...",
+      "content": "by M Arazzi · 2025 · Cited by 11 — A critical architectural decision involves deploying smaller Language Models at the network edge rather than using centralized cloud-based services.",
+      "score": 0.26613358,
+      "raw_content": null,
+      "id": "233b30-15"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11245479.pdf",
+      "title": "A Comparative Evaluation of RAG Architectures for Cross- ...",
+      "content": "by P Ersoy · 2025 · Cited by 10 — This study resembles four paradigms: sparse, dense, hybrid, and fusion retrieval, each realized as LangChain templates for cloud-hosted GPT- 4o and on-premises",
+      "score": 0.15111576,
+      "raw_content": null,
+      "id": "0b5e37-16"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11105349",
+      "title": "Leveraging RAG for Enhanced Business Intelligence with ...",
+      "content": "by A Donvir · 2025 · Cited by 3 — It focuses on real-time data updates, accuracy, data privacy, security and more to build a system that is practically viable for modern-day businesses.",
+      "score": 0.11561101,
+      "raw_content": null,
+      "id": "465695-17"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3719664",
+      "title": "A Review on Edge Large Language Models: Design ...",
+      "content": "by Y Zheng · 2025 · Cited by 453 — Employs lightweight models on edge devices to generate token drafts, enabling parallel validation by larger cloud models. We aim to propose a novel",
+      "score": 0.094218515,
+      "raw_content": null,
+      "id": "28d05b-18"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3662006.3662067",
+      "title": "Hybrid SLM and LLM for Edge-Cloud Collaborative Inference",
+      "content": "This paper addresses the challenge of efficiently deploying large language models in edge-cloud environments by proposing a token-level collaborative inference",
+      "score": 0.07046373,
+      "raw_content": null,
+      "id": "142ef4-19"
+    }
+  ],
+  "response_time": 3.13,
+  "request_id": "5d8c868c-15a4-47d2-8a0d-14718c514882"
+}

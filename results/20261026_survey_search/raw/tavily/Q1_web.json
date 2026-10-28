@@ -1,0 +1,122 @@
+{
+  "query": "federated retrieval-augmented generation",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://arxiv.org/html/2410.13272v1",
+      "title": "FRAG: Toward Federated Vector Database Management for Collaborative and Secure Retrieval-Augmented Generation",
+      "content": "This paper introduces Federated Retrieval-Augmented Generation (FRAG), a novel database management paradigm tailored for the growing needs of retrieval-augmented generation (RAG) systems, which are increasingly powered by large-language models (LLMs). FRAG enables mutually-distrusted parties to collaboratively perform Approximate kk-Nearest Neighbor (ANN) searches on encrypted query vectors and encrypted data stored in distributed vector databases, all while ensuring that no party can gain any knowledge about the queries or data of others.\nAchieving this paradigm presents two key challenges: [...] ### 1.3. Proposed Work\n\nTo address the challenges of secure collaboration in Retrieval-Augmented Generation (RAG) systems, we propose Federated Retrieval-Augmented Generation (FRAG), a novel framework that enables distributed, privacy-preserving RAG in federated environments. The FRAG framework allows mutually-distrusted parties to perform collaborative Approximate kk-Nearest Neighbor (ANN) searches on encrypted query vectors and encrypted data stored across distributed vector databases, ensuring that no party can infer the data or queries of others. Importantly, FRAG provides strong security guarantees while maintaining performance efficiency close to that of centralized, non-federated RAG systems. [...] In this paper, we presented FRAG, a Federated Retrieval-Augmented Generation system that enables secure and efficient distributed approximate kk-nearest neighbor (ANN) searches over encrypted vector databases. FRAG addresses the challenges inherent in federated environments where mutually distrusted parties must collaborate, without exposing sensitive data. The system leverages two innovative protocols: the Single-Key Homomorphic Encryption (SK-MHE) protocol and the Multiplicative Caching (MC) protocol.",
+      "score": 0.92715925,
+      "raw_content": null,
+      "id": "c596b2-00"
+    },
+    {
+      "url": "https://arxiv.org/pdf/2505.18906",
+      "title": "Federated Retrieval-Augmented Generation",
+      "content": "Federated Retrieval-Augmented Generation: A Systematic Mapping Study Abhijit Chakraborty1 and Chahana Dahal2 and Vivek Gupta1 1Arizona State University 2University of Nevada, Las Vegas {achakr40,vgupt140}@asu.edu {chahana.dahal}@unlv.edu Abstract Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learn-ing (FL),which enables distributed model train-ing without exposing raw data, with Retrieval-Augmented Generation (RAG), which im-proves the factual accuracy of language mod-els by grounding outputs in external knowl-edge. As large language models are increas-ingly deployed in privacy-sensitive domains such as healthcare, finance, and personalized assistance, Federated RAG offers a promising framework for secure, knowledge-intensive nat-ural language processing [...] Federated RAG is distinctive because fed-erated learning safeguards training-time privacy by restricting data to local silos, while retrieval-augmented generation grounds inference-time out-puts in external evidence, reducing hallucina-tions. Their integration enables capabilities such as source attribution, local index maintenance, and dy-namic document unlearning that neither paradigm achieves alone. [...] 7 Conclusion Federated Retrieval-Augmented Generation (RAG) has rapidly moved from concept to practice by pair-ing privacy-preserving training with knowledge-grounded generation. Our systematic mapping of 18 primary studies charts this evolution, classifying architectures, contributions, and domains, and high-lighting a 2024 research surge driven by large-scale language-model adoption and regulatory pressure for confidential data handling.",
+      "score": 0.92491204,
+      "raw_content": null,
+      "id": "3715ec-01"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.388",
+      "title": "Federated Retrieval-Augmented Generation: A Systematic Mapping Study - ACL Anthology",
+      "content": "Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL),which enables distributed model training without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are increasingly deployed in privacy-sensitive domains such as healthcare, finance, and personalized assistance, Federated RAG offers a promising framework for secure, knowledge-intensive natural language processing (NLP). To the best of our knowledge, this paper presents the first systematic mapping study of Federated RAG, covering literature published between 2020 and 2025. Following Kitchenham’s guidelines for evidence-based software engineering, we develop a [...] @inproceedings{chakraborty-etal-2025-federated, title = \"Federated Retrieval-Augmented Generation: A Systematic Mapping Study\", author = \"Chakraborty, Abhijit and Dahal, Chahana and Gupta, Vivek\", editor = \"Christodoulopoulos, Christos and Chakraborty, Tanmoy and Rose, Carolyn and Peng, Violet\", booktitle = \"Findings of the Association for Computational Linguistics: EMNLP 2025\", month = nov, year = \"2025\", address = \"Suzhou, China\", publisher = \"Association for Computational Linguistics\", url = \" doi = \"10.18653/v1/2025.findings-emnlp.388\", pages = \"7362--7374\", ISBN = \"979-8-89176-335-7\", abstract = \"Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL),which enables distributed model training without exposing raw data, with Retrieval-Augmented [...] Federated Retrieval-Augmented Generation: A Systematic Mapping Study   Abhijit Chakraborty  author    Chahana Dahal  author    Vivek Gupta  author    2025-11  text   Findings of the Association for Computational Linguistics: EMNLP 2025   Christos Christodoulopoulos  editor    Tanmoy Chakraborty  editor    Carolyn Rose  editor    Violet Peng  editor    Association for Computational Linguistics  Suzhou, China   conference publication 979-8-89176-335-7  Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL),which enables distributed model training without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are",
+      "score": 0.91813606,
+      "raw_content": null,
+      "id": "687a62-02"
+    },
+    {
+      "url": "https://arxiv.org/pdf/2412.13163",
+      "title": "C-FedRAG: A Confidential Federated Retrieval-Augmented ...",
+      "content": "5 CONCLUSION In this paper, we introduced confidential federated RAG (C-FedRAG), a secure federated approach to Retrieval-Augmented Generation. It serves as a novel paradigm de-signed to securely connect and scale across decentralized networks of data providers. Conventional centralized RAG methods, while effective for reducing hallucinations and leading to more accurate retrieval, face limitations in scal-ing data pipelines and require centralized data repositories, which pose privacy challenges. C-FedRAG addresses these issues by leveraging federated computation with secure as-surance at various stages of the RAG workflow—embedding model training, context retrieval, re-ranking, and final in-ference. This approach overcomes the limitations of cen-tralized data architectures, enhancing [...] C-FEDRAG: A CONFIDENTIAL FEDERATED RETRIEVAL-AUGMENTED GENERATION SYSTEM Parker Addison 1 Minh-Tuan H Nguyen 1 Tomislav Medan 1 Jinali Shah 1 Mohammad T Manzari 1 Brendan McElrone 1 Laksh Lalwani 1 Aboli More 1 Smita Sharma 1 Holger R. Roth 2 Isaac Yang 2 Chester Chen 2 Daguang Xu 2 Yan Cheng 2 Andrew Feng 2 Ziyue Xu 2 ABSTRACT Organizations seeking to utilize Large Language Models (LLMs) for knowledge querying and analysis often encounter challenges in maintaining an LLM fine-tuned on targeted, up-to-date information that keeps answers relevant and grounded. Retrieval Augmented Generation (RAG) has quickly become a feasible solution for organizations looking to overcome the challenges of maintaining proprietary models and to help reduce LLM hallucinations in their query responses. [...] 1.2 Related Work To situate our work within the broader context of existing re-search around Federated Learning (FL) with RAG systems, we highlight some related works: FeB4RAG: Evaluating Federated Search in the Context of Retrieval Augmented Generation (Shuai Wang, 2024) out-lines an architecture for federated search within RAG frame-works and introduces a new dataset for evaluating federated search, addressing the limitations of existing collections.\nThe paper emphasizes the importance of developing so-phisticated federated search strategies to optimize RAG pipelines and enhance the quality of generated responses.",
+      "score": 0.885404,
+      "raw_content": null,
+      "id": "ebc1de-03"
+    },
+    {
+      "url": "https://aclanthology.org/2025.coling-industry.33.pdf",
+      "title": "Federated Retrieval Augmented Generation for Multi- ...",
+      "content": "2.2 Retrieval Augmented Generation Retrieval augmented generation (RAG) has re-cently emerged as a powerful approach for enhanc-ing the performance of LLMs in knowledge-base QA tasks. RAG combines the strengths of retrieval-based and generation-based methods to produce more accurate and faithful responses. (Lewis et al., 2020) introduced the foundational RAG model, which retrieves relevant documents and conditions its output on both the retrieved information and the input query. Subsequent works have further improved it with (Guu et al., 2020) developing REALM for joint training of retriever and genera-tor, and (Karpukhin et al., 2020) introducing dense passage retrieval for improved efficiency. Recent research has explored RAG in domain-specific con-texts. (Head et al., 2021) adapted RAG [...] Proceedings of the 31st International Conference on Computational Linguistics: Industry Track, pages 387–397 January 19–24, 2025. ©2025 Association for Computational Linguistics 387 Federated Retrieval Augmented Generation for Multi-Product Question Answering Parshin Shojaee1, Sai Sree Harsha2, Dan Luo2, Akash Maharaj2, Tong Yu2, Yunyao Li2 1Virginia Tech 2Adobe parshinshojaee@vt.edu, {ssree, dluo, maharaj, tyu, yunyaol}@adobe.com Abstract Recent advancements in Large Language Mod-els and Retrieval-Augmented Generation have boosted interest in domain-specific question-answering for enterprise products. However, AI Assistants often face challenges in multi-product QA settings, requiring accurate re-sponses across diverse domains. Existing multi-domain RAG-QA approaches either query all [...] Shuai Wang, Ekaterina Khramtsova, Shengyao Zhuang, and Guido Zuccon. 2024a. Feb4rag: Evaluating fed-erated search in the context of retrieval augmented generation. In Proceedings of the 47th International ACM SIGIR Conference on Research and Develop-ment in Information Retrieval, pages 763–773.\nShuai Wang, Shengyao Zhuang, Bevan Koopman, and Guido Zuccon. 2024b. Resllm: Large language mod-els are strong resource selectors for federated search.\narXiv preprint arXiv:2401.17645.\nRidong Wu, Shuhong Chen, Xiangbiao Su, Yuankai Zhu, Yifei Liao, and Jianming Wu. 2024. A multi-source retrieval question answering framework based on rag. arXiv preprint arXiv:2405.19207.",
+      "score": 0.85624856,
+      "raw_content": null,
+      "id": "bd398a-04"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3721146.3721942",
+      "title": "Efficient Federated Search for Retrieval-Augmented ...",
+      "content": "Retrieval-augmented generation (RAG) mitigates these issues by grounding model responses in external knowledge sources. Existing RAG workflows often leverage a",
+      "score": 0.8559598,
+      "raw_content": null,
+      "id": "d4ab4c-05"
+    },
+    {
+      "url": "https://arxiv.org/abs/2505.18906",
+      "title": "[2505.18906] Federated Retrieval-Augmented Generation: A Systematic Mapping Study",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Computation and Language\n\n# Title:Federated Retrieval-Augmented Generation: A Systematic Mapping Study\n\n|  |  |\n --- |\n| Subjects: | Computation and Language (cs.CL); Information Retrieval (cs.IR) |\n| Cite as: | arXiv:2505.18906 [cs.CL] |\n|  | (or  arXiv:2505.18906v2 [cs.CL] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\nlicense icon\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.8488849,
+      "raw_content": null,
+      "id": "a46b29-06"
+    },
+    {
+      "url": "https://arxiv.org/abs/2602.05235",
+      "title": "[2602.05235] FedMosaic: Federated Retrieval-Augmented Generation via Parametric Adapters",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Computation and Language\n\n# Title:FedMosaic: Federated Retrieval-Augmented Generation via Parametric Adapters\n\n|  |  |\n --- |\n| Comments: | 11 pages |\n| Subjects: | Computation and Language (cs.CL) |\n| Cite as: | arXiv:2602.05235 [cs.CL] |\n|  | (or  arXiv:2602.05235v2 [cs.CL] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.84215075,
+      "raw_content": null,
+      "id": "ef0eab-07"
+    },
+    {
+      "url": "https://arxiv.org/abs/2412.13163",
+      "title": "[2412.13163] C-FedRAG: A Confidential Federated Retrieval-Augmented Generation System",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Distributed, Parallel, and Cluster Computing\n\n# Title:C-FedRAG: A Confidential Federated Retrieval-Augmented Generation System\n\n|  |  |\n --- |\n| Subjects: | Distributed, Parallel, and Cluster Computing (cs.DC); Information Retrieval (cs.IR) |\n| Cite as: | arXiv:2412.13163 [cs.DC] |\n|  | (or  arXiv:2412.13163v2 [cs.DC] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\nlicense icon\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.8252664,
+      "raw_content": null,
+      "id": "6a017a-08"
+    },
+    {
+      "url": "https://arxiv.org/abs/2501.14998",
+      "title": "[2501.14998] Federated Retrieval Augmented Generation for Multi-Product Question Answering",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Computation and Language\n\n# Title:Federated Retrieval Augmented Generation for Multi-Product Question Answering\n\n|  |  |\n --- |\n| Subjects: | Computation and Language (cs.CL) |\n| Cite as: | arXiv:2501.14998 [cs.CL] |\n|  | (or  arXiv:2501.14998v1 [cs.CL] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\nlicense icon\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators [...] arXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.81347597,
+      "raw_content": null,
+      "id": "d74469-09"
+    },
+    {
+      "url": "https://arxiv.org/abs/2504.19101",
+      "title": "[2504.19101] Privacy-Preserving Federated Embedding Learning for Localized Retrieval-Augmented Generation",
+      "content": "archive\n\n# Computer Science > Computation and Language\n\n# Title:Privacy-Preserving Federated Embedding Learning for Localized Retrieval-Augmented Generation\n\n|  |  |\n --- |\n| Subjects: | Computation and Language (cs.CL) |\n| Cite as: | arXiv:2504.19101 [cs.CL] |\n|  | (or  arXiv:2504.19101v1 [cs.CL] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators [...] arXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.78552294,
+      "raw_content": null,
+      "id": "b12061-10"
+    },
+    {
+      "url": "https://aclanthology.org/2025.coling-industry.33",
+      "title": "Federated Retrieval Augmented Generation for Multi-Product Question Answering - ACL Anthology",
+      "content": "ACL Logo\n\n###### Details\n\n## Federated Retrieval Augmented Generation for Multi-Product Question Answering\n\nParshin Shojaee,\nSai Sree Harsha,\nDan Luo,\nAkash Maharaj,\nTong Yu,\nYunyao Li\n\n##### Correct Metadata for\n\n##### Abstract\n\n##### Export citation\n\n##### Markdown (Informal)\n\nFederated Retrieval Augmented Generation for Multi-Product Question Answering (Shojaee et al., COLING 2025)\n\n##### ACL [...] ##### ACL\n\nCreative Commons License\nACL materials are Copyright © 1963–2026 ACL; other materials are copyrighted by their respective copyright holders. Materials prior to 2016 here are licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 International License. Permission is granted to make copies for the purposes of teaching and research. Materials published in or after 2016 are licensed on a Creative Commons Attribution 4.0 International License.\n\nCreative Commons License\n\nThe ACL Anthology is managed and built by the ACL Anthology team of volunteers.\n\nSite last built on 26 October 2026 at 02:04 UTC with commit 2348cc9.",
+      "score": 0.71137124,
+      "raw_content": null,
+      "id": "63a55d-11"
+    },
+    {
+      "url": "https://openreview.net/forum?id=kOUMng3ynd",
+      "title": "FD-RAG: Federated Dual-System Retrieval-Augmented ...",
+      "content": "We propose FD-RAG, a federated dual-system RAG framework that decouples lightweight memory access from on-demand LLM reasoning for decentralized deployment.",
+      "score": 0.6649108,
+      "raw_content": null,
+      "id": "bf7562-12"
+    },
+    {
+      "url": "https://openreview.net/forum?id=A6TiR6Fm2i",
+      "title": "Federated Training, Fine-Tuning, RAG, and Inference ...",
+      "content": "In this presentation, we introduce a comprehensive approach to decentralized LLM fine-tuning using federated learning (FL), answering retrieval-augmented",
+      "score": 0.5973971,
+      "raw_content": null,
+      "id": "afa350-13"
+    }
+  ],
+  "response_time": 4.22,
+  "request_id": "06a9028d-8759-41be-8d4e-a7f9b2713834"
+}

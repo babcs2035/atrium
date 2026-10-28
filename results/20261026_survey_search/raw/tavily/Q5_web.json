@@ -1,0 +1,138 @@
+{
+  "query": "edge-cloud retrieval-augmented generation edge RAG",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://arxiv.org/pdf/2405.04700",
+      "title": "Robust Implementation of Retrieval-Augmented ...",
+      "content": "Retrieval-augmented generation (RAG), on the other hand, is a more resource-efficient choice , and hence becoming the de facto learning method for Edge LLMs. In a typical RAG system, it consists of a retriever and a generator. The retriever is commonly backed by max inner product search (MIPS). When the retriever receives a user query, it will retrieve the most relevant document from profile data, as shown in Figure 1. The profile data has many documents, and each document 𝑑𝑖contains specific information that may be relevant to user queries. The generator can be seen as a LLM, which takes the user query 𝑥and retriever-obtained documents as a prompt and generates a corresponding response. [...] Robust Implementation of Retrieval-Augmented Generation on Edge-based Computing-in-Memory Architectures Ruiyang Qin1, Zheyu Yan1, Dewen Zeng1, Zhenge Jia1, Dancheng Liu2, Jianbo Liu1, Ahmed Abbasi1,Zhi Zheng1, Ningyuan Cao1, Kai Ni1, Jinjun Xiong2, Yiyu Shi1 1University of Notre Dame 2University at Buffalo–SUNY ABSTRACT Large Language Models (LLMs) deployed on edge devices learn through fine-tuning and updating a certain portion of their param-eters. Although such learning methods can be optimized to reduce resource utilization, the overall required resources remain a heavy burden on edge devices. Instead, Retrieval-Augmented Generation (RAG), a resource-efficient LLM learning method, can improve the quality of the LLM-generated content without updating model pa-rameters. However, the [...] 5 CONCLUSION In this paper, we present a novel framework for retrieval-augmented generation (RAG) acceleration via computing-in-memory (CiM) ar-chitectures. Our approach provide a solution to free RAG from Robust Implementation of Retrieval-Augmented Generation on Edge-based Computing-in-Memory Architectures the constraints of latency and scalability on edge devices. By opti-mizing the sentence embedding model, our framework enable the utilization of CiM devices in storing and processing the document embeddings, minimizing the impact of CiM device variations. Ex-perimental results show that our framework achieves superior RAG performance and largely mitigates the impact of device variations.\nThis paper marks the first RAG acceleration via CiM framework.",
+      "score": 0.85967577,
+      "raw_content": null,
+      "id": "22d5fc-00"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3832810.3832878",
+      "title": "Edge-Cloud Collaborative RAG with Multi-State Semantic ...",
+      "content": "Retrieval Augmented Generation (RAG) frameworks that synergize Small Language Models (SLMs) at the network edge with Large Language Models (LLMs) in the cloud",
+      "score": 0.8036831,
+      "raw_content": null,
+      "id": "fa0a04-01"
+    },
+    {
+      "url": "https://arxiv.org/html/2604.09493",
+      "title": "A Policy-Aware Edge LLM-RAG Framework for Internet of Battlefield Things Mission Orchestration",
+      "content": "To address these limitations, we propose Policy-Aware Retrieval-Augmented Generation, an edge based LLM\norchestration framework for IoBT mission control. PA-LLM-RAG integrates retrieval-based grounding, edge-deployed reasoning,\nand a secondary validation layer (JudgeLLM) that independently\nre-evaluates mission commands prior to execution. The JudgeLLM\nacts as a verification mechanism that assesses generated commands\nagainst mission policies, system constraints, and real-time telemetry,\nthereby reducing the risk of hallucinated, unsafe, or policy-violating LLM\nactions. By incorporating operational policies and real-time telemetry\ninto both generation and validation stages, PA-LLM-RAG enhances system\nreliability while maintaining low-latency edge deployment without [...] ### II-D Retrieval-Augmented Generation and LLM Evaluation\n\nHallucination and inconsistency remain central challenges in LLM-enabled systems. Retrieval-Augmented Generation (RAG), introduced by Lewis et al. , mitigates these issues by grounding generation in externally retrieved knowledge at inference time. Recent surveys analyze RAG’s effectiveness in reducing factual errors . However, most RAG systems focus on document-centric NLP tasks rather than structured decision-making in critical infrastructure control pipelines.\n\nRefer to caption [...] Retrieval-Augmented Generation (RAG) improves reliability by grounding outputs in external knowledge [13, 14], with recent works exploring RAGs at the edge [15, 16]. While RAG reduces hallucinations in document-centric tasks , its application to real-time control and safety-critical actuation remains limited, particularly in IoBT like mission-sensitive systems, lacking structured policy enforcement and pre-execution verification . For example, in an IoBT surveillance system, a drone may detect movement near a restricted military area. Before taking any action, the drone must verify the target’s identity and check the applicable operational policies. If the decision is made by the LLM solely on the user command, it may generate a hallucinated response such as “engage and destroy the target",
+      "score": 0.776708,
+      "raw_content": null,
+      "id": "9e7f86-02"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11407160",
+      "title": "Hybrid Edge–Cloud Architectures for Vision-Based RAG in ...",
+      "content": "by AM Sivagnanam · 2025 — Emergency rooms need fast and trustworthy decisions. We present a hybrid edge–cloud architecture for vision-aware retrieval-augmented generation (RAG).",
+      "score": 0.75659186,
+      "raw_content": null,
+      "id": "bd7fa3-03"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/10921633.pdf",
+      "title": "Enhancing the Precision and Interpretability of Retrieval- ...",
+      "content": "by M Hindi · 2025 · Cited by 133 — Retrieval-Augmented Generation (RAG) is a promising solution that can enhance the capabilities of large language model (LLM) applications in critical domains,",
+      "score": 0.74004334,
+      "raw_content": null,
+      "id": "bffe1a-04"
+    },
+    {
+      "url": "https://arxiv.org/html/2411.11895v1",
+      "title": "Deploying Large Language Models with Retrieval Augmented Generation",
+      "content": "### 2.1 Retrieval Augmented Generation\n\nRetrieval-Augmented Generation (RAG) is an approach that enhances the capabilities of Large Language Models (LLMs) by augmenting their prompts with information retrieved from a knowledge base that the LLM has not seen during training. This method adds domain-specific context to the generated responses, leveraging the LLM’s ability to generate text while incorporating embeddings from existing documents stored in vector databases. These databases are specifically designed to store, query, and retrieve sentence embeddings, making them integral to the RAG approach.\n\nThe field of RAG has rapidly evolved, as highlighted by various studies such as those surveying various RAG methodologies , , , ,  and exploring advanced implementations like RAG-end2end . [...] In the development of Retrieval-Augmented Generation (RAG) systems, selecting the right model, vector database, and cloud provider is critical to ensuring optimal performance and alignment with business objectives. The landscape of available technologies is vast, with each offering unique features, scalability options, and integration capabilities. For instance, different LLMs vary in their context windows, multimodal capabilities, and accessibility, influencing their suitability for specific use cases. Similarly, the choice of vector databases, directly impacts the system’s ability to efficiently manage and search through large datasets. Furthermore, the cloud provider must be carefully chosen to support the desired scalability, security, and compliance needs. Each of these decisions [...] In addition, the implementation of Retrieval-Augmented Generation (RAG) systems in real-world scenarios necessitates a robust AI governance framework to ensure ethical, legal, and operational integrity. As AI technologies evolve, especially with advancements like RAG, governance models must adapt to address new challenges, including architectural design, risk management, and the socio-technical impacts on human-AI interactions.",
+      "score": 0.7393665,
+      "raw_content": null,
+      "id": "59cc90-05"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11642577",
+      "title": "Democratizing LLM Service With Decentralized Edge ...",
+      "content": "by J Li · 2026 — DEFRAG, a decentralized edge collaboration system for retrieval-augmented generation (RAG) that optimizes both retrieval and generation across heterogeneous",
+      "score": 0.72489023,
+      "raw_content": null,
+      "id": "d8130e-06"
+    },
+    {
+      "url": "https://arxiv.org/html/2506.03401v1",
+      "title": "RAGOps: Operating and Managing Retrieval-Augmented Generation Pipelines",
+      "content": "(RAG), which improves the relevance, accuracy, and dynamism of LLM outputs by retrieving information from external data. RAG offers a solution to common challenges faced by LLMs, such as hallucinations, outdated data, and the difficulty of removing parametric knowledge, and open up the possibility to access proprietary, internal data from organizations using existing LLMs. By integrating real-time information retrieval, RAG enables continuous updates, possibly incorporating very recent information. RAG systems are compound systems that consist of multiple components blending the LLM’s parametric knowledge with external data retrieval, including, but not limited to retrieval sources, retriever, and generator . [...] ## 3 Characterization of RAG Architecture\n\nRetrieval-Augmented Generation (RAG) is an effective solution for handling hallucinations in LLM by leveraging external data that is not covered by the training data of the LLM. This approach enhances the accuracy and credibility of LLM outputs, especially in knowledge-intensive tasks. Moreover, RAG facilitates continuous data updates and enables the integration of domain-specific expertise into LLM compound systems [3, 14, 15]. This section applies the 4+1 View Model of software architecture to conceptualize and characterize the architecture of RAG applications. These architectural characteristics impact the design and implementation of RAGOps (Section 4). [...] changes in data sources and understanding their impact on the RAG system add further complexity.",
+      "score": 0.6824261,
+      "raw_content": null,
+      "id": "0d1a26-07"
+    },
+    {
+      "url": "https://arxiv.org/abs/2602.22217",
+      "title": "[2602.22217] RAGdb: A Zero-Dependency, Embeddable Architecture for Multimodal Retrieval-Augmented Generation on the Edge",
+      "content": "archive\n\nPress Enter to search · Advanced search\n\n# Computer Science > Information Retrieval\n\n# Title:RAGdb: A Zero-Dependency, Embeddable Architecture for Multimodal Retrieval-Augmented Generation on the Edge\n\n|  |  |\n --- |\n| Comments: | 6 pages, 2 tables |\n| Subjects: | Information Retrieval (cs.IR); Artificial Intelligence (cs.AI) |\n| Cite as: | arXiv:2602.22217 [cs.IR] |\n|  | (or  arXiv:2602.22217v1 [cs.IR] for this version) |\n|  |  Focus to learn more  arXiv-issued DOI via DataCite |\n\n## Submission history\n\n## Access Paper:\n\nlicense icon\n\n### Additional Features\n\n### Current browse context:\n\n### References & Citations\n\n## BibTeX formatted citation\n\n### Bookmark\n\nBibSonomy\nReddit\n\n# Bibliographic and Citation Tools\n\n# Code, Data and Media Associated with this Article\n\n# Demos [...] # Demos\n\n# Recommenders and Search Tools\n\n# arXivLabs: experimental projects with community collaborators\n\narXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.\n\nBoth individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them.\n\nHave an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.\n\nSimons Foundation\nSimons Foundation International\nSchmidt Sciences",
+      "score": 0.6599319,
+      "raw_content": null,
+      "id": "f30f91-08"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11224764.pdf",
+      "title": "Permission-Aware RAG: Identity and Access Management ...",
+      "content": "by J Jeong · 2025 · Cited by 13 — Retrieval-Augmented Generation (RAG) enhances large language models (LLMs) by integrating external knowledge sources, which significantly improves response",
+      "score": 0.6450534,
+      "raw_content": null,
+      "id": "598f89-09"
+    },
+    {
+      "url": "https://link.springer.com/book/10.1007/979-8-8688-1808-0",
+      "title": "Mastering Retrieval-Augmented Generation: Advanced Techniques and Production-Ready Solutions for Enterprise AI | Springer Nature Link",
+      "content": "Institutional subscriptions\n\n## About this book\n\nRetrieval-Augmented Generation (RAG) represents the cutting edge of AI innovation, bridging the gap between large language models (LLMs) and real-world knowledge. This book provides the definitive roadmap for building, optimizing, and deploying enterprise-grade RAG systems that deliver measurable business value.\n\nThis comprehensive guide takes you beyond basic concepts to advanced implementation strategies, covering everything from architectural patterns to production deployment. You'll explore proven techniques for document processing, vector optimization, retrieval enhancement, and system scaling, supported by real-world case studies from leading organizations.\n\nKey Learning Objectives\n\nReal-World Applications [...] ### Similar content being viewed by others\n\n### Assessing LLMs Capabilities for Industrial Knowledge Management: Performance Analysis of Embedded Knowledge and Retrieval Augmented Generation Approach\n\n### Scalable Enterprise AI Systems: An Integrated Framework for Retrieval-Augmented Generation with Advanced Data Engineering\n\n### A Hybrid RAG Architecture Based on Multi-Agent State-Graphs\n\n### Explore related subjects\n\n## Table of contents (16 chapters)\n\n### Front Matter\n\n### Foundations\n\n#### Front Matter\n\n#### Introduction to Retrieval-Augmented Generation (RAG)\n\n#### Core Concepts of Retrieval-Augmented Generation (RAG)\n\n#### Building a Retrieval-Augmented Generation (RAG) Application\n\n### Core Components\n\n#### Front Matter\n\n#### Document Loaders—The Gateway to Knowledge [...] #### RAG Evaluation: Measuring Quality and Performance\n\n#### Production Deployment and Scaling Strategies\n\n## Authors and affiliations\n\n### Bangalore, India\n\nRanajoy Bose\n\n## About the author\n\nRanajoy Bose is a technologist, entrepreneur, and thought leader in the fields of Generative AI, MLOps, and enterprise data systems. As Co-founder and Global Head of Engineering at Morfius, he is at the helm of building cutting-edge AI solutions that power real-world transformation through Retrieval-Augmented Generation (RAG) and large-scale language models.",
+      "score": 0.62633044,
+      "raw_content": null,
+      "id": "4a2964-10"
+    },
+    {
+      "url": "https://arxiv.org/pdf/2312.10997",
+      "title": "Retrieval-Augmented Generation for Large Language ...",
+      "content": "V. AUGMENTATION PROCESS IN RAG In the domain of RAG, the standard practice often involves a singular (once) retrieval step followed by generation, which can lead to inefficiencies and sometimes is typically insuffi-cient for complex problems demanding multi-step reasoning, as it provides a limited scope of information . Many studies have optimized the retrieval process in response to this issue, and we have summarised them in Figure 5. [...] On the other hand, RAG-based generation can quickly locate the original references for LLMs to help users verify the generated an-swers. The entire retrieval and reasoning process is observable, while generation solely relying on long context remains a black box. Conversely, the expansion of context provides new opportunities for the development of RAG, enabling it to address more complex problems and integrative or summary questions that require reading a large amount of material to answer . Developing new RAG methods in the context of super-long contexts is one of the future research trends. [...] advanced RAG, and modular RAG. This review contex-tualizes the broader scope of RAG research within the landscape of LLMs.\n• We identify and discuss the central technologies integral to the RAG process, specifically focusing on the aspects of “Retrieval”, “Generation” and “Augmentation”, and delve into their synergies, elucidating how these com-ponents intricately collaborate to form a cohesive and effective RAG framework.\n• We have summarized the current assessment methods of RAG, covering 26 tasks, nearly 50 datasets, outlining the evaluation objectives and metrics, as well as the current evaluation benchmarks and tools. Additionally, we anticipate future directions for RAG, emphasizing potential enhancements to tackle current challenges.",
+      "score": 0.599087,
+      "raw_content": null,
+      "id": "e0972e-11"
+    },
+    {
+      "url": "https://link.springer.com/article/10.1007/s12599-025-00945-3",
+      "title": "Retrieval-Augmented Generation (RAG) | Business & Information Systems Engineering | Springer Nature Link",
+      "content": "Further, graph-based approaches such as GraphRAG offer significant improvements by extracting knowledge graphs and structuring them hierarchically to improve RAG-based tasks (Edge et al. 2024 From local to global: A graph RAG approach to query-focused summarization. \n                  \n                  \n                \")). GraphRAG can be used to extract a knowledge graph from text, building a hierarchy that is then used to leverage these graph-based structures to perform a RAG-based task. [...] RAG significantly enhances the content creation process by incorporating the latest knowledge and trends into the output. This capability is particularly relevant to the creation of content such as commentaries, where the inclusion of up-to-date information is critical. By guiding the content generation process with additional data, RAG ensures that the quality and relevance of the output is maintained at a high level (Wu et al. 2024 Xinyu: An efficient (LLM)-based system for commentary generation. In: Proceedings of the 30th ACM SIGKDD conference on knowledge discovery and data mining. Association for Computing Machinery, New York, KDD ’24, pp 6003–6014. [...] \")) and GraphRAG (Edge et al. 2024 From local to global: A graph RAG approach to query-focused summarization. \n                  \n                  \n                \")), should be considered.",
+      "score": 0.58919704,
+      "raw_content": null,
+      "id": "130654-12"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11245479.pdf",
+      "title": "A Comparative Evaluation of RAG Architectures for Cross- ...",
+      "content": "by P Ersoy · 2025 · Cited by 10 — ABSTRACT Retrieval-Augmented Generation (RAG) pairs large language models with external search to constrain knowledge staleness and hallucination, ...Read more",
+      "score": 0.5883458,
+      "raw_content": null,
+      "id": "185e05-13"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11071540.pdf",
+      "title": "Leveraging RAG and LLMs for Access Control Policy ...",
+      "content": "by S Aboukadri · 2025 · Cited by 11 — This paper proposes an innovative framework leveraging Retrieval-Augmented Generation (RAG) and Large Language. Models (LLMs) to automate the extraction and",
+      "score": 0.4854295,
+      "raw_content": null,
+      "id": "954d42-14"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-acl.197",
+      "title": "RemoteRAG: A Privacy-Preserving LLM Cloud RAG Service - ACL Anthology",
+      "content": "Creative Commons License\n\nThe ACL Anthology is managed and built by the ACL Anthology team of volunteers.\n\nSite last built on 24 October 2026 at 10:04 UTC with commit e9b28ec. [...] ACL Logo\n\n###### Details\n\n## RemoteRAG: A Privacy-Preserving LLM Cloud RAG Service\n\nYihang Cheng,\nLan Zhang,\nJunyang Wang,\nMu Yuan,\nYunhao Yao\n\n##### Correct Metadata for\n\n##### Abstract\n\n##### Export citation\n\n##### Markdown (Informal)\n\nRemoteRAG: A Privacy-Preserving LLM Cloud RAG Service (Cheng et al., Findings 2025)\n\n##### ACL\n\nCreative Commons License\nACL materials are Copyright © 1963–2026 ACL; other materials are copyrighted by their respective copyright holders. Materials prior to 2016 here are licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 International License. Permission is granted to make copies for the purposes of teaching and research. Materials published in or after 2016 are licensed on a Creative Commons Attribution 4.0 International License.",
+      "score": 0.08531997,
+      "raw_content": null,
+      "id": "6cc473-15"
+    }
+  ],
+  "response_time": 3.37,
+  "request_id": "57f19dc7-c519-45cf-a0ac-06cd8213b6cf"
+}

@@ -1,0 +1,88 @@
+# Manual coding of included papers (input to build_tables.py). Codes are defined in build_tables.py; basis: A=title+abstract, O=outline d0008 (authors read full text), X=tvly extract of full text, T=title only.
+id	partition	eval	central	same_improv	exposure	latency	compute_energy	basis	note
+P0055	NS	NS	NS	NA	Y	N	N	A	Multi-provider decentralized retrieval with bounded leakage (OpenReview snippet only).
+P0072	NS	NONE	NONE	NA	N	N	N	A	Magazine-style deployment framework for RAG at the 6G edge.
+P0075	NS	NS	NS	UNK	N	N	N	A	Committee-certified documents kept across chains; integrity, not partitioned retrieval accuracy.
+P0099	NA	SIM	NS	UNK	Y	Y	N	A	MPC over secret-shared database across servers; leakage guaranteed by protocol, not measured empirically.
+P0130	TOPIC	SIM	ACC	UNK	N	N	N	O	C-FedRAG: MedRAG corpora on 2 simulated sites; MIRAGE accuracy vs pooled 4-corpus RAG; no time/cost.
+P0136	NS	SIM	NS	UNK	N	Y	N	A	Blockchain/DHT multi-source RAG; evaluation framework on scalability/efficiency.
+P0140	NS	NS	ACC	UNK	N	Y	Y	A	EACO-RAG: matches accuracy of cloud KG-RAG; cost and delay measured.
+P0145	TOPIC	NONE	NONE	NA	N	N	N	O	FeB4RAG: 16 BEIR sub-collections as search engines; dataset paper, side-by-side generation comparison.
+P0147	NS	SIM	NONE	NA	N	N	N	A	FL-trained medical LLM + RAG vs non-RAG.
+P0154	NS	SIM	OTHER	UNK	Y	Y	N	A	FRAG: encrypted ANN across distrusted parties; efficiency close to centralized (not accuracy).
+P0168	SPLIT	SIM	OTHER	UNK	N	N	N	A	MediRAG: MIMIC-IV split over simulated hospitals; 'no loss vs centralized' on ROUGE/BLEU and LLM-judged RAG metrics.
+P0174	NS	NONE	NONE	NA	N	N	N	A	Legal federated search + RAG case study / position.
+P0190	OWNER	NONE	NONE	NA	N	N	N	A	SocialGenPod: personal Solid pods (owner-held data); prototype demo, no quantitative evaluation in abstract.
+P0206	SPLIT	SIM	OTHER	N	N	N	Y	A	dRAG: 6 simulated sources with varied reliability; +10.7% over centralized counterpart (metric unspecified in abstract); cost of blockchain updates.
+P0208	NA	NONE	NONE	NA	N	N	N	A	Country-LLM hierarchy with DRAG routing and incentives; framework only.
+P0218	NA	SIM	NONE	NA	N	Y	N	A	Edge cache of cloud KB with DRL replacement; cache hit and latency.
+P0224	NS	SIM	ACC	UNK	N	N	N	A	AgentNet: 'centralized' = centralized multi-agent coordination, not pooled data.
+P0230	NA	NONE	NONE	NA	N	N	N	O	Hecking et al.: architecture and External Retrieval Interface protocol.
+P0237	NS	SIM	NONE	NA	N	N	N	A	ChainShare: provider-owned documents, compared with LLM without RAG plus user survey.
+P0246	TOPIC	NS	NONE	NA	N	Y	N	A	CoEdge-RAG: heterogeneous data across edge nodes; gains over scheduling baselines.
+P0250	NA	PHYS	NONE	NA	N	Y	Y	A	CoSense-LLM: home/office/clinic deployments; sensor streams + local notes; no centralized-data comparison.
+P0254	TOPIC	SIM	NONE	NA	N	Y	N	A	D-RAG: subject communities with permissioned chains; scalability of consensus.
+P0256	NS	SIM	NONE	NA	N	N	N	A	SHIMI: agents keep local memory trees and sync; retrieval accuracy vs flat vector retrieval.
+P0258	NS	NS	NS	NA	N	N	N	A	DF-RAG: federated fine-tuning + federated KGs; 'initial evaluations' only.
+P0259	TOPIC	NS	WINRATE	UNK	N	Y	Y	O	DGRAG: UltraDomain fields per edge; LLM win rate vs Cent. RAG (v2 adds recall); bandwidth fixed at 50 Mbps, number of physical edges not stated.
+P0263	NS	SIM	ACC	UNK	N	N	N	O	DRAG: BA-network simulation of 20-100 peers; near-centralized performance with about half the messages (partition unverified).
+P0266	TOPIC	SIM	NONE	NA	Y	Y	N	A	DP-CR: FeB4RAG corpora; DP centroids; MIA AUC and latency vs LLM router.
+P0267	TIER	PHYS	OTHER	UNK	N	Y	N	X	DRAGON: cloud server + MacBook over Wi-Fi; public cloud DB + device personal docs; gain over standalone SLM compared with centralized RAG.
+P0274	TOPIC	SIM	ACC	UNK	N	N	N	O	RAGRoute: MIRAGE/MMLU corpora as sources; queries and accuracy vs querying all sources.
+P0286	TOPIC	SIM	NONE	NA	N	N	N	A	BTE-RAG: federation of public biomedical APIs; vs LLM-only.
+P0287	NS	SIM	NONE	NA	N	N	Y	A	FL-trained adapter retriever for edge devices; FL speedup.
+P0289	TOPIC	SIM	NS	UNK	N	N	N	A	Multi-product federated RAG (one source per product, Adobe).
+P0290	NS	SIM	NONE	NA	N	N	N	A	FeRAG for IoE log analysis vs other LLM log-analysis methods.
+P0292	TOPIC	SIM	NONE	NA	N	N	N	A	FedRAG++: domain-specific clients; vs RAG baselines.
+P0293	NA	NONE	NONE	NA	N	N	N	O	FedRAG framework (fine-tuning RAG across centralized/federated architectures); tooling paper.
+P0304	NS	NS	NS	NA	N	N	N	T	Title only (no abstract available via S2).
+P0310	SPLIT	NS	NONE	NA	N	Y	N	A	HyFedRAG: PMC-Patients across clients; edge-cloud; caching for latency.
+P0356	NS	SIM	NS	NA	N	N	N	O	pFedRAG: federated tuning of embedding models.
+P0361	NS	NS	NONE	NA	N	N	N	A	Inter-organizational meta-agent chatbot with privacy-focused RAG.
+P0363	NS	SIM	NONE	NA	Y	N	N	A	EPEAgent: privacy within federated multi-agent RAG; privacy protection evaluated.
+P0364	SPLIT	SIM	NS	NA	N	N	N	A	FedE4RAG: federated embedding learning with HE.
+P0390	NS	NS	NS	NA	N	N	N	T	Title only (no abstract available via S2).
+P0400	TOPIC	NONE	NONE	NA	N	N	N	A	Federated clinical QA: each hospital node holds a different public ICU dataset; feasibility demo.
+P0402	TOPIC	SIM	NONE	NA	N	Y	N	A	RIRS: per-agent local corpora with embedding summaries for routing.
+P0434	NS	SIM	NONE	NA	N	N	N	A	Routing hijacking attack on FedRAG routing (integrity attack, not leakage measurement).
+P0438	NS	NONE	NONE	NA	N	N	N	A	Turkish federated RAG architecture; mathematical framework.
+P0456	NS	SIM	OTHER	UNK	Y	Y	N	A	Scrambled distributed attention; utility vs plaintext (<0.1% drop), inversion-attack defense, latency.
+P0465	NS	SIM	NONE	NA	N	Y	N	A	ARTI: department-level RAG across government silos; controlled simulations (drafting time).
+P0475	SPLIT	SIM	ACC	UNK	Y	N	Y	O	FedRepRAG: Dirichlet split over 10 clients on one A100; below IC-RAG in some settings; residual representation leakage analysed.
+P0479	NS	SIM	NONE	NA	N	N	N	A	Byzantine-robust federated conformal RAG (owner nodes score answers).
+P0480	OWNER	NS	NONE	NA	N	N	N	A	Campus Assistant: per-school indexes of institutional documents (organizational owners, public documents); usage report.
+P0482	NS	SIM	NONE	NA	N	N	N	A	Monitoring of federated conformal RAG.
+P0490	TIER	NS	OTHER	UNK	N	Y	N	A	CONCORD: device private docs + cloud public; quality comparable to dense dual-end aggregation; throughput and communication.
+P0515	SPLIT	NS	OTHER	UNK	N	Y	N	A	Distributed enterprise RAG: partitioned enterprise-style corpora; nDCG@10 within 1.3 pt of centralized; latency by node placement.
+P0520	TIER	SIM	NONE	NA	N	Y	N	A	DyRRS: emulation with real network traces.
+P0521	TIER	NS	OTHER	NA	N	Y	Y	A	EC-RAG: edge SLM vs cloud LLM routing; F1 vs LLM-only RAG (centralized model, not centralized data).
+P0525	TIER	SIM	NONE	NA	N	Y	N	A	Edge-cloud semantic caching; latency and backhaul traffic.
+P0527	NS	NS	NS	NA	N	N	N	T	Edge-RAG over Bluetooth mesh on mobile devices; abstract/full text not retrievable.
+P0529	TOPIC	SIM	ACC	UNK	N	N	N	A	EduBot: 3 textbook domains; token F1 vs centralized (centralized training, not pooled retrieval).
+P0531	NS	NS	NS	NA	N	N	N	T	RAGSpot (Sci. Rep.); only title and one-line snippet retrieved.
+P0537	NS	NONE	NONE	NA	N	N	N	A	Inferential composition control for federated RAG in data spaces; case study.
+P0540	SPLIT	NS	ACC	Y	N	N	N	A	SQuAD v1.1 over 5 non-IID clients; centralized vs federated with matched candidate budget and the same BM25+FAISS+RRF pipeline.
+P0542	SPLIT	SIM	NONE	NA	Y	Y	N	O	FD-RAG: 5 disjoint clients; Jetson Orin Nano latency on one device; LDP reconstruction attack.
+P0543	TOPIC	SIM	OTHER	NA	Y	N	Y	A	Fed-S2: per-domain fault datasets; vs traditional FL; inversion risk bound; communication.
+P0545	SPLIT	SIM	NONE	NA	Y	N	N	A	TON_IoT over 10 non-IID clients; MIA AUC 0.51.
+P0546	NS	SIM	NONE	NA	N	N	N	A	Federated GraphRAG with routing and controlled-disclosure evidence.
+P0547	NS	SIM	NONE	NA	N	N	Y	A	FC-RAG under bandwidth budgets (bits per message).
+P0551	SPLIT	SIM	NONE	NA	N	Y	Y	A	FedTempRAG: simulated multi-hospital RPM network; latency and computation overhead.
+P0553	NS	SIM	NS	NA	N	N	N	O	FedMosaic: parametric adapters instead of raw text.
+P0554	TOPIC	SIM	NONE	NA	N	N	N	A	FedRAG-FT: BEIR domain-partitioned clients; vs federated baselines.
+P0555	NS	NS	NS	NA	N	N	N	T	Title only (no abstract available via S2).
+P0557	SPLIT	PHYS	OTHER	UNK	N	Y	Y	X	DEFRAG: heterogeneous edge testbed; benchmark QA with balanced/non-uniform placement; accuracy vs centralized SLM/LLM, cost and throughput vs centralized services.
+P0567	NS	SIM	OTHER	NA	Y	Y	N	A	GEHMAR: edge local RAG, cloud gets desensitized evidence; raw-data transmission volume.
+P0574	TOPIC	PHYS	ACC	NA	N	Y	Y	X	GRaSP: 5-node CloudLab with emulated 4-region WAN; NQ uniform/topical placement; EM within 0.062 of relevance-only ranking.
+P0588	TIER	SIM	NONE	NA	N	N	Y	A	MEC RAG with poisoning-aware retrieval depth/power control; energy.
+P0631	NS	SIM	OTHER	NA	N	Y	N	A	Synthetic farming-vehicle KG on blockchain; task success vs centralized approaches.
+P0642	TIER	NS	OTHER	NA	N	Y	N	A	Edge-cloud vector cache coherency; vs cloud-only.
+P0655	NS	NS	OTHER	UNK	N	N	Y	A	CARD: within 4.4 pt of centralized upper bound (metric unspecified); communication cost.
+P0656	NS	SIM	NONE	NA	Y	Y	N	A	DP retrieval with federated edge layer; utility at epsilon=1.
+P0658	NS	SIM	NONE	NA	Y	N	N	A	Private selective-risk certificates for federated RAG.
+P0670	TOPIC	SIM	NONE	NA	N	N	N	A	RealRoute: retrieve-then-verify across heterogeneous sources.
+P0684	TOPIC	SIM	OTHER	NA	N	N	N	A	SAFER-Bench: 1-4 Data Owners over medical corpora; accuracy vs fewer owners.
+P0686	TOPIC	SIM	OTHER	UNK	N	Y	Y	A	SCOUT-RAG: comparable to centralized baselines (DRIFT, exhaustive traversal); calls, tokens, latency.
+P0701	TOPIC	NS	NONE	NA	N	Y	Y	A	SRAG: domain-specialized KB per edge server.
+P0705	NS	NS	NONE	NA	N	N	N	A	Flower-based federated RAG with confidential computing.
+P0725	NS	SIM	OTHER	NA	Y	N	Y	A	Trans-RAG: per-organization vector spaces; nDCG drop vs plaintext; isolation rates.

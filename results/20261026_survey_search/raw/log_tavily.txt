@@ -1,0 +1,16 @@
+tavily_web Q1: fetched=14
+tavily_venues Q1: fetched=15
+tavily_web Q2: fetched=13
+tavily_venues Q2: fetched=10
+tavily_web Q3: fetched=20
+tavily_venues Q3: fetched=16
+tavily_web Q4: fetched=17
+tavily_venues Q4: fetched=15
+tavily_web Q5: fetched=16
+tavily_venues Q5: fetched=20
+tavily_web Q6: fetched=20
+tavily_venues Q6: fetched=10
+tavily_web Q7: fetched=17
+tavily_venues Q7: fetched=20
+tavily_web Q8: fetched=20
+tavily_venues Q8: fetched=20

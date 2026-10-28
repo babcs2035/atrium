@@ -1,0 +1,243 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/4H5SdRDPRHb77K0lGoDh9xD0TAg</id>
+  <title>arXiv Query: search_query=(all:"federated RAG") AND submittedDate:"202001010000 TO 202610262359"&amp;id_list=&amp;start=0&amp;max_results=200</title>
+  <updated>2026-10-26T05:37:34Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:%22federated+RAG%22+AND+submittedDate:%22202001010000+TO+202610262359%22&amp;start=0&amp;max_results=200&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>200</opensearch:itemsPerPage>
+  <opensearch:totalResults>9</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2609.33037v2</id>
+    <title>Byzantine-Robust Federated RAG via Aligned Calibration and Fixed-Membership Conformal Prediction</title>
+    <updated>2026-09-29T04:12:25Z</updated>
+    <link href="https://arxiv.org/abs/2609.33037v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.33037v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) lets language models answer questions more accurately by consulting relevant documents. Many valuable collections, such as medical records, cannot be pooled because of privacy rules. Federated RAG leaves each collection with its owner, or node, which scores candidate answers from its own documents; a central hub combines the scores. Some nodes, called Byzantine, may be compromised, faulty, or misled by instructions hidden in documents, and report arbitrary scores. Conformal prediction returns a set containing the correct answer with a chosen probability, using a cutoff set in a calibration step on questions with known answers. An unknown group of nodes, no larger than a declared bound, may misreport both in this step and at query time. Existing methods assume every node is honest or protect only the calibration step. We observe that the honest nodes are the same in both steps. The hub therefore has all nodes score the same calibration questions, and keeps a candidate only if some plausible group of honest nodes, using its own scores in both steps, would keep it. We prove that the resulting sets contain the correct answer with the chosen probability in finite samples, whatever the Byzantine nodes report. No method using the same information can return smaller sets without risking the loss of an answer the honest nodes support. If nodes fail at random, the guarantee weakens only by the probability that more nodes fail than declared. In simulations, on real question-answering tasks including medical exams, and with language models as nodes, some hijacked, our sets reached the target whenever no more nodes misbehaved than declared, while plain averaging could miss it. They were also clearly smaller than those of simpler methods with the same protection, most of all when the declared bound was generous, so a cautious bound costs little.</summary>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-27T00:07:31Z</published>
+    <arxiv:primary_category term="stat.ML"/>
+    <author>
+      <name>Prasanjit Dubey</name>
+    </author>
+    <author>
+      <name>Aritra Guha</name>
+    </author>
+    <author>
+      <name>Xiaoming Huo</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.18906v2</id>
+    <title>Federated Retrieval-Augmented Generation: A Systematic Mapping Study</title>
+    <updated>2025-09-02T06:08:11Z</updated>
+    <link href="https://arxiv.org/abs/2505.18906v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.18906v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL), which enables distributed model training without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are increasingly deployed in privacy-sensitive domains such as healthcare, finance, and personalized assistance, Federated RAG offers a promising framework for secure, knowledge-intensive natural language processing (NLP). To the best of our knowledge, this paper presents the first systematic mapping study of Federated RAG, covering literature published between 2020 and 2025. Following Kitchenham's guidelines for evidence-based software engineering, we develop a structured classification of research focuses, contribution types, and application domains. We analyze architectural patterns, temporal trends, and key challenges, including privacy-preserving retrieval, cross-client heterogeneity, and evaluation limitations. Our findings synthesize a rapidly evolving body of research, identify recurring design patterns, and surface open questions, providing a foundation for future work at the intersection of RAG and federated systems.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-24T23:45:12Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Abhijit Chakraborty</name>
+    </author>
+    <author>
+      <name>Chahana Dahal</name>
+    </author>
+    <author>
+      <name>Vivek Gupta</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2602.05235v2</id>
+    <title>FedMosaic: Federated Retrieval-Augmented Generation via Parametric Adapters</title>
+    <updated>2026-07-11T16:39:43Z</updated>
+    <link href="https://arxiv.org/abs/2602.05235v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2602.05235v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) enhances Large Language Models (LLMs) by grounding generation in external knowledge to improve factuality and reduce hallucinations. Yet most deployments assume a centralized corpus, which is infeasible in privacy aware domains where knowledge remains siloed. This motivates federated RAG (FedRAG), where a central LLM server collaborates with distributed silos without sharing raw documents. In context RAG violates this requirement by transmitting verbatim documents, whereas parametric RAG encodes documents into lightweight adapters that merge with a frozen LLM at inference, avoiding raw-text exchange. We adopt the parametric approach but face two unique challenges induced by FedRAG: high storage and communication from per-document adapters, and destructive aggregation caused by indiscriminately merging multiple adapters. We present FedMosaic, the first federated RAG framework built on parametric adapters. FedMosaic clusters semantically related documents into multi-document adapters with document-specific masks to reduce overhead while preserving specificity, and performs selective adapter aggregation to combine only relevance-aligned, nonconflicting adapters. Experiments show that FedMosaic achieves an average 10.9% higher accuracy than state-of-the-art methods in four categories, while lowering storage costs by 78.8% to 86.3% and communication costs by 91.4%, and never sharing raw documents.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-02-05T02:52:49Z</published>
+    <arxiv:comment>11 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Zhilin Liang</name>
+    </author>
+    <author>
+      <name>Yuxiang Wang</name>
+    </author>
+    <author>
+      <name>Zimu Zhou</name>
+    </author>
+    <author>
+      <name>Hainan Zhang</name>
+    </author>
+    <author>
+      <name>Boyi Liu</name>
+    </author>
+    <author>
+      <name>Yongxin Tong</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.25716v1</id>
+    <title>An Efficient and Privacy-Preserving Architecture for Cross-Institutional Collaborative RAG</title>
+    <updated>2026-05-25T11:18:19Z</updated>
+    <link href="https://arxiv.org/abs/2605.25716v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.25716v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) empowers LLMs with external knowledge, making cross-institutional domain-specific knowledge base integration a highly promising deployment paradigm. Despite this potential, strict privacy regulations create severe "data silos" that obstruct such collaboration. Building federated RAG systems requires distributed inference, but the Transformer's self-attention mechanism fundamentally conflicts with this by mandating cross-node access to distributed Key-Value caches. To address this challenge, we present FedRAG, a high-throughput, privacy-preserving federated RAG framework. At its core is a novel Scrambled Distributed Attention protocol that utilizes numerically stable feature scrambling and token permutation. By dynamically delegating scrambled computations to collaborating nodes, our system successfully decouples attention execution from data localization without exposing plaintext. Crucially, our approach requires no specialized hardware or model retraining, circumventing the prohibitive latency and communication overheads of cryptographic solutions while robustly defending against intermediate state inversion attacks. Extensive evaluations demonstrate our framework preserves negligible (&lt;0.1\%) model utility degradation and achieves up to a 62$\times$ latency reduction over existing secure baselines, sustaining practical, human-reading throughput for cross-institutional knowledge synergy.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-25T11:18:19Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Chenxin Mao</name>
+    </author>
+    <author>
+      <name>Shangyu Liu</name>
+    </author>
+    <author>
+      <name>Zhenzhe Zheng</name>
+    </author>
+    <author>
+      <name>Fan Wu</name>
+    </author>
+    <author>
+      <name>Jie Wu</name>
+    </author>
+    <author>
+      <name>Guihai Chen</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.22162v1</id>
+    <title>Beyond Raw Context Transfer: Representation-based Federated Retrieval-Augmented Generation</title>
+    <updated>2026-08-26T17:31:23Z</updated>
+    <link href="https://arxiv.org/abs/2609.22162v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.22162v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) improves the factuality of large language models (LLMs) and vision-language models (VLMs) by grounding generation in external knowledge. However, most existing RAG frameworks assume a centralized retrieval corpus, which is often impractical in sensitive domains such as healthcare, where data are inherently distributed and raw content cannot be directly shared across institutions. Recent efforts on decentralized RAG primarily follow prompt-based paradigms that exchange raw, human-readable retrieved content, leading to substantial inference-time computational overhead and direct exposure of retrieved information. To address these limitations, we propose Representation-based Federated RAG (FedRepRAG), a decentralized RAG framework that keeps raw documents at their owning clients and exchanges only compact latent representations during cross-client retrieval. To integrate retrieved knowledge, we introduce a collaboratively trained projector that converts retrieval embeddings into generator-compatible representation tokens for a frozen LLM/VLM backbone. Experiments across decentralized visual question answering (VQA) and question answering (QA) benchmarks show that FedRepRAG consistently outperforms direct inference and local retrieval baselines while substantially reducing retrieval-context length and inference-time computational overhead compared with raw-context transfer. Further analyses confirm the importance of query-relevant retrieved representations and characterize the residual representation-level leakage associated with representation exchange. Overall, FedRepRAG provides an effective and efficient framework for federated RAG without transferring raw retrieved content.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-26T17:31:23Z</published>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Can Peng</name>
+    </author>
+    <author>
+      <name>Yu Liu</name>
+    </author>
+    <author>
+      <name>Yingyu Yang</name>
+    </author>
+    <author>
+      <name>Anjie Le</name>
+    </author>
+    <author>
+      <name>Yuyuan Liu</name>
+    </author>
+    <author>
+      <name>Qianye Yang</name>
+    </author>
+    <author>
+      <name>J. Alison Noble</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.28112v2</id>
+    <title>A Wolf in Sheep's Clothing: Targeted Routing Hijacking in Federated RAG</title>
+    <updated>2026-08-28T14:52:00Z</updated>
+    <link href="https://arxiv.org/abs/2605.28112v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.28112v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Federated Retrieval-Augmented Generation (FedRAG) is attractive for privacy-sensitive applications because full local corpora remain on clients. As a result, routing must rely on client-provided semantic profiles, creating a new opportunity for manipulation. We introduce Routing Hijacking, a routing-stage attack in which a malicious client forges its profile to attract target queries despite having irrelevant underlying data. We show that this vulnerability is severe. Across three representative FedRAG routing architectures, Routing Hijacking consistently misroutes target queries and leads to downstream disruptions and failures, including missing evidence, poisoning, incorrect answers, and hallucinations. In a controlled MedQA-USMLE stress test, we further show that poisoned retrieved evidence can mislead models across scales, leading to incorrect answers, hallucinations, and sycophantic failures. Existing defenses do not close this gap: encrypted routing preserves the exploited ranking, and Byzantine-robust Federated Learning (FL) rules transfer poorly to heterogeneous routing profiles. To address this gap, we propose a trust-aware post-routing framework that reweights clients using returned-evidence feedback, including retrieval relevance, profile consistency, and cross-client agreement; online experiments show that it suppresses persistent hijacking over recurring queries and transfers to a learned neural router. Our findings establish routing integrity as a security challenge in FedRAG and highlight the need for stronger defenses for secure federated retrieval.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-27T08:06:10Z</published>
+    <arxiv:comment>Accepted to the EMNLP 2026 Main Conference. Code available at https://github.com/Junjie-Mu/routing-hijacking-fedrag</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Junjie Mu</name>
+    </author>
+    <author>
+      <name>Qiongxiu Li</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.25374v1</id>
+    <title>Supercharging Federated Intelligence Retrieval</title>
+    <updated>2026-03-26T12:23:53Z</updated>
+    <link href="https://arxiv.org/abs/2603.25374v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.25374v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>RAG typically assumes centralized access to documents, which breaks down when knowledge is distributed across private data silos. We propose a secure Federated RAG system built using Flower that performs local silo retrieval, while server-side aggregation and text generation run inside an attested, confidential compute environment, enabling confidential remote LLM inference even in the presence of honest-but-curious or compromised servers. We also propose a cascading inference approach that incorporates a non-confidential third-party model (e.g., Amazon Nova) as auxiliary context without weakening confidentiality.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-26T12:23:53Z</published>
+    <arxiv:comment>6 pages, 1 figure, 2 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Dimitris Stripelis</name>
+    </author>
+    <author>
+      <name>Patrick Foley</name>
+    </author>
+    <author>
+      <name>Mohammad Naseri</name>
+    </author>
+    <author>
+      <name>William Lindskog-Münzing</name>
+    </author>
+    <author>
+      <name>Chong Shen Ng</name>
+    </author>
+    <author>
+      <name>Daniel Janes Beutel</name>
+    </author>
+    <author>
+      <name>Nicholas D. Lane</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2509.06444v1</id>
+    <title>HyFedRAG: A Federated Retrieval-Augmented Generation Framework for Heterogeneous and Privacy-Sensitive Data</title>
+    <updated>2025-09-08T08:44:24Z</updated>
+    <link href="https://arxiv.org/abs/2509.06444v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2509.06444v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Centralized RAG pipelines struggle with heterogeneous and privacy-sensitive data, especially in distributed healthcare settings where patient data spans SQL, knowledge graphs, and clinical notes. Clinicians face difficulties retrieving rare disease cases due to privacy constraints and the limitations of traditional cloud-based RAG systems in handling diverse formats and edge devices. To address this, we introduce HyFedRAG, a unified and efficient Federated RAG framework tailored for Hybrid data modalities. By leveraging an edge-cloud collaborative mechanism, HyFedRAG enables RAG to operate across diverse data sources while preserving data privacy. Our key contributions are: (1) We design an edge-cloud collaborative RAG framework built on Flower, which supports querying structured SQL data, semi-structured knowledge graphs, and unstructured documents. The edge-side LLMs convert diverse data into standardized privacy-preserving representations, and the server-side LLMs integrates them for global reasoning and generation. (2) We integrate lightweight local retrievers with privacy-aware LLMs and provide three anonymization tools that enable each client to produce semantically rich, de-identified summaries for global inference across devices. (3) To optimize response latency and reduce redundant computation, we design a three-tier caching strategy consisting of local cache, intermediate representation cache, and cloud inference cache. Experimental results on PMC-Patients demonstrate that HyFedRAG outperforms existing baselines in terms of retrieval quality, generation consistency, and system efficiency. Our framework offers a scalable and privacy-compliant solution for RAG over structural-heterogeneous data, unlocking the potential of LLMs in sensitive and diverse data environments.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-09-08T08:44:24Z</published>
+    <arxiv:comment>9 pages, 7 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Cheng Qian</name>
+    </author>
+    <author>
+      <name>Hainan Zhang</name>
+    </author>
+    <author>
+      <name>Yongxin Tong</name>
+    </author>
+    <author>
+      <name>Hong-Wei Zheng</name>
+    </author>
+    <author>
+      <name>Zhiming Zheng</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2410.13272v1</id>
+    <title>FRAG: Toward Federated Vector Database Management for Collaborative and Secure Retrieval-Augmented Generation</title>
+    <updated>2024-10-17T06:57:29Z</updated>
+    <link href="https://arxiv.org/abs/2410.13272v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2410.13272v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper introduces \textit{Federated Retrieval-Augmented Generation (FRAG)}, a novel database management paradigm tailored for the growing needs of retrieval-augmented generation (RAG) systems, which are increasingly powered by large-language models (LLMs). FRAG enables mutually-distrusted parties to collaboratively perform Approximate $k$-Nearest Neighbor (ANN) searches on encrypted query vectors and encrypted data stored in distributed vector databases, all while ensuring that no party can gain any knowledge about the queries or data of others. Achieving this paradigm presents two key challenges: (i) ensuring strong security guarantees, such as Indistinguishability under Chosen-Plaintext Attack (IND-CPA), under practical assumptions (e.g., we avoid overly optimistic assumptions like non-collusion among parties); and (ii) maintaining performance overheads comparable to traditional, non-federated RAG systems. To address these challenges, FRAG employs a single-key homomorphic encryption protocol that simplifies key management across mutually-distrusted parties. Additionally, FRAG introduces a \textit{multiplicative caching} technique to efficiently encrypt floating-point numbers, significantly improving computational performance in large-scale federated environments. We provide a rigorous security proof using standard cryptographic reductions and demonstrate the practical scalability and efficiency of FRAG through extensive experiments on both benchmark and real-world datasets.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DB" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-10-17T06:57:29Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Dongfang Zhao</name>
+    </author>
+  </entry>
+</feed>

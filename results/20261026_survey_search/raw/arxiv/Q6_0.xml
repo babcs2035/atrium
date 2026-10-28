@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/H2v8cdcBqxg0dfmfXKqm/mxqXAU</id>
+  <title>arXiv Query: search_query=( (all:"peer to peer" OR all:P2P) AND (all:"retrieval augmented generation" OR all:RAG) ) AND submittedDate:"202001010000 TO 202610262359"&amp;id_list=&amp;start=0&amp;max_results=200</title>
+  <updated>2026-10-26T05:37:53Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=((all:%22peer+to+peer%22+OR+all:P2P)+AND+(all:%22retrieval+augmented+generation%22+OR+all:RAG))+AND+submittedDate:%22202001010000+TO+202610262359%22&amp;start=0&amp;max_results=200&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>200</opensearch:itemsPerPage>
+  <opensearch:totalResults>2</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2505.00443v1</id>
+    <title>Distributed Retrieval-Augmented Generation</title>
+    <updated>2025-05-01T10:37:06Z</updated>
+    <link href="https://arxiv.org/abs/2505.00443v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.00443v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>As large language models (LLMs) become increasingly adopted on edge devices, Retrieval-Augmented Generation (RAG) is gaining prominence as a solution to address factual deficiencies and hallucinations by integrating external knowledge. However, centralized RAG architectures face significant challenges in data privacy and scalability. For instance, smart healthcare services often rely on collecting sensitive patient data and building a centralized knowledge base to provide better diagnosis and treatment advice, while privacy concerns significantly impede this process. Besides, maintaining a comprehensive and continuously updated knowledge base is costly, particularly in response to regional epidemics and rapidly mutating viruses. To address these challenges, this paper introduces Distributed Retrieval-Augmented Generation (DRAG), a novel framework that improves data privacy by eliminating the need for a centralized knowledge base and restoring data control to owners. DRAG incorporates a Topic-Aware Random Walk (TARW) algorithm that leverages LLMs to extract query topics and facilitate targeted peer discovery within a peer-to-peer network, enabling efficient knowledge retrieval in decentralized environments. Extensive experiments across three diverse datasets and LLMs demonstrate that DRAG with TARW achieves near-centralized RAG performance by using half as many messages as flooding. The code is available at https://github.com/xuchenhao001/DRAG.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-01T10:37:06Z</published>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Chenhao Xu</name>
+    </author>
+    <author>
+      <name>Longxiang Gao</name>
+    </author>
+    <author>
+      <name>Yuan Miao</name>
+    </author>
+    <author>
+      <name>Xi Zheng</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2412.11722v2</id>
+    <title>GHIssuemarket: A Sandbox Environment for SWE-Agents Economic Experimentation</title>
+    <updated>2024-12-17T17:06:43Z</updated>
+    <link href="https://arxiv.org/abs/2412.11722v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2412.11722v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Software engineering agents (swe-agents), as key innovations in intelligent software engineering, are poised in the industry's end-of-programming debate to transcend from assistance to primary roles. we argue the importance of swe-agents' economic viability to their transcendence -- defined as their capacity to maintain efficient operations in constrained environments -- and propose its exploration via software engineering economics experimentation.we introduce ghissuemarket sandbox, a controlled virtual environment for swe-agents' economic experimentation, simulating the environment of an envisioned peer-to-peer multiagent system for github issues outsourcing auctions. in this controlled setting, autonomous swe-agents auction and bid on github issues, leveraging real-time communication, a built-in retrieval-augmented generation (rag) interface for effective decision-making, and instant cryptocurrency micropayments. we open-source our software artifacts, discuss our sandbox engineering decisions, and advocate towards swe-agents' economic exploration -- an emerging field we intend to pursue under the term intelligent software engineering economics (isee).</summary>
+    <category term="cs.SE" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-12-16T12:44:42Z</published>
+    <arxiv:comment>2 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.SE"/>
+    <author>
+      <name>Mohamed A. Fouad</name>
+    </author>
+    <author>
+      <name>Marcelo de Almeida Maia</name>
+    </author>
+  </entry>
+</feed>

@@ -1,0 +1,173 @@
+{
+ "hits_total": 1166,
+ "hits_per_source": {
+  "arxiv": 277,
+  "s2": 626,
+  "tavily_web": 137,
+  "tavily_venues": 126
+ },
+ "hits_per_source_query": {
+  "arxiv|Q1": 61,
+  "arxiv|Q2": 9,
+  "arxiv|Q3": 86,
+  "arxiv|Q4": 29,
+  "arxiv|Q5": 62,
+  "arxiv|Q6": 2,
+  "arxiv|Q7": 9,
+  "arxiv|Q8": 19,
+  "s2|Q1": 211,
+  "s2|Q2": 21,
+  "s2|Q3": 33,
+  "s2|Q4": 101,
+  "s2|Q5": 136,
+  "s2|Q6": 7,
+  "s2|Q7": 52,
+  "s2|Q8": 65,
+  "tavily_venues|Q1": 15,
+  "tavily_venues|Q2": 10,
+  "tavily_venues|Q3": 16,
+  "tavily_venues|Q4": 15,
+  "tavily_venues|Q5": 20,
+  "tavily_venues|Q6": 10,
+  "tavily_venues|Q7": 20,
+  "tavily_venues|Q8": 20,
+  "tavily_web|Q1": 14,
+  "tavily_web|Q2": 13,
+  "tavily_web|Q3": 20,
+  "tavily_web|Q4": 17,
+  "tavily_web|Q5": 16,
+  "tavily_web|Q6": 20,
+  "tavily_web|Q7": 17,
+  "tavily_web|Q8": 20
+ },
+ "dedup_total": 734,
+ "dedup_records_containing_source": {
+  "tavily_web": 84,
+  "tavily_venues": 83,
+  "s2": 526,
+  "arxiv": 233
+ },
+ "dedup_only_tavily": 104,
+ "screen_codes": {
+  "SURV": 76,
+  "CEN": 259,
+  "OFF": 205,
+  "DUP": 3,
+  "CEN2": 8,
+  "APP": 80,
+  "NP": 4,
+  "INC": 86,
+  "FLO": 11,
+  "FS": 2
+ },
+ "included": 86,
+ "included_only_tavily": 3,
+ "included_per_year": {
+  "2023": 1,
+  "2024": 10,
+  "2025": 31,
+  "2026": 43,
+  "unknown": 1
+ },
+ "coding": {
+  "data_partition": {
+   "NS": 40,
+   "NA": 6,
+   "TOPIC": 20,
+   "SPLIT": 11,
+   "OWNER": 2,
+   "TIER": 7
+  },
+  "evaluation_form": {
+   "NS": 22,
+   "NONE": 10,
+   "SIM": 50,
+   "PHYS": 4
+  },
+  "comparison_to_centralized": {
+   "NS": 14,
+   "NONE": 45,
+   "ACC": 9,
+   "OTHER": 17,
+   "WINRATE": 1
+  },
+  "centralized_has_same_retrieval_improvements": {
+   "NA": 63,
+   "UNK": 21,
+   "N": 1,
+   "Y": 1
+  },
+  "exposure_measured": {
+   "Y": 14,
+   "N": 72
+  },
+  "latency_measured": {
+   "N": 56,
+   "Y": 30
+  },
+  "compute_or_energy_measured": {
+   "N": 69,
+   "Y": 17
+  },
+  "coding_basis": {
+   "A": 67,
+   "O": 11,
+   "X": 3,
+   "T": 5
+  }
+ },
+ "code_labels": {
+  "partition": {
+   "TOPIC": "by topic/domain/source collection",
+   "SPLIT": "artificial split of public dataset",
+   "OWNER": "by owner (person/organization)",
+   "TIER": "device-private vs cloud-public tiers",
+   "NS": "not stated in screened text",
+   "NA": "not applicable"
+  },
+  "eval": {
+   "SIM": "simulation / emulation / single machine",
+   "PHYS": "multiple physical devices",
+   "NONE": "no empirical evaluation",
+   "NS": "not stated in screened text"
+  },
+  "central": {
+   "NONE": "no comparison to centralized",
+   "WINRATE": "relative LLM win rate",
+   "ACC": "correctness-based accuracy (EM/F1/accuracy)",
+   "OTHER": "other (retrieval metrics, overlap, unspecified 'performance', cost)",
+   "NS": "not stated in screened text"
+  }
+ },
+ "joint": {
+  "owner_partition": [
+   "P0190",
+   "P0480"
+  ],
+  "physical_multi_device": [
+   "P0250",
+   "P0267",
+   "P0557",
+   "P0574"
+  ],
+  "accuracy_vs_centralized": [
+   "P0130",
+   "P0140",
+   "P0224",
+   "P0263",
+   "P0274",
+   "P0475",
+   "P0529",
+   "P0540",
+   "P0574"
+  ],
+  "same_improvements_yes": [
+   "P0540"
+  ],
+  "owner_and_physical": [],
+  "physical_and_acc": [
+   "P0574"
+  ],
+  "owner_and_acc": []
+ }
+}

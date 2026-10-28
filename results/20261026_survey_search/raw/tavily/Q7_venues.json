@@ -1,0 +1,170 @@
+{
+  "query": "privacy-preserving retrieval-augmented generation multiple data sources",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://ieeexplore.ieee.org/document/11391120",
+      "title": "Efficient Privacy-Preserving Retrieval Augmented Generation with Distance-Preserving Encryption",
+      "content": "Retrieval-Augmented Generation (RAG) has emerged as a key technique for enhancing response quality of large language models (LLMs) without incurring high computational cost. It works by retrieving knowledge and fact from external databases, augmenting the prompt with the retrieved data, and enabling the LLM to generate more accurate responses. In traditional architectures, RAG services are provided by a single entity that hosts the dataset and issues queries within a trusted local environment. However, individuals or small organizations often lack the resources to maintain data storage servers, leading them to rely on outsourced, cloud-based storage for scalability. This dependence on untrusted third-party services introduces significant privacy risks, particularly when handling private [...] Learn More\n\nImage 3 Contents\n\n  \n\n### I. Introduction\n\nLarge Language Models (LLMs), despite their powerful capabilities in generation and reasoning across various domains, face well-known limitations such as hallucination, outdated knowledge due to static training corpora, and lack of access to proprietary or time-sensitive information during inference , . To overcome these challenges, Retrieval-Augmented Generation (RAG) has emerged as a widely adopted framework. RAG enhances LLMs by coupling them with external retrieval databases: given a query, the model first retrieves relevant documents from a vectorized database, then generates responses based on the retrieved domain-specific content , .\n\n Sign in to Continue Reading \n\n## Authors\n\n## Figures\n\n## References\n\n## Citations [...] Show More\n\nPublished in:2025 3rd International Conference on Foundation and Large Language Models (FLLM)\n\nDate of Conference: 25-28 November 2025 \n\nDate Added to IEEE _Xplore_: 19 February 2026 \n\n ISBN Information: \n\nDOI:10.1109/FLLM67465.2025.11391120\n\nPublisher: IEEE\n\nConference Location: Vienna, Austria \n\n## Funding Agency:\n\n### Recommended for You (Beta)\n\n  \n\nRAG with Differential PrivacyRetrieval-Augmented Generation: A Survey of Security Challenges and CountermeasuresPrivacy-Preserving LLM-based RAG with Split Inference and Masked Privacy Recovery\n\nLearn More\n\nImage 3 Contents\n\n  \n\n### I. Introduction",
+      "score": 0.80442166,
+      "raw_content": null,
+      "id": "06019c-00"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.769.pdf",
+      "title": "pFedRAG: A Personalized Federated Retrieval-Augmented ...",
+      "content": "2 Related Work FL for Retrieval-Augmented Generation.\nFL (McMahan et al., 2017) enables privacy-14256 preserving collaborative training across decen-tralized data sources (Kairouz et al., 2021), while RAG (Lewis et al., 2020b) enhances LLM factuality by grounding responses in external knowledge. The integration of these paradigms into FedRAG systems (Jung et al., 2024; Addison et al., 2024) leverages distributed knowledge while maintaining privacy in sensitive domains. [...] Efficient Federated Fine-Tuning. The proposed pFedRAG introduces the Adaptive Dual-Tier Head (ADT-Head), a parameter-efficient architecture that attaches a lightweight, trainable head to a frozen embedding backbone. This design significantly reduces communication and computational over-head, cutting per-round updates to just 4.3% of full model fine-tuning, while preserving strong re-trieval performance. It enables the practical deploy-ment of personalized retrieval models in bandwidth-constrained federated settings.\nPrivacy-Preserving Dataset Generation.\nWe propose a novel client-side pipeline for supervised data generation that avoids central data pooling. [...] As embeddings evolve, initially identified hard neg-atives may become less challenging. An iterative re-mining strategy that periodically updates hard negatives based on current embedding spaces could further enhance retrieval performance.\nFuture Improvements for Dataset Generation.\nOur client-side pipeline uses lightweight LLMs to generate queries while preserving privacy and accommodating resource constraints. Though ef-fective, query quality might not match that of larger models. Future work could explore privacy-preserving mechanisms to leverage larger LLM capabilities through secure APIs, potentially en-hancing dataset quality without compromising pri-vacy.",
+      "score": 0.79369855,
+      "raw_content": null,
+      "id": "e1a975-01"
+    },
+    {
+      "url": "https://aclanthology.org/2025.emnlp-main.1247.pdf",
+      "title": "[PDF] Mitigating the Privacy Issues in Retrieval-Augmented Generation ...",
+      "content": "retrieved from external knowledge sources. However, when the retrieval process involves private data, RAG systems may face severe privacy risks, poten-tially leading to the leakage of sensitive infor-mation. To address this issue, we propose us-ing synthetic data as a privacy-preserving al-ternative for the retrieval data. We propose SAGE, a novel two-stage synthetic data gen-eration paradigm. [...] 1 Introduction Retrieval-augmented generation (RAG) aims to im-prove language model outputs by incorporating relevant information retrieved from external knowl-edge sources. It has been effectively applied in various scenarios, such as domain-specific chatbots (Siriwardhana et al., 2023) and email/code comple-tion (Parvez et al., 2021). A typical RAG system often operates in two stages: retrieval and genera-tion. First, the system retrieves relevant knowledge Equal contribution.\nQuery Original DB Original Data Synthetic DB Synthetic Data Query Input Answer LLMs Figure 1: An illustration for RAG with synthetic data.\nfrom an external database based on the user query. [...] 5 Conclusions In this paper, we take the first step towards inves-tigating the possibility of utilizing synthetic data as retrieval-augmented generation (RAG) data to mitigate privacy concerns. We propose a novel two-stage synthetic pipeline that includes attribute-based data generation, which aims to maintain key information, and iterative agent-based refinement, 24534 which further enhances the privacy of the data. Ex-perimental results demonstrate that using our gen-erated synthetic data as RAG data achieves compa-rable performance to using the original data while effectively mitigating the associated privacy issues.\nOur work opens up new opportunities for the safe application of RAG systems in sensitive domains.",
+      "score": 0.7795405,
+      "raw_content": null,
+      "id": "1e3306-02"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-acl.197.pdf",
+      "title": "RemoteRAG: A Privacy-Preserving LLM Cloud RAG Service",
+      "content": "1 Introduction Large language models (LLMs) have attracted widespread attention since the release of ChatGPT (OpenAI, 2022a). However, LLM is not without its flaws. One major issue is its tendency to generate factually incorrect or purely fictional responses, a phenomenon known as hallucination (Leiser et al., 2024; Yao et al., 2023).\nTo mitigate this problem, retrieval-augmented generation (RAG) (Lewis et al., 2020) has been proposed to offer credible external knowledge, pro-viding significant convenience for numerous tasks.\nRAG aims to understand the input query, extract relevant information from external data sources, and enhance the quality of the generated answers (Borgeaud et al., 2022; Lewis et al., 2020; Li et al., 2023b). [...] Findings of the Association for Computational Linguistics: ACL 2025, pages 3820–3837 July 27 - August 1, 2025 ©2025 Association for Computational Linguistics RemoteRAG: A Privacy-Preserving LLM Cloud RAG Service Yihang Cheng1, Lan Zhang1,2, Junyang Wang1, Mu Yuan3, Yunhao Yao1 1University of Science and Technology of China, Hefei, China 2Institute of Artificial Intelligence, Hefei Comprehensive National Science Center, China 3The Chinese University of Hong Kong, Hone Kong, China yihangcheng@mail.ustc.edu.cn, zhanglan@ustc.edu.cn, iswangjy@mail.ustc.edu.cn muyuan@cuhk.edu.hk, sa21011190@mail.ustc.edu.cn Abstract Retrieval-augmented generation (RAG) im-proves the service quality of large language models by retrieving relevant documents from credible literature and integrating them into the [...] Mandar Joshi, Eunsol Choi, Daniel S. Weld, and Luke Zettlemoyer. 2017. Triviaqa: A large scale distantly supervised challenge dataset for reading comprehen-sion. In Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics, ACL 2017, Vancouver, Canada, July 30 - August 4, Volume 1: Long Papers, pages 1601–1611. Association for Computational Linguistics.\nZhigang Kan, Linbo Qiao, Hao Yu, Liwen Peng, Yifu Gao, and Dongsheng Li. 2023. Protecting user pri-vacy in remote conversational systems: A privacy-preserving framework based on text sanitization.\nCoRR, abs/2306.08223.\nTatsuki Koga, Ruihan Wu, and Kamalika Chaudhuri.\n2024. Privacy-preserving retrieval augmented genera-tion with differential privacy. CoRR, abs/2412.04697.",
+      "score": 0.73642004,
+      "raw_content": null,
+      "id": "10c83a-03"
+    },
+    {
+      "url": "https://aclanthology.org/2024.findings-acl.267.pdf",
+      "title": "Exploring Privacy Issues in Retrieval-Augmented Generation (RAG)",
+      "content": "These findings have significant implications.\nFirst, integrating retrieval data reduces the risk of privacy leaks from LLMs’ training data, making it harder for attackers to access this information.\nThis highlights the importance of addressing risks related to information extraction from retrieval data in practical RAG systems. Second, RAG can effec-tively protect private information in LLMs’ training data. Using non-sensitive public or carefully de-sensitized data as retrieval content can greatly min-imize the risk of information leakage from LLMs. [...] Datasets and Metrics.\nTo investigate the leak-age of private data, we chose two datasets as our retrieval data: the Enron Email dataset of 500,000 employee emails, and the HealthcareMagic-101 dataset of 200k doctor-patient medical dialogues.\nIn practice, these datasets correlate to scenarios like email completion or medical chatbots. Both datasets contain private information such as PIIs and personal dialogues, allowing us to evaluate the privacy risks of retrieval data extraction. For the HealthcareMagic dataset, we construct each doctor-patient medical dialogue as a data piece embedded and stored in a vector database, while for the Enron Email, we construct each email as a data piece. [...] 3 School of Artificial Intelligence, Jilin University 4 International Center of Future Science, Jilin University 5 Engineering Research Center of Knowledge-Driven Human-Machine Intelligence, MOE, China Abstract Retrieval-augmented generation (RAG) is a powerful technique to facilitate language model with proprietary and private data, where data privacy is a pivotal concern. Whereas extensive research has demonstrated the privacy risks of large language models (LLMs), the RAG tech-nique could potentially reshape the inherent behaviors of LLM generation, posing new pri-vacy issues that are currently under-explored.",
+      "score": 0.7286136,
+      "raw_content": null,
+      "id": "7eb681-04"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3837074",
+      "title": "Towards Trustworthy Retrieval Augmented Generation for ...",
+      "content": "by B Ni · 2026 · Cited by 147 — Privacy leakage can originate from two sources: external retrieval databases and internal training data. External leakage involves exposing sensitive ...Read more",
+      "score": 0.67321366,
+      "raw_content": null,
+      "id": "0d5cfd-05"
+    },
+    {
+      "url": "https://aclanthology.org/2025.emnlp-main.1259.pdf",
+      "title": "Unveiling Privacy Vulnerabilities in Multi-modal Retrieval- ...",
+      "content": "2 Related Work 2.1 Multi-modality RAG Retrieval-Augmented Generation (RAG)(Lewis et al., 2020; Jokinen et al., 2022; Chase, 2022; Han et al., 2024; Guo et al., 2025; Zeng et al., 2025a, 2024, 2025b) enhances LLMs by retriev-ing relevant information from external knowledge bases and incorporating it into the prompt, enabling models to access information beyond their train-ing data. This approach effectively expands the model’s knowledge, reduces hallucinations, and improves accuracy and relevance (Shuster et al., 2021). With the rapid advancement of large mul-timodal models (LMMs)(Team et al., 2023; Yao et al., 2024; Liu et al., 2024b), RAG has been ex-tended to Multimodal Retrieval-Augmented Gen-eration (MRAG)(Chen et al., 2022a; Siriwardhana et al., 2023), enabling the integration of [...] While text-based RAG privacy risks have been stud-ied, multimodal data presents unique chal-lenges. We provide the first systematic anal-ysis of MRAG privacy vulnerabilities across vision-language and speech-language modal-ities. Using a novel compositional structured prompt attack in a black-box setting, we demon-strate how attackers can extract private infor-mation by manipulating queries. Our exper-iments reveal that LMMs can both directly generate outputs resembling retrieved content and produce descriptions that indirectly ex-pose sensitive information, highlighting the urgent need for robust privacy-preserving MRAG techniques. [...] Shamane Siriwardhana, Rivindu Weerasekera, Elliott Wen, Tharindu Kaluarachchi, Rajib Rana, and Suranga Nanayakkara. 2023. Improving the domain adaptation of retrieval augmented generation (rag) models for open domain question answering. Trans-actions of the Association for Computational Linguis-tics, 11:1–17.\nGemini Team, Rohan Anil, Sebastian Borgeaud, Jean-Baptiste Alayrac, Jiahui Yu, Radu Soricut, Johan Schalkwyk, Andrew M Dai, Anja Hauth, Katie Millican, et al. 2023.\nGemini: a family of highly capable multimodal models. arXiv preprint arXiv:2312.11805.\nQwen Team. 2025. Qwen2.5-vl.\nKailash Thiyagarajan. 2025. Multimodal rag for en-hanced information retrieval and generation in retail.\nIn 2025 International Conference on Visual Analytics and Data Visualization (ICVADV), pages 102–106.",
+      "score": 0.6599319,
+      "raw_content": null,
+      "id": "cfb0ea-06"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3770855.3817665",
+      "title": "Mitigating Privacy Leakage of Large Language Models in ...",
+      "content": "Retrieval-Augmented Generation (RAG) enhances the factual accuracy of large language models (LLMs) by conditioning outputs on external knowledge sources.",
+      "score": 0.60750073,
+      "raw_content": null,
+      "id": "c216d9-07"
+    },
+    {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3793217.3793229",
+      "title": "Retrieval-augmented Generation (RAG)",
+      "content": "by A Khan · 2026 · Cited by 9 — Addressing privacy and security calls for advanced privacy-preserving methods and fine-grained access controls over data, embeddings, model parame- ters,",
+      "score": 0.5832277,
+      "raw_content": null,
+      "id": "84a9a9-08"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3777378",
+      "title": "Graph Retrieval-Augmented Generation: A Survey",
+      "content": "synthesizes information from multiple sources through edges (relationships) in the graph, yielding more accurate and comprehensive answers. For instance, when handling multi-hop queries, GraphRAG can identify relevant subgraphs or paths within the graph, where edges connect these paths. Each edge represents a relationship between different entities, thereby providing high-order information to LMs [98, 153, 155, 212, 243]. [...] Image 28\n\nThe overview of G-Indexing.\n\n### 5.1 Graph Data\n\nVarious types of graph data are utilized in GraphRAG for retrieval and generation. Here, we categorize these data into two categories based on their sources, including open KGs and self-constructed graph data. The former mainly applies to scenarios using pre-defined KGs or open-domain QA, while the latter specifically targets retrieval and question answering from unstructured text or tabular data sources.\n\n#### 5.1.1 Open KGs. [...] Google Scholar\n\n   [a [...] on proprietary data sources such as textual](\n   [b [...] DALK](\n   [c [...] DALK](\n   [d [...] to extract triples from unstructured text](\n   [e [...] ] and Li et al.](\n   [f [...] ] and Li et al.](\n   [g [...] its semantic content. Conversely, DALK](\n   [h [...] MedQA ](\n   [i [...] ], biomedical](\n   [j [...] treat particular diseases. Some researchers](\n   [k [...] filter retrieved content through re-ranking](\n   [l [...] to enhance generation effectiveness](\n\nJia Li, Xianjie Shi, Kechi Zhang, Lei Li, Ge Li, Zhengwei Tao, Jia Li, Fang Liu, Chongyang Tao, and Zhi Jin. 2025. CodeRAG: Supportive code retrieval on bigraph for real-world code generation. arXiv:2504.10046. Retrieved. Retrieved from \n\nGoogle Scholar",
+      "score": 0.56460327,
+      "raw_content": null,
+      "id": "34090e-09"
+    },
+    {
+      "url": "https://aclanthology.org/2026.findings-acl.939.pdf",
+      "title": "Privacy-Preserving Reasoning with Knowledge-Distilled ...",
+      "content": "Findings of the Association for Computational Linguistics: ACL 2026, pages 18824–18838 July 2-7, 2026 ©2026 Association for Computational Linguistics Privacy-Preserving Reasoning with Knowledge-Distilled Parametric Retrieval Augmented Generation Jinwen Chen1,2 Hainan Zhang1,2 Liang Pang3 Yongxin Tong4 Haibo Zhou5 Wei Lin5 Zhiming Zheng1,2 1Beijing Advanced Innovation Center for Future Blockchain and Privacy Computing 2School of Artificial Intelligence, Beihang University, China 3Institute of Computing Technology, Chinese Academy of Sciences 4School of Computer Science and Engineering, Beihang University, China 5Meituan {jwkami, zhanghainan}@buaa.edu.cn Abstract The current RAG system requires uploading plaintext documents to the cloud, risking pri-vate data leakage. Parametric RAG (PRAG) [...] In Proceedings of the 2018 Conference on Empiri-cal Methods in Natural Language Processing, pages 2369–2380.\nShenglai Zeng, Jiankun Zhang, Pengfei He, Yiding Liu, Yue Xing, Han Xu, Jie Ren, Yi Chang, Shuaiqiang Wang, Dawei Yin, and Jiliang Tang. 2024. The good and the bad: Exploring privacy issues in retrieval-augmented generation (RAG). In Findings of the As-sociation for Computational Linguistics: ACL 2024, pages 4505–4524, Bangkok, Thailand. Association for Computational Linguistics.\nQianchi Zhang, Hainan Zhang, Liang Pang, Yongxin Tong, Hongwei Zheng, and Zhiming Zheng. 2026a.\nLess is more: Compact clue selection for efficient retrieval-augmented generation reasoning. In Pro-ceedings of the ACM Web Conference 2026, page 1971–1982. [...] Alex Mallen, Akari Asai, Victor Zhong, Rajarshi Das, Daniel Khashabi, and Hannaneh Hajishirzi. 2023.\nWhen not to trust language models: Investigating effectiveness of parametric and non-parametric mem-ories. In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Vol-ume 1: Long Papers), pages 9802–9822.\nDavid Rau, Shuai Wang, Hervé Déjean, Stéphane Clin-chant, and Jaap Kamps. 2025. Context embeddings for efficient answer generation in retrieval-augmented generation. In Proceedings of the Eighteenth ACM International Conference on Web Search and Data Mining, pages 493–502.",
+      "score": 0.54681134,
+      "raw_content": null,
+      "id": "ba3843-10"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/10921633.pdf",
+      "title": "Enhancing the Precision and Interpretability of Retrieval- ...",
+      "content": "by M Hindi · 2025 · Cited by 133 — The advancement of Retrieval-Augmented Generation. (RAG) systems in legal technology heavily relies on high-quality datasets that enable effective retrieval,",
+      "score": 0.4116553,
+      "raw_content": null,
+      "id": "e527f2-11"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3770855.3817524",
+      "title": "Benchmarking Knowledge-Extraction Attack and Defense ...",
+      "content": "Retrieval-Augmented Generation (RAG) has become a cornerstone of knowledge-intensive applications, including enterprise chatbots, healthcare assistants, and",
+      "score": 0.39971843,
+      "raw_content": null,
+      "id": "c019cc-12"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11540404",
+      "title": "PriRAG: Privacy-Preserving Inference for Retrieval ...",
+      "content": "The core idea is to compress the raw data of the retrieved information into proxy knowledge representations with carefully-designed privacy preservation",
+      "score": 0.3966996,
+      "raw_content": null,
+      "id": "879e40-13"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3783862.3783896",
+      "title": "RAG-Guardrails Integration for AI Content Control",
+      "content": "by R More · 2025 · Cited by 2 — Privacy concerns arise from the dual nature of RAG systems, The retrieval process may inadvertently expose confidential information, while the generation",
+      "score": 0.36527607,
+      "raw_content": null,
+      "id": "ef336f-14"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3703412.3703431",
+      "title": "Efficient and verifiable responses using Retrieval ...",
+      "content": "by H Liang · 2024 · Cited by 8 — We present an improved Retrieval Augmented Generation (RAG) architecture for automated RFP completion that enhances relevant content generation and",
+      "score": 0.3548806,
+      "raw_content": null,
+      "id": "20e98c-15"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3721146.3721942",
+      "title": "Efficient Federated Search for Retrieval-Augmented ...",
+      "content": "We introduce RAGRoute, a novel mechanism for federated RAG search. RAGRoute dynamically selects relevant data sources at query time using a lightweight neural",
+      "score": 0.33980626,
+      "raw_content": null,
+      "id": "19ad89-16"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11080430.pdf",
+      "title": "RAG-Driven Memory Architectures in Conversational LLMs ...",
+      "content": "by NA Akbar · 2025 · Cited by 24 — We analyze how vector databases and Retrieval-Augmented Generation (RAG) address fundamental challenges in storing and retrieving conversational context, ...Read more26 pages",
+      "score": 0.22369951,
+      "raw_content": null,
+      "id": "c2f900-17"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3729219",
+      "title": "Privacy Preserving Prompt Engineering: A Survey",
+      "content": "by K Edemacu · 2025 · Cited by 106 — Randomization-based privacy-preserving methods, such as LDP and GDP, can provide privacy guarantees (P) by introducing randomness into the data or model",
+      "score": 0.22023381,
+      "raw_content": null,
+      "id": "304862-18"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11224764.pdf",
+      "title": "Permission-Aware RAG: Identity and Access Management ...",
+      "content": "by J Jeong · 2025 · Cited by 13 — RAG systems are increasingly used in multi-resource envi- ronments where knowledge is distributed across diverse data sources.",
+      "score": 0.12186354,
+      "raw_content": null,
+      "id": "95d1cc-19"
+    }
+  ],
+  "response_time": 3.02,
+  "request_id": "dd8560fe-ce26-4cbd-a53b-448e93e285eb"
+}

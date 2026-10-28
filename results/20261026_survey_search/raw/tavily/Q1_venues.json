@@ -1,0 +1,130 @@
+{
+  "query": "federated retrieval-augmented generation",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.388",
+      "title": "Federated Retrieval-Augmented Generation: A Systematic Mapping Study - ACL Anthology",
+      "content": "Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL),which enables distributed model training without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are increasingly deployed in privacy-sensitive domains such as healthcare, finance, and personalized assistance, Federated RAG offers a promising framework for secure, knowledge-intensive natural language processing (NLP). To the best of our knowledge, this paper presents the first systematic mapping study of Federated RAG, covering literature published between 2020 and 2025. Following Kitchenham’s guidelines for evidence-based software engineering, we develop a [...] @inproceedings{chakraborty-etal-2025-federated, title = \"Federated Retrieval-Augmented Generation: A Systematic Mapping Study\", author = \"Chakraborty, Abhijit and Dahal, Chahana and Gupta, Vivek\", editor = \"Christodoulopoulos, Christos and Chakraborty, Tanmoy and Rose, Carolyn and Peng, Violet\", booktitle = \"Findings of the Association for Computational Linguistics: EMNLP 2025\", month = nov, year = \"2025\", address = \"Suzhou, China\", publisher = \"Association for Computational Linguistics\", url = \" doi = \"10.18653/v1/2025.findings-emnlp.388\", pages = \"7362--7374\", ISBN = \"979-8-89176-335-7\", abstract = \"Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL),which enables distributed model training without exposing raw data, with Retrieval-Augmented [...] Federated Retrieval-Augmented Generation: A Systematic Mapping Study   Abhijit Chakraborty  author    Chahana Dahal  author    Vivek Gupta  author    2025-11  text   Findings of the Association for Computational Linguistics: EMNLP 2025   Christos Christodoulopoulos  editor    Tanmoy Chakraborty  editor    Carolyn Rose  editor    Violet Peng  editor    Association for Computational Linguistics  Suzhou, China   conference publication 979-8-89176-335-7  Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learning (FL),which enables distributed model training without exposing raw data, with Retrieval-Augmented Generation (RAG), which improves the factual accuracy of language models by grounding outputs in external knowledge. As large language models are",
+      "score": 0.91813606,
+      "raw_content": null,
+      "id": "5c9068-00"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.388.pdf",
+      "title": "Federated Retrieval-Augmented Generation: A Systematic ...",
+      "content": "Findings of the Association for Computational Linguistics: EMNLP 2025, pages 7362–7374 November 4-9, 2025 ©2025 Association for Computational Linguistics Federated Retrieval-Augmented Generation: A Systematic Mapping Study Abhijit Chakraborty1 Chahana Dahal2 Vivek Gupta1 1Arizona State University 2University of Nevada, Las Vegas {achakr40,vgupt140}@asu.edu {chahana.dahal}@unlv.edu Abstract Federated Retrieval-Augmented Generation (Federated RAG) combines Federated Learn-ing (FL),which enables distributed model train-ing without exposing raw data, with Retrieval-Augmented Generation (RAG), which im-proves the factual accuracy of language mod-els by grounding outputs in external knowl-edge. As large language models are increas-ingly deployed in privacy-sensitive domains such as healthcare, [...] 7 Conclusion Federated Retrieval-Augmented Generation (RAG) has rapidly moved from concept to practice by pair-ing privacy-preserving training with knowledge-grounded generation. Our systematic mapping of 18 primary studies charts this evolution, classifying architectures, contributions, and domains, and high-lighting a 2024 research surge driven by large-scale language-model adoption and regulatory pressure for confidential data handling. [...] Federated RAG is distinctive because fed-erated learning safeguards training-time privacy by restricting data to local silos, while retrieval-augmented generation grounds inference-time out-puts in external evidence, reducing hallucina-tions. Their integration enables capabilities such as source attribution, local index maintenance, and dy-namic document unlearning that neither paradigm achieves alone.",
+      "score": 0.910998,
+      "raw_content": null,
+      "id": "9df18e-01"
+    },
+    {
+      "url": "https://dl.acm.org/doi/abs/10.1145/3805712.3809655",
+      "title": "FedMosaic: Federated Retrieval-Augmented Generation ...",
+      "content": "by Z Liang · 2026 · Cited by 6 — Retrieval-Augmented Generation (RAG) enhances Large Language Models (LLMs) by grounding generation in external knowledge to improve factuality and reduce",
+      "score": 0.8825193,
+      "raw_content": null,
+      "id": "2923ea-02"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.769.pdf",
+      "title": "pFedRAG: A Personalized Federated Retrieval-Augmented ...",
+      "content": "Flower. 2025. Federated retrieval augmented gener-ation (FedRAG) example.\n docs/examples/fedrag.html. Accessed on [Insert Access Date].\nAvishek Ghosh, Justin Chung, Dong Yin, and Kannan Ramchandran. 2020.\nAn efficient framework for clustered federated learning. In Advances in Neural Information Processing Systems, volume 33, pages 19586–19597.\nRachid Guerraoui, Anusha Gupta, Andreas Hellander, Anne-Marie Kermarrec, Nikola Logic, and Rafael Plassier. 2025. Efficient federated search for retrieval-augmented generation. In Proceedings of the Eu-roMLSys Conference. Based on arXiv:2502.19280. [...] However, LLMs remain susceptible to halluci-nations, producing plausible-sounding but factu-ally incorrect content, which is problematic in do-mains such as healthcare and law (Ji et al., 2023).\nRetrieval-Augmented Generation (RAG) mitigates hallucinations by incorporating external knowl-edge. A retriever selects relevant documents from a knowledge base, and the generator conditions its responses on these documents. The effectiveness heavily depends on retrieval quality. [...] Eugenia Kim, Jingjing Wang, and Shandong Wu. 2024.\nFederated learning-enhanced retrieval augmented generation (RAG). Technical Report 8089, Technical Disclosure Commons.\nVinayak Kulkarni, Milind Kulkarni, and Anirudh Pant.\n2020. Survey of personalization techniques for feder-ated learning.\nPatrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Mazar Komeili, et al. 2020a.\nRetrieval-augmented gen-eration for knowledge-intensive nlp tasks. In Ad-vances in Neural Information Processing Systems, volume 33, pages 9459–9474.",
+      "score": 0.8708723,
+      "raw_content": null,
+      "id": "045dcc-03"
+    },
+    {
+      "url": "https://aclanthology.org/2025.coling-industry.33.pdf",
+      "title": "Federated Retrieval Augmented Generation for Multi- ...",
+      "content": "2.2 Retrieval Augmented Generation Retrieval augmented generation (RAG) has re-cently emerged as a powerful approach for enhanc-ing the performance of LLMs in knowledge-base QA tasks. RAG combines the strengths of retrieval-based and generation-based methods to produce more accurate and faithful responses. (Lewis et al., 2020) introduced the foundational RAG model, which retrieves relevant documents and conditions its output on both the retrieved information and the input query. Subsequent works have further improved it with (Guu et al., 2020) developing REALM for joint training of retriever and genera-tor, and (Karpukhin et al., 2020) introducing dense passage retrieval for improved efficiency. Recent research has explored RAG in domain-specific con-texts. (Head et al., 2021) adapted RAG [...] Proceedings of the 31st International Conference on Computational Linguistics: Industry Track, pages 387–397 January 19–24, 2025. ©2025 Association for Computational Linguistics 387 Federated Retrieval Augmented Generation for Multi-Product Question Answering Parshin Shojaee1, Sai Sree Harsha2, Dan Luo2, Akash Maharaj2, Tong Yu2, Yunyao Li2 1Virginia Tech 2Adobe parshinshojaee@vt.edu, {ssree, dluo, maharaj, tyu, yunyaol}@adobe.com Abstract Recent advancements in Large Language Mod-els and Retrieval-Augmented Generation have boosted interest in domain-specific question-answering for enterprise products. However, AI Assistants often face challenges in multi-product QA settings, requiring accurate re-sponses across diverse domains. Existing multi-domain RAG-QA approaches either query all [...] Shuai Wang, Ekaterina Khramtsova, Shengyao Zhuang, and Guido Zuccon. 2024a. Feb4rag: Evaluating fed-erated search in the context of retrieval augmented generation. In Proceedings of the 47th International ACM SIGIR Conference on Research and Develop-ment in Information Retrieval, pages 763–773.\nShuai Wang, Shengyao Zhuang, Bevan Koopman, and Guido Zuccon. 2024b. Resllm: Large language mod-els are strong resource selectors for federated search.\narXiv preprint arXiv:2401.17645.\nRidong Wu, Shuhong Chen, Xiangbiao Su, Yuankai Zhu, Yifei Liao, and Jianming Wu. 2024. A multi-source retrieval question answering framework based on rag. arXiv preprint arXiv:2405.19207.",
+      "score": 0.85624856,
+      "raw_content": null,
+      "id": "e7367c-04"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3721146.3721942",
+      "title": "Efficient Federated Search for Retrieval-Augmented ...",
+      "content": "Retrieval-augmented generation (RAG) mitigates these issues by grounding model responses in external knowledge sources. Existing RAG workflows often leverage a",
+      "score": 0.8559598,
+      "raw_content": null,
+      "id": "7cc214-05"
+    },
+    {
+      "url": "https://dl.acm.org/doi/abs/10.1145/3721201.3725426",
+      "title": "DF-RAG: A Dual Federated Retrieval-Augmented ...",
+      "content": "by J Garcia · 2025 · Cited by 7 — This paper introduces Dual Federated Retrieval-Augmented Generation (DF-RAG), a framework addressing privacy, interpretability, and reliability challenges",
+      "score": 0.85157084,
+      "raw_content": null,
+      "id": "648a22-06"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.769",
+      "title": "pFedRAG: A Personalized Federated Retrieval-Augmented Generation System with Depth-Adaptive Tiered Embedding Tuning - ACL Anthology",
+      "content": "Large Language Models (LLMs) can undergo hallucinations in specialized domains, and standard Retrieval-Augmented Generation (RAG) often falters due to general-purpose embeddings ill-suited for domain-specific terminology. Though domain-specific fine-tuning enhances retrieval, centralizing data introduces privacy risks. The use of federated learning (FL) can alleviate this to some extent, but faces challenges of data heterogeneity, poor personalization, and expensive training data generation. We propose pFedRAG, a novel Personalized Federated RAG framework, which enables efficient collaborative fine-tuning of embedding models to address these challenges. The key contribution is a new Depth-Adaptive Tiered Embedding (DATE) architecture, which comprises a Global Shared Layer, combined using [...] domains, and standard Retrieval-Augmented Generation (RAG) often falters due to general-purpose embeddings ill-suited for domain-specific terminology. Though domain-specific fine-tuning enhances retrieval, centralizing data introduces privacy risks. The use of federated learning (FL) can alleviate this to some extent, but faces challenges of data heterogeneity, poor personalization, and expensive training data generation. We propose pFedRAG, a novel Personalized Federated RAG framework, which enables efficient collaborative fine-tuning of embedding models to address these challenges. The key contribution is a new Depth-Adaptive Tiered Embedding (DATE) architecture, which comprises a Global Shared Layer, combined using FL to capture common knowledge, and a Personalized Layer with [...] @inproceedings{he-etal-2025-pfedrag, title = \"p{F}ed{RAG}: A Personalized Federated Retrieval-Augmented Generation System with Depth-Adaptive Tiered Embedding Tuning\", author = \"He, Hangyu and Yuan, Xin and Wu, Kai and Liu, Ren Ping and Ni, Wei\", editor = \"Christodoulopoulos, Christos and Chakraborty, Tanmoy and Rose, Carolyn and Peng, Violet\", booktitle = \"Findings of the {A}ssociation for {C}omputational {L}inguistics: {EMNLP} 2025\", month = nov, year = \"2025\", address = \"Suzhou, China\", publisher = \"Association for Computational Linguistics\", url = \" doi = \"10.18653/v1/2025.findings-emnlp.769\", pages = \"14255--14268\", ISBN = \"979-8-89176-335-7\", abstract = \"Large Language Models (LLMs) can undergo hallucinations in specialized domains, and standard Retrieval-Augmented Generation (RAG)",
+      "score": 0.8409005,
+      "raw_content": null,
+      "id": "9db69a-07"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/11219341",
+      "title": "Federated Retrieval-Augmented Generation-Based LLM ...",
+      "content": "by T Fu · 2025 · Cited by 5 — In this paper, we propose FeRAG, a Federated Retrieval-Augmented Generation-based LLM system for autonomous log analysis, designed to enhance cyber threat",
+      "score": 0.82391036,
+      "raw_content": null,
+      "id": "a8291e-08"
+    },
+    {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3626772.3657853",
+      "title": "FeB4RAG: Evaluating Federated Search in the Context of ...",
+      "content": "by S Wang · 2024 · Cited by 76 — With the increasing uptake of Retrieval-. Augmented Generation (RAG) pipelines, federated search can play a pivotal role in sourcing relevant information across",
+      "score": 0.82288796,
+      "raw_content": null,
+      "id": "72bf07-09"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3626772.3657853",
+      "title": "FeB4RAG: Evaluating Federated Search in the Context of ...",
+      "content": "With the increasing uptake of Retrieval-Augmented Generation (RAG) pipelines, federated search can play a pivotal role in sourcing relevant information across",
+      "score": 0.82117355,
+      "raw_content": null,
+      "id": "707d95-10"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/document/10920885",
+      "title": "Federated Learning and RAG Integration: A Scalable Approach for Medical Large Language Models",
+      "content": "This study analyzes the performance of domain-specific Large Language Models (LLMs) for the medical field by integrating Retrieval-Augmented Generation (RAG) systems within a Federated Learning (FL) framework. Leveraging the inherent advantages of FL, such as preserving data privacy and enabling distributed computation, this research explores the integration of RAG systems with models trained under varying client configurations to optimize performance. Exper-imental results demonstrate that the FL-based models integrated with RAG systems consistently outperform their non-integrated counterparts across all evaluation metrics. This study highlights the potential of combining FL and RAG systems for developing domain-specific LLMs in the medical field, providing a scalable and [...] Authors\n\nFigures\n\nReferences\n\nCitations\n\nKeywords\n\nMetrics\n\nMore Like This\n\n   Download PDF\n   Download References)\n   [)](\n   Request Permissions\n   Save to\n   Alerts\n\n## Abstract:\n\nThis study analyzes the performance of domain-specific Large Language Models (LLMs) for the medical field by integrating Retrieval-Augmented Generation (RAG) systems with...Show More\n\n## Metadata\n\n## Abstract: [...] ## Authors\n\n## Figures\n\n## References\n\n## Citations\n\n## Keywords\n\n## Metrics\n\nImage 4: Contact IEEE to Subscribe\n\n## More Like This\n\nExploring Large Language Models for Analyzing Changes in Web Archive Content: A Retrieval-Augmented Generation Approach\n\n2024 IEEE International Conference on Big Data (BigData)\n\nPublished: 2024\n\nPhishing Email Detection Using Large Language Models: A Comparative Analysis of Standalone and Retrieval Augmented Generation Models\n\n2025 10th International Conference on Computational Intelligence and Applications (ICCIA)\n\nPublished: 2025\n\nShow More)\n\n# References\n\nReferences is not available for this document.\n\n## IEEE Personal Account\n\n   Change username/password\n\n## Purchase Details\n\n   Payment Options\n   View Purchased Documents\n\n## Profile Information",
+      "score": 0.8010817,
+      "raw_content": null,
+      "id": "6b4528-11"
+    },
+    {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3721146.3721942",
+      "title": "Efficient Federated Search for Retrieval-Augmented ...",
+      "content": "by R Guerraoui · 2025 · Cited by 35 — A well-known method for enhancing the reliability of. LLM responses is to use retrieval-augmented generation. (RAG) [22]. RAG integrates LLM text generation",
+      "score": 0.7738498,
+      "raw_content": null,
+      "id": "f7843e-12"
+    },
+    {
+      "url": "https://aclanthology.org/2025.coling-industry.33",
+      "title": "Federated Retrieval Augmented Generation for Multi-Product Question Answering - ACL Anthology",
+      "content": "ACL Logo\n\n###### Details\n\n## Federated Retrieval Augmented Generation for Multi-Product Question Answering\n\nParshin Shojaee,\nSai Sree Harsha,\nDan Luo,\nAkash Maharaj,\nTong Yu,\nYunyao Li\n\n##### Correct Metadata for\n\n##### Abstract\n\n##### Export citation\n\n##### Markdown (Informal)\n\nFederated Retrieval Augmented Generation for Multi-Product Question Answering (Shojaee et al., COLING 2025)\n\n##### ACL [...] ##### ACL\n\nCreative Commons License\nACL materials are Copyright © 1963–2026 ACL; other materials are copyrighted by their respective copyright holders. Materials prior to 2016 here are licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 International License. Permission is granted to make copies for the purposes of teaching and research. Materials published in or after 2016 are licensed on a Creative Commons Attribution 4.0 International License.\n\nCreative Commons License\n\nThe ACL Anthology is managed and built by the ACL Anthology team of volunteers.\n\nSite last built on 26 October 2026 at 02:04 UTC with commit 2348cc9.",
+      "score": 0.71137124,
+      "raw_content": null,
+      "id": "0ab5e3-13"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/10919472/10920631/10920885.pdf",
+      "title": "Federated Learning and RAG Integration: A Scalable ...",
+      "content": "by J Jung · 2025 · Cited by 18 — The study proposes a federated LLM framework that leverages client-specific RAG systems to enable decentralized retrieval and generation optimized for local",
+      "score": 0.5660431,
+      "raw_content": null,
+      "id": "6cdb07-14"
+    }
+  ],
+  "response_time": 3.47,
+  "request_id": "34555f44-a825-48ae-88e5-0975ebadb536"
+}

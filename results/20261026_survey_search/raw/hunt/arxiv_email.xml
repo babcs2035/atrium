@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/RSZ5B1GPfb2J2DAtPpqyN9C8vvU</id>
+  <title>arXiv Query: search_query=(all:email OR all:mailbox OR all:inbox) AND (all:federated OR all:decentralized OR all:distributed) AND (all:"retrieval augmented generation" OR all:RAG) AND submittedDate:"202001010000 TO 202610262359"&amp;id_list=&amp;start=0&amp;max_results=50</title>
+  <updated>2026-10-26T05:48:15Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=(all:email+OR+(all:mailbox+OR+all:inbox))+AND+((all:federated+OR+(all:decentralized+OR+all:distributed))+AND+((all:%22retrieval+augmented+generation%22+OR+all:RAG)+AND+submittedDate:%22202001010000+TO+202610262359%22))&amp;start=0&amp;max_results=50&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>50</opensearch:itemsPerPage>
+  <opensearch:totalResults>6</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2508.05648v1</id>
+    <title>AquiLLM: a RAG Tool for Capturing Tacit Knowledge in Research Groups</title>
+    <updated>2025-07-25T20:47:01Z</updated>
+    <link href="https://arxiv.org/abs/2508.05648v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2508.05648v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Research groups face persistent challenges in capturing, storing, and retrieving knowledge that is distributed across team members. Although structured data intended for analysis and publication is often well managed, much of a group's collective knowledge remains informal, fragmented, or undocumented--often passed down orally through meetings, mentoring, and day-to-day collaboration. This includes private resources such as emails, meeting notes, training materials, and ad hoc documentation. Together, these reflect the group's tacit knowledge--the informal, experience-based expertise that underlies much of their work. Accessing this knowledge can be difficult, requiring significant time and insider understanding. Retrieval-augmented generation (RAG) systems offer promising solutions by enabling users to query and generate responses grounded in relevant source material. However, most current RAG-LLM systems are oriented toward public documents and overlook the privacy concerns of internal research materials. We introduce AquiLLM (pronounced ah-quill-em), a lightweight, modular RAG system designed to meet the needs of research groups. AquiLLM supports varied document types and configurable privacy settings, enabling more effective access to both formal and informal knowledge within scholarly groups.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-07-25T20:47:01Z</published>
+    <arxiv:comment>Accepted to US Research Software Engineer Association (US-RSE) 2025</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Chandler Campbell</name>
+    </author>
+    <author>
+      <name>Bernie Boscoe</name>
+    </author>
+    <author>
+      <name>Tuan Do</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2601.11553v2</id>
+    <title>PerCache: Predictive Hierarchical Cache for RAG Applications on Mobile Devices</title>
+    <updated>2026-10-13T03:58:20Z</updated>
+    <link href="https://arxiv.org/abs/2601.11553v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2601.11553v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-augmented generation (RAG) has become a de facto paradigm in various large language model (LLM)-driven applications on mobile devices, such as mobile assistants leveraging personal emails or meeting records. However, due to lengthy prompts and resource constraints, mobile RAG systems exhibit significantly high response latency. To address this issue, one promising approach is to reuse intermediate computational results across different queries to eliminate redundant computation. But most existing approaches, such as key-value (KV) cache reuse and semantic cache reuse, are designed for cloud settings and perform poorly on mobile devices as they overlook the distinctive characteristics of mobile RAG. We propose PerCache, a novel hierarchical cache framework designed for reducing end-to-end latency of personalized RAG applications on mobile platforms. PerCache adopts a hierarchical architecture that progressively matches similar queries and query-key-value (QKV) cache to maximize the reuse of intermediate results at different computing stages. To improve cache hit rate, PerCache applies a predictive method to populate the cache with queries that are likely to be raised in the future. In addition, PerCache can adapt its configurations to dynamic system loads, aiming to maximize caching utility with constrained resource consumption. We implement PerCache on top of an existing mobile LLM inference engine and deploy it on commodity mobile phones. Extensive evaluations show that PerCache achieves the lowest average end-to-end latency across five datasets and two LLM architectures, reducing latency by up to 63.5% over the strongest baseline while maintaining comparable answer quality.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-12-10T06:17:58Z</published>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Kaiwei Liu</name>
+    </author>
+    <author>
+      <name>Liekang Zeng</name>
+    </author>
+    <author>
+      <name>Lilin Xu</name>
+    </author>
+    <author>
+      <name>Bufang Yang</name>
+    </author>
+    <author>
+      <name>Zhenyu Yan</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2509.11937v1</id>
+    <title>MMORE: Massive Multimodal Open RAG &amp; Extraction</title>
+    <updated>2025-09-15T13:56:06Z</updated>
+    <link href="https://arxiv.org/abs/2509.11937v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2509.11937v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We introduce MMORE, an open-source pipeline for Massive Multimodal Open RetrievalAugmented Generation and Extraction, designed to ingest, transform, and retrieve knowledge from heterogeneous document formats at scale. MMORE supports more than fifteen file types, including text, tables, images, emails, audio, and video, and processes them into a unified format to enable downstream applications for LLMs. The architecture offers modular, distributed processing, enabling scalable parallelization across CPUs and GPUs. On processing benchmarks, MMORE demonstrates a 3.8-fold speedup over single-node baselines and 40% higher accuracy than Docling on scanned PDFs. The pipeline integrates hybrid dense-sparse retrieval and supports both interactive APIs and batch RAG endpoints. Evaluated on PubMedQA, MMORE-augmented medical LLMs improve biomedical QA accuracy with increasing retrieval depth. MMORE provides a robust, extensible foundation for deploying task-agnostic RAG systems on diverse, real-world multimodal data. The codebase is available at https://github.com/swiss-ai/mmore.</summary>
+    <category term="cs.SE" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-09-15T13:56:06Z</published>
+    <arxiv:comment>This paper was originally submitted to the CODEML workshop for ICML 2025. 9 pages (including references and appendices)</arxiv:comment>
+    <arxiv:primary_category term="cs.SE"/>
+    <author>
+      <name>Alexandre Sallinen</name>
+    </author>
+    <author>
+      <name>Stefan Krsteski</name>
+    </author>
+    <author>
+      <name>Paul Teiletche</name>
+    </author>
+    <author>
+      <name>Marc-Antoine Allard</name>
+    </author>
+    <author>
+      <name>Baptiste Lecoeur</name>
+    </author>
+    <author>
+      <name>Michael Zhang</name>
+    </author>
+    <author>
+      <name>Fabrice Nemo</name>
+    </author>
+    <author>
+      <name>David Kalajdzic</name>
+    </author>
+    <author>
+      <name>Matthias Meyer</name>
+    </author>
+    <author>
+      <name>Mary-Anne Hartley</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2403.02817v2</id>
+    <title>Here Comes The AI Worm: Unleashing Zero-click Worms that Target GenAI-Powered Applications</title>
+    <updated>2025-01-30T11:11:37Z</updated>
+    <link href="https://arxiv.org/abs/2403.02817v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2403.02817v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>In this paper, we show that when the communication between GenAI-powered applications relies on RAG-based inference, an attacker can initiate a computer worm-like chain reaction that we call Morris-II. This is done by crafting an adversarial self-replicating prompt that triggers a cascade of indirect prompt injections within the ecosystem and forces each affected application to perform malicious actions and compromise the RAG of additional applications. We evaluate the performance of the worm in creating a chain of confidential user data extraction within a GenAI ecosystem of GenAI-powered email assistants and analyze how the performance of the worm is affected by the size of the context, the adversarial self-replicating prompt used, the type and size of the embedding algorithm employed, and the number of hops in the propagation. Finally, we introduce the Virtual Donkey, a guardrail intended to detect and prevent the propagation of Morris-II with minimal latency, high accuracy, and a low false-positive rate. We evaluate the guardrail's performance and show that it yields a perfect true-positive rate of 1.0 with a false-positive rate of 0.015, and is robust against out-of-distribution worms, consisting of unseen jailbreaking commands, a different email dataset, and various worm usecases.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-03-05T09:37:13Z</published>
+    <arxiv:comment>Website: https://sites.google.com/view/compromptmized</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Stav Cohen</name>
+    </author>
+    <author>
+      <name>Ron Bitton</name>
+    </author>
+    <author>
+      <name>Ben Nassi</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2510.21729v2</id>
+    <title>CustomIR: Unsupervised Fine-Tuning of Dense Embeddings for Known Document Corpora</title>
+    <updated>2025-10-28T16:15:47Z</updated>
+    <link href="https://arxiv.org/abs/2510.21729v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2510.21729v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Dense embedding models have become critical for modern information retrieval, particularly in RAG pipelines, but their performance often degrades when applied to specialized corpora outside their pre-training distribution. To address thi we introduce CustomIR, a framework for unsupervised adaptation of pre-trained language embedding models to domain-specific corpora using synthetically generated query-document pairs. CustomIR leverages large language models (LLMs) to create diverse queries grounded in a known target corpus, paired with LLM-verified hard negatives, eliminating the need for costly human annotation. Experiments on enterprise email and messaging datasets show that CustomIR consistently improves retrieval effectiveness with small models gaining up to 2.3 points in Recall@10. This performance increase allows these small models to rival the performance of much larger alternatives, allowing for cheaper RAG deployments. These results highlight that targeted synthetic fine-tuning offers a scalable and cost-efficient strategy for increasing domain-specific performance.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-09-30T00:25:47Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Nathan Paull</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.12171v1</id>
+    <title>WinSyn: An Automated Pipeline for Realistic Enterprise Question-Answering Evaluation</title>
+    <updated>2026-09-10T19:59:22Z</updated>
+    <link href="https://arxiv.org/abs/2609.12171v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.12171v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Enterprise settings provide a challenging environment for question-answering agents, which often rely on Retrieval-Augmented Generation, Deep Research (DR), and related techniques. Much of this challenge comes from the complexity of enterprise data: information is often spread across evolving and potentially conflict- ing emails, chat messages, documents, and other artifacts. Existing benchmarks typically have limited real-world complexity, short-form responses, and unnatural queries, so they often fail to capture the challenges of enterprise settings. In this work, we introduce an automated pipeline for generating synthetic datasets of emails reflecting realistic workplace scenarios, along with long- and short-form questions and gold answers grounded in the data. Our method simulates long-running enterprise projects spanning several months and involving up to 25 interacting employees across multiple roles. The data emphasizes ambiguity, distributed information, and naturally occurring queries. To validate the pipeline, we evaluate few standard agentic baselines on our datasets using the latest frontier models. We find that aggregate scores averaged over all queries remain below 80% for each dataset, indicating significant room for improvement. These findings suggest that more work remains to be done for enterprise deployment and underscore the importance of realistic, high-complexity evaluation data for developing stronger real-world enterprise DR systems.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-10T19:59:22Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Amey Varhade</name>
+    </author>
+    <author>
+      <name>Ananya Sutradhar</name>
+    </author>
+    <author>
+      <name>Ravishankar Krishnaswamy</name>
+    </author>
+    <author>
+      <name>Navin Goyal</name>
+    </author>
+  </entry>
+</feed>

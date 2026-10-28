@@ -1,0 +1,624 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/wGclRt2I9KoQwEVs5geqFxOkQUQ</id>
+  <title>arXiv Query: search_query=( (all:silo OR all:silos OR all:siloed) AND (all:"retrieval augmented generation" OR all:RAG) ) AND submittedDate:"202001010000 TO 202610262359"&amp;id_list=&amp;start=0&amp;max_results=200</title>
+  <updated>2026-10-26T05:38:01Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=((all:silo+OR+(all:silos+OR+all:siloed))+AND+(all:%22retrieval+augmented+generation%22+OR+all:RAG))+AND+submittedDate:%22202001010000+TO+202610262359%22&amp;start=0&amp;max_results=200&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>200</opensearch:itemsPerPage>
+  <opensearch:totalResults>19</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2412.13163v2</id>
+    <title>C-FedRAG: A Confidential Federated Retrieval-Augmented Generation System</title>
+    <updated>2024-12-18T21:26:14Z</updated>
+    <link href="https://arxiv.org/abs/2412.13163v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2412.13163v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Organizations seeking to utilize Large Language Models (LLMs) for knowledge querying and analysis often encounter challenges in maintaining an LLM fine-tuned on targeted, up-to-date information that keeps answers relevant and grounded. Retrieval Augmented Generation (RAG) has quickly become a feasible solution for organizations looking to overcome the challenges of maintaining proprietary models and to help reduce LLM hallucinations in their query responses. However, RAG comes with its own issues regarding scaling data pipelines across tiered-access and disparate data sources. In many scenarios, it is necessary to query beyond a single data silo to provide richer and more relevant context for an LLM. Analyzing data sources within and across organizational trust boundaries is often limited by complex data-sharing policies that prohibit centralized data storage, therefore, inhibit the fast and effective setup and scaling of RAG solutions. In this paper, we introduce Confidential Computing (CC) techniques as a solution for secure Federated Retrieval Augmented Generation (FedRAG). Our proposed Confidential FedRAG system (C-FedRAG) enables secure connection and scaling of a RAG workflows across a decentralized network of data providers by ensuring context confidentiality. We also demonstrate how to implement a C-FedRAG system using the NVIDIA FLARE SDK and assess its performance using the MedRAG toolkit and MIRAGE benchmarking dataset.</summary>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-12-17T18:42:21Z</published>
+    <arxiv:primary_category term="cs.DC"/>
+    <author>
+      <name>Parker Addison</name>
+    </author>
+    <author>
+      <name>Minh-Tuan H. Nguyen</name>
+    </author>
+    <author>
+      <name>Tomislav Medan</name>
+    </author>
+    <author>
+      <name>Jinali Shah</name>
+    </author>
+    <author>
+      <name>Mohammad T. Manzari</name>
+    </author>
+    <author>
+      <name>Brendan McElrone</name>
+    </author>
+    <author>
+      <name>Laksh Lalwani</name>
+    </author>
+    <author>
+      <name>Aboli More</name>
+    </author>
+    <author>
+      <name>Smita Sharma</name>
+    </author>
+    <author>
+      <name>Holger R. Roth</name>
+    </author>
+    <author>
+      <name>Isaac Yang</name>
+    </author>
+    <author>
+      <name>Chester Chen</name>
+    </author>
+    <author>
+      <name>Daguang Xu</name>
+    </author>
+    <author>
+      <name>Yan Cheng</name>
+    </author>
+    <author>
+      <name>Andrew Feng</name>
+    </author>
+    <author>
+      <name>Ziyue Xu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2602.05235v2</id>
+    <title>FedMosaic: Federated Retrieval-Augmented Generation via Parametric Adapters</title>
+    <updated>2026-07-11T16:39:43Z</updated>
+    <link href="https://arxiv.org/abs/2602.05235v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2602.05235v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) enhances Large Language Models (LLMs) by grounding generation in external knowledge to improve factuality and reduce hallucinations. Yet most deployments assume a centralized corpus, which is infeasible in privacy aware domains where knowledge remains siloed. This motivates federated RAG (FedRAG), where a central LLM server collaborates with distributed silos without sharing raw documents. In context RAG violates this requirement by transmitting verbatim documents, whereas parametric RAG encodes documents into lightweight adapters that merge with a frozen LLM at inference, avoiding raw-text exchange. We adopt the parametric approach but face two unique challenges induced by FedRAG: high storage and communication from per-document adapters, and destructive aggregation caused by indiscriminately merging multiple adapters. We present FedMosaic, the first federated RAG framework built on parametric adapters. FedMosaic clusters semantically related documents into multi-document adapters with document-specific masks to reduce overhead while preserving specificity, and performs selective adapter aggregation to combine only relevance-aligned, nonconflicting adapters. Experiments show that FedMosaic achieves an average 10.9% higher accuracy than state-of-the-art methods in four categories, while lowering storage costs by 78.8% to 86.3% and communication costs by 91.4%, and never sharing raw documents.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-02-05T02:52:49Z</published>
+    <arxiv:comment>11 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Zhilin Liang</name>
+    </author>
+    <author>
+      <name>Yuxiang Wang</name>
+    </author>
+    <author>
+      <name>Zimu Zhou</name>
+    </author>
+    <author>
+      <name>Hainan Zhang</name>
+    </author>
+    <author>
+      <name>Boyi Liu</name>
+    </author>
+    <author>
+      <name>Yongxin Tong</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.25716v1</id>
+    <title>An Efficient and Privacy-Preserving Architecture for Cross-Institutional Collaborative RAG</title>
+    <updated>2026-05-25T11:18:19Z</updated>
+    <link href="https://arxiv.org/abs/2605.25716v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.25716v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Retrieval-Augmented Generation (RAG) empowers LLMs with external knowledge, making cross-institutional domain-specific knowledge base integration a highly promising deployment paradigm. Despite this potential, strict privacy regulations create severe "data silos" that obstruct such collaboration. Building federated RAG systems requires distributed inference, but the Transformer's self-attention mechanism fundamentally conflicts with this by mandating cross-node access to distributed Key-Value caches. To address this challenge, we present FedRAG, a high-throughput, privacy-preserving federated RAG framework. At its core is a novel Scrambled Distributed Attention protocol that utilizes numerically stable feature scrambling and token permutation. By dynamically delegating scrambled computations to collaborating nodes, our system successfully decouples attention execution from data localization without exposing plaintext. Crucially, our approach requires no specialized hardware or model retraining, circumventing the prohibitive latency and communication overheads of cryptographic solutions while robustly defending against intermediate state inversion attacks. Extensive evaluations demonstrate our framework preserves negligible (&lt;0.1\%) model utility degradation and achieves up to a 62$\times$ latency reduction over existing secure baselines, sustaining practical, human-reading throughput for cross-institutional knowledge synergy.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-25T11:18:19Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Chenxin Mao</name>
+    </author>
+    <author>
+      <name>Shangyu Liu</name>
+    </author>
+    <author>
+      <name>Zhenzhe Zheng</name>
+    </author>
+    <author>
+      <name>Fan Wu</name>
+    </author>
+    <author>
+      <name>Jie Wu</name>
+    </author>
+    <author>
+      <name>Guihai Chen</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2506.17484v1</id>
+    <title>From Unstructured Communication to Intelligent RAG: Multi-Agent Automation for Supply Chain Knowledge Bases</title>
+    <updated>2025-06-20T21:38:06Z</updated>
+    <link href="https://arxiv.org/abs/2506.17484v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2506.17484v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Supply chain operations generate vast amounts of operational data; however, critical knowledge such as system usage practices, troubleshooting workflows, and resolution techniques often remains buried within unstructured communications like support tickets, emails, and chat logs. While RAG systems aim to leverage such communications as a knowledge base, their effectiveness is limited by raw data challenges: support tickets are typically noisy, inconsistent, and incomplete, making direct retrieval suboptimal. Unlike existing RAG approaches that focus on runtime optimization, we introduce a novel offline-first methodology that transforms these communications into a structured knowledge base. Our key innovation is a LLMs-based multi-agent system orchestrating three specialized agents: Category Discovery for taxonomy creation, Categorization for ticket grouping, and Knowledge Synthesis for article generation. Applying our methodology to real-world support tickets with resolution notes and comments, our system creates a compact knowledge base - reducing total volume to just 3.4% of original ticket data while improving quality. Experiments demonstrate that our prebuilt knowledge base in RAG systems significantly outperforms traditional RAG implementations (48.74% vs. 38.60% helpful answers) and achieves a 77.4% reduction in unhelpful responses. By automating institutional knowledge capture that typically remains siloed in experts' heads, our solution translates to substantial operational efficiency: reducing support workload, accelerating resolution times, and creating self-improving systems that automatically resolve approximately 50% of future supply chain tickets. Our approach addresses a key gap in knowledge management by transforming transient communications into structured, reusable knowledge through intelligent offline processing rather than latency-inducing runtime architectures.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-06-20T21:38:06Z</published>
+    <arxiv:comment>Accepted In Proceedings of the 1st Workshop on AI for Supply Chain: Today and Future @ 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2 (KDD 25), August 3, 2025, Toronto, ON, Canada. ACM, New York, NY, USA, 14 pages, 2 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Yao Zhang</name>
+    </author>
+    <author>
+      <name>Zaixi Shang</name>
+    </author>
+    <author>
+      <name>Silpan Patel</name>
+    </author>
+    <author>
+      <name>Mikel Zuniga</name>
+    </author>
+    <arxiv:doi>10.1145/XXXXXX.XXXXXX</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1145/XXXXXX.XXXXXX" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.20094v1</id>
+    <title>LLM-Enhanced Semantic Data Integration of Electronic Component Qualifications in the Aerospace Domain</title>
+    <updated>2026-03-20T16:22:06Z</updated>
+    <link href="https://arxiv.org/abs/2603.20094v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.20094v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Large manufacturing companies face challenges in information retrieval due to data silos maintained by different departments, leading to inconsistencies and misalignment across databases. This paper presents an experience in integrating and retrieving qualification data for electronic components used in satellite board design. Due to data silos, designers cannot immediately determine the qualification status of individual components. However, this process is critical during the planning phase, when assembly drawings are issued before production, to optimize new qualifications and avoid redundant efforts. To address this, we propose a pipeline that uses Virtual Knowledge Graphs for a unified view over heterogeneous data sources and LLMs to enhance retrieval and reduce manual effort in data cleansing. The retrieval of qualifications is then performed through an Ontology-based Data Access approach for structured queries and a vector search mechanism for retrieving qualifications based on similar textual properties. We perform a comparative cost-benefit analysis, demonstrating that the proposed pipeline also outperforms approaches relying solely on LLMs, such as Retrieval-Augmented Generation (RAG), in terms of long-term efficiency.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DB" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-20T16:22:06Z</published>
+    <arxiv:comment>ESWC 2026</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Antonio De Santis</name>
+    </author>
+    <author>
+      <name>Marco Balduini</name>
+    </author>
+    <author>
+      <name>Matteo Belcao</name>
+    </author>
+    <author>
+      <name>Andrea Proia</name>
+    </author>
+    <author>
+      <name>Marco Brambilla</name>
+    </author>
+    <author>
+      <name>Emanuele Della Valle</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.25374v1</id>
+    <title>Supercharging Federated Intelligence Retrieval</title>
+    <updated>2026-03-26T12:23:53Z</updated>
+    <link href="https://arxiv.org/abs/2603.25374v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.25374v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>RAG typically assumes centralized access to documents, which breaks down when knowledge is distributed across private data silos. We propose a secure Federated RAG system built using Flower that performs local silo retrieval, while server-side aggregation and text generation run inside an attested, confidential compute environment, enabling confidential remote LLM inference even in the presence of honest-but-curious or compromised servers. We also propose a cascading inference approach that incorporates a non-confidential third-party model (e.g., Amazon Nova) as auxiliary context without weakening confidentiality.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-26T12:23:53Z</published>
+    <arxiv:comment>6 pages, 1 figure, 2 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Dimitris Stripelis</name>
+    </author>
+    <author>
+      <name>Patrick Foley</name>
+    </author>
+    <author>
+      <name>Mohammad Naseri</name>
+    </author>
+    <author>
+      <name>William Lindskog-Münzing</name>
+    </author>
+    <author>
+      <name>Chong Shen Ng</name>
+    </author>
+    <author>
+      <name>Daniel Janes Beutel</name>
+    </author>
+    <author>
+      <name>Nicholas D. Lane</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.06779v1</id>
+    <title>Mind the Gap: Bridging Behavioral Silos with LLMs in Multi-Vertical Recommendations</title>
+    <updated>2026-06-04T23:39:52Z</updated>
+    <link href="https://arxiv.org/abs/2606.06779v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.06779v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>In multi-vertical e-commerce platforms like DoorDash, relatively newer product verticals such as grocery and retail present a significant opportunity for personalization innovation. A key challenge lies in solving the "cold start" problem for users. This paper introduces a novel framework for enhancing recommendation quality by transferring knowledge from data-rich verticals (e.g., restaurants at DoorDash) to data-sparse ones. We leverage Large Language Models (LLMs) to perform generative inference, synthesizing sparse, high-dimensional features that encapsulate latent user affinities. Specifically, we employ a hierarchical Retrieval-Augmented Generation (RAG) pipeline to derive multi-level taxonomic features from user restaurant order histories and search queries. These generated features, encoding both long-term cross-vertical preferences and short-term intent, are integrated into a production Multi-Task Learning (MTL) ranking model. We demonstrate through extensive offline and online evaluation that this approach significantly improves personalization and engagement in emerging business verticals, effectively bridging the behavioral data gap.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-04T23:39:52Z</published>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Nimesh Sinha</name>
+    </author>
+    <author>
+      <name>Raghav Saboo</name>
+    </author>
+    <author>
+      <name>Martin Wang</name>
+    </author>
+    <author>
+      <name>Sudeep Das</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2604.20860v1</id>
+    <title>RealRoute: Dynamic Query Routing System via Retrieve-then-Verify Paradigm</title>
+    <updated>2026-03-02T17:57:46Z</updated>
+    <link href="https://arxiv.org/abs/2604.20860v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2604.20860v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Despite the success of Retrieval-Augmented Generation (RAG) in grounding LLMs with external knowledge, its application over heterogeneous sources (e.g., private databases, global corpora, and APIs) remains a significant challenge. Existing approaches typically employ an LLM-as-a-Router to dispatch decomposed sub-queries to specific sources in a predictive manner. However, this "LLM-as-a-Router" strategy relies heavily on the semantic meaning of different data sources, often leading to routing errors when source boundaries are ambiguous. In this work, we introduce RealRoute System, a framework that shifts the paradigm from predictive routing to a robust Retrieve-then-Verify mechanism. RealRoute ensures \textit{evidence completeness through parallel, source-agnostic retrieval, followed by a dynamic verifier that cross-checks the results and synthesizes a factually grounded answer}. Our demonstration allows users to visualize the real-time "re-routing" process and inspect the verification chain across multiple knowledge silos. Experiments show that RealRoute significantly outperforms predictive baselines in the multi-hop Rag reasoning task. The RealRoute system is released as an open-source toolkit with a user-friendly web interface. The code is available at the URL: https://github.com/Joseph1951210/RealRoute.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-02T17:57:46Z</published>
+    <arxiv:comment>12 pages, 3 figures, 3 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Jiahe Liu</name>
+    </author>
+    <author>
+      <name>Qinkai Yu</name>
+    </author>
+    <author>
+      <name>Jingcheng Niu</name>
+    </author>
+    <author>
+      <name>Xi Zhu</name>
+    </author>
+    <author>
+      <name>Zirui He</name>
+    </author>
+    <author>
+      <name>Zhen Xiang</name>
+    </author>
+    <author>
+      <name>Fan Yang</name>
+    </author>
+    <author>
+      <name>Jinman Zhao</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.06942v1</id>
+    <title>Didact: A Cross-Domain Capability Discovery System for Defence</title>
+    <updated>2026-06-05T06:12:28Z</updated>
+    <link href="https://arxiv.org/abs/2606.06942v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.06942v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Policymakers in defence and defence-aligned sectors must monitor rapidly evolving research alongside sector priorities relevant to operational and strategic needs. In practice, these sources are fragmented across heterogeneous formats, disjoint repositories, and siloed update streams, making capability discovery slow and difficult to audit. We present Didact, a prototype that integrates publicly available defence reports and policy documents from Australia with a purpose-built knowledge graph derived from Australian research publications. Didact provides natural language conversations for policy-oriented workflows, and leverages a composite retrieval-augmented generation (RAG) pipeline. A key feature of Didact is an interactive Evidence Rail that visualises retrieved evidence and source relationships. Our evaluation of the output quality and runtime of Didact highlights its utility. While Didact has been co-developed as an academia-industry project for the Australian context, it is adaptable to other domains where knowledge is similarly fragmented. A demonstration video is available here:</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-05T06:12:28Z</published>
+    <arxiv:comment>Under Review at CIKM 2026 (System Demonstration Track)</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Aarya Bodhankar</name>
+    </author>
+    <author>
+      <name>Aditya Joshi</name>
+    </author>
+    <author>
+      <name>Bao Gia Doan</name>
+    </author>
+    <author>
+      <name>Thomas Marchant</name>
+    </author>
+    <author>
+      <name>Oscar Leslie</name>
+    </author>
+    <author>
+      <name>Flora Salim</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2411.08041v1</id>
+    <title>GraphAide: Advanced Graph-Assisted Query and Reasoning System</title>
+    <updated>2024-10-29T07:25:30Z</updated>
+    <link href="https://arxiv.org/abs/2411.08041v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2411.08041v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Curating knowledge from multiple siloed sources that contain both structured and unstructured data is a major challenge in many real-world applications. Pattern matching and querying represent fundamental tasks in modern data analytics that leverage this curated knowledge. The development of such applications necessitates overcoming several research challenges, including data extraction, named entity recognition, data modeling, and designing query interfaces. Moreover, the explainability of these functionalities is critical for their broader adoption.
+  The emergence of Large Language Models (LLMs) has accelerated the development lifecycle of new capabilities. Nonetheless, there is an ongoing need for domain-specific tools tailored to user activities. The creation of digital assistants has gained considerable traction in recent years, with LLMs offering a promising avenue to develop such assistants utilizing domain-specific knowledge and assumptions.
+  In this context, we introduce an advanced query and reasoning system, GraphAide, which constructs a knowledge graph (KG) from diverse sources and allows to query and reason over the resulting KG. GraphAide harnesses both the KG and LLMs to rapidly develop domain-specific digital assistants. It integrates design patterns from retrieval augmented generation (RAG) and the semantic web to create an agentic LLM application. GraphAide underscores the potential for streamlined and efficient development of specialized digital assistants, thereby enhancing their applicability across various domains.</summary>
+    <category term="cs.DB" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-10-29T07:25:30Z</published>
+    <arxiv:primary_category term="cs.DB"/>
+    <author>
+      <name>Sumit Purohit</name>
+    </author>
+    <author>
+      <name>George Chin</name>
+    </author>
+    <author>
+      <name>Patrick S Mackey</name>
+    </author>
+    <author>
+      <name>Joseph A Cottam</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.06290v1</id>
+    <title>The EpisTwin: A Knowledge Graph-Grounded Neuro-Symbolic Architecture for Personal AI</title>
+    <updated>2026-03-06T13:48:23Z</updated>
+    <link href="https://arxiv.org/abs/2603.06290v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.06290v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Personal Artificial Intelligence is currently hindered by the fragmentation of user data across isolated silos. While Retrieval-Augmented Generation offers a partial remedy, its reliance on unstructured vector similarity fails to capture the latent semantic topology and temporal dependencies essential for holistic sensemaking. We introduce EpisTwin, a neuro-symbolic framework that grounds generative reasoning in a verifiable, user-centric Personal Knowledge Graph. EpisTwin leverages Multimodal Language Models to lift heterogeneous, cross-application data into semantic triples. At inference, EpisTwin enables complex reasoning over the personal semantic graph via an agentic coordinator that combines Graph Retrieval-Augmented Generation with Online Deep Visual Refinement, dynamically re-grounding symbolic entities in their raw visual context. We also introduce PersonalQA-71-100, a synthetic benchmark designed to simulate a realistic user's digital footprint and evaluate EpisTwin performance. Our framework demonstrates robust results across a suite of state-of-the-art judge models, offering a promising direction for trustworthy Personal AI.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-06T13:48:23Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Giovanni Servedio</name>
+    </author>
+    <author>
+      <name>Potito Aghilar</name>
+    </author>
+    <author>
+      <name>Alessio Mattiace</name>
+    </author>
+    <author>
+      <name>Gianni Carmosino</name>
+    </author>
+    <author>
+      <name>Francesco Musicco</name>
+    </author>
+    <author>
+      <name>Gabriele Conte</name>
+    </author>
+    <author>
+      <name>Vito Walter Anelli</name>
+    </author>
+    <author>
+      <name>Tommaso Di Noia</name>
+    </author>
+    <author>
+      <name>Francesco Maria Donini</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.11493v2</id>
+    <title>From Document Silos to Process Intelligence: A Multi-Layer Knowledge Graph for CMC Process Development</title>
+    <updated>2026-09-23T11:43:46Z</updated>
+    <link href="https://arxiv.org/abs/2609.11493v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.11493v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Chemistry, Manufacturing and Controls (CMC) process development generates an enormous body of technical information across a multi-stage, knowledge-intensive continuum from drug discovery to commercial manufacturing. This knowledge is traditionally fragmented across functions and heterogeneous formats, causing traceability gaps and significant knowledge-management costs during technology transfer and regulatory filing. We present a modular agentic-AI platform that converts a heterogeneous corpus of process-development documents into a queryable, dual-layer knowledge graph. A base knowledge layer builds a lexical graph with a Document-Section-Chunk hierarchy through lossless ingestion of digital, scanned, handwritten, and multilingual documents, while an intelligence layer extracts ontology-aligned entities and bridges cross-document concepts through a provenance-anchored domain graph. LLM agents operate across both layers, selecting the retrieval path best suited to each question. We evaluate the lexical layer with a novel three-tier protocol measuring the deployment-fidelity of a retrieval-augmented generation (RAG) system on proprietary data, demonstrated on 505 questions curated from 38 development reports of a Sanofi small-molecule program. Tier-1 multiple-choice accuracy of 95% signals strong platform reliability; the stricter Tier-2 LLM-judge pass rate of 85%, which degrades on comparative and corpus-wide questions, reveals a failure taxonomy that Tier-1 accuracy alone fails to capture. A router agent selects between layers according to question type. We anticipate this protocol will enable future designers of agentic platforms to assess their systems against nonpublic databases, and that graph-based architectures will see broader adoption in pharma as a means of transforming fragmented document repositories into structured process intelligence.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-10T12:59:04Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Reza Amirmoshiri</name>
+    </author>
+    <author>
+      <name>Faryad Sahneh</name>
+    </author>
+    <author>
+      <name>Yasser Jangjou</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2504.00587v2</id>
+    <title>AgentNet: Decentralized Evolutionary Coordination for LLM-based Multi-Agent Systems</title>
+    <updated>2025-05-29T18:55:08Z</updated>
+    <link href="https://arxiv.org/abs/2504.00587v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2504.00587v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The rapid advancement of large language models (LLMs) has enabled the development of multi-agent systems where multiple LLM-based agents collaborate on complex tasks. However, existing systems often rely on centralized coordination, leading to scalability bottlenecks, reduced adaptability, and single points of failure. Privacy and proprietary knowledge concerns further hinder cross-organizational collaboration, resulting in siloed expertise. We propose AgentNet, a decentralized, Retrieval-Augmented Generation (RAG)-based framework that enables LLM-based agents to specialize, evolve, and collaborate autonomously in a dynamically structured Directed Acyclic Graph (DAG). Unlike prior approaches with static roles or centralized control, AgentNet allows agents to adjust connectivity and route tasks based on local expertise and context. AgentNet introduces three key innovations: (1) a fully decentralized coordination mechanism that eliminates the need for a central orchestrator, enhancing robustness and emergent intelligence; (2) dynamic agent graph topology that adapts in real time to task demands, ensuring scalability and resilience; and (3) a retrieval-based memory system for agents that supports continual skill refinement and specialization. By minimizing centralized control and data exchange, AgentNet enables fault-tolerant, privacy-preserving collaboration across organizations. Experiments show that AgentNet achieves higher task accuracy than both single-agent and centralized multi-agent baselines.</summary>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-04-01T09:45:25Z</published>
+    <arxiv:primary_category term="cs.MA"/>
+    <author>
+      <name>Yingxuan Yang</name>
+    </author>
+    <author>
+      <name>Huacan Chai</name>
+    </author>
+    <author>
+      <name>Shuai Shao</name>
+    </author>
+    <author>
+      <name>Yuanyi Song</name>
+    </author>
+    <author>
+      <name>Siyuan Qi</name>
+    </author>
+    <author>
+      <name>Renting Rui</name>
+    </author>
+    <author>
+      <name>Weinan Zhang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.11516v1</id>
+    <title>Agents Should Replace Narrow Predictive AI as the Orchestrator in 6G AI-RAN</title>
+    <updated>2026-05-12T04:39:34Z</updated>
+    <link href="https://arxiv.org/abs/2605.11516v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.11516v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This position paper argues that to achieve Level 5 autonomous 6G networks, the next generation of Artificial Intelligence in Radio Access Networks (AI-RAN) should transition away from fragmented, narrow predictive models and instead adopt multimodal Large Language Models (LLMs) as central reasoning agents. Current AI-RAN architectures rely on disjointed Deep Neural Networks (DNNs) and Deep Reinforcement Learning (DRL) agents that operate in isolated domains. These narrow models suffer from siloed knowledge, severe brittleness to out-of-distribution dynamics, and a fundamental inability to bridge the intent gap the semantic disconnect between high-level, unstructured operator directives and rigid numerical network configurations. We propose elevating LLMs, or domain-adapted Large Telecom Models (LTMs), to act as the cognitive operating system situated within the RAN Intelligent Controller (RIC), the control and orchestration layer of AI-RAN. In this architecture, LLMs do not replace narrow models but orchestrate them as executable subroutines, dynamically translating human intent into concrete policies and utilizing Retrieval-Augmented Generation (RAG) to autonomously diagnose complex, multi-vendor network anomalies. To make this architectural shift a reality, we call upon the machine learning community to prioritize critical foundational research tailored to the strict constraints of telecommunications, specifically focusing on continuous alignment via network-driven feedback (RLNF), extreme sub-8-bit edge quantization, neuro-symbolic verification to curb hallucinations, and securing orchestration frameworks against adversarial prompt injections.</summary>
+    <category term="cs.NI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-12T04:39:34Z</published>
+    <arxiv:primary_category term="cs.NI"/>
+    <author>
+      <name>Pranshav Gajjar</name>
+    </author>
+    <author>
+      <name>Vijay K Shah</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2510.08578v1</id>
+    <title>AgenticAD: A Specialized Multiagent System Framework for Holistic Alzheimer Disease Management</title>
+    <updated>2025-09-01T17:51:56Z</updated>
+    <link href="https://arxiv.org/abs/2510.08578v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2510.08578v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Alzheimer's disease (AD) presents a complex, multifaceted challenge to patients, caregivers, and the healthcare system, necessitating integrated and dynamic support solutions. While artificial intelligence (AI) offers promising avenues for intervention, current applications are often siloed, addressing singular aspects of the disease such as diagnostics or caregiver support without systemic integration. This paper proposes a novel methodological framework for a comprehensive, multi-agent system (MAS) designed for holistic Alzheimer's disease management. The objective is to detail the architecture of a collaborative ecosystem of specialized AI agents, each engineered to address a distinct challenge in the AD care continuum, from caregiver support and multimodal data analysis to automated research and clinical data interpretation. The proposed framework is composed of eight specialized, interoperable agents. These agents are categorized by function: (1) Caregiver and Patient Support, (2) Data Analysis and Research, and (3) Advanced Multimodal Workflows. The methodology details the technical architecture of each agent, leveraging a suite of advanced technologies including large language models (LLMs) such as GPT-4o and Gemini, multi-agent orchestration frameworks, Retrieval-Augmented Generation (RAG) for evidence-grounded responses, and specialized tools for web scraping, multimodal data processing, and in-memory database querying. This paper presents a detailed architectural blueprint for an integrated AI ecosystem for AD care. By moving beyond single-purpose tools to a collaborative, multi-agent paradigm, this framework establishes a foundation for developing more adaptive, personalized, and proactive solutions. This methodological approach aims to pave the way for future systems capable of synthesizing diverse data streams to improve patient outcomes and reduce caregiver burden.</summary>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.HC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-09-01T17:51:56Z</published>
+    <arxiv:primary_category term="cs.MA"/>
+    <author>
+      <name>Adib Bazgir</name>
+    </author>
+    <author>
+      <name>Amir Habibdoust</name>
+    </author>
+    <author>
+      <name>Xing Song</name>
+    </author>
+    <author>
+      <name>Yuwen Zhang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2511.18298v1</id>
+    <title>Cross-Disciplinary Knowledge Retrieval and Synthesis: A Compound AI Architecture for Scientific Discovery</title>
+    <updated>2025-11-23T05:33:11Z</updated>
+    <link href="https://arxiv.org/abs/2511.18298v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2511.18298v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The exponential growth of scientific knowledge has created significant barriers to cross-disciplinary knowledge discovery, synthesis and research collaboration. In response to this challenge, we present BioSage, a novel compound AI architecture that integrates LLMs with RAG, orchestrated specialized agents and tools to enable discoveries across AI, data science, biomedical, and biosecurity domains. Our system features several specialized agents including the retrieval agent with query planning and response synthesis that enable knowledge retrieval across domains with citation-backed responses, cross-disciplinary translation agents that align specialized terminology and methodologies, and reasoning agents that synthesize domain-specific insights with transparency, traceability and usability. We demonstrate the effectiveness of our BioSage system through a rigorous evaluation on scientific benchmarks (LitQA2, GPQA, WMDP, HLE-Bio) and introduce a new cross-modal benchmark for biology and AI, showing that our BioSage agents outperform vanilla and RAG approaches by 13\%-21\% powered by Llama 3.1. 70B and GPT-4o models. We perform causal investigations into compound AI system behavior and report significant performance improvements by adding RAG and agents over the vanilla models. Unlike other systems, our solution is driven by user-centric design principles and orchestrates specialized user-agent interaction workflows supporting scientific activities including but not limited to summarization, research debate and brainstorming. Our ongoing work focuses on multimodal retrieval and reasoning over charts, tables, and structured scientific data, along with developing comprehensive multimodal benchmarks for cross-disciplinary discovery. Our compound AI solution demonstrates significant potential for accelerating scientific advancement by reducing barriers between traditionally siloed domains.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-11-23T05:33:11Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Svitlana Volkova</name>
+    </author>
+    <author>
+      <name>Peter Bautista</name>
+    </author>
+    <author>
+      <name>Avinash Hiriyanna</name>
+    </author>
+    <author>
+      <name>Gabriel Ganberg</name>
+    </author>
+    <author>
+      <name>Isabel Erickson</name>
+    </author>
+    <author>
+      <name>Zachary Klinefelter</name>
+    </author>
+    <author>
+      <name>Nick Abele</name>
+    </author>
+    <author>
+      <name>Hsien-Te Kao</name>
+    </author>
+    <author>
+      <name>Grant Engberson</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.00080v1</id>
+    <title>From Static Repositories to Agentic Knowledge Webs: ResearchTwin and the S-Index for Federated Human-AI Research Discovery</title>
+    <updated>2026-02-13T22:37:40Z</updated>
+    <link href="https://arxiv.org/abs/2603.00080v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.00080v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The exponential growth of scientific literature, datasets, and code repositories has created a discovery bottleneck that impedes knowledge synthesis and reproducibility. Traditional dissemination formats -- static PDFs, siloed code hosting, and fragmented data repositories -- fail to represent the interconnected narrative of modern research, while conventional metrics such as the H-index neglect contributions from reusable code and shared datasets. We present ResearchTwin, an open-source federated platform that transforms a researcher's scholarly output into a conversational digital twin, with a preliminary evaluation of its deployed prototype. The system uses a Bimodal Glial-Neural Optimization (BGNO) architecture comprising a Multi-Modal Connector Layer, a Glial Layer for caching and rate management, and a Neural Layer implementing Retrieval-Augmented Generation with a provider-agnostic LLM backend. We formalize the S-index, building on our earlier QIC framework, into a composite metric that extends FAIR principles -- via a binary accessibility/licensing gate, field-normalized impact scoring, and geometric collaboration scaling -- to quantify multimodal research impact. A case study comparing two researchers with similar H-indexes but substantially different S-indexes demonstrates that the metric captures dimensions of impact -- particularly dataset and code contributions -- invisible to citation-based measures alone. ResearchTwin exposes an inter-agentic discovery API using Schema.org typed responses and HATEOAS navigation, enabling AI agents to discover cross-lab synergies. A three-tier federated architecture preserves data sovereignty while enabling global discoverability.</summary>
+    <category term="cs.DL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-02-13T22:37:40Z</published>
+    <arxiv:comment>15 pages, 1 figure, https://github.com/martinfrasch/ResearchTwin</arxiv:comment>
+    <arxiv:primary_category term="cs.DL"/>
+    <author>
+      <name>Martin G. Frasch</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.25334v1</id>
+    <title>Bridging the Post-discharge Gap: A Traceable Multi-agent Framework for Safe and Continuous Care</title>
+    <updated>2026-06-24T02:57:51Z</updated>
+    <link href="https://arxiv.org/abs/2606.25334v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.25334v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Post-discharge clinical follow-up is critical for maintaining continuity of care and mitigating long-term health risks. However, traditional follow-up paradigms suffer from shortage of health workforce, fragmented patient histories, and information silos across clinical departments. While large language models have demonstrated potential in medical question-answering, their deployment in continuous care is hindered by hallucination risks and a fundamental inability to reason over longitudinal, patient-specific constraints. Here we present Healink, a memory-enhanced multi-agent framework to support AI-assisted post-discharge follow-up by generating prescription-grounded, traceable responses that improved completeness and perceived clinical utility in retrospective and physician-blinded evaluations. The architecture seamlessly integrates a triage routing mechanism, a unified memory enhancement module utilizing a robust relational database for optimal latency, and a strict constraint-based retrieval-augmented generation engine. By vectorizing historical clinical records and employing weighted similarity functions across diverse phenotypic and intervention dimensions, Healink ensures precise inter-patient and intra-patient case matching while actively preventing cross-departmental drug conflicts. We evaluated Healink on a dataset comprising 400 continuous and 85 highly complex real-world follow-up cases, alongside the webMedQA benchmark. In a rigorous single-blind evaluation conducted by clinical experts, the framework outperformed human physician baselines in both authoritativeness and clinical safety. By generating a traceable, white-box evidence chain, Healink provides a scalable, safe, and highly effective paradigm for intelligent patient management, ultimately enhancing societal healthcare outcomes.</summary>
+    <category term="cs.MA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-24T02:57:51Z</published>
+    <arxiv:comment>23 pages, 10 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.MA"/>
+    <author>
+      <name>Runwei Guan</name>
+    </author>
+    <author>
+      <name>Yi Zhou</name>
+    </author>
+    <author>
+      <name>Heyi Lin</name>
+    </author>
+    <author>
+      <name>Jinjing Zhu</name>
+    </author>
+    <author>
+      <name>Mingyuan Hou</name>
+    </author>
+    <author>
+      <name>Yang Yang</name>
+    </author>
+    <author>
+      <name>Fang Yuan</name>
+    </author>
+    <author>
+      <name>Xiaohong Lin</name>
+    </author>
+    <author>
+      <name>Shaofeng Liang</name>
+    </author>
+    <author>
+      <name>Xuming Hu</name>
+    </author>
+    <author>
+      <name>Tao Li</name>
+    </author>
+    <author>
+      <name>Tianbin Zhao</name>
+    </author>
+    <author>
+      <name>Yutao Yue</name>
+    </author>
+    <author>
+      <name>Zhiyuan Wang</name>
+    </author>
+    <author>
+      <name>Hui Xiong</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.13618v1</id>
+    <title>OpenAaaS: An Open Agent-as-a-Service Framework for Distributed Materials-Informatics Research</title>
+    <updated>2026-05-13T14:47:01Z</updated>
+    <link href="https://arxiv.org/abs/2605.13618v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.13618v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The Materials Genome Initiative catalyzed the proliferation of centralized platforms--SaaS, PaaS, and IaaS--that aggregate computational and experimental resources for accelerated materials discovery. In parallel, breakthroughs in large language models (LLMs) and autonomous agents have created powerful new reasoning capabilities for scientific research. Yet a critical "last mile" problem remains: while we possess world-class models and vast repositories of materials data, we lack the organizational infrastructure to compose these capabilities securely across institutional boundaries. The development of structural and functional materials for harsh service environments--high-temperature alloys, radiation resistant steels, corrosion-resistant coatings--remains characterized by long-term iteration, mechanistic complexity, and high domain expertise--demands that exceed both monolithic agent systems and traditional centralized platforms. To address this gap we propose OpenAaaS, an open-source hierarchical and distributed Agent-as-a-Service framework that enables organized multi-agent collaboration for intelligent materials design. OpenAaaS is built on a single foundational principle: code flows, data stays still. A Master Agent plans and decomposes complex research tasks without requiring direct access to subordinate agents' managed data and computational resources. Sub-agents, deployed as near-data execution nodes, retain full sovereignty over local datasets, proprietary algorithms, and specialized hardware. This architecture guarantees that raw data never leaves its domain of origin while enabling cross-scale, cross-domain secure integration of previously isolated materials intelligence silos. We validate the framework through two representative case studies: (i) AlphaAgent, an evidence-grounded materials literature analysis executor that achieves 4.66/5.0 on deep analytical questions against single-pass RAG baselines; and (ii) an ultra-large-scale hexa-high-entropy alloy descriptor database service that demonstrates secure near-data execution and domain-specific scientific workflows under strict data-sovereignty constraints. OpenAaaS establishes a principled pathway toward "organized research" via agent collectives, offering a scalable foundation for next-generation materials intelligent design platforms. All source code is available at https://github.com/Wolido/OpenAaaS.</summary>
+    <category term="cond-mat.mtrl-sci" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-13T14:47:01Z</published>
+    <arxiv:comment>20 pages 5 figures</arxiv:comment>
+    <arxiv:primary_category term="cond-mat.mtrl-sci"/>
+    <author>
+      <name>Peng Kang</name>
+    </author>
+    <author>
+      <name>Bixuan Li</name>
+    </author>
+    <author>
+      <name>Xiaoya Huang</name>
+    </author>
+    <author>
+      <name>Shuo Shi</name>
+    </author>
+    <author>
+      <name>Weiqiao Zhou</name>
+    </author>
+    <author>
+      <name>Zhen Li</name>
+    </author>
+    <author>
+      <name>Yu Liu</name>
+    </author>
+    <author>
+      <name>Lei Zheng</name>
+    </author>
+  </entry>
+</feed>

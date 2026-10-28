@@ -1,0 +1,170 @@
+{
+  "query": "RAG data silos",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://ieeexplore.ieee.org/abstract/document/11393771",
+      "title": "Lineage-Driven Retrieval Over Apache Iceberg on S3 to ...",
+      "content": "by V Venkatesan · 2026 · Cited by 1 — existing RAG pipelines often operate as ungoverned silos detached from enterprise data contracts, lineage, or compliance controls.",
+      "score": 0.6894943,
+      "raw_content": null,
+      "id": "a4eaef-00"
+    },
+    {
+      "url": "https://dl.acm.org/doi/fullHtml/10.1145/3665601.3669846",
+      "title": "A Benchmark for Coarse-to-fine Multimodal Data Discovery ...",
+      "content": "by Y Feng · 2024 · Cited by 11 — Examples of such systems include retrieval-augmented generation (RAG [20]) often become silos of information. Data silos are formed due to team dynamics,",
+      "score": 0.6757865,
+      "raw_content": null,
+      "id": "87402f-01"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-emnlp.388.pdf",
+      "title": "Federated Retrieval-Augmented Generation: A Systematic ...",
+      "content": "Federated RAG is distinctive because fed-erated learning safeguards training-time privacy by restricting data to local silos, while retrieval-augmented generation grounds inference-time out-puts in external evidence, reducing hallucina-tions. Their integration enables capabilities such as source attribution, local index maintenance, and dy-namic document unlearning that neither paradigm achieves alone. [...] Beyond these domain categorizations, several privacy-critical scenarios further illustrate the prac-tical relevance of Federated RAG. In healthcare, systems such as C-FedRAG and MIRAGE enable hospital QA across silos, allowing institutions to an-swer clinical questions from shared medical knowl-edge while ensuring that patient records never leave local storage. In financial services, approaches like RAGRoute support cross-division portfolio anal-ysis, where sensitive compliance and investment documents remain within organizational bound-aries yet can be queried collaboratively. Finally, in personal and consumer-facing settings, on-device assistants equipped with Federated RAG can re-trieve from local files or personal notes without exposing them to cloud servers, offering a concrete [...] and scalable deployment over specific industry con-texts.\nAs summarized in Table 3, healthcare domi-nates the literature with three focused studies, fol-lowed by singular works in finance/legal, enter-prise/multilingual QA, and recommendation sys-tems. This distribution aligns with real-world con-cerns over privacy, compliance, and heterogeneous data silos. Earlier Figure 2 illustrated how such de-ployment settings are reflected in the system-level architecture choices across the literature. While many models are still domain-agnostic, healthcare and enterprise NLP tasks are emerging as leading targets for practical Federated RAG adoption, with future work likely to expand into education, public sector governance, and legal tech.",
+      "score": 0.65412235,
+      "raw_content": null,
+      "id": "10d0f0-02"
+    },
+    {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3721201.3725426",
+      "title": "DF-RAG: A Dual Federated Retrieval-Augmented ...",
+      "content": "by J Garcia · 2025 · Cited by 7 — DF-RAG's potential to overcome data silos and heterogeneity by providing real-time, context- aware decision support—improving",
+      "score": 0.57666177,
+      "raw_content": null,
+      "id": "210ef9-03"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/6514899/11080430.pdf",
+      "title": "RAG-Driven Memory Architectures in Conversational LLMs",
+      "content": "by NA Akbar · 2025 · Cited by 24 — The data silos challenge necessitates federated memory architectures, while temporal variance in agricultural data requires sophisticated time-aware indexing",
+      "score": 0.5611433,
+      "raw_content": null,
+      "id": "1af22e-04"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11080430.pdf",
+      "title": "RAG-Driven Memory Architectures in Conversational LLMs ...",
+      "content": "by NA Akbar · 2025 · Cited by 24 — The data silos challenge necessitates federated memory architectures, while temporal variance in agricultural data requires sophisticated time-aware indexing",
+      "score": 0.5437604,
+      "raw_content": null,
+      "id": "45a4f1-05"
+    },
+    {
+      "url": "https://dl.acm.org/doi/abs/10.1145/3805712.3809655",
+      "title": "FedMosaic: Federated Retrieval-Augmented Generation ...",
+      "content": "by Z Liang · 2026 · Cited by 6 — This motivates federated RAG (FedRAG), where a central LLM server collaborates with distributed silos without sharing raw documents. In-context RAG violates",
+      "score": 0.4237686,
+      "raw_content": null,
+      "id": "0feaad-06"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3696410.3714771",
+      "title": "Mask-based Membership Inference Attacks for Retrieval ...",
+      "content": "Retrieval-Augmented Generation (RAG) has been an effective approach to mitigate hallucinations in large language models (LLMs) storing up-to-date or",
+      "score": 0.32133272,
+      "raw_content": null,
+      "id": "ea400f-07"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6570654/11062602/11062603.pdf",
+      "title": "Federated Experiments: Generative Causal Inference ...",
+      "content": "by DY Zhou · 2025 · Cited by 9 — While RAG can enhance the performance of generative agents by integrating domain knowledge through retrieval, data secu- rity remains a concern for data owners.",
+      "score": 0.3049832,
+      "raw_content": null,
+      "id": "b155a4-08"
+    },
+    {
+      "url": "https://aclanthology.org/volumes/2025.findings-emnlp",
+      "title": "Findings of the Association for Computational Linguistics: EMNLP 2025 - ACL Anthology",
+      "content": "Retrieval-Augmented Generation (RAG) mitigates hallucination in Large Language Models (LLMs) by incorporating external data, with Knowledge Graphs (KGs) offering crucial information for question answering. Traditional Knowledge Graph Question Answering (KGQA) methods rely on semantic parsing, which typically retrieves knowledge strictly necessary for answer generation, thus often suffer from low coverage due to rigid schema requirements and semantic ambiguity. We present KERAG, a novel KG-based RAG pipeline that enhances QA coverage by retrieving a broader subgraph likely to contain relevant information. Our retrieval-filtering-summarization approach, combined with fine-tuned LLMs for Chain-of-Thought reasoning on knowledge sub-graphs, reduces noises and improves QA for both simple and [...] Retrieval-Augmented Generation (RAG) system, this framework ensures adherence to copyright and licensing requirements while enhancing data privacy and ethical standards. Our results show that analyzing internal states effectively mitigates the risk of copyrighted data leakage, offering a scalable solution that fits smoothly into AI workflows, ensuring compliance with copyright regulations while maintaining high-quality text generation. Large Language Models (LLMs) have revolutionized Natural Language Processing (NLP) but pose risks of inadvertently exposing copyrighted or proprietary data, especially when such data is used for training but not intended for distribution. Traditional methods address these leaks only after content is generated, which can lead to the exposure of sensitive [...] Retrieval-Augmented Generation (RAG) systems enhance large language models (LLMs) by integrating external knowledge sources, enabling more accurate and contextually relevant responses tailored to user needs. However, existing RAG systems have significant limitations, including reliance on flat data representations and inadequate contextual awareness, which can lead to fragmented answers that fail to capture complex interdependencies. To address these challenges, we propose LightRAG, a novel framework that incorporates graph structures into text indexing and retrieval processes. This innovative approach employs a dual-level retrieval system that enhances comprehensive information retrieval from both low- and high-level knowledge discovery. Additionally, the integration of graph structures",
+      "score": 0.29319245,
+      "raw_content": null,
+      "id": "bc4c41-09"
+    },
+    {
+      "url": "https://aclanthology.org/2025.resourceful-1.pdf",
+      "title": "[PDF] The Third Workshop on Resources and Representations for Under ...",
+      "content": "These models, trained on vast datasets, excel in language understanding, generation, and even reasoning and have been used to create syn-thetic data used to fine tune models (Long et al., 2024). Advances in Retrieval-Augmented Gener-ation (RAG) have further enhanced their utility, al-lowing general-purpose models to be specialized for specific tasks and domains, such as those en-countered in the medical sphere (Amugongo et al., 2024; Yu et al., 2024; Anandavally, 2024). For in-stance, Wang et al. (2023) propose a framework to align LLMs with conversational patterns char-acteristic of medical consultations, enabling mod-els to generate domain-specific, context-aware re-sponses. This strategy provides a pathway for de-signing models that are not only accurate in their domain knowledge but [...] 3. Adopt a hybrid NLP approach, integrating fine-tuned Large Language Models (LLMs) with traditional machine translation methods and Retrieval-Augmented Generation (RAG) to handle complex sentence structures and specialized medical language.\n4. Define evaluation metrics that assess linguis-tic variety, code-switching accuracy, and do-main adaptation performance while incor-porating human evaluation to measure real-world usability.\nBy addressing these linguistic and computa-tional challenges, this project contributes to both NLP research and healthcare equity. It also pro-vides a scalable framework for other low-resource languages facing similar issues in medical trans-lation, multilingual communication, and linguistic variation. [...] The web portal also features an interactive sec-tion where users can try GaMS-1B-Chat, devel-oped on the current version of the language model (Figure 2). As mentioned in Section 2, the current version still underperforms, however, this limita-tion also serves as a call for action: if we aim to develop a more accurate and robust model, a sig-nificantly larger dataset of Slovene texts is essen-tial.\n4 Data Storage and processing protocol We have implemented a comprehensive protocol for securely managing the storage, encryption, transmission, and processing of data throughout all stages of its lifecycle. Data is received through 133 network connections or on portable storage de-vices, which may contain unencrypted or option-ally encrypted data using a temporary key set by the data owner.",
+      "score": 0.2452481,
+      "raw_content": null,
+      "id": "f8e467-10"
+    },
+    {
+      "url": "https://ieeexplore.ieee.org/iel8/6287639/10820123/11224764.pdf",
+      "title": "Permission-Aware RAG: Identity and Access Management ...",
+      "content": "by J Jeong · 2025 · Cited by 13 — Retrieval-Augmented Generation (RAG) enhances large language models (LLMs) by integrating external knowledge sources, which significantly improves response",
+      "score": 0.19534872,
+      "raw_content": null,
+      "id": "ec4d78-11"
+    },
+    {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3690177.3690181",
+      "title": "Towards Applications on the Decentralized Web using ...",
+      "content": "by R Taelman · 2024 · Cited by 6 — Similar to data silos, this abstraction layer can exist in the form of a declarative query language, which gives application developers a familiar way to",
+      "score": 0.103232384,
+      "raw_content": null,
+      "id": "f9a11a-12"
+    },
+    {
+      "url": "https://dl.acm.org/doi/abs/10.1145/3696410.3714771",
+      "title": "Mask-based Membership Inference Attacks for Retrieval- ...",
+      "content": "by M Liu · 2025 · Cited by 55 — The masked text is then used to prompt the RAG system, and the RAG system is required to predict the mask values. If the target document appears in the",
+      "score": 0.09881625,
+      "raw_content": null,
+      "id": "f18b36-13"
+    },
+    {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3722212.3724456",
+      "title": "TigerVector: Supporting Vector Search in Graph Databases",
+      "content": "by S Liu · 2025 · Cited by 33 — TigerVector manages em- thereby unifying the management of vector data and graph data. addressing issues related to consistency, data silos, and data movement.",
+      "score": 0.057774507,
+      "raw_content": null,
+      "id": "6f984e-14"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3544548.3581026",
+      "title": "Understanding Practices, Challenges, and Opportunities for User-Engaged Algorithm Auditing in Industry Practice | Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems",
+      "content": "Acknowledging the challenge of navigating these tradeoffs, five of our participants emphasized the importance of cross-functional collaboration in designing effective guidelines, tasks, and prompts for user auditors. For example, in most of these teams, the design of auditing tasks was left to engineers who had no training in the design of human subjects research methods. By contrast, P10 worked on a team where UX practitioners were involved in the design of auditing tasks. However, the UX and AI teams often worked in silos. P10 felt that “with a UX background, I only have a surface understanding of large language model[s]. I can’t design a good auditing task just by myself if we eventually want to incorporate some auditing feedback from users into the current model.” [...] Several participants believed that a more “user-led” algorithm auditing process could help to catalyze more critical inquiries from users. For example, while iterating on the “user-led’’ audit pipeline, P12 said, “when it’s ‘developer-led,’ we are still testing if there are mistakes or unfairness in the product, right? But what if users believe this AI product shouldn’t even exist? This is something you can get by giving people more freedom to discuss.’’ For this reason, P1 believed it was critical to “allow [user auditors] to chat with each other,’’ in contrast to conventional crowdsourcing approaches, in which crowdworkers perform tasks in independent silos. Similarly, P10 argued that platforms or tools for user-engaged algorithm auditing should include mechanisms “for users to share [...] Digital Library\n\nGoogle Scholar\n\n [a [...] ] and human-level evaluation](#core-Bib0088-1)\n [b [...] who they are](#core-Bib0088-2)\n\nMichael Veale and Reuben Binns. 2017. Fairer machine learning in the real world: Mitigating discrimination without collecting sensitive data. Big Data & Society 4, 2 (2017), 2053951717743530.\n\nGo to Citation\n\nCrossref\n\nGoogle Scholar\n\nTris Warkentin and Josh Woodward. 2022. AI Test Kitchen. \n\nGoogle Scholar\n\n [a [...] any problematic behaviors they encounter](#core-Bib0090-1)\n [b [...] and innovating responsibly on AI together”](#core-Bib0090-2)",
+      "score": 0.03065555,
+      "raw_content": null,
+      "id": "51bcb3-15"
+    },
+    {
+      "url": "https://dl.acm.org/doi/10.1145/3748699.3749783",
+      "title": "Co-Designing a Responsible AI Recommender System",
+      "content": "Responsible AI is a tech driver of sustainable economic growth. The likelihood of that outcome is high (green), medium (amber), or low (red).",
+      "score": 0.01614201,
+      "raw_content": null,
+      "id": "cae650-16"
+    },
+    {
+      "url": "https://dl.acm.org/doi/fullHtml/10.1145/3613904.3642475",
+      "title": "A Faculty-Enabling Curriculum to Teach Inclusive Design ...",
+      "content": "by R Garcia · 2024 · Cited by 11 — We used these data as measures to evaluate the Matchmaker Curriculum LOs through how many individual faculty members achieved the LO.",
+      "score": 0.013264965,
+      "raw_content": null,
+      "id": "cf15df-17"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3713043.3728839",
+      "title": "Unpacking Students' Experience during a Collaborative AI ...",
+      "content": "by I Possaghi · 2025 · Cited by 2 — In this paper, we presented a study conducted “in-the-wild” where students engaged in a DT workshop focused on AI and ML. Through tests, artifacts, and MM",
+      "score": 0.012346842,
+      "raw_content": null,
+      "id": "a2dd9f-18"
+    },
+    {
+      "url": "https://dl.acm.org/doi/full/10.1145/3715336.3735752",
+      "title": "To Search or To Gen? Design Dimensions Integrating Web ...",
+      "content": "by R Yen · 2025 · Cited by 10 — These design dimensions offer implications for designing tools that facilitate context transitions between web search and GenAI while adapting to programmers'",
+      "score": 0.011652368,
+      "raw_content": null,
+      "id": "ddd5e7-19"
+    }
+  ],
+  "response_time": 3.84,
+  "request_id": "1ef0cc3b-f51c-417d-8cdd-87da1517afab"
+}
