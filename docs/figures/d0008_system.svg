@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="371.52pt" height="202.896pt" viewBox="0 0 371.52 202.896" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-28T19:17:30.096126</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 202.896 
+L 371.52 202.896 
+L 371.52 -0 
+L 0 -0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 21.4848 95.79312 
+L 85.7664 95.79312 
+Q 100.0512 95.79312 100.0512 88.25328 
+L 100.0512 46.78416 
+Q 100.0512 39.24432 85.7664 39.24432 
+L 21.4848 39.24432 
+Q 7.2 39.24432 7.2 46.78416 
+L 7.2 88.25328 
+Q 7.2 95.79312 21.4848 95.79312 
+z
+" clip-path="url(#pcbad9acccc)" style="fill: #ffffff; stroke: #52514e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 192.9024 161.76672 
+L 350.0352 161.76672 
+Q 364.32 161.76672 364.32 154.22688 
+L 364.32 22.27968 
+Q 364.32 14.73984 350.0352 14.73984 
+L 192.9024 14.73984 
+Q 178.6176 14.73984 178.6176 22.27968 
+L 178.6176 154.22688 
+Q 178.6176 161.76672 192.9024 161.76672 
+z
+" clip-path="url(#pcbad9acccc)" style="fill: #f4f8fe; stroke: #2a78d6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 207.1872 90.13824 
+L 335.7504 90.13824 
+Q 350.0352 90.13824 350.0352 82.5984 
+L 350.0352 52.43904 
+Q 350.0352 44.8992 335.7504 44.8992 
+L 207.1872 44.8992 
+Q 192.9024 44.8992 192.9024 52.43904 
+L 192.9024 82.5984 
+Q 192.9024 90.13824 207.1872 90.13824 
+z
+" clip-path="url(#pcbad9acccc)" style="fill: #ffffff; stroke: #52514e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 207.1872 150.45696 
+L 335.7504 150.45696 
+Q 350.0352 150.45696 350.0352 142.91712 
+L 350.0352 112.75776 
+Q 350.0352 105.21792 335.7504 105.21792 
+L 207.1872 105.21792 
+Q 192.9024 105.21792 192.9024 112.75776 
+L 192.9024 142.91712 
+Q 192.9024 150.45696 207.1872 150.45696 
+z
+" clip-path="url(#pcbad9acccc)" style="fill: #ffffff; stroke: #52514e; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(15.362319 66.49872)">質問者・中央の 1 台</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(35.715834 74.99872)">RTX 3060</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #2a78d6" x="192.9024" y="31.64464" transform="rotate(-0 192.9024 31.64464)">30 台の PC（各 5 受信箱）</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(231.858136 66.49872)">GPU を持つ PC 10 台</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(235.615402 74.99872)">8B のモデルで回答</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(232.075284 126.81744)">CPU だけの PC 20 台</text>
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(223.825636 135.31744)">回答は GPU の PC に委託</text>
+   </g>
+   <g id="patch_6">
+    <path d="M 271.4688 106.98599 
+Q 271.4688 97.677585 271.4688 89.710821 
+" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #52514e; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 269.6688 93.310821 
+L 271.4688 89.710821 
+L 273.2688 93.310821 
+" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #52514e; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 94.906484 56.20896 
+Q 139.333709 56.20896 182.419293 56.20896 
+" style="fill: none; stroke: #52514e; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 178.819293 54.40896 
+L 182.419293 56.20896 
+L 178.819293 58.00896 
+" style="fill: none; stroke: #52514e; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 183.762316 75.05856 
+Q 139.335091 75.05856 96.249507 75.05856 
+" style="fill: none; stroke: #52514e; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 99.849507 76.85856 
+L 96.249507 75.05856 
+L 99.849507 73.25856 
+" style="fill: none; stroke: #52514e; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 94.787473 87.054816 
+Q 139.333972 103.332804 182.620328 119.150315 
+" style="fill: none; stroke: #52514e; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 179.856801 116.224068 
+L 182.620328 119.150315 
+L 178.621214 119.605387 
+" style="fill: none; stroke: #52514e; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="text_5">
+    <g id="patch_10">
+     <path d="M 139.3344 56.55408 
+C 140.925619 56.55408 142.451879 55.921882 143.577041 54.796721 
+C 144.702202 53.671559 145.3344 52.145299 145.3344 50.55408 
+C 145.3344 48.962861 144.702202 47.436601 143.577041 46.311439 
+C 142.451879 45.186278 140.925619 44.55408 139.3344 44.55408 
+C 137.743181 44.55408 136.216921 45.186278 135.091759 46.311439 
+C 133.966598 47.436601 133.3344 48.962861 133.3344 50.55408 
+C 133.3344 52.145299 133.966598 53.671559 135.091759 54.796721 
+C 136.216921 55.921882 137.743181 56.55408 139.3344 56.55408 
+z
+" style="fill: #2a78d6; stroke: #2a78d6; stroke-linejoin: miter"/>
+    </g>
+    <text style="font-size: 8px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #ffffff" x="139.3344" y="53.59408" transform="rotate(-0 139.3344 53.59408)">1</text>
+   </g>
+   <g id="text_6">
+    <g id="patch_11">
+     <path d="M 139.3344 88.5984 
+C 140.925619 88.5984 142.451879 87.966202 143.577041 86.841041 
+C 144.702202 85.715879 145.3344 84.189619 145.3344 82.5984 
+C 145.3344 81.007181 144.702202 79.480921 143.577041 78.355759 
+C 142.451879 77.230598 140.925619 76.5984 139.3344 76.5984 
+C 137.743181 76.5984 136.216921 77.230598 135.091759 78.355759 
+C 133.966598 79.480921 133.3344 81.007181 133.3344 82.5984 
+C 133.3344 84.189619 133.966598 85.715879 135.091759 86.841041 
+C 136.216921 87.966202 137.743181 88.5984 139.3344 88.5984 
+z
+" style="fill: #2a78d6; stroke: #2a78d6; stroke-linejoin: miter"/>
+    </g>
+    <text style="font-size: 8px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #ffffff" x="139.3344" y="85.6384" transform="rotate(-0 139.3344 85.6384)">2</text>
+   </g>
+   <g id="text_7">
+    <g id="patch_12">
+     <path d="M 117.9072 116.8728 
+C 119.498419 116.8728 121.024679 116.240602 122.149841 115.115441 
+C 123.275002 113.990279 123.9072 112.464019 123.9072 110.8728 
+C 123.9072 109.281581 123.275002 107.755321 122.149841 106.630159 
+C 121.024679 105.504998 119.498419 104.8728 117.9072 104.8728 
+C 116.315981 104.8728 114.789721 105.504998 113.664559 106.630159 
+C 112.539398 107.755321 111.9072 109.281581 111.9072 110.8728 
+C 111.9072 112.464019 112.539398 113.990279 113.664559 115.115441 
+C 114.789721 116.240602 116.315981 116.8728 117.9072 116.8728 
+z
+" style="fill: #2a78d6; stroke: #2a78d6; stroke-linejoin: miter"/>
+    </g>
+    <text style="font-size: 8px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #ffffff" x="117.9072" y="113.9128" transform="rotate(-0 117.9072 113.9128)">3</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 7.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(14.3424 129.144084)">1  公開情報で問い合わせ先を 24 台に絞る</text>
+    <text style="font-size: 7.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(14.3424 140.60385)">2  probe で得点を集め，候補の受信箱を 3 つ選ぶ</text>
+    <text style="font-size: 7.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(14.3424 153.1476)">3  候補に回答を依頼（委託は点線）</text>
+    <text style="font-size: 7.5px; font-family: 'Noto Sans CJK JP', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(14.3424 165.102483)">4  候補の回答を cross-encoder で採点し，最大の 1 つを採る</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pcbad9acccc">
+   <rect x="7.2" y="7.2" width="357.12" height="188.496"/>
+  </clipPath>
+ </defs>
+</svg>
