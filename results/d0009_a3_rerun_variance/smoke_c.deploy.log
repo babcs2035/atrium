@@ -1,0 +1,42 @@
+[deploy] $ bash scripts/tasks/deploy.sh
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[19:08:12] building localhost:15000/atrium-node:latest (git 5153663779b6-dirty)
+[19:08:14] building localhost:15000/atrium-full:latest (git 5153663779b6-dirty)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[19:08:26] GPU experts: 192.168.15.100 192.168.15.101 192.168.15.102 192.168.15.103 192.168.15.104 192.168.15.105 192.168.15.106 192.168.15.107 192.168.15.108
+[19:08:30] placement: 9 expert nodes
+[19:08:30] deploying experts
+[19:08:58] ok: 192.168.15.101
+[19:08:58] ok: 192.168.15.100
+[19:09:04] ok: 192.168.15.103
+[19:09:05] ok: 192.168.15.102
+[19:09:05] ok: 192.168.15.105
+[19:09:05] ok: 192.168.15.104
+[19:09:05] ok: 192.168.15.107
+[19:09:05] ok: 192.168.15.106
+[19:09:05] ok: 192.168.15.108
+[19:09:05] deploying requester wafl-ctrl5
+[19:09:20] ok: wafl-ctrl5
+[19:09:20] deploying requester LLM 192.168.15.109
+[19:09:32] ok: 192.168.15.109
+[19:09:32] waiting for experts to become healthy
+[19:09:32] ok: 192.168.15.101
+[19:09:32] ok: 192.168.15.100
+[19:09:32] ok: 192.168.15.103
+[19:09:32] ok: 192.168.15.102
+[19:09:32] ok: 192.168.15.105
+[19:09:32] ok: 192.168.15.104
+[19:09:32] ok: 192.168.15.107
+[19:09:32] ok: 192.168.15.106
+[19:09:32] ok: 192.168.15.108
+[19:09:32] deploy done

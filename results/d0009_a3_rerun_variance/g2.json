@@ -1,0 +1,9 @@
+{
+ "gate": "G2",
+ "n": 2940,
+ "agree": 1.0,
+ "accuracy_original": 0.7738095238095238,
+ "accuracy_gpu4": 0.7738095238095238,
+ "threshold": 0.99,
+ "passed": true
+}

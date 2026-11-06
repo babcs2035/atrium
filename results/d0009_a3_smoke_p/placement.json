@@ -1,0 +1,216 @@
+{
+ "dataset": "enronqa",
+ "nodes": [
+  {
+   "host": "192.168.15.100",
+   "url": "http://192.168.15.100:8100",
+   "shard_ids": [
+    "badeer-r",
+    "brawner-s",
+    "dasovich-j",
+    "davis-d",
+    "linder-e",
+    "may-l",
+    "mims-thurston-p",
+    "phanis-s",
+    "quenet-j",
+    "rapp-b",
+    "south-s",
+    "swerzbin-m",
+    "tholt-j",
+    "tycholiz-b",
+    "zipper-a"
+   ]
+  },
+  {
+   "host": "192.168.15.101",
+   "url": "http://192.168.15.101:8100",
+   "shard_ids": [
+    "arora-h",
+    "bailey-s",
+    "crandell-s",
+    "fischer-m",
+    "geaccone-t",
+    "hyvl-d",
+    "kaminski-v",
+    "reitmeyer-j",
+    "rogers-b",
+    "saibi-e",
+    "salisbury-h",
+    "slinger-r",
+    "solberg-g",
+    "stokley-c",
+    "whalley-g"
+   ]
+  },
+  {
+   "host": "192.168.15.102",
+   "url": "http://192.168.15.102:8100",
+   "shard_ids": [
+    "cuilla-m",
+    "dean-c",
+    "delainey-d",
+    "dorland-c",
+    "hayslett-r",
+    "hernandez-j",
+    "hodge-j",
+    "horton-s",
+    "kuykendall-t",
+    "lavorato-j",
+    "merriss-s",
+    "ring-a",
+    "shackleton-s",
+    "skilling-j",
+    "whitt-m"
+   ]
+  },
+  {
+   "host": "192.168.15.103",
+   "url": "http://192.168.15.103:8100",
+   "shard_ids": [
+    "ermis-f",
+    "fossum-d",
+    "lenhart-m",
+    "lokey-t",
+    "maggi-m",
+    "martin-t",
+    "mcconnell-m",
+    "mckay-b",
+    "perlingiere-d",
+    "schwieger-j",
+    "smith-m",
+    "stclair-c",
+    "steffes-j",
+    "taylor-m",
+    "wolfe-j"
+   ]
+  },
+  {
+   "host": "192.168.15.104",
+   "url": "http://192.168.15.104:8100",
+   "shard_ids": [
+    "arnold-j",
+    "derrick-j",
+    "dickson-s",
+    "donoho-l",
+    "gay-r",
+    "giron-d",
+    "guzman-m",
+    "holst-k",
+    "king-j",
+    "lokay-m",
+    "mann-k",
+    "quigley-d",
+    "scholtes-d",
+    "shapiro-r",
+    "stepenovitch-j"
+   ]
+  },
+  {
+   "host": "192.168.15.105",
+   "url": "http://192.168.15.105:8100",
+   "shard_ids": [
+    "farmer-d",
+    "gilbertsmith-d",
+    "grigsby-m",
+    "jones-t",
+    "meyers-a",
+    "parks-j",
+    "pereira-s",
+    "pimenov-v",
+    "shankman-j",
+    "ward-k",
+    "weldon-c",
+    "whalley-l",
+    "white-s",
+    "williams-w3",
+    "zufferli-j"
+   ]
+  },
+  {
+   "host": "192.168.15.106",
+   "url": "http://192.168.15.106:8100",
+   "shard_ids": [
+    "bass-e",
+    "cash-m",
+    "causholli-m",
+    "donohoe-t",
+    "germany-c",
+    "kean-s",
+    "keiser-k",
+    "love-p",
+    "mclaughlin-e",
+    "motley-m",
+    "panus-s",
+    "presto-k",
+    "richey-c",
+    "ring-r",
+    "semperger-c"
+   ]
+  },
+  {
+   "host": "192.168.15.107",
+   "url": "http://192.168.15.107:8100",
+   "shard_ids": [
+    "baughman-d",
+    "beck-s",
+    "buy-r",
+    "forney-j",
+    "gang-l",
+    "heard-m",
+    "lucci-p",
+    "platter-p",
+    "rodrique-r",
+    "ruscitti-k",
+    "sager-e",
+    "scott-s",
+    "thomas-p",
+    "townsend-j",
+    "watson-k"
+   ]
+  },
+  {
+   "host": "192.168.15.108",
+   "url": "http://192.168.15.108:8100",
+   "shard_ids": [
+    "allen-p",
+    "blair-l",
+    "campbell-l",
+    "carson-m",
+    "corman-s",
+    "harris-s",
+    "hendrickson-s",
+    "keavey-p",
+    "lay-k",
+    "lewis-a",
+    "mccarty-d",
+    "sanchez-m",
+    "sanders-r",
+    "schoolcraft-d",
+    "williams-j"
+   ]
+  },
+  {
+   "host": "192.168.15.109",
+   "url": "http://192.168.15.109:8100",
+   "shard_ids": [
+    "benson-r",
+    "griffith-j",
+    "haedicke-m",
+    "hain-m",
+    "hyatt-k",
+    "kitchen-l",
+    "mckay-j",
+    "neal-s",
+    "nemec-g",
+    "shively-h",
+    "staab-t",
+    "storey-g",
+    "sturm-f",
+    "symes-k",
+    "ybarbo-p"
+   ]
+  }
+ ],
+ "delegate_of": {}
+}

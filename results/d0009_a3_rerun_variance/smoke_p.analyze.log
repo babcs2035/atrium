@@ -1,0 +1,3 @@
+[analyze] $ bash scripts/tasks/analyze.sh ${usage_run_id:-}
+no run to analyze (run_meta.json not found)
+[analyze] ERROR task failed

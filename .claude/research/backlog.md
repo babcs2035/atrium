@@ -17,6 +17,15 @@
 
 ---
 
+## B80 [needs-human 2026-11-06] Iteration 22 の実機の実行が，wafl-ctrl5 から専門家 20 台（192.168.13.100〜109・192.168.14.100〜109）へ ssh できず始められない
+- 状況: Iteration 22（d0009 A3）の phase 2 で，事前登録（commit 4960466）・実装（commit f7e7ae2・5153663）・質問集合 H・ゲート G-E・G2 までは済んだ．実機の smoke の deploy（`mise run deploy`．操作端末 gpu4）が，制御点 wafl-ctrl5 から専門家 192.168.13.100〜109・192.168.14.100〜109 の 20 台へ ssh するところで全て `Received disconnect from <host> port 22:2: Too many authentication failures` になり失敗した（`results/d0009_a3_rerun_variance/smoke_p.deploy.log`）．wafl500〜509（192.168.15.x）へは同じ制御点から ssh でき，deploy も成功した．
+- 切り分け: (a) ctrl5 の `~/.ssh` の鍵は `id_ed25519` の 1 つだけ（2026-02-12 作成．変更なし）．この鍵を 13.x・14.x の専門家が受け付けない（`ssh -v` で鍵を提示した後に切断される．ホスト鍵は known_hosts と一致．TCP の 22 番は開いている）．(b) 操作端末 gpu4 の鍵を `ssh -A` で転送しても同じ．(c) 13.x・14.x の専門家は `:8100/healthz` に応答しない（コンテナが動いていない）．(d) ctrl5 の `authorized_keys` は今日 16:22 に更新されている（gpu4 の鍵の追加と思われる）．13.x・14.x の専門家の `authorized_keys` も同時期に変わった可能性があるが，こちらからは確認できない．
+- 影響: P2P の主構成 R3′（P）は 30 台の専門家（事前登録・A6 と同じ配置）が要る．`bm25_probe` の要約は 30 台の配置に対して作られており，10 台（wafl500〜509 だけ）の smoke は `the summary was built for a different placement` で全問失敗した．したがって P の実機の実行はできない．C（中央 C1-RRF-CE）は専門家に問い合わせないので，15.x だけの縮小配置でも流せるが，事前登録は P・C の交互の実行で，P が無いと主の比較ができないため，C だけを先に流していない．
+- 必要な判断・操作（人間）: (1) 13.x・14.x の専門家の ssh 認証を回復する（ctrl5 の `~/.ssh/id_ed25519.pub` を各専門家の `authorized_keys` へ戻す，または原因の調査）．(2) 回復できない場合は，P の構成を 30 台から変える（事前登録の変更になる）か，iteration を中止するかの判断．
+- 再開の手順: 認証が回復したら `state.json` の `status` を `waiting_experiment` にし，リポジトリの直下で `(nohup setsid sg docker -c "bash scripts/d0009/a3_chain.sh results/d0009_a3_rerun_variance/chain.log" > /dev/null 2>&1 < /dev/null &)` を実行する（P1 → C1 → P2 → C2 → P3 → C3．各回の前に全ノードを止め，GPU の空きを最大 2 時間待ち，deploy する．config.yaml は各回の後に元へ戻る）．事前の準備（H の質問・クエリ埋め込み・再ランクの表・ゲート）の状態は戻り値と `results/d0009_a3_rerun_variance/` を参照．
+- 付記（実装上の判断・変更）: gpu4 の docker build が名前を引けなかったため `scripts/tasks/lib.sh` の `docker build` に `--network host` を足した（commit 5153663）．質問者に GPU が無いとき deploy が `docker/compose.requester_cpu.yml`（GPU・Ollama なし）を置く．これらは Iteration 22 の事前登録の「実装の要点」にある「質問者のコンテナが GPU を要求せずに起動すること」への対応で，wafl-ctrl5 での起動（compose・コンテナ）は smoke で確認できた（質問者のコンテナは 144 問を読み込み，holdout のクエリ埋め込みも引けた）．
+
+
 ## B79 [auto-decided 2026-11-06] Iteration 22（d0009 A3）の設計：新しい質問集合 H，3 回ずつの交互の実機の実行，cross-encoder を gpu4 で事前に計算する扱い，区間の作り方
 - 状況: B73 で A3 の回数・区間の作り方・質問集合は rc-researcher が事前登録で決めることになっていた．加えて，運用ルール 8（2026-11-06）で制御点 wafl-ctrl5 の GPU が廃止され（`nvidia-smi` がドライバと通信できないことを 2026-11-06 に確かめた），主構成の選択（R3′）と C1-RRF-CE の再ランクを担っていた質問者の cross-encoder を実機の経路で動かせない．運用ルール 11 は「選択まで実機で通す．オフラインならその旨と一致の範囲を併記」，ルール 13 は「新しい精度の測定は実機」．
 - 自動選択:

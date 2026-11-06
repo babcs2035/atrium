@@ -3,13 +3,13 @@
   "iteration": 22,
   "iteration_name": "主構成と中央の構成を流し直したときの揺れを含めた差の区間",
   "phase": "execute",
-  "status": "running",
+  "status": "blocked",
   "current_lever": "d0009.A3_rerun_variance=repeat_main_configs",
-  "experiment_dir": null,
-  "experiment_deadline": null,
-  "updated_at": 1793947647,
+  "experiment_dir": "results/d0009_a3_rerun_variance",
+  "experiment_deadline": 1794030298,
+  "updated_at": 1793960312,
   "last_slack_ts": "1793954741.677599",
   "iteration_thread_ts": "1793954730.081839",
   "notion_toggle_created": true,
-  "last_commit": "3525954"
+  "last_commit": "f7e7ae2"
 }

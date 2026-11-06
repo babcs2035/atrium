@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/a3_gates.py", line 185, in <module>
+    main()
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/a3_gates.py", line 175, in main
+    result = gate_selection(args.data_dir)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/a3_gates.py", line 111, in gate_selection
+    "accuracy_original": sum(bool(old_correct[q]) for q in shared) / len(shared),
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/a3_gates.py", line 111, in <genexpr>
+    "accuracy_original": sum(bool(old_correct[q]) for q in shared) / len(shared),
+                                  ~~~~~~~~~~~^^^
+KeyError: 'enronqa/test/564-0'

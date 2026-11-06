@@ -100,6 +100,13 @@ E0 は完了済みの計測を飛ばす）．制御点での出力は `results/<
 2 つの実行の正答率は `uv run atrium compare results/<A> results/<B>` で比べる（McNemar の正確検定）．
 research-cycle の `metrics_cmd` は `uv run atrium metrics --json`（最新の `metrics.json` を 1 行で出す）である．
 
+### 質問者に GPU が無いとき（d0009 A3）
+
+制御点 wafl-ctrl5 の GPU は廃止された（運用ルール 8）．deploy は質問者の `nvidia-smi` で GPU の有無を調べ，無ければ GPU を要求せず Ollama を動かさない compose（`docker/compose.requester_cpu.yml`）を置く．
+この質問者では，生成は GPU の専門家（`owner_answer`）か `cluster.requester_llm`（`central_local`）が行い，中央の再ランクは `retrieval.ce_scores: table` で事前に計算した表を引く．
+表は GPU のある端末で `uv run atrium ce-table --data-dir <enronqa/ を含む置き場所> --split holdout` を実行して作り（`retrieval.fusion: rrf`・`merge: cross_encoder` の設定で），制御点の `<data_dir>/enronqa/ce_table/` へ置く．
+`--compare-run results/p0007_a5_c1_rrf_ce --split test` を付けると，表から求めた上位 5 通が実機の実行の `top_doc_ids` と一致する割合を出す．
+
 ### stop / clean
 
 - `mise run stop`：全ノードのコンテナを止める（削除しない）．実験の後に実行し，専門家のメモリと

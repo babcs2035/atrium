@@ -1,0 +1,14 @@
+{
+ "gate": "G-J",
+ "model": "qwen3:8b",
+ "threshold": 0.95,
+ "R3p": {
+  "n": 300,
+  "agree": 0.9066666666666666
+ },
+ "C1_RRF_CE": {
+  "n": 300,
+  "agree": 0.8933333333333333
+ },
+ "passed": false
+}

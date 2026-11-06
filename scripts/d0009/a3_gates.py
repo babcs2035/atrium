@@ -74,23 +74,24 @@ def gate_selection(data_dir: Path) -> dict[str, Any]:
     work.mkdir(parents=True, exist_ok=True)
     for name in ("results.jsonl", "candidate_judgements.jsonl", "judgements.jsonl"):
         shutil.copy(A6_TEST / name, work / name)
-    rows = [r for r in read_results(work / "results.jsonl") if r.get("error") is None]
-    inboxes = {
-        str(c["source"])
-        for r in rows
-        for c in (r.get("owner_answer") or {}).get("candidates") or []
-    }
-    text_of = {
-        d["id"]: f"{d['title']}\n{d['content']}".strip()
-        for inbox in sorted(inboxes)
-        for d in read_inbox(paths, inbox)
-    }
-    features = cross_encoder_features(
-        rows, question_texts(paths), text_of, CrossEncoderReranker().scores
-    )
-    with (work / CE_FEATURES).open("w", encoding="utf-8") as f:
-        for item in features:
-            f.write(json.dumps(item) + "\n")
+    if not (work / CE_FEATURES).exists():
+        rows = [r for r in read_results(work / "results.jsonl") if r.get("error") is None]
+        inboxes = {
+            str(c["source"])
+            for r in rows
+            for c in (r.get("owner_answer") or {}).get("candidates") or []
+        }
+        text_of = {
+            d["id"]: f"{d['title']}\n{d['content']}".strip()
+            for inbox in sorted(inboxes)
+            for d in read_inbox(paths, inbox)
+        }
+        features = cross_encoder_features(
+            rows, question_texts(paths), text_of, CrossEncoderReranker().scores
+        )
+        with (work / CE_FEATURES).open("w", encoding="utf-8") as f:
+            for item in features:
+                f.write(json.dumps(item) + "\n")
     _, outcomes = evaluate(work, ["R3"], work / CE_FEATURES, True)
     derived = OUT / "g2_work" / "p0007_a6_test_R3p_gpu4"
     write_derived_run(work, outcomes["R3"], "R3", derived, True)
@@ -108,8 +109,8 @@ def gate_selection(data_dir: Path) -> dict[str, Any]:
         "gate": "G2",
         "n": len(shared),
         "agree": same / len(shared),
-        "accuracy_original": sum(bool(old_correct[q]) for q in shared) / len(shared),
-        "accuracy_gpu4": sum(bool(new_correct[q]) for q in shared) / len(shared),
+        "accuracy_original": sum(bool(old_correct.get(q)) for q in shared) / len(shared),
+        "accuracy_gpu4": sum(bool(new_correct.get(q)) for q in shared) / len(shared),
         "threshold": SELECT_THRESHOLD,
         "passed": bool(same / len(shared) >= SELECT_THRESHOLD),
     }
