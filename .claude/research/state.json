@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 21,
-  "iteration_name": "「わからない」の指示をやめた後の作り話の割合の 3 分類",
-  "phase": "evaluate",
+  "iteration": 22,
+  "iteration_name": "主構成と中央の構成を流し直したときの揺れを含めた差の区間",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "d0009.A2_fabrication=three_way_judge",
-  "experiment_dir": "results/d0009_a2_fabrication",
+  "current_lever": "d0009.A3_rerun_variance=repeat_main_configs",
+  "experiment_dir": null,
   "experiment_deadline": null,
   "updated_at": 1793947647,
-  "last_slack_ts": "1792132817.912919",
-  "iteration_thread_ts": "1793945653.515289",
+  "last_slack_ts": "1793954741.677599",
+  "iteration_thread_ts": "1793954730.081839",
   "notion_toggle_created": true,
-  "last_commit": "d2a52c1"
+  "last_commit": "3525954"
 }

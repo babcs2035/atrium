@@ -53,7 +53,7 @@
 #      （別の場所へモデルのファイルを複製・展開しない．`ollama create` で volume へ登録するのは container が使うための取り込みとして許す）．
 #      作業用のディレクトリは，gpu4 では `~/workspace/atrium`，wafl の各機では `~/workspace/ktakahashi/atrium` の下だけに置く．
 #      それ以外の場所（`~/` 直下，`/mnt/data-raid` など）にディレクトリを新しく作らない．スクリプトも repo の `scripts/` に置く（`/tmp` は
-#      使い捨ての一時ファイルに限る）．既存の逸脱（backlog B74 の `ollama-bin/`・`ollama-models/`）は，人間の判断で消すまで残す．
+#      使い捨ての一時ファイルに限る）．規則に反して作ったディレクトリは見つけ次第削除してよい（人間の指示 2026-11-06．backlog B-R15）．旧端末 gpu2 の `ollama-bin/`・`ollama-models/`（backlog B74）は gpu4 から到達できず未削除なので，gpu2 に入れる機会があれば削除する．
 #   9. docs/d0009_rinko_handover.md の申し送り（levers の「d0009」節．backlog B73）を進めるときは，rc-researcher が
 #      着手時にその項目へ「着手：Iteration {n}（事前登録は journal の Iteration {n}）」を，rc-evaluator が完了時に
 #      「完了：結果の置き場所（results/…・journal の節）と判定」を書き足す（d0009 の「使い方」）．d0009 §E の表の状態も合わせて直す．
