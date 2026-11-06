@@ -33,6 +33,8 @@ research-cycle skill（`~/.claude/skills/research-cycle/`）は，「調査・�
 6. E2 `experiment.routing=card_sim`：MedRAG のデータ源の自己紹介文の類似度（再学習なしの方式）
 7. EQ8 `data.enronqa.k_context=1,3,5`：EnronQA の文脈の通数
 
+p0007 までのレバーは実施済みである．次に扱うのは，輪講資料からの申し送り（[d0009](d0009_rinko_handover.md)）を登録した「d0009」節で，順序と手続き上の規則（運用ルール 9〜12）は d0009 §E にまとめた．
+
 RQ1 の新しい方式は `atrium.routing` に Router を 1 個追加し，`make_router()` に登録して，`experiment.routing` で名前を選ぶ（[d0001](d0001_architecture.md) §5）．
 EnronQA の実験（RQ-A・RQ-B・待ち時間・RQ-C）と，E1〜E3 の結果は，各回の条件・判定・数値を [journal](../.claude/research/journal.md) に，
 実行のディレクトリを [results/README.md](../results/README.md) に残してある．

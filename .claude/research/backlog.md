@@ -17,6 +17,21 @@
 
 ---
 
+## B73 [human-decided 2026-11-06] d0009（輪講資料からの申し送り）の全項目を research-cycle に登録した．開始の合図を待つ
+- 出どころ: ユーザーの指示（2026-11-06）「`docs/d0009_rinko_handover.md` の申し送り事項を全て research-cycle で正しく扱うように登録・整備せよ」．
+- したこと:
+  - A1〜A6・B1〜B3 を `config.yml` の `levers` の末尾に「d0009」節として足した（`d0009.A2_fabrication` → `A3_rerun_variance` → `A1_multi_requester` → `B3_owner_and_selection` → `A6_remeasure_main` → `A4_exposure_total` → `A5_extend_measurements` → `B1_drop_failed_peers` → `B2_split_reranker` の順）．p0007 までのレバーは全て実施済みで，選ばない．
+  - C1〜C3 は特定のイテレーションではなく全体に効く手続きなので，`config.yml` の運用ルール 10（C1：判定は新しく分けた質問か別のデータセットで行う），11（C2：選択まで実機で通す．オフラインならその旨と一致の確かめの範囲を併記），12（C3：輪講資料が読む `results/` の記録の名前・置き場所を変えない）にした．運用ルール 9 に，d0009 の項目へ着手・完了を書き足す手順を置いた．
+  - `state.json` を Iteration 21 の調査・計画（`phase: research`）の初期値にした．`status` は `converged` のままにした（下の要レビュー (a)）．
+  - `docs/d0009_rinko_handover.md` に §E（research-cycle での扱いの対応表）を足した．
+- 並べ方の根拠（可逆な判断）: d0009 §D の優先度（高：A1・A2・A3・B3，中：A4〜A6・B1・B2）を崩さず，高の中では費用が小さく後の判定の前提になるものを先にした．A2 は既存の結果の採点の追加で実機が要らない見込み．A3 は再実行の変動を含めた区間の作り方と δ の根拠を決めるので，A1・B3 の判定より前に置いた．中の中では，主構成の負荷・障害・参加（A6）を先にし，B1・B2 は A1 の結果を材料にできるよう最後にした．
+- 自動では決めないこと（各イテレーションの rc-researcher が事前登録で決めて `[auto-decided]` で残す）: 判定に使う新しい質問集合の作り方（運用ルール 10．既存の dev・test・質問ファイルは変えず追加だけ），A2 の 3 分類の判定の規則，A3 の回数と区間の作り方，A1 で受信箱を持つ PC が自分の受信箱を問い合わせ先とするか．
+- 止まる条件（`[needs-human]`）: A1 で `cluster.requester` の形式を既存と互換でない形に変える必要が出たとき（B25 (a) で人間の判断に残した部分．評価そのものはこの登録で承認済み），データ・成果物の削除，運用ルール 12 の記録の移動．
+- 要レビュー:
+  - (a) サイクルの開始：`status` は `converged` のままなので，watchdog は次のイテレーションを始めない．始めるときは，watchdog の人間待ちの再通知のスレッドに「B73 の順で開始」と返信するか，herdr の experiment の pane に同じ指示を直接入力する（`[Slack 返信]` の処理で `status` が `running` になり，Iteration 21 の調査・計画から進む）．wafl500〜509 の GPU は共有で，A1・A3・A6 は実機を長時間使う．
+  - (b) レバーの順序（特に A2・A3 を A1 より先にしたこと）．
+  - (c) A1 の評価の承認を，B25 (a)（質問者を複数のデバイスに置く形）の承認として扱ってよいか．
+
 ## B72 [human-decided 2026-10-24] p0007 追加作業：F-7（m = 4）を，反復の上限（5）と承認済みの追加（A6・F-6）を超えて 1 回だけ自律で行う
 - 出どころ: ユーザーの指示（2026-10-23）．d0007 §8 の F-7（A5-S3．A6-S2）．計画の A の反復の上限（5）を超える承認である（A6 は B69 で承認済み）．
 - 内容: P2P-R3′（`bm25_probe`・`owner_answer`・`retrieval.fusion: rrf`・UNKNOWN の除外なしの通常のプロンプト・`answer.aggregate: cross_encoder`）の `answer.owner_m` を 3 から 4 にし（他は変えない），dev（2,948 問）で m = 4 の効果を確かめ，test（2,940 問）を 1 回だけ流して C1-RRF-CE（`results/p0007_a5_c1_rrf_ce`．再利用）と判定する．規則は A6 の dev で選んだ R3′ に固定する．事前登録は journal 先頭「p0007 F-7（事前登録）」．
