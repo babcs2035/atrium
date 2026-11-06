@@ -1,0 +1,43 @@
+{
+ "n": 200,
+ "agreement": 0.93,
+ "kappa": 0.8600000000000001,
+ "min_agreement": 0.9,
+ "min_kappa": 0.7,
+ "passed": true,
+ "by_stratum": {
+  "A6/owner/dont_know": {
+   "n": 25,
+   "agree": 23
+  },
+  "A6/owner/fabricated": {
+   "n": 25,
+   "agree": 24
+  },
+  "A5/owner/fabricated": {
+   "n": 25,
+   "agree": 25
+  },
+  "A6/non_owner/fabricated": {
+   "n": 25,
+   "agree": 23
+  },
+  "A5/non_owner/dont_know": {
+   "n": 25,
+   "agree": 24
+  },
+  "A5/owner/dont_know": {
+   "n": 25,
+   "agree": 17
+  },
+  "A6/non_owner/dont_know": {
+   "n": 25,
+   "agree": 25
+  },
+  "A5/non_owner/fabricated": {
+   "n": 25,
+   "agree": 25
+  }
+ },
+ "manual_abstain_share": 0.46
+}

@@ -1,0 +1,41 @@
+{
+ "fixed_at": "2026-11-06T15:31:37.251806+09:00",
+ "data": "p0007_a6_dev の不正解の候補（UNKNOWN の字句を除く）から，持ち主・持ち主以外 × 粗い正規表現の当否の 4 層 × 15 件，種 12",
+ "n": 60,
+ "agent_vs_model_agreement": 0.9833333333333333,
+ "disagreements": [
+  "d51"
+ ],
+ "prompt_revisions_used": 0,
+ "prompt_sha256": "71a75524164dab18f9baafa3cccd04c8cfe35f95ac823dcab7194f1216caf60b",
+ "model": "qwen3:8b（Qwen/Qwen3-8B-GGUF の Q4_K_M．docker container の Ollama 0.35.1）",
+ "agent_labels_not_attempted": [
+  "d02",
+  "d09",
+  "d10",
+  "d13",
+  "d15",
+  "d17",
+  "d18",
+  "d19",
+  "d20",
+  "d21",
+  "d23",
+  "d25",
+  "d26",
+  "d27",
+  "d28",
+  "d29",
+  "d45",
+  "d47",
+  "d48",
+  "d49",
+  "d51",
+  "d52",
+  "d53",
+  "d56",
+  "d57",
+  "d58",
+  "d59"
+ ]
+}

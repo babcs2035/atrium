@@ -1,0 +1,508 @@
+{
+ "n_common_questions": 2939,
+ "bootstrap": {
+  "samples": 10000,
+  "seed": 12,
+  "unit": "question"
+ },
+ "abstain_prompt_sha256": "71a75524164dab18f9baafa3cccd04c8cfe35f95ac823dcab7194f1216caf60b",
+ "runs": {
+  "A5": {
+   "run": "p0007_a5_test",
+   "candidates_non_owner": {
+    "F": {
+     "value": 0.1568185756368047,
+     "ci95": [
+      0.14542896584847512,
+      0.16857828109199777
+     ],
+     "n": 5771.0
+    },
+    "F_upper": 0.15699185583087852,
+    "F_lexmax": 0.18107780280713914,
+    "dont_know": 0.704903829492289,
+    "correct": 0.13810431467683243,
+    "unjudged": 0.050510036196117145,
+    "abstain_unparsed": 0.00016452780519907864,
+    "counts": {
+     "correct": 797.0,
+     "dk_lexical": 3929.0,
+     "dk_model": 139.0,
+     "fabricated": 905.0,
+     "unparsed": 1.0,
+     "unjudged": 307.0
+    }
+   },
+   "candidates_owner": {
+    "F": {
+     "value": 0.16153846153846155,
+     "ci95": [
+      0.14818880351262348,
+      0.1753229389184566
+     ],
+     "n": 2730.0
+    },
+    "F_upper": 0.16153846153846155,
+    "F_lexmax": 0.17142857142857143,
+    "dont_know": 0.03882783882783883,
+    "correct": 0.7996336996336997,
+    "unjudged": 0.0032858707557502738,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 2183.0,
+     "dk_lexical": 79.0,
+     "dk_model": 27.0,
+     "fabricated": 441.0,
+     "unparsed": 0.0,
+     "unjudged": 9.0
+    }
+   },
+   "candidates_all": {
+    "F": {
+     "value": 0.1583343136101635,
+     "ci95": [
+      0.14909078123002173,
+      0.16788081121103798
+     ],
+     "n": 8501.0
+    },
+    "F_upper": 0.15845194682978472,
+    "F_lexmax": 0.17797906128690744,
+    "dont_know": 0.4910010586989766,
+    "correct": 0.35054699447123866,
+    "unjudged": 0.0358398548259045,
+    "abstain_unparsed": 0.00011341726210729273,
+    "counts": {
+     "correct": 2980.0,
+     "dk_lexical": 4008.0,
+     "dk_model": 166.0,
+     "fabricated": 1346.0,
+     "unparsed": 1.0,
+     "unjudged": 316.0
+    }
+   },
+   "F_rand": {
+    "value": 0.15895166780122533,
+    "ci95": [
+     0.14970501474926254,
+     0.16848134286038333
+    ],
+    "n": 2938.0
+   },
+   "selected": {
+    "R3": {
+     "F": {
+      "value": 0.19740437158469945,
+      "ci95": [
+       0.18333902355752818,
+       0.21203908493518958
+      ],
+      "n": 2928.0
+     },
+     "F_upper": 0.19740437158469945,
+     "F_lexmax": 0.21209016393442623,
+     "dont_know": 0.050546448087431695,
+     "correct": 0.7520491803278688,
+     "unjudged": 0.00374276964954066,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 2202.0,
+      "dk_lexical": 105.0,
+      "dk_model": 43.0,
+      "fabricated": 578.0,
+      "unparsed": 0.0,
+      "unjudged": 11.0
+     },
+     "segments": {
+      "a_owner_out": {
+       "n_questions": 200,
+       "n_valid": 197,
+       "fabricated": 98,
+       "F": 0.49746192893401014,
+       "wilson95": [
+        0.42836147106560934,
+        0.566659477269103
+       ]
+      },
+      "b_owner_chosen": {
+       "n_questions": 2547,
+       "n_valid": 2541,
+       "fabricated": 409,
+       "F": 0.1609602518693428,
+       "wilson95": [
+        0.1471848350567423,
+        0.17575923518075848
+       ]
+      },
+      "c_owner_in_not_chosen": {
+       "n_questions": 192,
+       "n_valid": 190,
+       "fabricated": 71,
+       "F": 0.3736842105263158,
+       "wilson95": [
+        0.3080373007519745,
+        0.4443376540589021
+       ]
+      }
+     },
+     "by_chosen_source": {
+      "from_owner": {
+       "n_valid": 2541,
+       "fabricated": 409
+      },
+      "from_non_owner": {
+       "n_valid": 387,
+       "fabricated": 169
+      }
+     }
+    },
+    "R0": {
+     "F": {
+      "value": 0.21725784447476126,
+      "ci95": [
+       0.20238500851788757,
+       0.2323439099283521
+      ],
+      "n": 2932.0
+     },
+     "F_upper": 0.21725784447476126,
+     "F_lexmax": 0.23703956343792634,
+     "dont_know": 0.05798090040927694,
+     "correct": 0.7247612551159618,
+     "unjudged": 0.0023817625042531474,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 2125.0,
+      "dk_lexical": 112.0,
+      "dk_model": 58.0,
+      "fabricated": 637.0,
+      "unparsed": 0.0,
+      "unjudged": 7.0
+     },
+     "segments": {
+      "a_owner_out": {
+       "n_questions": 200,
+       "n_valid": 198,
+       "fabricated": 98,
+       "F": 0.494949494949495,
+       "wilson95": [
+        0.42607070175955697,
+        0.5640205311730356
+       ]
+      },
+      "b_owner_chosen": {
+       "n_questions": 2451,
+       "n_valid": 2446,
+       "fabricated": 397,
+       "F": 0.16230580539656583,
+       "wilson95": [
+        0.14822451509631607,
+        0.17744613430348616
+       ]
+      },
+      "c_owner_in_not_chosen": {
+       "n_questions": 288,
+       "n_valid": 288,
+       "fabricated": 142,
+       "F": 0.4930555555555556,
+       "wilson95": [
+        0.4357877408981614,
+        0.5505061872635066
+       ]
+      }
+     },
+     "by_chosen_source": {
+      "from_owner": {
+       "n_valid": 2446,
+       "fabricated": 397
+      },
+      "from_non_owner": {
+       "n_valid": 486,
+       "fabricated": 240
+      }
+     }
+    }
+   }
+  },
+  "A6": {
+   "run": "p0007_a6_test",
+   "candidates_non_owner": {
+    "F": {
+     "value": 0.36130306021717673,
+     "ci95": [
+      0.3467301312879559,
+      0.3756998048368549
+     ],
+     "n": 6078.0
+    },
+    "F_upper": 0.36130306021717673,
+    "F_lexmax": 0.9118130964132939,
+    "dont_know": 0.5505100361961172,
+    "correct": 0.08818690358670615,
+    "unjudged": 0.0,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 536.0,
+     "dk_lexical": 0.0,
+     "dk_model": 3346.0,
+     "fabricated": 2196.0,
+     "unparsed": 0.0,
+     "unjudged": 0.0
+    }
+   },
+   "candidates_owner": {
+    "F": {
+     "value": 0.1570489408327246,
+     "ci95": [
+      0.14363519813519815,
+      0.17086568488879322
+     ],
+     "n": 2738.0
+    },
+    "F_upper": 0.1570489408327246,
+    "F_lexmax": 0.1745799853907962,
+    "dont_know": 0.017531044558071585,
+    "correct": 0.8254200146092038,
+    "unjudged": 0.0003650967506389193,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 2260.0,
+     "dk_lexical": 0.0,
+     "dk_model": 48.0,
+     "fabricated": 430.0,
+     "unparsed": 0.0,
+     "unjudged": 1.0
+    }
+   },
+   "candidates_all": {
+    "F": {
+     "value": 0.29786751361161523,
+     "ci95": [
+      0.28660542134512873,
+      0.30909709618874776
+     ],
+     "n": 8816.0
+    },
+    "F_upper": 0.29786751361161523,
+    "F_lexmax": 0.6828493647912885,
+    "dont_know": 0.3849818511796733,
+    "correct": 0.31715063520871145,
+    "unjudged": 0.00011341726210729273,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 2796.0,
+     "dk_lexical": 0.0,
+     "dk_model": 3394.0,
+     "fabricated": 2626.0,
+     "unparsed": 0.0,
+     "unjudged": 1.0
+    }
+   },
+   "F_rand": {
+    "value": 0.2978904389248044,
+    "ci95": [
+     0.286660712260406,
+     0.30911874787342636
+    ],
+    "n": 2939.0
+   },
+   "selected": {
+    "R3p": {
+     "F": {
+      "value": 0.19503063308373042,
+      "ci95": [
+       0.1810139503232392,
+       0.20966643975493532
+      ],
+      "n": 2938.0
+     },
+     "F_upper": 0.19503063308373042,
+     "F_lexmax": 0.22566371681415928,
+     "dont_know": 0.03063308373042886,
+     "correct": 0.7743362831858407,
+     "unjudged": 0.0003402517863218782,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 2275.0,
+      "dk_lexical": 0.0,
+      "dk_model": 90.0,
+      "fabricated": 573.0,
+      "unparsed": 0.0,
+      "unjudged": 1.0
+     },
+     "segments": {
+      "a_owner_out": {
+       "n_questions": 200,
+       "n_valid": 200,
+       "fabricated": 115,
+       "F": 0.575,
+       "wilson95": [
+        0.5057093264785485,
+        0.6414638745648614
+       ]
+      },
+      "b_owner_chosen": {
+       "n_questions": 2545,
+       "n_valid": 2544,
+       "fabricated": 383,
+       "F": 0.1505503144654088,
+       "wilson95": [
+        0.13718137759726595,
+        0.16497300338098636
+       ]
+      },
+      "c_owner_in_not_chosen": {
+       "n_questions": 194,
+       "n_valid": 194,
+       "fabricated": 75,
+       "F": 0.3865979381443299,
+       "wilson95": [
+        0.3209075763262374,
+        0.45669212263333364
+       ]
+      }
+     },
+     "by_chosen_source": {
+      "from_owner": {
+       "n_valid": 2544,
+       "fabricated": 383
+      },
+      "from_non_owner": {
+       "n_valid": 394,
+       "fabricated": 190
+      }
+     }
+    },
+    "R0p": {
+     "F": {
+      "value": 0.22940776038121172,
+      "ci95": [
+       0.21409121851599727,
+       0.24514811031664965
+      ],
+      "n": 2938.0
+     },
+     "F_upper": 0.22940776038121172,
+     "F_lexmax": 0.3209666439754935,
+     "dont_know": 0.09155888359428183,
+     "correct": 0.6790333560245064,
+     "unjudged": 0.0003402517863218782,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 1995.0,
+      "dk_lexical": 0.0,
+      "dk_model": 269.0,
+      "fabricated": 674.0,
+      "unparsed": 0.0,
+      "unjudged": 1.0
+     },
+     "segments": {
+      "a_owner_out": {
+       "n_questions": 200,
+       "n_valid": 200,
+       "fabricated": 114,
+       "F": 0.57,
+       "wilson95": [
+        0.5007048776415268,
+        0.6366567766656557
+       ]
+      },
+      "b_owner_chosen": {
+       "n_questions": 2222,
+       "n_valid": 2221,
+       "fabricated": 330,
+       "F": 0.14858171994597028,
+       "wilson95": [
+        0.13439677456779417,
+        0.16398019795256322
+       ]
+      },
+      "c_owner_in_not_chosen": {
+       "n_questions": 517,
+       "n_valid": 517,
+       "fabricated": 230,
+       "F": 0.4448742746615087,
+       "wilson95": [
+        0.40260036853254405,
+        0.4879613388072264
+       ]
+      }
+     },
+     "by_chosen_source": {
+      "from_owner": {
+       "n_valid": 2221,
+       "fabricated": 330
+      },
+      "from_non_owner": {
+       "n_valid": 717,
+       "fabricated": 344
+      }
+     }
+    }
+   }
+  },
+  "C1_RRF_CE": {
+   "run": "p0007_a5_c1_rrf_ce",
+   "selected": {
+    "final": {
+     "F": {
+      "value": 0.19258251105818305,
+      "ci95": [
+       0.17829193603266416,
+       0.206541340592038
+      ],
+      "n": 2939.0
+     },
+     "F_upper": 0.19258251105818305,
+     "F_lexmax": 0.20244981286151753,
+     "dont_know": 0.009867301803334467,
+     "correct": 0.7975501871384825,
+     "unjudged": 0.0,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 2344.0,
+      "dk_lexical": 0.0,
+      "dk_model": 29.0,
+      "fabricated": 566.0,
+      "unparsed": 0.0,
+      "unjudged": 0.0
+     }
+    }
+   }
+  }
+ },
+ "hypotheses_if_gate_passed": {
+  "H-F1": {
+   "statement": "F_non(A6) − F_non(A5) の 95% 区間の下端 > 0",
+   "difference": 0.20448448458037202,
+   "ci95": [
+    0.19262833557944728,
+    0.21636765764302052
+   ],
+   "holds": true
+  },
+  "H-F2": {
+   "statement": "Δ = F_final(A6 R3p) − F_final(A5 R3)．下端 > 0 なら増えた，区間が [−0.02, +0.02] に収まれば揺れの幅を超えては変わらない，それ以外は決まらない",
+   "difference": -0.0023737385009690304,
+   "ci95": [
+    -0.014924012822072969,
+    0.010439984485582025
+   ],
+   "result": "no_change_beyond_jitter",
+   "mcnemar": {
+    "only_a6_fabricated": 181,
+    "only_a5_fabricated": 191,
+    "p": 0.6408246703252962
+   }
+  },
+  "H-F3": {
+   "statement": "F_final(A6 R3p) − F_rand(A6) の 95% 区間の上端 < 0",
+   "difference": -0.10285980584107396,
+   "ci95": [
+    -0.11489168651468751,
+    -0.09050697516161962
+   ],
+   "holds": true
+  }
+ }
+}

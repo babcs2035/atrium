@@ -1,0 +1,84 @@
+{
+ "verdict_original": {
+  "gate_G-A2": {
+   "n": 200,
+   "agreement": 0.93,
+   "kappa": 0.8600000000000001,
+   "min_agreement": 0.9,
+   "min_kappa": 0.7,
+   "passed": true,
+   "by_stratum": {
+    "A6/owner/dont_know": {
+     "n": 25,
+     "agree": 23
+    },
+    "A6/owner/fabricated": {
+     "n": 25,
+     "agree": 24
+    },
+    "A5/owner/fabricated": {
+     "n": 25,
+     "agree": 25
+    },
+    "A6/non_owner/fabricated": {
+     "n": 25,
+     "agree": 23
+    },
+    "A5/non_owner/dont_know": {
+     "n": 25,
+     "agree": 24
+    },
+    "A5/owner/dont_know": {
+     "n": 25,
+     "agree": 17
+    },
+    "A6/non_owner/dont_know": {
+     "n": 25,
+     "agree": 25
+    },
+    "A5/non_owner/fabricated": {
+     "n": 25,
+     "agree": 25
+    }
+   },
+   "manual_abstain_share": 0.46
+  },
+  "status": "judged",
+  "hypotheses": {
+   "H-F1": {
+    "statement": "F_non(A6) − F_non(A5) の 95% 区間の下端 > 0",
+    "difference": 0.20448448458037202,
+    "ci95": [
+     0.19262833557944728,
+     0.21636765764302052
+    ],
+    "holds": true
+   },
+   "H-F2": {
+    "statement": "Δ = F_final(A6 R3p) − F_final(A5 R3)．下端 > 0 なら増えた，区間が [−0.02, +0.02] に収まれば揺れの幅を超えては変わらない，それ以外は決まらない",
+    "difference": -0.0023737385009690304,
+    "ci95": [
+     -0.014924012822072969,
+     0.010439984485582025
+    ],
+    "result": "no_change_beyond_jitter",
+    "mcnemar": {
+     "only_a6_fabricated": 181,
+     "only_a5_fabricated": 191,
+     "p": 0.6408246703252962
+    }
+   },
+   "H-F3": {
+    "statement": "F_final(A6 R3p) − F_rand(A6) の 95% 区間の上端 < 0",
+    "difference": -0.10285980584107396,
+    "ci95": [
+     -0.11489168651468751,
+     -0.09050697516161962
+    ],
+    "holds": true
+   }
+  },
+  "range_only": null
+ },
+ "verdict_revised": null
+}

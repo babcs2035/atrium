@@ -1,0 +1,73 @@
+== before dev prompt check 2026-11-06T15:30:49+09:00
+0, 13122 MiB, 24576 MiB, 49 %
+1, 23364 MiB, 24576 MiB, 0 %
+3221172, GPU-a800a51f-9a9e-c068-dd3b-1046e31e8119, 3512 MiB, /home/muranakamasahiro/WAFL-LLM/.venv/bin/python3
+3296402, GPU-a800a51f-9a9e-c068-dd3b-1046e31e8119, 9586 MiB, /mnt/data-raid/ktakahashi/ollama-bin/lib/ollama/llama-server
+3188758, GPU-52ee1663-da46-8157-1263-743a8a68e9a5, 23336 MiB, python
+== before labels run 2026-11-06T15:32:01+09:00
+0, 13132 MiB, 24576 MiB, 45 %
+1, 23364 MiB, 24576 MiB, 0 %
+3221172, GPU-a800a51f-9a9e-c068-dd3b-1046e31e8119, 3512 MiB, /home/muranakamasahiro/WAFL-LLM/.venv/bin/python3
+3296402, GPU-a800a51f-9a9e-c068-dd3b-1046e31e8119, 9596 MiB, /mnt/data-raid/ktakahashi/ollama-bin/lib/ollama/llama-server
+3188758, GPU-52ee1663-da46-8157-1263-743a8a68e9a5, 23336 MiB, python
+== before labels run (docker container) 2026-11-06T15:41:43+09:00
+0, 16434 MiB, 24576 MiB, 44 %
+1, 23364 MiB, 24576 MiB, 0 %
+3221172, GPU-a800a51f-9a9e-c068-dd3b-1046e31e8119, 6824 MiB, /home/muranakamasahiro/WAFL-LLM/.venv/bin/python3
+3305758, GPU-a800a51f-9a9e-c068-dd3b-1046e31e8119, 9586 MiB, /usr/lib/ollama/llama-server
+3188758, GPU-52ee1663-da46-8157-1263-743a8a68e9a5, 23336 MiB, python
+== at pause (container stopped) 2026-11-06T15:47:15+09:00
+0, 6842 MiB, 24576 MiB, 80 %
+1, 23364 MiB, 24576 MiB, 0 %
+3221172, GPU-a800a51f-9a9e-c068-dd3b-1046e31e8119, 6824 MiB, /home/muranakamasahiro/WAFL-LLM/.venv/bin/python3
+3188758, GPU-52ee1663-da46-8157-1263-743a8a68e9a5, 23336 MiB, python
+== resume 2026-11-06T15:47:59+09:00
+0, 6842 MiB, 24576 MiB, 45 %
+1, 23364 MiB, 24576 MiB, 100 %
+3221172, GPU-a800a51f-9a9e-c068-dd3b-1046e31e8119, 6824 MiB, /home/muranakamasahiro/WAFL-LLM/.venv/bin/python3
+3188758, GPU-52ee1663-da46-8157-1263-743a8a68e9a5, 23336 MiB, python
+Fri  6 Nov 16:23:22 JST 2026
+name, memory.used [MiB], memory.total [MiB], utilization.gpu [%]
+NVIDIA GeForce RTX 5090, 12 MiB, 32607 MiB, 0 %
+host=gpu4 (before gpu4 equivalence check; judge container atrium-judge-ollama-local, ollama 0.35.1, driver 615.71.09)
+Fri  6 Nov 16:24:10 JST 2026
+name, memory.used [MiB], utilization.gpu [%]
+NVIDIA GeForce RTX 5090, 9890 MiB, 0 %
+host=gpu4 before grading
+Fri  6 Nov 16:29:23 JST 2026
+NVIDIA GeForce RTX 3060, 1 MiB, 0 %
+host=wafl501 before judge setup
+Fri  6 Nov 16:29:23 JST 2026
+NVIDIA GeForce RTX 3060, 32 MiB, 0 %
+host=wafl502 before judge setup
+Fri  6 Nov 16:29:23 JST 2026
+NVIDIA GeForce RTX 3060, 32 MiB, 0 %
+host=wafl503 before judge setup
+Fri  6 Nov 16:29:23 JST 2026
+NVIDIA GeForce RTX 3060, 1 MiB, 0 %
+host=wafl504 before judge setup
+Fri  6 Nov 17:10:51 JST 2026
+host=gpu4+wafl500,501,503,505-509 before a6_dev grading
+NVIDIA GeForce RTX 5090, 12 MiB, 0 %
+wafl500: NVIDIA GeForce RTX 3060, 74 MiB, 0 %
+wafl501: NVIDIA GeForce RTX 3060, 1 MiB, 0 %
+wafl503: NVIDIA GeForce RTX 3060, 32 MiB, 0 %
+wafl505: NVIDIA GeForce RTX 3060, 1 MiB, 0 %
+wafl506: NVIDIA GeForce RTX 3060, 1 MiB, 0 %
+wafl507: NVIDIA GeForce RTX 3060, 1 MiB, 0 %
+wafl508: NVIDIA GeForce RTX 3060, 1 MiB, 0 %
+wafl509: NVIDIA GeForce RTX 3060, 1 MiB, 0 %
+Fri  6 Nov 17:22:28 JST 2026
+host=gpu4+wafl500,501,503,505-509 after grading (before container stop)
+NVIDIA GeForce RTX 5090, 12 MiB, 0 %
+wafl500 after stop: 74 MiB, 0 %
+wafl501 after stop: 1 MiB, 0 %
+wafl503 after stop: 32 MiB, 0 %
+wafl505 after stop: 1 MiB, 0 %
+wafl506 after stop: 1 MiB, 0 %
+wafl507 after stop: 1 MiB, 0 %
+wafl508 after stop: 1 MiB, 0 %
+wafl509 after stop: 1 MiB, 0 %
+Fri  6 Nov 17:22:33 JST 2026
+host=gpu4 after container stop
+12 MiB, 0 %

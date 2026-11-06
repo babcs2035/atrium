@@ -1,0 +1,479 @@
+{
+ "n_common_questions": 2948,
+ "bootstrap": {
+  "samples": 10000,
+  "seed": 12,
+  "unit": "question"
+ },
+ "abstain_prompt_sha256": "71a75524164dab18f9baafa3cccd04c8cfe35f95ac823dcab7194f1216caf60b",
+ "runs": {
+  "A5": {
+   "run": "p0007_a5_dev",
+   "candidates_non_owner": {
+    "F": {
+     "value": 0.1638612160769495,
+     "ci95": [
+      0.15236383499565634,
+      0.17534490983621134
+     ],
+     "n": 5822.0
+    },
+    "F_upper": 0.1638612160769495,
+    "F_lexmax": 0.18412916523531433,
+    "dont_know": 0.6913431810374442,
+    "correct": 0.14479560288560633,
+    "unjudged": 0.04775924108603206,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 843.0,
+     "dk_lexical": 3907.0,
+     "dk_model": 118.0,
+     "fabricated": 954.0,
+     "unparsed": 0.0,
+     "unjudged": 292.0
+    }
+   },
+   "candidates_owner": {
+    "F": {
+     "value": 0.16685001833516686,
+     "ci95": [
+      0.15288485340507688,
+      0.1811567842851946
+     ],
+     "n": 2727.0
+    },
+    "F_upper": 0.16685001833516686,
+    "F_lexmax": 0.1752841950861753,
+    "dont_know": 0.0319031903190319,
+    "correct": 0.8012467913458012,
+    "unjudged": 0.001098901098901099,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 2185.0,
+     "dk_lexical": 64.0,
+     "dk_model": 23.0,
+     "fabricated": 455.0,
+     "unparsed": 0.0,
+     "unjudged": 3.0
+    }
+   },
+   "candidates_all": {
+    "F": {
+     "value": 0.1648145981986197,
+     "ci95": [
+      0.155409549414301,
+      0.17442573056645314
+     ],
+     "n": 8549.0
+    },
+    "F_upper": 0.1648145981986197,
+    "F_lexmax": 0.18130775529301674,
+    "dont_know": 0.48099192888057085,
+    "correct": 0.35419347292080944,
+    "unjudged": 0.033355947535052013,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 3028.0,
+     "dk_lexical": 3971.0,
+     "dk_model": 141.0,
+     "fabricated": 1409.0,
+     "unparsed": 0.0,
+     "unjudged": 295.0
+    }
+   },
+   "F_rand": {
+    "value": 0.16440371124688843,
+    "ci95": [
+     0.15506114130434784,
+     0.1739142110593278
+    ],
+    "n": 2946.0
+   },
+   "selected": {
+    "R3": {
+     "F": {
+      "value": 0.1991842284160435,
+      "ci95": [
+       0.18456832087015634,
+       0.21360544217687075
+      ],
+      "n": 2942.0
+     },
+     "F_upper": 0.1991842284160435,
+     "F_lexmax": 0.2124405166553365,
+     "dont_know": 0.041128484024473146,
+     "correct": 0.7596872875594833,
+     "unjudged": 0.0020352781546811396,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 2235.0,
+      "dk_lexical": 82.0,
+      "dk_model": 39.0,
+      "fabricated": 586.0,
+      "unparsed": 0.0,
+      "unjudged": 6.0
+     },
+     "segments": {
+      "a_owner_out": {
+       "n_questions": 218,
+       "n_valid": 215,
+       "fabricated": 108,
+       "F": 0.5023255813953489,
+       "wilson95": [
+        0.4360404339754968,
+        0.5685290840920068
+       ]
+      },
+      "b_owner_chosen": {
+       "n_questions": 2526,
+       "n_valid": 2524,
+       "fabricated": 415,
+       "F": 0.1644215530903328,
+       "wilson95": [
+        0.1504732432009411,
+        0.17938979307100275
+       ]
+      },
+      "c_owner_in_not_chosen": {
+       "n_questions": 204,
+       "n_valid": 203,
+       "fabricated": 63,
+       "F": 0.3103448275862069,
+       "wilson95": [
+        0.25072133640931493,
+        0.3770128691072423
+       ]
+      }
+     },
+     "by_chosen_source": {
+      "from_owner": {
+       "n_valid": 2524,
+       "fabricated": 415
+      },
+      "from_non_owner": {
+       "n_valid": 418,
+       "fabricated": 171
+      }
+     }
+    },
+    "R0": {
+     "F": {
+      "value": 0.22520380434782608,
+      "ci95": [
+       0.21032824585810217,
+       0.24032586558044808
+      ],
+      "n": 2944.0
+     },
+     "F_upper": 0.22520380434782608,
+     "F_lexmax": 0.24082880434782608,
+     "dont_know": 0.04517663043478261,
+     "correct": 0.7296195652173914,
+     "unjudged": 0.0013568521031207597,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 2148.0,
+      "dk_lexical": 87.0,
+      "dk_model": 46.0,
+      "fabricated": 663.0,
+      "unparsed": 0.0,
+      "unjudged": 4.0
+     },
+     "segments": {
+      "a_owner_out": {
+       "n_questions": 218,
+       "n_valid": 215,
+       "fabricated": 106,
+       "F": 0.4930232558139535,
+       "wilson95": [
+        0.42690702991384155,
+        0.5593844158836476
+       ]
+      },
+      "b_owner_chosen": {
+       "n_questions": 2420,
+       "n_valid": 2420,
+       "fabricated": 409,
+       "F": 0.16900826446280992,
+       "wilson95": [
+        0.1546043265682372,
+        0.1844613560612514
+       ]
+      },
+      "c_owner_in_not_chosen": {
+       "n_questions": 310,
+       "n_valid": 309,
+       "fabricated": 148,
+       "F": 0.47896440129449835,
+       "wilson95": [
+        0.42386526448653,
+        0.5345801408986591
+       ]
+      }
+     },
+     "by_chosen_source": {
+      "from_owner": {
+       "n_valid": 2420,
+       "fabricated": 409
+      },
+      "from_non_owner": {
+       "n_valid": 524,
+       "fabricated": 254
+      }
+     }
+    }
+   }
+  },
+  "A6": {
+   "run": "p0007_a6_dev",
+   "candidates_non_owner": {
+    "F": {
+     "value": 0.37653411880216003,
+     "ci95": [
+      0.36181685418950804,
+      0.390886899918633
+     ],
+     "n": 6111.0
+    },
+    "F_upper": 0.37653411880216003,
+    "F_lexmax": 0.9060710194730813,
+    "dont_know": 0.5295369006709213,
+    "correct": 0.09392898052691867,
+    "unjudged": 0.0004906771344455348,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 574.0,
+     "dk_lexical": 0.0,
+     "dk_model": 3236.0,
+     "fabricated": 2301.0,
+     "unparsed": 0.0,
+     "unjudged": 3.0
+    }
+   },
+   "candidates_owner": {
+    "F": {
+     "value": 0.15866617808721142,
+     "ci95": [
+      0.14522638220327747,
+      0.1724770642201835
+     ],
+     "n": 2729.0
+    },
+    "F_upper": 0.15866617808721142,
+    "F_lexmax": 0.17112495419567608,
+    "dont_know": 0.01245877610846464,
+    "correct": 0.8288750458043239,
+    "unjudged": 0.0003663003663003663,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 2262.0,
+     "dk_lexical": 0.0,
+     "dk_model": 34.0,
+     "fabricated": 433.0,
+     "unparsed": 0.0,
+     "unjudged": 1.0
+    }
+   },
+   "candidates_all": {
+    "F": {
+     "value": 0.3092760180995475,
+     "ci95": [
+      0.2977833069441303,
+      0.320438973731153
+     ],
+     "n": 8840.0
+    },
+    "F_upper": 0.3092760180995475,
+    "F_lexmax": 0.679185520361991,
+    "dont_know": 0.36990950226244346,
+    "correct": 0.3208144796380091,
+    "unjudged": 0.0004522840343735866,
+    "abstain_unparsed": 0.0,
+    "counts": {
+     "correct": 2836.0,
+     "dk_lexical": 0.0,
+     "dk_model": 3270.0,
+     "fabricated": 2734.0,
+     "unparsed": 0.0,
+     "unjudged": 4.0
+    }
+   },
+   "F_rand": {
+    "value": 0.3093541454586585,
+    "ci95": [
+     0.29782903663500676,
+     0.3205519737586246
+    ],
+    "n": 2947.0
+   },
+   "selected": {
+    "R3p": {
+     "F": {
+      "value": 0.1995249406175772,
+      "ci95": [
+       0.1850578523208356,
+       0.21392190152801357
+      ],
+      "n": 2947.0
+     },
+     "F_upper": 0.1995249406175772,
+     "F_lexmax": 0.22192059721750934,
+     "dont_know": 0.022395656599932135,
+     "correct": 0.7780794027824907,
+     "unjudged": 0.00033921302578018993,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 2293.0,
+      "dk_lexical": 0.0,
+      "dk_model": 66.0,
+      "fabricated": 588.0,
+      "unparsed": 0.0,
+      "unjudged": 1.0
+     },
+     "segments": {
+      "a_owner_out": {
+       "n_questions": 218,
+       "n_valid": 218,
+       "fabricated": 131,
+       "F": 0.6009174311926605,
+       "wilson95": [
+        0.5347047499391167,
+        0.663635092549764
+       ]
+      },
+      "b_owner_chosen": {
+       "n_questions": 2516,
+       "n_valid": 2515,
+       "fabricated": 382,
+       "F": 0.15188866799204773,
+       "wilson95": [
+        0.1383931080094605,
+        0.16644602989332472
+       ]
+      },
+      "c_owner_in_not_chosen": {
+       "n_questions": 214,
+       "n_valid": 214,
+       "fabricated": 75,
+       "F": 0.35046728971962615,
+       "wilson95": [
+        0.28969123968583876,
+        0.4165171177752698
+       ]
+      }
+     },
+     "by_chosen_source": {
+      "from_owner": {
+       "n_valid": 2515,
+       "fabricated": 382
+      },
+      "from_non_owner": {
+       "n_valid": 432,
+       "fabricated": 206
+      }
+     }
+    },
+    "R0p": {
+     "F": {
+      "value": 0.24872751951136748,
+      "ci95": [
+       0.2334577536477774,
+       0.2643366135052596
+      ],
+      "n": 2947.0
+     },
+     "F_upper": 0.24872751951136748,
+     "F_lexmax": 0.3254156769596199,
+     "dont_know": 0.07668815744825246,
+     "correct": 0.6745843230403801,
+     "unjudged": 0.00033921302578018993,
+     "abstain_unparsed": 0.0,
+     "counts": {
+      "correct": 1988.0,
+      "dk_lexical": 0.0,
+      "dk_model": 226.0,
+      "fabricated": 733.0,
+      "unparsed": 0.0,
+      "unjudged": 1.0
+     },
+     "segments": {
+      "a_owner_out": {
+       "n_questions": 218,
+       "n_valid": 218,
+       "fabricated": 129,
+       "F": 0.591743119266055,
+       "wilson95": [
+        0.5254564426327014,
+        0.6548525050844628
+       ]
+      },
+      "b_owner_chosen": {
+       "n_questions": 2187,
+       "n_valid": 2187,
+       "fabricated": 355,
+       "F": 0.1623228166438043,
+       "wilson95": [
+        0.14746272409636965,
+        0.17836708706894724
+       ]
+      },
+      "c_owner_in_not_chosen": {
+       "n_questions": 543,
+       "n_valid": 542,
+       "fabricated": 249,
+       "F": 0.45940959409594095,
+       "wilson95": [
+        0.4178872782045272,
+        0.501503234756758
+       ]
+      }
+     },
+     "by_chosen_source": {
+      "from_owner": {
+       "n_valid": 2187,
+       "fabricated": 355
+      },
+      "from_non_owner": {
+       "n_valid": 760,
+       "fabricated": 378
+      }
+     }
+    }
+   }
+  }
+ },
+ "hypotheses_if_gate_passed": {
+  "H-F1": {
+   "statement": "F_non(A6) − F_non(A5) の 95% 区間の下端 > 0",
+   "difference": 0.21267290272521053,
+   "ci95": [
+    0.20062566810001006,
+    0.22487195849727482
+   ],
+   "holds": true
+  },
+  "H-F2": {
+   "statement": "Δ = F_final(A6 R3p) − F_final(A5 R3)．下端 > 0 なら増えた，区間が [−0.02, +0.02] に収まれば揺れの幅を超えては変わらない，それ以外は決まらない",
+   "difference": 0.0003407122015336994,
+   "ci95": [
+    -0.012146706868326359,
+    0.012905427464265373
+   ],
+   "result": "no_change_beyond_jitter",
+   "mcnemar": {
+    "only_a6_fabricated": 173,
+    "only_a5_fabricated": 174,
+    "p": 1.0
+   }
+  },
+  "H-F3": {
+   "statement": "F_final(A6 R3p) − F_rand(A6) の 95% 区間の上端 < 0",
+   "difference": -0.10982920484108133,
+   "ci95": [
+    -0.12234283129805515,
+    -0.0973392984684518
+   ],
+   "holds": true
+  }
+ }
+}

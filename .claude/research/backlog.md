@@ -17,6 +17,46 @@
 
 ---
 
+## B78 [auto-decided 2026-11-06] Iteration 21（d0009 A2）は採用．Iteration 22 のレバーは `d0009.A3_rerun_variance`（`repeat_main_configs`）
+- 状況: Iteration 21 の phase 3．H-F1 成立（+0.2045），H-F2 揺れの幅の内（−0.0024．−0.0149〜+0.0104），H-F3 成立（−0.1029）．G-A2 通過（0.93・κ 0.86）．詳細は journal の Iteration 21「実行済み」．
+- 自動選択: (1) Iteration 21 を採用とした．(2) 次のレバーは config.yml の levers の d0009 節の順のとおり `d0009.A3_rerun_variance`．iteration_name は「主構成と中央の構成を流し直したときの揺れを含めた差の区間」．
+- 根拠: (1) 成功条件 (1)(3) を満たす．(2) の「判定不能 ≤ 1%」は，棄権の判定（未判定 0・取り出せない 1 件）では満たすが，既存の正誤の判定不能（`correct` が null）の意味では A5 test の候補が 316/8,817（3.6%）で超える．316 件は全て UNKNOWN で始まる回答（規則 2 (i) で正解以外なら「わからない」になり，誤答には入りえない）で，分母に入れると H-F1 は +0.2124 に強まり，全て誤答としても +0.1619 で成立する．結論が変わらないので，(2) は「新しく付けた 3 分類の欠け」の条件と読んで採用とした．(2) A3 は d0009 §D の高の項目で，A2 の A5 対 A6 の比較（選んだ回答の正答率 +0.022・誤答 −0.002）も揺れと分けられていない．A1・B3 の判定で使う区間の作り方を先に決める（B73 の並べ方）．
+- A3 の事前登録への申し送り: (運用ルール 10) 揺れの測定には既存の test を使ってよいが，非劣性（δ）の判定し直しを p0007 の test で行うなら「設計に使った test」であることと理由を [auto-decided] で残し，できれば新しく分けた質問（例: 受信箱ごとの 21 問目以降）で判定する．(運用ルール 11) P2P-R3′ の流し直しは `answer.aggregate: cross_encoder` を実機の経路で通し（F-6 の構成．cross-encoder は 8B と同じ 12 GB の GPU に載らない点に注意），オフラインの当てはめで代えない．実機は wafl500〜509 の共有で，回数は全 test 1 回が数時間かかることを踏まえて決める．
+- 要レビュー: (a) 成功条件 (2) の読み替え（A5 の UNKNOWN 316 件の判定不能を条件の外に置いたこと）．却下なら，既存の A5 の採点の判定不能 316 件を採点し直す（制御点の GPU は廃止なので gpu4 で．運用ルール 14）．(b) 人手での確かめは agent 1 人で，A5・持ち主・わからない の層は 17/25（食い違い 8 件中 7 件は判定モデルが短い断定を NOT_ATTEMPTED にした誤り）．人間が見直すなら `results/d0009_a2_fabrication/manual_check/`．(c) 全体の pytest・mypy は gpu4 の venv に `requester` extra が無いことで失敗する（今回の変更に由来しない）．通すには `uv sync --extra requester` が要る（env を変えるので今回は実行していない）．`tests/test_failure_run.py` の 1 件は時間に依る不安定な試験（5 回中 3 回失敗）．
+
+## B77 [auto-decided 2026-11-06] Iteration 21：運用ルール 15 に反して wafl に作ったものの一覧（削除していない）と，採点の分担
+- 状況: 運用ルール 15（2026-11-06）の前に，`/tmp/setup_node.sh` が wafl501〜504 へ GGUF を `cat | ssh` で複製し始めていた．ルールを知った時点で止めた．
+- 規則に反して作ったもの（削除していない．人間の判断で消す）: wafl501・502・503・504 の `~/atrium-judge-gguf/`（`Qwen3-8B-Q4_K_M.gguf` の途中のコピー．501 は約 2.66 GB など．いずれも不完全）．
+  `~/`直下の新規ディレクトリなので規則に反する．同じ台の `~/.cache/huggingface/hub/models--Qwen--Qwen3-8B-GGUF/blobs/*.incomplete`（502・504．`hf download` が約 45 分進まず，こちらで止めた．採点には使っていない）．
+- 規則に合う形へ直したもの: `scripts/remote/judge_setup_wafl_node.sh <N>`（各台で `hf download`．hf CLI は `~/workspace/ktakahashi/atrium/.venv-hf`，uv は同 `bin/`・`.uv-cache/`．container は `~/.cache/huggingface` の blob を読み取り専用で mount．イメージだけ `docker save` で送る）．wafl500・501・503・505〜509 に container を立てた（502・504 は取得が進まず未使用）．
+- 採点の分担: gpu4 が p0007_a6_test（残り）・a5_c1_rrf_ce・a5_dev．a6_dev は gpu4 と wafl 8 台（500・501・503・505〜509）で 1 つの run として並列に送った．dev の 60 件の同等性は gpu4 59/60，wafl 500・505・506・507 が 59/60，501・503・508・509 が 60/60（食い違いは d13 のみ．基準は 57/60）．他の研究者のプロセスは見えなかった．採点の後に全 container を停止した（削除していない）．
+
+## B74 [auto-decided 2026-11-06] Iteration 21（d0009 A2）：3 分類の判定の規則と，使う結果
+- 状況: B73 で「A2 の 3 分類の判定の規則」は rc-researcher が事前登録で決めることになっていた．下見で，通常のプロンプト（A6）の持ち主以外の候補は UNKNOWN の字句を使わず「There is no email from …」のような自然文で棄権することが多い（粗い正規表現で約 3,600/6,078 件）と分かった．
+- 自動選択: (1) 正解は既存の判定（qwen3:8b）をそのまま使い採点し直さない．(2) 不正解を「わからない」と「誤答」に分けるのは，UNKNOWN の字句と，質問と回答だけを渡す qwen3:8b の棄権の判定（SimpleQA の NOT_ATTEMPTED の定義に合わせ，「渡されたメールに該当が無い」と述べる文は棄権とする）．(3) 文面の調整は A6 の dev の 60 件で 1 回まで．(4) 人手での確かめは test の 200 件（8 層 × 25 件）を実装の agent が分類を隠して行い，一致率 ≥ 0.90・κ ≥ 0.70 をゲートにする．(5) 主の比較は A5 の test（UNKNOWN を許す．R3）対 A6 の test（通常．R3′）の共通の 2,939 問，dev は同じ規則の再現．(6) 判定は H-F1〜H-F3（journal の Iteration 21）．
+- 根拠: 既存の正誤を変えないと，これまでの正答率と 3 分類の数が矛盾しない．棄権の判定に正解・メールを渡さないのは，正誤の判断を混ぜないため．A5 と A6 は候補の受信箱の集合が全問一致しており，(質問, 受信箱) の対で比べられる．
+- 運用ルール 10 について: 既存の test（P2P の構成の設計に使った test）で集計する．構成を選ばず，既存の回答を記述するだけなので，新しい質問集合は使わない（レバーの note のとおり）．A5 と A6 の差はプロンプトと流し直しの揺れが混ざる（揺れの目安 0.02）ことを判定の規則に入れた．
+- 要レビュー: (a) 人手での確かめを人間ではなく agent が行うこと（表は `results/d0009_a2_fabrication/manual_check/` に残す）．人間の確かめが要るなら，その 200 件を見直す．(b) 「渡されたメールに該当が無い」と述べる文を棄権に入れる境界（SimpleQA では世界についての否定の断定は INCORRECT．こちらもメールではなく世界について断定する文は誤答にした）．
+- 追記 [auto-decided 2026-11-06．実行場所の変更] 事前登録の「判定モデルは制御点（wafl-ctrl5）の GPU だけで動かす」は，人間の指示（2026-11-06．config.yml 運用ルール 8・13・14）で wafl-ctrl5 の GPU が廃止されたため，**操作端末 gpu2 のローカルの GPU（RTX 3090 の 0 番．他の利用者のプロセスが約 1.8 GB を使い，空きは約 22 GB．1 番は他のプロセスが約 23 GB を使うので触れない）**に変えた．判定モデル（qwen3:8b．参照は qwen3:14b）・プロンプト・温度 0・Ollama の設定（`llm.ollama_version` の 0.35.1・num_ctx・think 無し）は変えない．wafl-ctrl5 では GPU の処理を始めておらず，wafl500〜509 も使わない．
+  - 導入の方法（docker の container で完結させる．人間の指示 2026-11-06）：公式イメージ `ollama/ollama:0.35.1`（`llm.ollama_version` と同じ版）を，この端末の docker に nvidia-container-runtime が無い（`--gpus`・`--runtime nvidia` が失敗する）ので，`--device /dev/nvidia0 --device /dev/nvidiactl --device /dev/nvidia-uvm` と，ホストのドライバのライブラリ（libcuda・libnvidia-ml・libnvidia-ptxjitcompiler）の読み取り専用の bind mount で GPU 0 だけに繋ぐ．コンテナ名 `atrium-judge-ollama-local`，`127.0.0.1:11436`，`OLLAMA_NUM_PARALLEL=2`・`OLLAMA_VULKAN=0`，モデルの置き場所は docker の volume `atrium-judge-ollama`（ホストにディレクトリを作らない）．モデルは人間の指示（Hugging Face の `hf` で既定の `~/.cache/huggingface` に取得したものを使う）に従い，`hf download Qwen/Qwen3-8B-GGUF Qwen3-8B-Q4_K_M.gguf`（約 5 GB）・`Qwen/Qwen3-14B-GGUF Qwen3-14B-Q4_K_M.gguf`（約 9 GB）を取得し，そのキャッシュを container へ読み取り専用で mount して，container の中で `ollama create qwen3:8b`・`qwen3:14b`（`FROM` はその GGUF．TEMPLATE は GGUF 内蔵）で登録した．止めるのは `docker stop atrium-judge-ollama-local`（モデルは volume に残る．volume・成果物は消さない）．
+  - 経緯：最初に docker を使わず，イメージから取り出した実行ファイルを `/mnt/data-raid/ktakahashi/ollama-bin/` と `ollama-models/` に置いて動かしたが，人間の指示で container に切り替えた．その 2 つのディレクトリ（合計約 20 GB．プロセスは止め済み）は，削除が破壊的操作なので消さずに残してある．人間が不要なら削除する．
+  - 影響：GPU が他の利用者と共有で（0 番の使用率は他のプロセスで 28%），所要時間の見積もり（約 4.4 時間）より延びうる．制御点の qwen3:8b（Ollama ライブラリの同名タグ）とは GGUF の取得元（Qwen 公式の Q4_K_M）・chat template の由来が違い，出力がわずかに揺れうるが（dev の 60 件で agent の分類と 59/60 一致．`dev_prompt_check/summary.json`），判定は温度 0 で，既存の正誤（制御点で採点済み）は採点し直さない．
+  - 棄権の判定は質問と回答の文字列だけを送るので，メール本文は端末の外へ出ない（採点は端末のローカルで完結）．
+  - **一時中断（人間の指示 2026-11-06 15:47．`state.json` は `status="blocked"`，`experiment_dir=results/d0009_a2_fabrication`）の時点の進捗**：
+    - 実装・テストは完了（`mise run check` 通過．862 件 + `tests/test_fabrication_eval.py` の追加分）．変更は `src/atrium/fabrication_eval.py`（新規）・`src/atrium/cli.py`（`abstain-judge`・`fabrication-eval`）・`src/atrium/judge.py`（`judge_items` に `prompt_template`・`parse` を追加．既定は従来どおり）・`tests/test_fabrication_eval.py`（新規）．commit はしていない．
+    - 棄権の判定の文面は dev の 60 件で確かめて固定済み（修正 0 回．SHA-256 `71a75524…f60b`．`results/d0009_a2_fabrication/dev_prompt_check/summary.json`．一致 59/60）．journal の Iteration 21 に追記済み．
+    - test の採点：A5（`p0007_a5_test`）は完了（判定モデルへ 1,493 件．`labels/p0007_a5_test/`）．A6（`p0007_a6_test`）は 5,819 件中 642 件で中断（進捗は `artifacts/enronqa/judge_raw/p0007_a6_test.qwen3_8b.abstain.progress.jsonl` に残る）．C1-RRF-CE の test と dev（A5・A6）は未着手．ゲート G-A2（表の作成・分類・κ）・`fabrication.json`・`verdict.json` も未着手．GPU の使用状況は `results/d0009_a2_fabrication/gpu_usage.log` に実行の前後を記録済み（GPU 1 には触れていない）．
+    - 止めたもの：採点のドライバ（`/tmp/scripts/run_labels.sh`）・Ollama の container（`docker stop atrium-judge-ollama-local`．削除していない）．wafl-ctrl5・wafl500〜509 では何も動かしていない（この端末から wafl-ctrl5 への ssh は，経由する `wafl` のホスト鍵が known_hosts と一致せず失敗する．確認していないので known_hosts は書き換えていない．ただし今回の実行には ssh は不要）．
+    - 再開の手順：`docker start atrium-judge-ollama-local`（モデルは volume に残っている．応答まで 1 分ほどかかる）→ `setsid nohup /tmp/scripts/run_labels.sh`（/tmp が消えていれば，`uv run atrium abstain-judge --ollama-url http://127.0.0.1:11436 --request-timeout-s 300 --resume --run-dir results/p0007_a6_test`，続けて `p0007_a5_c1_rrf_ce`・`p0007_a5_dev`・`p0007_a6_dev` を同じ形で実行．所要は A6 test の残りが約 30 分，dev が約 1 時間の見込み）→ `atrium fabrication-eval --stage table`（人手での確かめの表）→ agent が `manual_check/manual_labels.jsonl`（id・abstain）を書く → `--stage gate` → `--stage report`（test：`--out-dir results/d0009_a2_fabrication`，dev：`--out-dir results/d0009_a2_fabrication/dev --test-verdict results/d0009_a2_fabrication/verdict.json`）．
+  - 追加の実装上の判断：(1) 人手での確かめの層は，判定モデルが分類した件（UNKNOWN の字句で「わからない」にした件は判定モデルが分類していないので除く）から抜く．(2) `judge.judge_items` に `prompt_template`・`parse` の引数を足した（既定は従来のまま）．
+
+## B75 [human-decided 2026-11-06] Iteration 21 を人間の指示で一時停止した（再開の待ち）
+- 出どころ: ユーザーの指示（2026-11-06 15:47）「一時中断する．ここまでの進捗を全て記録し，停止せよ」．
+- 状態: `phase="execute"`・`status="converged"`（watchdog が新規セッションへ切り替えない待機）．採点の途中（A6 test 642/5,819 件）．進捗の詳細は B74 の「一時中断」の項と journal の Iteration 21「一時停止の記録」．変更は未コミット．
+- 再開: 人間が再開を指示したら，`state.json` の `status` を `running` にし，B74 の再開の手順で採点を続ける（`docker start atrium-judge-ollama-local`．gpu2 の GPU の空きを `nvidia-smi` で確かめ，他の研究者のプロセスの GPU には触れない）．
+- 再開 [human-decided 2026-11-06]: 人間が「進めよ」と指示した．`status` を `running` に戻し，rc-executor へ再委譲して B74 の再開の手順で採点を続ける．
+- 要レビュー: (a) `ollama-bin/`・`ollama-models/`（約 20 GB）の削除の可否．(b) `ssh wafl-ctrl5` の失敗（`wafl` のホスト鍵の不一致）の原因．(c) 判定モデルの同等性（制御点の qwen3:8b とローカルの GGUF）．
+
 ## B73 [human-decided 2026-11-06] d0009（輪講資料からの申し送り）の全項目を research-cycle に登録し，サイクルを開始した
 - 人間の回答（2026-11-06）: (a) GPU の資源（wafl500〜509 を含む）は全て空いており，実験を始めてよい．(b) レバーの順序は問題ない．(c) A1 の評価の承認を B25 (a)（質問者を複数のデバイスに置く形）の承認として扱ってよい（既存の設定と互換でない `cluster.requester` の形式の変更は，引き続き `[needs-human]` で止まる）．
 - これに従って行ったこと: `state.json` の `status` を `running` にし，`start_research_cycle.sh atrium tenbin` で Iteration 21（`d0009.A2_fabrication`）の調査・計画から開始した．下の要レビュー (a)〜(c) は解決済み．
@@ -941,3 +981,13 @@
 - 自動選択: 原因を GPU の取り合いと見て，他のプロセスには触れず，C1-RRF-CE と oracle-RRF の採点は制御点の GPU だけで行った（`results/p0007_a5_live/a5_judge_ctrl.sh`．判定モデル・プロンプト・設定は同じで，速さだけが違う．0.5 件/秒）．P2P-A5 の dev・test の候補の採点はその前に 11 台で終わっていた．
 - 付随: 再開した後の test の cross-encoder の得点の再計算は，gpu2 の両方の GPU を同じ利用者の別の作業（`workspace/yiai`）が使い始めてメモリ不足で止まったので，再開で変わらない 2,939 問は再開前の得点（gpu2 の RTX 3090）をそのまま使い，再開した 1 問の 3 候補だけを CPU で求めた．
 - 要レビュー: 判定の採点を GPU の PC と共有する限り，他の研究の学習と重なると採点が止まる．`judge.sh` に「使える GPU だけで採点する」選択肢を足すか（設定の追加．要確認），採点の時間帯を調整する．
+
+## B76 [human-decided 2026-11-06 追記] 回答：ローカル環境は gpu2 から gpu4 に変わった．実行方法は A2（docker の権限の付与を待つ）
+- 人間の回答: ローカル環境が gpu2 から gpu4 に変わり GPU 資源も更新されたので，採点など実験外の処理に使う．実行方法は「docker の権限付与を待つ」（A1 のユーザー領域の Ollama・A3 の llama.cpp は選ばなかった）．
+- したこと: config.yml の運用ルール 14 を gpu4（RTX 5090 が 1 枚，32 GB）に書き換えた．`state.json` は `blocked` のまま待つ．権限が付与されたら gpu4 で container と qwen3:8b（hf の GGUF）を作り直し，B74 の手順で採点を続ける．GPU が RTX 5090 に変わるので，dev の 60 件で判定の同等性（gpu2 の結果 59/60 一致）を再確認する．
+- 権限の付与 [human-decided 2026-11-06]: 人間が docker の権限を付与した（`getent group docker` に ktakahashi が入っている）．このセッションのシェルには新しいグループが反映されていないので，docker は `sg docker -c '…'` 経由で実行する．gpu4 には container も volume も無い（`docker ps -a` が空）ので，作り直す．`state.json` は `running` に戻した．
+- 以下は元の記録（needs-human）．
+
+## B76 [needs-human 2026-11-06] Iteration 21 の再開が実行端末の違いで止まった
+- 状況: 再開した端末は `gpu4`（RTX 5090 が 1 枚．B74 の `gpu2`（RTX 3090 × 2）とは別）．`docker start atrium-judge-ollama-local` が `permission denied`（`/var/run/docker.sock` は root:docker．ktakahashi は docker グループに入っておらず，sudo も対話認証が必要）．`/mnt/data-raid/ktakahashi` も無い．採点は始められていない（変更・成果物は何も消していない）．
+- 選択肢: A1: gpu2 で再開する（container・volume・進捗がそこにある）．A2: gpu4 で docker の権限を付与してもらい，container とモデルを作り直す（判定モデルの GGUF の取得から．GPU が変わるが温度 0 なので出力はほぼ同じ見込み．要再確認）．

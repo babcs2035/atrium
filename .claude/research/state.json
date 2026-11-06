@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
   "iteration": 21,
-  "iteration_name": null,
-  "phase": "research",
+  "iteration_name": "「わからない」の指示をやめた後の作り話の割合の 3 分類",
+  "phase": "evaluate",
   "status": "running",
-  "current_lever": null,
-  "experiment_dir": null,
+  "current_lever": "d0009.A2_fabrication=three_way_judge",
+  "experiment_dir": "results/d0009_a2_fabrication",
   "experiment_deadline": null,
-  "updated_at": 1792132021,
+  "updated_at": 1793947647,
   "last_slack_ts": "1792132817.912919",
-  "iteration_thread_ts": null,
-  "notion_toggle_created": false,
+  "iteration_thread_ts": "1793945653.515289",
+  "notion_toggle_created": true,
   "last_commit": "d2a52c1"
 }

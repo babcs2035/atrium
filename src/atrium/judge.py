@@ -29,7 +29,7 @@ import hashlib
 import json
 import logging
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -184,8 +184,13 @@ async def judge_items(
     transport: httpx.AsyncBaseTransport | None = None,
     resume: JudgeResume | None = None,
     request_timeout_s: float | None = None,
+    prompt_template: str = JUDGE_PROMPT,
+    parse: Callable[[str], bool | None] = parse_verdict,
 ) -> dict[str, tuple[bool | None, str]]:
     """全件を採点する．key → （正誤，判定モデルの出力）．transport はテストで Ollama を模すときだけ渡す．
+
+    prompt_template・parse は既定が正誤の採点（EnronQA の原論文）．別の 2 値の判定（d0009 A2 の棄権の判定．
+    `fabrication_eval`）が，同じ並列の送り方・再開をそのまま使うために差し替える（テンプレートは email・question・gold・answer を埋める）．
 
     resume を渡すと，進捗のファイルにある件（入力の SHA-256 が同じもの）は送らずに使い，採点した件を 1 件ずつ追記する．
     このとき再試行しても採点できなかった件は例外にせず戻り値から除き（失敗した要求が連続 abort_after_failures 回で，送っていない残りも打ち切る），
@@ -242,7 +247,7 @@ async def judge_items(
             raise AssertionError("unreachable")
 
         async def one(i: int, item: JudgeItem) -> None:
-            prompt = JUDGE_PROMPT.format(
+            prompt = prompt_template.format(
                 email=item.email, question=item.question, gold=item.gold, answer=item.answer
             )
             sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
@@ -261,7 +266,7 @@ async def judge_items(
                 logger.error("judge failed for %s after retries: %s", item.key, exc)
                 return
             out[item.key] = (
-                (None, "") if result is None else (parse_verdict(result.content), result.content)
+                (None, "") if result is None else (parse(result.content), result.content)
             )
             if resume is not None:
                 resume.append(item.key, sha, *out[item.key])

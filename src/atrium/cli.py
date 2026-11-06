@@ -41,6 +41,8 @@
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     select-features           owner_answer の候補ごとの cross-encoder の得点を後から求める（EnronQA．p0007 A5．GPU のある操作端末）
     select-eval               owner_answer の候補の選び方の規則をオフラインに適用・評価する（EnronQA．p0007 A5．操作端末）
+    abstain-judge             不正解の回答が「わからない」かを判定モデルで判定する（d0009 A2．Ollama へ届く端末）
+    fabrication-eval          回答の 3 分類（正解・わからない・誤答）の集計と H-F1〜H-F3 の判定（d0009 A2．オフライン）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
 """
 
@@ -990,6 +992,110 @@ def cmd_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_abstain_judge(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """不正解の回答の棄権を判定モデルで判定する（d0009 A2）．--table なら人手での確かめの表を別のモデルで判定する．"""
+    from atrium import fabrication_eval, judge
+
+    model = args.model or cfg.data.require_enronqa().judge_model
+    if args.table is not None:
+        if args.table_out is None:
+            raise SystemExit("--table requires --table-out")
+        summary = fabrication_eval.abstain_judge_table(
+            cfg,
+            args.ollama_url,
+            model,
+            Path(args.table),
+            Path(args.table_out),
+            args.request_timeout_s,
+        )
+        print(json.dumps(summary))
+        return 0
+    paths = dataset_paths(Path(args.data_dir), "enronqa")
+    for run_dir in args.run_dir:
+        summary = fabrication_eval.abstain_judge_run(
+            cfg,
+            paths,
+            Path(run_dir),
+            Path(args.out_dir),
+            args.ollama_url,
+            model,
+            args.resume,
+            args.request_timeout_s,
+        )
+        print(run_dir, json.dumps(summary))
+        if summary.get("n_unjudged"):
+            # 判定モデルが止まっている間は次の実行も判定できない．呼び出し側が Ollama を起動し直して再実行する
+            return judge.INCOMPLETE_EXIT_CODE
+    return 0
+
+
+def cmd_fabrication_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """3 分類の集計（--stage report）と，人手での確かめの表・ゲートの計算（--stage table・gate）．Ollama は使わない．"""
+    from atrium import fabrication_eval as fe
+    from atrium.judge import question_texts
+    from atrium.verdict import write_verdict
+
+    a5_dir, a6_dir = Path(args.a5_run), Path(args.a6_run)
+    labels_dir = Path(args.labels_dir)
+    manual_dir = Path(args.manual_dir)
+    if args.stage == "table":
+        paths = dataset_paths(Path(args.data_dir), "enronqa")
+        table, key = fe.build_manual_table(
+            {"A5": a5_dir, "A6": a6_dir},
+            labels_dir,
+            fe.common_questions(a5_dir, a6_dir),
+            question_texts(paths),
+        )
+        manual_dir.mkdir(parents=True, exist_ok=True)
+        for name, records in (("table.jsonl", table), ("key.jsonl", key)):
+            (manual_dir / name).write_text(
+                "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in records), encoding="utf-8"
+            )
+        print(json.dumps({"n_table": len(table)}))
+        return 0
+    if args.stage == "gate":
+
+        def read(name: str) -> list[dict[str, Any]]:
+            """manual_dir の jsonl を読む．"""
+            lines = (manual_dir / name).read_text("utf-8").splitlines()
+            return [json.loads(line) for line in lines if line]
+
+        manual = {r["id"]: bool(r["abstain"]) for r in read("manual_labels.jsonl")}
+        reference_path = manual_dir / "reference_qwen3_14b.jsonl"
+        reference = (
+            {r["id"]: r["abstain"] for r in read(reference_path.name)}
+            if reference_path.exists()
+            else None
+        )
+        report = fe.gate_report(read("key.jsonl"), manual, reference)
+        (manual_dir / "gate.json").write_text(
+            json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8"
+        )
+        print(json.dumps(report, indent=1, ensure_ascii=False))
+        return 0
+    gate_path = manual_dir / "gate.json"
+    gate = json.loads(gate_path.read_text("utf-8")) if gate_path.exists() else None
+    report, verdict = fe.evaluate_fabrication(
+        a5_dir,
+        a6_dir,
+        Path(args.central_run) if args.central_run else None,
+        labels_dir,
+        gate,
+    )
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "fabrication.json").write_text(
+        json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8"
+    )
+    if args.test_verdict is not None:
+        verdict["direction_vs_test"] = fe.direction_agreement(
+            report["hypotheses_if_gate_passed"],
+            json.loads(Path(args.test_verdict).read_text("utf-8"))["verdict_original"],
+        )
+    print(json.dumps(write_verdict(out_dir, verdict), indent=1, ensure_ascii=False))
+    return 0
+
+
 def cmd_e0(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """E0 の実測（faiss / medcpt）と集約（summarize）．"""
     from atrium import e0
@@ -1654,6 +1760,44 @@ def build_parser() -> argparse.ArgumentParser:
         help="UNKNOWN による除外をせず全候補から選ぶ（R0′〜R6′．通常のプロンプトの候補．p0007 A6）",
     )
     p.set_defaults(func=cmd_select_eval)
+
+    p = sub.add_parser(
+        "abstain-judge",
+        help="不正解の回答が「わからない」かを判定モデルで判定し labels/<run>/ に書く（d0009 A2）",
+    )
+    p.add_argument("--data-dir", default="artifacts", help="enronqa/ を含むデータの置き場所")
+    p.add_argument("--ollama-url", action="append", required=True, help="複数指定で並列に送る")
+    p.add_argument("--run-dir", action="append", default=[], help="判定する実行（複数指定できる）")
+    p.add_argument("--out-dir", default="results/d0009_a2_fabrication/labels")
+    p.add_argument(
+        "--model", default=None, help="判定モデル（省略すると data.enronqa.judge_model）"
+    )
+    p.add_argument(
+        "--resume", action="store_true", help="採点済みを飛ばして再開する（judge --resume と同じ）"
+    )
+    p.add_argument("--request-timeout-s", type=float, default=None)
+    p.add_argument(
+        "--table", default=None, help="人手での確かめの表（table.jsonl）を判定する（参照モデル用）"
+    )
+    p.add_argument("--table-out", default=None, help="--table の出力（id・abstain の jsonl）")
+    p.set_defaults(func=cmd_abstain_judge)
+
+    p = sub.add_parser(
+        "fabrication-eval",
+        help="回答の 3 分類（正解・わからない・誤答）の集計と H-F1〜H-F3 の判定（d0009 A2）",
+    )
+    p.add_argument("--stage", choices=["table", "gate", "report"], default="report")
+    p.add_argument("--a5-run", required=True, help="指示あり（UNKNOWN を許す）の実行")
+    p.add_argument("--a6-run", required=True, help="指示なし（通常のプロンプト）の実行")
+    p.add_argument("--central-run", default=None, help="併記する中央の実行（C1-RRF-CE）")
+    p.add_argument("--labels-dir", default="results/d0009_a2_fabrication/labels")
+    p.add_argument("--manual-dir", default="results/d0009_a2_fabrication/manual_check")
+    p.add_argument("--out-dir", default="results/d0009_a2_fabrication", help="report の出力先")
+    p.add_argument("--data-dir", default="artifacts", help="table：質問文を読む")
+    p.add_argument(
+        "--test-verdict", default=None, help="dev の集計で，test の verdict.json と向きを比べる"
+    )
+    p.set_defaults(func=cmd_fabrication_eval)
 
     p = sub.add_parser("e0", help="E0 の実測と集約")
     p.add_argument("what", choices=["faiss", "medcpt", "summarize"])
