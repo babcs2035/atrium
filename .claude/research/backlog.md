@@ -17,7 +17,9 @@
 
 ---
 
-## B73 [human-decided 2026-11-06] d0009（輪講資料からの申し送り）の全項目を research-cycle に登録した．開始の合図を待つ
+## B73 [human-decided 2026-11-06] d0009（輪講資料からの申し送り）の全項目を research-cycle に登録し，サイクルを開始した
+- 人間の回答（2026-11-06）: (a) GPU の資源（wafl500〜509 を含む）は全て空いており，実験を始めてよい．(b) レバーの順序は問題ない．(c) A1 の評価の承認を B25 (a)（質問者を複数のデバイスに置く形）の承認として扱ってよい（既存の設定と互換でない `cluster.requester` の形式の変更は，引き続き `[needs-human]` で止まる）．
+- これに従って行ったこと: `state.json` の `status` を `running` にし，`start_research_cycle.sh atrium tenbin` で Iteration 21（`d0009.A2_fabrication`）の調査・計画から開始した．下の要レビュー (a)〜(c) は解決済み．
 - 出どころ: ユーザーの指示（2026-11-06）「`docs/d0009_rinko_handover.md` の申し送り事項を全て research-cycle で正しく扱うように登録・整備せよ」．
 - したこと:
   - A1〜A6・B1〜B3 を `config.yml` の `levers` の末尾に「d0009」節として足した（`d0009.A2_fabrication` → `A3_rerun_variance` → `A1_multi_requester` → `B3_owner_and_selection` → `A6_remeasure_main` → `A4_exposure_total` → `A5_extend_measurements` → `B1_drop_failed_peers` → `B2_split_reranker` の順）．p0007 までのレバーは全て実施済みで，選ばない．
