@@ -68,7 +68,8 @@ publish_images() {
   for target in $targets; do
     local image="localhost:$LOCAL_REGISTRY_PORT/atrium-$target:latest"
     log "building $image (git $GIT_HEAD)"
-    docker build -q --target "$target" --build-arg GIT_HEAD="$GIT_HEAD" -t "$image" . > /dev/null
+    # --network host：操作端末 gpu4 の build のコンテナは名前を引けず pip が PyPI に届かなかった（docker run は届く．2026-11-06）
+    docker build -q --network host --target "$target" --build-arg GIT_HEAD="$GIT_HEAD" -t "$image" . > /dev/null
     # 数 GB の層は registry が digest を検証する間にクライアントが応答待ちで打ち切ることがある．
     # すぐ送り直すと検証中の upload と重なって blob が壊れたため，検証が終わるまで待ってから送り直す
     for attempt in 1 2 3; do
