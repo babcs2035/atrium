@@ -303,6 +303,7 @@ def test_cli_judge_exits_non_zero_when_items_remain_unjudged(
         with_candidates=False,
         resume=True,
         request_timeout_s=None,
+        share_progress=[],
     )
     assert cli.cmd_judge(args, cfg) == judge.INCOMPLETE_EXIT_CODE
 
@@ -489,3 +490,34 @@ async def test_chat_asks_for_logprobs_only_when_requested(cfg: AtriumConfig) -> 
     assert "logprobs" not in seen[0] and seen[1]["logprobs"] is True
     assert (plain.avg_logprob, plain.n_logprob_tokens) == (None, 0)
     assert (scored.avg_logprob, scored.n_logprob_tokens) == (-1.0, 2)
+
+
+async def test_resume_reuses_a_verdict_from_another_runs_progress_for_the_same_judge_input(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    """d0009 A3：別の実行で採点済みの，判定モデルへの入力が同じ件（同じ質問の同じ回答の文字列）は送らずに使い，自分の進捗にも残す．"""
+    from atrium.judge import JudgeResume
+
+    url = ["http://o:11434"]
+    other = tmp_path / "other.progress.jsonl"
+    await judge_items(
+        [JudgeItem("r1-q", "E", "Q", "G", "same answer"), JudgeItem("r1-p", "E", "Q", "G", "x")],
+        url,
+        "m",
+        cfg,
+        transport=_flaky_ollama(set(), []),
+        resume=JudgeResume.open(other),
+    )
+    mine = tmp_path / "mine.progress.jsonl"
+    calls: list[str] = []
+    out = await judge_items(
+        [JudgeItem("r2-q", "E", "Q", "G", "same answer"), JudgeItem("r2-n", "E", "Q", "G", "new")],
+        url,
+        "m",
+        cfg,
+        transport=_flaky_ollama(set(), calls),
+        resume=JudgeResume.open(mine, [other]),
+    )
+    assert calls == ["new"]
+    assert out["r2-q"][1].endswith("same answer")
+    assert len(mine.read_text().splitlines()) == 2

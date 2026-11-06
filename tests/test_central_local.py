@@ -370,3 +370,53 @@ def test_semi_central_requires_the_gpu_nodes_to_use_the_requester_model(cfg: Atr
 
 def test_central_generation_defaults_to_the_requester(cfg: AtriumConfig) -> None:
     assert cfg.experiment.central_generation == "requester"
+
+
+def test_table_reranker_orders_like_the_cross_encoder_and_refuses_pairs_missing_from_the_table(
+    tmp_path: Path,
+) -> None:
+    """retrieval.ce_scores=table（d0009 A3）：表の得点の降順の上位 k 件（CrossEncoderReranker と同じ並べ方）．表に無い組は失敗にする．"""
+    from atrium.protocol import DocOut
+    from atrium.requester import TableReranker
+
+    rows = [
+        {"qid": "q0", "query": "who?", "doc_id": f"a/{i}", "score": s}
+        for i, s in enumerate([0.1, 2.5, -1.0, 2.5, 0.7])
+    ]
+    table = tmp_path / "t.jsonl"
+    table.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+    docs = [
+        SourcedDoc("a", "s", DocOut(doc_id=f"a/{i}", title="t", content="c", score=0.0))
+        for i in range(5)
+    ]
+    reranker = TableReranker(table)
+
+    top = reranker.rerank("who?", docs, 3)
+    expected = np.argsort(-np.asarray([r["score"] for r in rows]))[:3]
+    assert [d.doc.doc_id for d in top] == [f"a/{i}" for i in expected]
+    with pytest.raises(KeyError):
+        reranker.rerank("another question", docs, 3)
+
+
+def test_ce_scores_table_requires_central_local_with_cross_encoder(cfg: AtriumConfig) -> None:
+    from atrium.config import AtriumConfig as Config
+
+    bad = cfg.model_dump()
+    bad["retrieval"]["ce_scores"] = "table"
+    with pytest.raises(ValueError, match="ce_scores=table"):
+        Config.model_validate(bad)
+    ok = central_cfg(cfg).model_dump()
+    ok["retrieval"].update({"ce_scores": "table", "merge": "cross_encoder"})
+    assert Config.model_validate(ok).retrieval.ce_scores == "table"
+
+
+def test_holdout_question_split_is_limited_to_enronqa(cfg: AtriumConfig) -> None:
+    base = cfg.experiment.model_dump()
+    with pytest.raises(ValueError, match="question_split=holdout"):
+        ExperimentConfig.model_validate({**base, "question_split": "holdout"})
+    assert (
+        ExperimentConfig.model_validate(
+            {**base, "dataset": "enronqa", "question_split": "holdout"}
+        ).question_split
+        == "holdout"
+    )

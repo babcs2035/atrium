@@ -107,23 +107,39 @@ class JudgeResume:
     path: Path
     done: dict[str, ProgressEntry] = field(default_factory=dict)
     abort_after_failures: int = RESUME_ABORT_AFTER_FAILURES
+    # 他の実行の進捗にある，判定モデルへの入力の SHA-256 → （正誤，出力）．同じ入力は温度 0 の判定で同じ結果なので，
+    # 別の実行で採点済みなら送らずに使う（同じ (質問, 回答の文字列) を 1 回だけ採点する．d0009 A3）
+    shared: dict[str, tuple[bool | None, str]] = field(default_factory=dict)
+
+    @staticmethod
+    def _read_lines(path: Path) -> list[dict[str, Any]]:
+        """進捗のファイルの行を読む（無ければ空）．最後の行だけ途中で切れていれば（書き込み中に止まった）捨てる．"""
+        if not path.exists():
+            return []
+        rows: list[dict[str, Any]] = []
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for i, line in enumerate(lines):
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                if i == len(lines) - 1:
+                    logger.warning("dropping a truncated last line of %s", path)
+                    continue
+                raise
+        return rows
 
     @classmethod
-    def open(cls, path: Path) -> JudgeResume:
-        """進捗のファイルを読む（無ければ空）．最後の行だけ途中で切れていれば（書き込み中に止まった）捨てる．"""
+    def open(cls, path: Path, share_from: Sequence[Path] = ()) -> JudgeResume:
+        """進捗のファイルを読む（無ければ空）．share_from の進捗の件は，入力の SHA-256 が同じなら使い回せる件として読む．"""
         done: dict[str, ProgressEntry] = {}
-        if path.exists():
-            lines = path.read_text(encoding="utf-8").splitlines()
-            for i, line in enumerate(lines):
-                try:
-                    j = json.loads(line)
-                except json.JSONDecodeError:
-                    if i == len(lines) - 1:
-                        logger.warning("dropping a truncated last line of %s", path)
-                        continue
-                    raise
-                done[j["key"]] = (j["prompt_sha256"], j["correct"], j["output"])
-        return cls(path, done)
+        for j in cls._read_lines(path):
+            done[j["key"]] = (j["prompt_sha256"], j["correct"], j["output"])
+        shared: dict[str, tuple[bool | None, str]] = {}
+        for other in share_from:
+            if other != path:
+                for j in cls._read_lines(other):
+                    shared[j["prompt_sha256"]] = (j["correct"], j["output"])
+        return cls(path, done, shared=shared)
 
     def append(self, key: str, prompt_sha256: str, verdict: bool | None, output: str) -> None:
         """採点した 1 件を進捗のファイルへ追記する（止まっても，ここまでの件は残る）．"""
@@ -256,6 +272,11 @@ async def judge_items(
                 if saved is not None and saved[0] == sha:
                     out[item.key] = (saved[1], saved[2])
                     return
+                reused = resume.shared.get(sha)
+                if reused is not None:
+                    out[item.key] = reused
+                    resume.append(item.key, sha, *reused)
+                    return
             try:
                 result = await ask(i, prompt)
             except _JudgeStopped:
@@ -320,6 +341,7 @@ def judge_run(
     with_candidates: bool = False,
     resume: bool = False,
     request_timeout_s: float | None = None,
+    share_progress: Sequence[Path] = (),
 ) -> dict[str, Any]:
     """実行の回答を採点し，judgements.jsonl を書く（判定モデルの出力は raw_dir にだけ残す）．
 
@@ -371,7 +393,7 @@ def judge_run(
                 urls,
                 model,
                 cfg,
-                resume=JudgeResume.open(raw_dir / f"{stem}.progress.jsonl"),
+                resume=JudgeResume.open(raw_dir / f"{stem}.progress.jsonl", share_progress),
                 request_timeout_s=request_timeout_s,
             )
         )
@@ -437,11 +459,9 @@ def question_texts(paths: DatasetPaths) -> dict[str, str]:
     from atrium.benchmarks import load_questions
     from atrium.data_enronqa import QUESTION_FILES
 
-    return {
-        q.qid: q.question
-        for name in QUESTION_FILES.values()
-        for q in load_questions(paths.questions.parent / name)
-    }
+    files = (paths.questions.parent / name for name in QUESTION_FILES.values())
+    # holdout（d0009 A3）の質問は，そのデータを作った環境にだけある
+    return {q.qid: q.question for file in files if file.exists() for q in load_questions(file)}
 
 
 def validate_judge(

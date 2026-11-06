@@ -8,6 +8,8 @@
       manifest.json                  シャードの一覧
       queries/<encoder>.npy          全質問のクエリ埋め込み（行は query_ids.json の順）
       queries/query_ids.json
+      ce_table/<split>.jsonl         中央の再ランクの cross-encoder の得点の表（retrieval.ce_scores=table）
+      queries/holdout/               holdout（d0009 A3）の質問のクエリ埋め込みと query_ids.json（既存の queries/ は変えない）
       labels/labels.json             質問 ID → 関連ありのデータ源
       labels/split.json              ルーター学習の train / val / test の質問 ID
       router/                        学習済みルーター（atrium.routing.ragroute）
@@ -65,6 +67,24 @@ class DatasetPaths:
     def query_ids(self) -> Path:
         """クエリ埋め込みの行と質問 ID の対応．"""
         return self.queries / "query_ids.json"
+
+    @property
+    def holdout_queries(self) -> Path:
+        """holdout（d0009 A3）のクエリ埋め込みのディレクトリ（既存の queries/ とは別）．"""
+        return self.queries / "holdout"
+
+    def holdout_query_embeddings(self, encoder: str) -> Path:
+        """holdout の検索器ごとのクエリ埋め込み．"""
+        return self.holdout_queries / f"{safe_name(encoder)}.npy"
+
+    @property
+    def holdout_query_ids(self) -> Path:
+        """holdout のクエリ埋め込みの行と質問 ID の対応．"""
+        return self.holdout_queries / "query_ids.json"
+
+    def ce_table(self, split: str) -> Path:
+        """分割ごとの cross-encoder の得点の表（retrieval.ce_scores=table．`atrium ce-table` が書く．d0009 A3）．"""
+        return self.root / "ce_table" / f"{split}.jsonl"
 
     @property
     def labels(self) -> Path:

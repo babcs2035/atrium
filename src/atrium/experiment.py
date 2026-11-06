@@ -19,13 +19,15 @@ from atrium.config import AtriumConfig
 from atrium.cpu_stat import diff_tcp_counters, read_device_cpu, read_tcp_counters
 from atrium.data_enronqa import QUESTION_FILES, load_gold_docs
 from atrium.manifest import Placement, read_placement
-from atrium.paths import dataset_paths
+from atrium.paths import DatasetPaths, dataset_paths
 from atrium.requester import (
     CachedQueryEmbedder,
     CrossEncoderReranker,
     LiveMedcptEmbedder,
     QueryEmbedder,
     Requester,
+    Reranker,
+    TableReranker,
     apply_pool_assign,
     apply_sniffio_lookup,
     discover_shards,
@@ -106,6 +108,15 @@ def build_http_client(
     )
 
 
+def _make_central_reranker(cfg: AtriumConfig, paths: DatasetPaths) -> Reranker | None:
+    """中央の再ランク（merge=cross_encoder）．ce_scores=table なら事前に計算した表，live ならその場の cross-encoder．"""
+    if cfg.retrieval.merge != "cross_encoder":
+        return None
+    if cfg.retrieval.ce_scores == "table":
+        return TableReranker(paths.ce_table(cfg.experiment.question_split))
+    return CrossEncoderReranker()
+
+
 def _make_embedder(
     cfg: AtriumConfig, data_dir: Path, sources: list[SourceProfile]
 ) -> QueryEmbedder:
@@ -118,6 +129,11 @@ def _make_embedder(
         return LiveMedcptEmbedder(m.query_encoder, m.article_encoder, m.embed_precision)
     # central_local はノードを発見せず（sources が空），EnronQA の符号化器の埋め込みだけを使う
     encoders = sorted({s.encoder for s in sources}) or [cfg.data.require_enronqa().encoder]
+    if cfg.experiment.question_split == "holdout":
+        # holdout（d0009 A3）のクエリ埋め込みは，既存の queries/ とは別のファイル（queries/holdout/）に置く
+        return CachedQueryEmbedder(
+            paths.holdout_query_ids, {e: paths.holdout_query_embeddings(e) for e in encoders}
+        )
     return CachedQueryEmbedder(paths.query_ids, {e: paths.query_embeddings(e) for e in encoders})
 
 
@@ -148,8 +164,9 @@ async def build_requester(
             client=client,
             ollama_url=ollama_url,
             central_index=central,
-            # retrieval.merge=cross_encoder（p0007 A5 の C1-RRF-CE）：索引の上位を再ランクする
-            reranker=CrossEncoderReranker() if cfg.retrieval.merge == "cross_encoder" else None,
+            # retrieval.merge=cross_encoder（p0007 A5 の C1-RRF-CE）：索引の上位を再ランクする．
+            # ce_scores=table（d0009 A3）は質問者に GPU が無いので，事前に計算した得点の表を引く
+            reranker=_make_central_reranker(cfg, paths),
         )
         return requester, [], 0.0
     start = time.perf_counter()
@@ -204,11 +221,11 @@ async def run_experiment(
     dataset = cfg.experiment.dataset
     paths = dataset_paths(data_dir, dataset)
     placement = read_placement(placement_path)
-    # dev は enronqa だけ（config が検査済み）．dev_questions.jsonl は test の questions.jsonl と同じ書式
+    # dev・holdout は enronqa だけ（config が検査済み）．dev_questions.jsonl・holdout_questions.jsonl は test の questions.jsonl と同じ書式
     questions_path = (
-        paths.questions.parent / QUESTION_FILES["dev"]
-        if cfg.experiment.question_split == "dev"
-        else paths.questions
+        paths.questions
+        if cfg.experiment.question_split == "test"
+        else paths.questions.parent / QUESTION_FILES[cfg.experiment.question_split]
     )
     all_questions = load_questions(questions_path, cfg.experiment.question_limit)
     out_dir.mkdir(parents=True, exist_ok=True)

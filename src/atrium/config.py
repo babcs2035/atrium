@@ -49,6 +49,7 @@ AnswerMode = Literal[
 # owner_answer の回答の統合の規則（p0007 §6.2 A1）
 AggregateName = Literal["max_score", "abstain", "agree", "llm_select", "cross_encoder"]
 MergeName = Literal["score", "cross_encoder", "qrels_oracle"]
+CeScoresName = Literal["live", "table"]
 QueryEmbeddingMode = Literal["live", "cached"]
 FusionName = Literal["none", "rrf"]
 Precision = Literal["fp32", "fp16_autocast"]
@@ -92,9 +93,10 @@ class ExperimentConfig(_Strict):
     routing: RoutingName
     answer_mode: AnswerMode
     question_limit: int | None = None
-    # 流す質問の分割（p0007 A1）．test：questions.jsonl（従来）／dev：dev_questions.jsonl（設定の選択用．EnronQA のみ）．
+    # 流す質問の分割（p0007 A1）．test：questions.jsonl（従来）／dev：dev_questions.jsonl（設定の選択用．EnronQA のみ）／
+    # holdout：holdout_questions.jsonl（test の並べ替えの 21〜40 番目．判定専用．EnronQA のみ．d0009 A3）．
     # question_limit は選んだ分割の中で各問題集（EnronQA は受信箱）の先頭からの数
-    question_split: Literal["test", "dev"] = "test"
+    question_split: Literal["test", "dev", "holdout"] = "test"
     parallel: int = Field(default=4, ge=1)
     seed: int = 12
     # 質問者の HTTP 接続の持ち方（Iteration 5）．shared：全ノードで 1 つの池（上限 512．従来の挙動）／
@@ -141,9 +143,11 @@ class ExperimentConfig(_Strict):
 
     @model_validator(mode="after")
     def _check_question_split(self) -> ExperimentConfig:
-        """dev の質問は EnronQA だけが持つ．churn は test の全問を再生するので dev とは併用できない．"""
-        if self.question_split == "dev" and (self.dataset != "enronqa" or self.churn is not None):
-            raise ValueError("experiment.question_split=dev requires dataset=enronqa and no churn")
+        """dev・holdout の質問は EnronQA だけが持つ．churn は test の全問を再生するので併用できない．"""
+        if self.question_split != "test" and (self.dataset != "enronqa" or self.churn is not None):
+            raise ValueError(
+                f"experiment.question_split={self.question_split} requires dataset=enronqa and no churn"
+            )
         return self
 
     @model_validator(mode="after")
@@ -201,6 +205,9 @@ class RetrievalConfig(_Strict):
     fusion: FusionName = "none"
     # rrf で順位を付ける，密ベクトル・BM25 それぞれの上位の件数
     fusion_depth: int = Field(default=50, ge=1)
+    # merge=cross_encoder の得点の出どころ（d0009 A3）．live：質問者の cross-encoder がその場で採点する（従来）／
+    # table：事前に計算した表（<data_dir>/enronqa/ce_table/<split>.jsonl．`atrium ce-table`）を引く（質問者に GPU が無いとき）
+    ce_scores: CeScoresName = "live"
 
 
 class RoutingConfig(_Strict):
@@ -474,6 +481,17 @@ class AtriumConfig(_Strict):
         """管理 API の状態（離脱・外したメール・足したメール）はプロセスごとに持つので，node_admin は 1 プロセスのノードに限る．"""
         if self.cluster.node_admin and self.experiment.node_workers != 1:
             raise ValueError("cluster.node_admin requires experiment.node_workers = 1")
+        return self
+
+    @model_validator(mode="after")
+    def _check_ce_table(self) -> AtriumConfig:
+        """表から引く得点（ce_scores=table）は，中央の再ランク（central_local・merge=cross_encoder）だけで使う（d0009 A3）．"""
+        if self.retrieval.ce_scores == "table" and (
+            self.experiment.routing != "central_local" or self.retrieval.merge != "cross_encoder"
+        ):
+            raise ValueError(
+                "retrieval.ce_scores=table requires routing=central_local and merge=cross_encoder"
+            )
         return self
 
     @model_validator(mode="after")

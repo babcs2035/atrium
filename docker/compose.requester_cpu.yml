@@ -1,0 +1,20 @@
+# 質問者（GPU の無い PC．制御点 wafl-ctrl5）の compose のひな形．compose.requester.yml との違いは，GPU（runtime: nvidia）を要求せず，
+# Ollama を動かさないことだけである（生成は GPU の専門家か cluster.requester_llm の Ollama が行い，cross-encoder は
+# retrieval.ce_scores=table の事前に計算した表を引く．d0009 A3）．ドル記号と波括弧で書いた変数は config.yaml の値で，
+# deploy が `atrium render-compose` で埋めた compose.yml を cluster.remote_dir へ置く．deploy は質問者に GPU が無いときにこれを選ぶ．
+services:
+  requester:
+    image: localhost:${REGISTRY_PORT}/atrium-full:latest
+    profiles: ["run"]
+    # 結果ファイルの所有者を SSH のユーザーにそろえる（制御点から rsync で回収するため）
+    user: "${HOST_UID}:${HOST_GID}"
+    environment:
+      HOME: /tmp
+      HF_HOME: /cache/huggingface
+      HF_HUB_OFFLINE: "1"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./placement.json:/app/placement.json:ro
+      - ./data:/data:ro
+      - ./results:/app/results
+      - ./hf-cache:/cache/huggingface

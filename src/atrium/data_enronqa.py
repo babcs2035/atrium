@@ -7,6 +7,8 @@
     embed      メールを arctic-embed で埋め込み，corpus/<inbox>/emb/<inbox>.f16.npy に fp16 で保存する
     questions  評価（test）・公開情報の大きさの選択（dev）・中央の分類器の学習（train）の質問を抜き出す
     queries    抜き出した全質問のクエリ埋め込み
+    holdout    test の受信箱ごとの並べ替えの 21〜40 番目の質問（holdout．d0009 A3．判定専用）を別のファイルへ追加する
+    holdout-queries  holdout のクエリ埋め込みを queries/holdout/ へ書く（既存の queries/ は変えない）
     labels     関連ラベル（質問 → 正解のメールの受信箱）と分割（train / val / test）
     shards     受信箱ごとのシャード（本文と埋め込みは corpus への symlink）と，公開情報（Advert）
 
@@ -58,8 +60,13 @@ QUESTION_FILES = {
     "test": "questions.jsonl",
     "dev": "dev_questions.jsonl",
     "train": "train_questions.jsonl",
+    "holdout": "holdout_questions.jsonl",
 }
 GOLD_FILE = "gold.jsonl"
+# holdout（d0009 A3）：新しく分けた質問．gold.jsonl は変えず，別のファイルに足す（質問の ID は enronqa/holdout/<行>-<番号>）
+HOLDOUT_GOLD_FILE = "holdout_gold.jsonl"
+# holdout は test の並べ替えの先頭 test_per_inbox 問を飛ばし，次の HOLDOUT_PER_INBOX 問を取る（20 問に満たない受信箱は取れる分だけ）
+HOLDOUT_PER_INBOX = 20
 # 分割の名前 → labels/split.json のキー（既存の train_router・分析と同じ名前）
 SPLIT_KEYS = {"train": "train", "dev": "val", "test": "test"}
 HEADER_SEPARATOR = "====================================="
@@ -238,12 +245,9 @@ def _per_inbox_limit(e: EnronqaDataConfig, split: str) -> int:
     return {"test": e.test_per_inbox, "dev": e.dev_per_inbox, "train": e.train_per_inbox}[split]
 
 
-def write_questions_files(cfg: AtriumConfig, paths: DatasetPaths) -> None:
-    """分割ごとに受信箱あたり最大 N 問を無作為に抜き出す（種は experiment.seed．重複のメールの質問は除く）．"""
+def _duplicate_email_paths(cfg: AtriumConfig, paths: DatasetPaths) -> set[str]:
+    """他の受信箱にほぼ同じメールがある（質問から除く）メールの path．"""
     e = cfg.data.require_enronqa()
-    bench = paths.questions.parent
-    if (bench / GOLD_FILE).exists():
-        return
     emails = read_emails(paths)
     dup_idx = find_cross_inbox_duplicates(
         [set(tokens(m.text.split(HEADER_SEPARATOR, 1)[-1])) for m in emails],
@@ -253,50 +257,80 @@ def write_questions_files(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     )
     dup_paths = {emails[i].path for i in dup_idx}
     logger.info("excluding questions on %d near-duplicate emails", len(dup_paths))
+    return dup_paths
+
+
+def _pick_questions(
+    cfg: AtriumConfig,
+    paths: DatasetPaths,
+    split: str,
+    dup_paths: set[str],
+    qid_split: str,
+    skip: int,
+    take: int,
+) -> tuple[list[Question], list[dict[str, Any]]]:
+    """分割の質問を受信箱ごとに種 experiment.seed で並べ替え，skip 番目から take 問を取る（質問・正解の情報）．
+
+    並べ替えは分割ごとに種から作り直し，受信箱の順に rng.permutation を引く．skip = 0 が従来の抜き出し，
+    skip = test_per_inbox が holdout である（同じ並べ替えの続きなので，test と重ならない）．
+    """
+    e = cfg.data.require_enronqa()
+    rows = _read_split(
+        paths,
+        split,
+        ["path", "user", "questions", "gold_answers", "alternate_answers", "incorrect_answers"],
+    )
+    candidates: dict[str, list[tuple[int, int]]] = defaultdict(list)
+    for ri, r in enumerate(rows):
+        if r["path"] in dup_paths:
+            continue
+        for qi in range(len(r["questions"])):
+            candidates[r["user"]].append((ri, qi))
+    rng = np.random.default_rng(cfg.experiment.seed)
+    questions: list[Question] = []
+    gold: list[dict[str, Any]] = []
+    for inbox in e.sources:
+        pool = candidates.get(inbox, [])
+        picked = sorted(pool[int(i)] for i in rng.permutation(len(pool))[skip : skip + take])
+        for ri, qi in picked:
+            r = rows[ri]
+            qid = f"enronqa/{qid_split}/{ri}-{qi}"
+            questions.append(
+                Question(
+                    qid=qid,
+                    bank=inbox,
+                    question=r["questions"][qi],
+                    options={},
+                    answer=r["gold_answers"][qi],
+                )
+            )
+            gold.append(
+                {
+                    "qid": qid,
+                    "split": qid_split,
+                    "inbox": inbox,
+                    "path": r["path"],
+                    "gold_answer": r["gold_answers"][qi],
+                    "alternate_answers": list(r["alternate_answers"][qi]),
+                    "incorrect_answers": list(r["incorrect_answers"][qi]),
+                }
+            )
+    return questions, gold
+
+
+def write_questions_files(cfg: AtriumConfig, paths: DatasetPaths) -> None:
+    """分割ごとに受信箱あたり最大 N 問を無作為に抜き出す（種は experiment.seed．重複のメールの質問は除く）．"""
+    e = cfg.data.require_enronqa()
+    bench = paths.questions.parent
+    if (bench / GOLD_FILE).exists():
+        return
+    dup_paths = _duplicate_email_paths(cfg, paths)
     gold: list[dict[str, Any]] = []
     for split in SPLITS:
-        rows = _read_split(
-            paths,
-            split,
-            ["path", "user", "questions", "gold_answers", "alternate_answers", "incorrect_answers"],
+        questions, split_gold = _pick_questions(
+            cfg, paths, split, dup_paths, split, 0, _per_inbox_limit(e, split)
         )
-        candidates: dict[str, list[tuple[int, int]]] = defaultdict(list)
-        for ri, r in enumerate(rows):
-            if r["path"] in dup_paths:
-                continue
-            for qi in range(len(r["questions"])):
-                candidates[r["user"]].append((ri, qi))
-        rng = np.random.default_rng(cfg.experiment.seed)
-        limit = _per_inbox_limit(e, split)
-        questions: list[Question] = []
-        for inbox in e.sources:
-            pool = candidates.get(inbox, [])
-            picked = sorted(
-                pool[int(i)] for i in rng.permutation(len(pool))[: min(limit, len(pool))]
-            )
-            for ri, qi in picked:
-                r = rows[ri]
-                qid = f"enronqa/{split}/{ri}-{qi}"
-                questions.append(
-                    Question(
-                        qid=qid,
-                        bank=inbox,
-                        question=r["questions"][qi],
-                        options={},
-                        answer=r["gold_answers"][qi],
-                    )
-                )
-                gold.append(
-                    {
-                        "qid": qid,
-                        "split": split,
-                        "inbox": inbox,
-                        "path": r["path"],
-                        "gold_answer": r["gold_answers"][qi],
-                        "alternate_answers": list(r["alternate_answers"][qi]),
-                        "incorrect_answers": list(r["incorrect_answers"][qi]),
-                    }
-                )
+        gold += split_gold
         write_questions(bench / QUESTION_FILES[split], questions)
         logger.info("%s: %d questions", split, len(questions))
     with (bench / GOLD_FILE).open("w", encoding="utf-8") as f:
@@ -304,10 +338,51 @@ def write_questions_files(cfg: AtriumConfig, paths: DatasetPaths) -> None:
             f.write(json.dumps(g, ensure_ascii=False) + "\n")
 
 
+def write_holdout_files(cfg: AtriumConfig, paths: DatasetPaths) -> None:
+    """test の並べ替えの 21〜40 番目の質問（holdout）を，既存の質問・gold を変えずに別のファイルへ書く（d0009 A3）．
+
+    holdout の qid が test・dev・train のどれとも重なれば誤りとして止める．既に書いてあれば飛ばす．
+    """
+    e = cfg.data.require_enronqa()
+    bench = paths.questions.parent
+    if (bench / HOLDOUT_GOLD_FILE).exists():
+        return
+    questions, gold = _pick_questions(
+        cfg,
+        paths,
+        "test",
+        _duplicate_email_paths(cfg, paths),
+        "holdout",
+        e.test_per_inbox,
+        HOLDOUT_PER_INBOX,
+    )
+    from atrium.benchmarks import load_questions
+
+    used = {q.qid for split in SPLITS for q in load_questions(bench / QUESTION_FILES[split])}
+    if used & {q.qid for q in questions}:
+        raise ValueError("holdout qids overlap with test/dev/train qids")
+    # 同じ受信箱に同じ文面の質問（別のメールについての定型の質問）が test にもある場合は，qid も正解のメールも別なので除かず，件数だけ記録する
+    test_pairs = {(q.bank, q.question) for q in load_questions(bench / QUESTION_FILES["test"])}
+    same_text = sum((q.bank, q.question) in test_pairs for q in questions)
+    logger.info(
+        "holdout: %d questions have the same text as a test question of the same inbox", same_text
+    )
+    write_questions(bench / QUESTION_FILES["holdout"], questions)
+    with (bench / HOLDOUT_GOLD_FILE).open("w", encoding="utf-8") as f:
+        for g in gold:
+            f.write(json.dumps(g, ensure_ascii=False) + "\n")
+    logger.info("holdout: %d questions", len(questions))
+
+
 def read_gold(paths: DatasetPaths) -> dict[str, dict[str, Any]]:
-    """質問 ID → 正解の情報（受信箱・メールの path・正解・別解・誤答）．"""
-    with (paths.questions.parent / GOLD_FILE).open(encoding="utf-8") as f:
-        return {g["qid"]: g for g in map(json.loads, f)}
+    """質問 ID → 正解の情報（受信箱・メールの path・正解・別解・誤答）．holdout の gold があれば加える（d0009 A3）．"""
+    gold: dict[str, dict[str, Any]] = {}
+    for name in (GOLD_FILE, HOLDOUT_GOLD_FILE):
+        file = paths.questions.parent / name
+        if name == GOLD_FILE or file.exists():
+            with file.open(encoding="utf-8") as f:
+                gold |= {g["qid"]: g for g in map(json.loads, f)}
+    return gold
 
 
 def load_gold_docs(paths: DatasetPaths, qids: Sequence[str]) -> dict[str, SourcedDoc]:
@@ -354,11 +429,30 @@ def embed_queries(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     np.save(out, emb)
 
 
+def embed_holdout_queries(cfg: AtriumConfig, paths: DatasetPaths) -> None:
+    """holdout の質問のクエリ埋め込みを queries/holdout/ へ書く（既存の queries/ は変えない．query_ids.json の順）．"""
+    from atrium.benchmarks import load_questions
+    from atrium.encoders import ArcticEncoder
+
+    e = cfg.data.require_enronqa()
+    out = paths.holdout_query_embeddings(e.encoder)
+    if out.exists():
+        return
+    questions = load_questions(paths.questions.parent / QUESTION_FILES["holdout"])
+    emb = ArcticEncoder(e.encoder, e.embed_batch_size).encode_queries(
+        [q.question for q in questions]
+    )
+    paths.holdout_queries.mkdir(parents=True, exist_ok=True)
+    paths.holdout_query_ids.write_text(json.dumps([q.qid for q in questions]), encoding="utf-8")
+    np.save(out, emb)
+
+
 def write_labels(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     """関連ラベル（正解のメールの受信箱 1 個）と分割を書く．"""
     from atrium.labels import write_labels_meta
 
-    gold = read_gold(paths)
+    # holdout（d0009 A3）は判定専用で，ルーターの学習・ラベルの対象に入れない
+    gold = {qid: g for qid, g in read_gold(paths).items() if g["split"] in SPLIT_KEYS}
     paths.labels.parent.mkdir(parents=True, exist_ok=True)
     paths.labels.write_text(
         json.dumps({qid: [g["inbox"]] for qid, g in gold.items()}), encoding="utf-8"

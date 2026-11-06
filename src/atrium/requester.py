@@ -339,6 +339,30 @@ class CrossEncoderReranker:
         return [docs[int(i)] for i in order]
 
 
+class TableReranker:
+    """事前に計算した cross-encoder の得点の表（`atrium ce-table`）を引く再ランク（retrieval.ce_scores=table．d0009 A3）．
+
+    質問者に GPU が無いときに，CrossEncoderReranker と同じ得点・同じ並べ方（得点の降順の np.argsort）で上位 k 件を返す．
+    表は (質問文, 文書 ID) → 得点（質問と `<題>\\n<本文>` だけで決まる）．表に無い組が出たら，黙って補わずに例外にする（その問は失敗になる）．
+    """
+
+    def __init__(self, table_path: Path) -> None:
+        """表（1 行 1 組の JSON: query・doc_id・score）を読む．"""
+        self._scores: dict[tuple[str, str], float] = {}
+        with table_path.open(encoding="utf-8") as f:
+            for line in f:
+                row = json.loads(line)
+                self._scores[(row["query"], row["doc_id"])] = float(row["score"])
+
+    def rerank(self, query: str, docs: Sequence[SourcedDoc], k: int) -> list[SourcedDoc]:
+        """表の得点で上位 k 件を返す．"""
+        if not docs:
+            return []
+        scores = [self._scores[(query, d.doc.doc_id)] for d in docs]
+        order = np.argsort(-np.asarray(scores))[:k]
+        return [docs[int(i)] for i in order]
+
+
 def load_rm_qrels(path: Path) -> dict[str, dict[str, int]]:
     """FeB4RAG の結果統合用ラベル（qid Q0 docid rel）を読む．"""
     out: dict[str, dict[str, int]] = defaultdict(dict)

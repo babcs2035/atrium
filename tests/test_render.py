@@ -89,3 +89,14 @@ def test_cpu_node_compose_uses_the_cpu_expert_model(cfg: AtriumConfig) -> None:
     assert "runtime" not in services["ollama"]
     command = services["node"]["command"]
     assert command[command.index("--expert-model") + 1] == cfg.llm.expert_model
+
+
+def test_requester_cpu_compose_requests_no_gpu_and_runs_no_ollama(cfg: AtriumConfig) -> None:
+    """質問者に GPU が無いとき（制御点 wafl-ctrl5．d0009 A3）の compose：GPU の予約も Ollama も持たない．"""
+    text = render_compose(cfg, "requester_cpu", 1000, 1000, template_dir=TEMPLATE_DIR)
+    assert "${" not in text
+    services = yaml.safe_load(text)["services"]
+    assert set(services) == {"requester"}
+    requester = services["requester"]
+    assert "depends_on" not in requester and "runtime" not in requester
+    assert "NVIDIA_VISIBLE_DEVICES" not in requester["environment"]

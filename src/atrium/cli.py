@@ -41,6 +41,8 @@
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     select-features           owner_answer の候補ごとの cross-encoder の得点を後から求める（EnronQA．p0007 A5．GPU のある操作端末）
     select-eval               owner_answer の候補の選び方の規則をオフラインに適用・評価する（EnronQA．p0007 A5．操作端末）
+    ce-table                  中央の再ランクの cross-encoder の得点を事前に計算して表にする（EnronQA．d0009 A3．GPU のある端末）
+    rerun-variance            同じ設定を流し直した実行の揺れを含めた差の区間と H-V1〜H-V3 の判定（d0009 A3．オフライン）
     abstain-judge             不正解の回答が「わからない」かを判定モデルで判定する（d0009 A2．Ollama へ届く端末）
     fabrication-eval          回答の 3 分類（正解・わからない・誤答）の集計と H-F1〜H-F3 の判定（d0009 A2．オフライン）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
@@ -68,7 +70,18 @@ from atrium.verdict import BOOTSTRAP_SAMPLES, BOOTSTRAP_SEED, NON_INFERIORITY_MA
 
 MEDRAG_STEPS = ("benchmark", "corpus", "embed", "shards", "queries", "labels", "split", "train")
 FEB4RAG_STEPS = ("fetch", "beir", "shards", "queries", "split", "train")
-ENRONQA_STEPS = ("fetch", "corpus", "embed", "questions", "queries", "labels", "shards", "train")
+ENRONQA_STEPS = (
+    "fetch",
+    "corpus",
+    "embed",
+    "questions",
+    "queries",
+    "holdout",
+    "holdout-queries",
+    "labels",
+    "shards",
+    "train",
+)
 STEPS_OF = {"medrag": MEDRAG_STEPS, "feb4rag": FEB4RAG_STEPS, "enronqa": ENRONQA_STEPS}
 
 
@@ -138,6 +151,43 @@ def cmd_render_compose(args: argparse.Namespace, cfg: AtriumConfig) -> int:
             cfg, args.role, args.uid, args.gid, node_id=args.node_id, shard_ids=args.shard_ids
         ),
         end="",
+    )
+    return 0
+
+
+def cmd_ce_table(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """中央の再ランクの得点の表を作り，--compare-run があれば上位の文書 ID の一致（G1）を g1.json に書く（d0009 A3）．"""
+    from atrium import ce_table
+
+    paths = dataset_paths(Path(args.data_dir), "enronqa")
+    top = ce_table.build_ce_table(cfg, paths, args.split, args.limit)
+    if args.compare_run:
+        result = ce_table.compare_top_doc_ids(top, Path(args.compare_run))
+        out_dir = Path(args.out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "g1.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
+        print(json.dumps({k: v for k, v in result.items() if k != "mismatched_qids"}, indent=1))
+    return 0
+
+
+def cmd_rerun_variance(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """P・C 各 3 回の採点済みの実行から，揺れを含めた差の区間・H-V1〜H-V3・δ の見直しを出す（d0009 A3）．"""
+    from atrium import rerun_variance as rv
+    from atrium.data_enronqa import read_gold
+
+    runs = {"P": [Path(d) for d in args.p_run], "C": [Path(d) for d in args.c_run]}
+    gold = read_gold(dataset_paths(Path(args.data_dir), "enronqa"))
+    result = rv.evaluate(
+        runs, {qid: g["inbox"] for qid, g in gold.items()}, args.margin, args.samples, args.seed
+    )
+    test_pairs = {name: (Path(p), Path(c)) for name, p, c in args.test_pair}
+    reference_diffs = {name: float(v) for name, v in (s.split("=", 1) for s in args.reference_diff)}
+    result["test_reread"] = rv.reread_test(result, test_pairs, reference_diffs)
+    rv.write_outputs(Path(args.out_dir), result)
+    print(
+        json.dumps(
+            {k: result[k] for k in ("n_questions", "delta", "H_V1", "H_V2", "H_V3")}, indent=1
+        )
     )
     return 0
 
@@ -309,6 +359,10 @@ def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
                 eq.write_questions_files(cfg, paths)
             elif step == "queries":
                 eq.embed_queries(cfg, paths)
+            elif step == "holdout":
+                eq.write_holdout_files(cfg, paths)
+            elif step == "holdout-queries":
+                eq.embed_holdout_queries(cfg, paths)
             elif step == "labels":
                 eq.write_labels(cfg, paths)
             elif step == "shards":
@@ -772,6 +826,7 @@ def cmd_judge(args: argparse.Namespace, cfg: AtriumConfig) -> int:
                 args.with_candidates,
                 args.resume,
                 args.request_timeout_s,
+                [Path(f) for f in args.share_progress],
             )
             print(run_dir, json.dumps(summary))
             if summary.get("n_unjudged"):
@@ -857,6 +912,13 @@ def _analyze(run_dir: Path, artifacts_dir: Path) -> dict[str, Any]:
         if gold_file.exists()
         else None
     )
+    # holdout（d0009 A3）の gold は別のファイル
+    holdout_gold_file = paths.questions.parent / "holdout_gold.jsonl"
+    if gold_doc is not None and holdout_gold_file.exists():
+        gold_doc |= {
+            g["qid"]: g["path"]
+            for g in map(json.loads, holdout_gold_file.read_text("utf-8").splitlines())
+        }
     return compute_metrics(rows, labels, split, n_sources, consistent_setting, gold_doc)
 
 
@@ -1154,13 +1216,62 @@ def build_parser() -> argparse.ArgumentParser:
         "render-compose", help="compose のひな形の ${...} を config.yaml の値で埋めて出す"
     )
     p.add_argument(
-        "--role", choices=["node", "node_gpu", "requester", "requester_llm"], required=True
+        "--role",
+        choices=["node", "node_gpu", "requester", "requester_cpu", "requester_llm"],
+        required=True,
     )
     p.add_argument("--uid", type=int, required=True, help="ノードの SSH のユーザーの UID")
     p.add_argument("--gid", type=int, required=True)
     p.add_argument("--node-id", default=None, help="role=node のとき必須")
     p.add_argument("--shard-ids", default=None, help="role=node のとき必須（カンマ区切り）")
     p.set_defaults(func=cmd_render_compose)
+
+    p = sub.add_parser(
+        "ce-table",
+        help="中央の再ランクの cross-encoder の得点を事前に計算して表にする（d0009 A3．GPU のある端末）",
+    )
+    p.add_argument(
+        "--data-dir", required=True, help="enronqa/ を含む置き場所（本文・埋め込みを読む）"
+    )
+    p.add_argument("--split", choices=["test", "holdout"], required=True)
+    p.add_argument("--limit", type=int, default=None, help="各受信箱の先頭からの数（動作確認用）")
+    p.add_argument("--compare-run", default=None, help="上位の文書 ID を比べる実行（G1）")
+    p.add_argument("--out-dir", default="results/d0009_a3_rerun_variance/g1")
+    p.set_defaults(func=cmd_ce_table)
+
+    p = sub.add_parser(
+        "rerun-variance",
+        help="同じ設定を 3 回ずつ流し直した実行の揺れを含めた差の区間と判定（d0009 A3．オフライン）",
+    )
+    p.add_argument(
+        "--p-run", action="append", required=True, help="P2P（R3′）の採点済みの実行（3 つ）"
+    )
+    p.add_argument(
+        "--c-run", action="append", required=True, help="中央（C1-RRF-CE）の採点済みの実行（3 つ）"
+    )
+    p.add_argument(
+        "--data-dir", default="artifacts", help="enronqa/ を含む置き場所（受信箱を読む）"
+    )
+    p.add_argument("--out-dir", required=True)
+    p.add_argument("--margin", type=float, default=NON_INFERIORITY_MARGIN)
+    p.add_argument("--samples", type=int, default=BOOTSTRAP_SAMPLES)
+    p.add_argument("--seed", type=int, default=BOOTSTRAP_SEED)
+    p.add_argument(
+        "--test-pair",
+        nargs=3,
+        action="append",
+        default=[],
+        metavar=("NAME", "P_RUN", "C_RUN"),
+        help="test の読み直しに使う組（設計に使った test の P2P と中央の実行）",
+    )
+    p.add_argument(
+        "--reference-diff",
+        action="append",
+        default=[],
+        metavar="NAME=VALUE",
+        help="H の同じ設定の組の差と並べる差（例：a2_accuracy=0.022）",
+    )
+    p.set_defaults(func=cmd_rerun_variance)
 
     p = sub.add_parser("run", help="質問者として実験を行う")
     p.add_argument("--data-dir", required=True)
@@ -1693,6 +1804,12 @@ def build_parser() -> argparse.ArgumentParser:
                 type=float,
                 default=None,
                 help="判定モデルへの 1 回の要求の待ち時間の上限（秒）．省略すると llm.timeout_s",
+            )
+            p.add_argument(
+                "--share-progress",
+                action="append",
+                default=[],
+                help="--resume のとき，他の実行の進捗のファイル．判定モデルへの入力が同じ件は送らずに使う（d0009 A3）",
             )
         p.set_defaults(func=cmd_judge)
 

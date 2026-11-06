@@ -176,7 +176,8 @@ deploy_requester() {
   own_remote_dir "$host"
   # 質問者が使うものだけを送る（シャードの本文と埋め込みは送らない）
   # labels は routing=oracle（p0004）が，summary は routing=term_probe・hybrid_probe（p0006 P4．atrium build-summary）が使う
-  for item in benchmark manifest.json queries router qrels labels summary; do
+  # ce_table は retrieval.ce_scores=table（d0009 A3）が引く cross-encoder の得点の表
+  for item in benchmark manifest.json queries router qrels labels summary ce_table; do
     if [ -e "$DS_DIR/$item" ]; then
       nrsync -aL --delete "$DS_DIR/$item" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/"
     fi
@@ -192,10 +193,12 @@ deploy_requester() {
   fi
   nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
   nrsync -az "artifacts/$DATASET/placement.json" "$(ssh_dest "$host"):$REMOTE_DIR/placement.json"
-  render_compose "$host" requester
+  # 質問者に GPU が無ければ（制御点 wafl-ctrl5 は 2026-11-06 に GPU が廃止された），GPU を要求せず Ollama も動かさない compose にする
+  requester_gpu=1
+  if has_gpu "$host"; then render_compose "$host" requester; else requester_gpu=""; render_compose "$host" requester_cpu; fi
   # 質問者のモデル（Ollama と，クエリ埋め込み・再ランクの HF のモデル）も制御点から配る．
   # LLM を別の GPU PC（cluster.requester_llm）で動かすときは，Ollama のモデルはそちらへ配る
-  if [ -z "$REQUESTER_LLM" ]; then
+  if [ -z "$REQUESTER_LLM" ] && [ -n "$requester_gpu" ]; then
     send_ollama_model "$host" "$REQUESTER_MODEL"
     # B3（snippet_return_small．p0004）は質問者が専門家と同じ小型のモデルで答える
     if [ "$ANSWER_MODE" = snippet_return_small ]; then send_ollama_model "$host" "$EXPERT_MODEL"; fi
@@ -213,7 +216,9 @@ deploy_requester() {
     nrsync -a "${hf_models[@]}" "$(ssh_dest "$host"):$REMOTE_DIR/hf-cache/hub/"
   fi
   retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose --profile run pull -q"
-  if [ -z "$REQUESTER_LLM" ]; then
+  if [ -z "$requester_gpu" ]; then
+    :  # Ollama のサービスが無い（requester_cpu）
+  elif [ -z "$REQUESTER_LLM" ]; then
     nssh "$host" "cd $REMOTE_DIR && docker compose up -d --force-recreate ollama"
     # requester は実験ごとに start.sh が起動するので，ここでは使い捨てのコンテナから呼ぶ
     case $ANSWER_MODE in

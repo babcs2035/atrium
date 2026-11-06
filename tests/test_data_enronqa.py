@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from atrium.data_enronqa import (
     card_text,
@@ -107,3 +108,72 @@ def test_load_gold_docs_returns_the_gold_email_of_each_question(tmp_path: Path) 
         "body b/9",
     )
     assert docs["q0"].doc.title == "t a/1"
+
+
+def test_holdout_questions_are_the_21st_to_40th_of_the_test_permutation_and_leave_existing_files_alone(
+    tmp_path: Path,
+) -> None:
+    """d0009 A3：holdout は test と同じ並べ替えの続きで，test・dev・train の質問・gold を変えず，qid が重ならない．"""
+    pa = pytest.importorskip("pyarrow")
+    import pyarrow.parquet as pq
+
+    from atrium.config import AtriumConfig, load_config
+    from atrium.data_enronqa import (
+        HOLDOUT_GOLD_FILE,
+        QUESTION_FILES,
+        read_gold,
+        write_holdout_files,
+        write_questions_files,
+    )
+    from tests.conftest import REPO_ROOT
+
+    cfg: AtriumConfig = load_config(REPO_ROOT / "config.yaml")
+    enron = cfg.data.require_enronqa().model_copy(update={"sources": ["a", "b"]})
+    cfg = cfg.model_copy(update={"data": cfg.data.model_copy(update={"enronqa": enron})})
+    paths = dataset_paths(tmp_path, "enronqa")
+    raw = paths.root / "raw" / "data"
+    raw.mkdir(parents=True)
+    counts = {"a": 55, "b": 25}
+    rows = [(inbox, i) for inbox, n in counts.items() for i in range(n)]
+    table = pa.table(
+        {
+            "email": [
+                f"Subject: s{inbox}{i}\n====\nunique body {inbox} {i} word{i}x{inbox}"
+                for inbox, i in rows
+            ],
+            "path": [f"{inbox}/inbox/{i}." for inbox, i in rows],
+            "user": [inbox for inbox, _ in rows],
+            "questions": [[f"question {inbox} {i}"] for inbox, i in rows],
+            "gold_answers": [[f"answer {i}"] for _, i in rows],
+            "alternate_answers": [[["alt"]] for _ in rows],
+            "incorrect_answers": [[["wrong"]] for _ in rows],
+        }
+    )
+    for split in ("train", "dev", "test"):
+        pq.write_table(table, raw / f"{split}-00000-of-00001.parquet")
+
+    write_questions_files(cfg, paths)
+    bench = paths.questions.parent
+    before = {name: (bench / name).read_bytes() for name in ("questions.jsonl", "gold.jsonl")}
+    write_holdout_files(cfg, paths)
+
+    assert {name: (bench / name).read_bytes() for name in before} == before
+    from atrium.benchmarks import load_questions
+
+    test_q = load_questions(bench / QUESTION_FILES["test"])
+    holdout_q = load_questions(bench / QUESTION_FILES["holdout"])
+    assert not {q.qid for q in test_q} & {q.qid for q in holdout_q}
+    assert all(q.qid.startswith("enronqa/holdout/") for q in holdout_q)
+    # 受信箱ごとに，test が先頭 20 問・holdout が次の最大 20 問（a は 55 問から 20 + 20，b は 25 問から 20 + 5）
+    for inbox, n_holdout in (("a", 20), ("b", 5)):
+        assert sum(q.bank == inbox for q in test_q) == 20
+        assert sum(q.bank == inbox for q in holdout_q) == n_holdout
+    # 同じ並べ替え（種 12）の続き：test の添字と holdout の添字で受信箱の全問のうち最初の 40 問になる
+    rng = np.random.default_rng(cfg.experiment.seed)
+    for inbox in ("a", "b"):
+        order = [int(i) for i in rng.permutation(counts[inbox])]
+        expected = {f"{inbox}/inbox/{i}." for i in order[20:40]}
+        gold = read_gold(paths)
+        got = {g["path"] for g in gold.values() if g["split"] == "holdout" and g["inbox"] == inbox}
+        assert got == expected
+    assert (bench / HOLDOUT_GOLD_FILE).exists()
