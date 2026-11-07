@@ -43,6 +43,8 @@
     select-eval               owner_answer の候補の選び方の規則をオフラインに適用・評価する（EnronQA．p0007 A5．操作端末）
     ce-table                  中央の再ランクの cross-encoder の得点を事前に計算して表にする（EnronQA．d0009 A3．GPU のある端末）
     rerun-variance            同じ設定を流し直した実行の揺れを含めた差の区間と H-V1〜H-V3 の判定（d0009 A3．オフライン）
+    multi-requester-eval      質問者を 1 台と 3 台にした実行の精度・負荷・露出・障害の集計と判定（d0009 A1．オフライン）
+    merge-requesters          複数の質問者の出力 req<i>/ を 1 つの実行にまとめる（d0009 A1）
     abstain-judge             不正解の回答が「わからない」かを判定モデルで判定する（d0009 A2．Ollama へ届く端末）
     fabrication-eval          回答の 3 分類（正解・わからない・誤答）の集計と H-F1〜H-F3 の判定（d0009 A2．オフライン）
     e0 {faiss,medcpt,summarize}  E0 の実測と集約
@@ -198,10 +200,47 @@ def cmd_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
 
     failures = asyncio.run(
         run_experiment(
-            cfg, Path(args.data_dir), Path(args.placement), Path(args.out_dir), args.ollama_url
+            cfg,
+            Path(args.data_dir),
+            Path(args.placement),
+            Path(args.out_dir),
+            args.ollama_url,
+            requester_index=args.requester_index,
+            requester_count=args.requester_count,
+            requester_host=args.requester_host,
+            start_at=args.start_at,
         )
     )
     return 2 if failures else 0
+
+
+def cmd_merge_requesters(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """複数の質問者の出力（<run_dir>/req<i>/）を <run_dir> の results.jsonl・run_meta.json にまとめる（d0009 A1）．"""
+    from atrium.requester_procs import merge_requester_dirs
+
+    print(json.dumps(merge_requester_dirs(Path(args.run_dir))))
+    return 0
+
+
+def cmd_multi_requester_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """質問者を 1 台と 3 台にした実行の精度・負荷・露出・障害の集計と判定を書く（d0009 A1．オフライン）．"""
+    from atrium import multi_requester_eval as mre
+
+    result = mre.evaluate(
+        results_dir=Path(args.results_dir),
+        prefix=args.prefix,
+        data_dir=Path(args.data_dir),
+        prior_run=Path(args.prior_run) if args.prior_run else None,
+        a6_run=Path(args.a6_run) if args.a6_run else None,
+        expert_hosts=cfg.cluster.expert_hosts(),
+        requester_host=cfg.cluster.requester.host,
+        stopped_hosts=args.stopped_host,
+        samples=args.samples,
+        seed=args.seed,
+    )
+    mre.write_outputs(Path(args.out_dir), result)
+    print(json.dumps(mre.verdict_summary(result), indent=1, ensure_ascii=False))
+    return 0
 
 
 def cmd_freshness_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
@@ -1217,7 +1256,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--role",
-        choices=["node", "node_gpu", "requester", "requester_cpu", "requester_llm"],
+        choices=[
+            "node",
+            "node_gpu",
+            "requester",
+            "requester_cpu",
+            "requester_extra",
+            "requester_llm",
+        ],
         required=True,
     )
     p.add_argument("--uid", type=int, required=True, help="ノードの SSH のユーザーの UID")
@@ -1278,7 +1324,45 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--placement", required=True)
     p.add_argument("--out-dir", required=True)
     p.add_argument("--ollama-url", default="http://localhost:11434")
+    # cluster.extra_requesters（d0009 A1）：質問者の番号と台数．既定（0 と 1）は従来の 1 台
+    p.add_argument("--requester-index", type=int, default=0, help="この質問者の番号（0 始まり）")
+    p.add_argument("--requester-count", type=int, default=1, help="質問者の台数（問は i mod 台数）")
+    p.add_argument("--requester-host", default=None, help="結果の行に残すこの質問者のホスト")
+    p.add_argument(
+        "--start-at",
+        type=float,
+        default=None,
+        help="流し始める UNIX 秒（準備の後にこの時刻まで待つ）",
+    )
     p.set_defaults(func=cmd_run)
+
+    p = sub.add_parser(
+        "merge-requesters", help="複数の質問者の出力 req<i>/ を 1 つの実行にまとめる（d0009 A1）"
+    )
+    p.add_argument("--run-dir", required=True)
+    p.set_defaults(func=cmd_merge_requesters)
+
+    p = sub.add_parser(
+        "multi-requester-eval",
+        help="質問者を 1 台と 3 台にした実行の精度・負荷・露出・障害の集計と判定（d0009 A1．オフライン）",
+    )
+    p.add_argument("--results-dir", default="results")
+    p.add_argument("--prefix", default="d0009_a1", help="実行の名前の前置き（<prefix>_n1_r1 など）")
+    p.add_argument(
+        "--data-dir", default="artifacts", help="enronqa/ を含む置き場所（問の順を読む）"
+    )
+    p.add_argument("--prior-run", default=None, help="G-N1 の比べる実行（Iteration 22 の P1）")
+    p.add_argument("--a6-run", default=None, help="露出の曲線を test でも出す実行（記述だけ）")
+    p.add_argument(
+        "--stopped-host",
+        action="append",
+        default=[],
+        help="障害の記録で止めたノードのホスト（複数可）",
+    )
+    p.add_argument("--out-dir", required=True)
+    p.add_argument("--samples", type=int, default=BOOTSTRAP_SAMPLES)
+    p.add_argument("--seed", type=int, default=BOOTSTRAP_SEED)
+    p.set_defaults(func=cmd_multi_requester_eval)
 
     p = sub.add_parser(
         "freshness-run",

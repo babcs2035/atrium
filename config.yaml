@@ -192,6 +192,9 @@ cluster:
   # 質問者：ベンチマークの質問を投げ，断片返却型では回答も生成する．制御点（wafl-ctrl5．RTX 3060）が兼ねる．
   # 制御点は本リポジトリの REMOTE_DIR を作業ディレクトリにも使うので，質問者の資材（data/・hf-cache/・ollama/ など）も同じ場所に置かれる
   requester: {host: "wafl-ctrl5"}
+  # 追加の質問者（d0009 A1．既定は空＝質問者は上の 1 台）．要素は requester と同じ書式．ここに置いたデバイスは requester と合わせて N 台の質問者になり，
+  # 問を並べた順の i mod N で分けて流す（experiment.parallel は N 台の合計）．experts に載せたデバイスも置ける（専門家と質問者を兼ねる）
+  extra_requesters: []
   # 質問者の LLM（Ollama）は，cluster.requester_llm を省略して質問者と同じ wafl-ctrl5 の GPU で動かす（p0004 §8.1）
   # 専門家：シャードの検索と宿る型の回答を担う．シャード数だけ先頭から使い，足りなければ巡回して重ねる．
   # 13.x は wafl300〜309，14.x は wafl400〜409（i5-8350U，16 GB，GPU なし）

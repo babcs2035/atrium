@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
-import random
 import resource
 import time
 from dataclasses import asdict
@@ -40,6 +40,9 @@ from atrium.requester_procs import (
     merge_part_files,
     read_node_cpu_seconds,
     run_questions_in_processes,
+    shuffled_questions,
+    split_parallel,
+    split_questions,
 )
 from atrium.routing import (
     SourceProfile,
@@ -52,6 +55,19 @@ from atrium.routing.central import CentralIndex
 logger = logging.getLogger(__name__)
 
 HttpPool = Literal["shared", "shared_unlimited", "per_node"]
+
+# 全質問者が一斉に流し始める時刻（--start-at）まで待つ上限．質問者の PC の時計のずれや指定の誤りで止まり続けないため
+MAX_START_WAIT_S = 600.0
+
+
+async def wait_until(epoch_s: float) -> None:
+    """UNIX 秒 epoch_s まで待つ．MAX_START_WAIT_S より先なら，時計のずれか指定の誤りとみなして止める．"""
+    remaining = epoch_s - time.time()
+    if remaining > MAX_START_WAIT_S:
+        raise ValueError(f"--start-at is {remaining:.0f} s ahead (> {MAX_START_WAIT_S:.0f} s)")
+    if remaining > 0:
+        await asyncio.sleep(remaining)
+
 
 RUN_META = "run_meta.json"
 RESULTS = "results.jsonl"
@@ -215,9 +231,32 @@ def _write_meta(out_dir: Path, meta: dict[str, Any]) -> None:
 
 
 async def run_experiment(
-    cfg: AtriumConfig, data_dir: Path, placement_path: Path, out_dir: Path, ollama_url: str
+    cfg: AtriumConfig,
+    data_dir: Path,
+    placement_path: Path,
+    out_dir: Path,
+    ollama_url: str,
+    requester_index: int = 0,
+    requester_count: int = 1,
+    requester_host: str | None = None,
+    start_at: float | None = None,
 ) -> int:
-    """全質問を処理し，results.jsonl と run_meta.json を書く．失敗した問数を返す．"""
+    """全質問を処理し，results.jsonl と run_meta.json を書く．失敗した問数を返す．
+
+    requester_count が 2 以上（cluster.extra_requesters．d0009 A1）では，並べた順の全質問から requester_index 番目の質問者の分
+    （i mod requester_count）だけを流し，同時の問の数 experiment.parallel（全質問者の合計）も割る．start_at（UNIX 秒）を指定すると，
+    準備の後その時刻まで待ってから流し始める（質問者どうしの開始のずれを小さくする）．
+    """
+    if not 0 <= requester_index < requester_count:
+        raise ValueError(f"need 0 <= requester_index < requester_count: {requester_index}")
+    multi = requester_count > 1
+    if multi and (cfg.experiment.requester_procs != 1 or cfg.experiment.churn is not None):
+        raise ValueError("several requesters require requester_procs = 1 and no churn")
+    parallel = (
+        split_parallel(cfg.experiment.parallel, requester_count)[requester_index]
+        if multi
+        else cfg.experiment.parallel
+    )
     dataset = cfg.experiment.dataset
     paths = dataset_paths(data_dir, dataset)
     placement = read_placement(placement_path)
@@ -237,7 +276,16 @@ async def run_experiment(
         if (out_dir / RESULTS).exists()
         else set()
     )
+    # 複数の質問者の割り当ては，再開で成功済みの問が変わっても同じになるよう，成功済みを除く前の全質問の順で決める
+    # （1 台のときは従来どおり，除いた後の問を並べ替える）
     questions = [q for q in all_questions if q.qid not in done]
+    if multi and cfg.experiment.dataset == "enronqa":
+        ordered = shuffled_questions(all_questions, cfg.experiment.seed)
+        questions = [
+            q
+            for q in split_questions(ordered, requester_count)[requester_index]
+            if q.qid not in done
+        ]
     churn = cfg.experiment.churn
     if churn is not None:
         # EQ7b：EQ7a と同じ順番に並べ，途中からの再開はしない（刻みと各ノードの状態の対応が崩れるため）
@@ -250,11 +298,11 @@ async def run_experiment(
         questions = [
             all_questions[i] for i in question_order(len(all_questions), cfg.experiment.seed)
         ]
-    elif dataset == "enronqa":
+    elif dataset == "enronqa" and not multi:
         # EnronQA の質問は受信箱（＝専門家のノード）ごとに並んでいる．そのまま並列に処理すると同時の質問が
         # 1 台のノードに集まり，CPU の Ollama の待ち行列が llm.timeout_s を超えて失敗した（2026-10-09 の EQ5 の B2）．
         # 種で決まる順に並べ替えて負荷を分散する．質問ごとに独立で温度 0 なので，回答は変わらない
-        random.Random(cfg.experiment.seed).shuffle(questions)
+        questions = shuffled_questions(questions, cfg.experiment.seed)
     previous: dict[str, Any] = (
         json.loads((out_dir / RUN_META).read_text(encoding="utf-8"))
         if (out_dir / RUN_META).exists()
@@ -291,6 +339,9 @@ async def run_experiment(
             "started_at": previous.get("started_at", time.time()),
             "http_pool": cfg.experiment.http_pool,
             "requester_procs": cfg.experiment.requester_procs,
+            "requester_index": requester_index,
+            "requester_count": requester_count,
+            "requester_host": requester_host,
             "probe_body": cfg.experiment.probe_body,
             "retrieve_body": cfg.experiment.retrieve_body,
             "sniffio_lookup": cfg.experiment.sniffio_lookup,
@@ -313,11 +364,21 @@ async def run_experiment(
         elif cfg.experiment.requester_procs == 1:
             # 質問の処理の区間の質問者のプロセスの CPU 時間（1 コアの飽和 = requester_cpu_util 1.0）．
             # 専門家と質問者のデバイス全体の CPU 時間は，この区間のすぐ外側で読む
+            if start_at is not None:
+                await wait_until(start_at)
             node_before = await read_node_cpu_seconds(client, placement)
             control_before = read_device_cpu()
             cpu_before = resource.getrusage(resource.RUSAGE_SELF)
             wall_before = time.perf_counter()
-            await run_questions(requester, questions, out_dir / RESULTS, cfg.experiment.parallel)
+            if multi:
+                meta["started_at"] = previous.get("started_at", time.time())
+                _write_meta(out_dir, meta)
+            row_fields = (
+                {"requester_index": requester_index, "requester_host": requester_host}
+                if multi
+                else None
+            )
+            await run_questions(requester, questions, out_dir / RESULTS, parallel, row_fields)
             wall_s = time.perf_counter() - wall_before
             cpu_after = resource.getrusage(resource.RUSAGE_SELF)
             control_after = read_device_cpu()
@@ -332,7 +393,7 @@ async def run_experiment(
                     "requester_cpu_s": cpu_s,
                     "requester_cpu_util": cpu_s / wall_s,
                     "requester_cpu_util_per_proc": [cpu_s / wall_s],
-                    "requester_parallel_per_proc": [cfg.experiment.parallel],
+                    "requester_parallel_per_proc": [parallel],
                     **expert_cpu_meta(node_before, node_after, wall_s),
                     **control_cpu_fractions(control_before, control_after),
                 }

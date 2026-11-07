@@ -12,9 +12,11 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import multiprocessing as mp
 import queue
+import random
 import resource
 import statistics
 import time
@@ -27,6 +29,7 @@ from pathlib import Path
 
 import httpx
 
+from atrium.analysis import read_results
 from atrium.benchmarks import Question
 from atrium.config import AtriumConfig
 from atrium.cpu_stat import CpuSample, busy_fractions, read_device_cpu
@@ -85,6 +88,14 @@ def split_questions(questions: Sequence[Question], procs: int) -> list[list[Ques
     return [list(questions[i::procs]) for i in range(procs)]
 
 
+def shuffled_questions(questions: Sequence[Question], seed: int) -> list[Question]:
+    """EnronQA の質問を，種で決まる順に並べ替える（`atrium run` が同時の質問を 1 台のノードに集めないための並べ替え．
+    複数の質問者（d0009 A1）はこの順の i 番目の問を i mod N 番目の質問者へ配るので，集計側（multi_requester_eval）も同じ関数を使う）．"""
+    ordered = list(questions)
+    random.Random(seed).shuffle(ordered)
+    return ordered
+
+
 def part_path(out_path: Path, index: int) -> Path:
     """index 番目のプロセスが結果を書くファイル（results.jsonl なら results.part{index}.jsonl）．"""
     return out_path.with_name(f"{out_path.stem}.part{index}{out_path.suffix}")
@@ -106,6 +117,62 @@ def merge_part_files(out_path: Path) -> int:
             moved += len(lines)
             part.unlink()
     return moved
+
+
+REQUESTER_DIR_PREFIX = "req"
+# 質問者ごとの run_meta.json から，まとめた run_meta.json の requesters 欄へ写す項目
+PER_REQUESTER_META_KEYS = (
+    "requester_index",
+    "requester_host",
+    "started_at",
+    "finished_at",
+    "failures",
+    "requester_parallel_per_proc",
+    "requester_cpu_s",
+    "requester_cpu_util",
+    "control_cpu_busy",
+    "control_cpu_softirq",
+    "requester_tcp",
+)
+
+
+def merge_requester_dirs(run_dir: Path) -> dict[str, object]:
+    """複数の質問者（cluster.extra_requesters）の出力 run_dir/req<i>/ を，run_dir の results.jsonl と run_meta.json にまとめる．
+
+    results.jsonl は各質問者の行を番号の順に連結し（各行に requester_index・requester_host が付いている），run_meta.json は
+    0 番の質問者の記録を土台に，処理の区間（最初の started_at から最後の finished_at）・失敗数（まとめた結果から数え直す）・質問者の台数と
+    質問者ごとの記録（requesters）を足す．同じ run_id で流し直したときも，毎回 req<i>/ から作り直す（冪等）．
+    """
+    dirs = sorted(
+        (d for d in run_dir.glob(f"{REQUESTER_DIR_PREFIX}[0-9]*") if d.is_dir()),
+        key=lambda d: int(d.name[len(REQUESTER_DIR_PREFIX) :]),
+    )
+    if not dirs:
+        raise FileNotFoundError(f"no {REQUESTER_DIR_PREFIX}<i>/ directory in {run_dir}")
+    metas = [json.loads((d / "run_meta.json").read_text(encoding="utf-8")) for d in dirs]
+    lines: list[str] = []
+    for d in dirs:
+        results = d / "results.jsonl"
+        if results.exists():
+            lines.extend(line for line in results.read_text(encoding="utf-8").splitlines() if line)
+    out = run_dir / "results.jsonl"
+    out.write_text("".join(line + "\n" for line in lines), encoding="utf-8")
+    failures = sum(r.get("error") is not None for r in read_results(out)) if lines else 0
+    merged = dict(metas[0])
+    merged.update(
+        {
+            "run_id": run_dir.name,
+            "requester_count": len(dirs),
+            "started_at": min(m["started_at"] for m in metas),
+            "finished_at": max(m["finished_at"] for m in metas),
+            "failures": failures,
+            "requesters": [{k: m.get(k) for k in PER_REQUESTER_META_KEYS} for m in metas],
+        }
+    )
+    (run_dir / "run_meta.json").write_text(
+        json.dumps(merged, indent=1, ensure_ascii=False), encoding="utf-8"
+    )
+    return {"requesters": len(dirs), "rows": len(lines), "failures": failures}
 
 
 def control_cpu_fractions(

@@ -124,51 +124,182 @@ if [ "$image_head" != "$GIT_HEAD" ]; then
   log "requester image is built from $image_head, not $GIT_HEAD; run 'mise run deploy' first" >&2
   exit 1
 fi
+# 追加の質問者（cluster.extra_requesters．d0009 A1）は atrium-node-embed で動く．専門家の PC に置くので，config.yaml は専門家として
+# 上の確認を通っている．イメージのコミットだけここで確かめる
+IMAGE_EXTRA="localhost:$REGISTRY_PORT/atrium-node-embed:latest"
+for host in $EXTRA_REQUESTERS; do
+  extra_head=$(nssh "$host" "docker run --rm --entrypoint cat $IMAGE_EXTRA /etc/atrium-git-head")
+  if [ "$extra_head" != "$GIT_HEAD" ]; then
+    log "requester image on $host is built from $extra_head, not $GIT_HEAD; run 'mise run deploy' first" >&2
+    exit 1
+  fi
+done
 cp "artifacts/$DATASET/placement.json" "$OUT/placement.json"
 
-NAME="atrium-run-$RUN_ID"
-RDIR="$REMOTE_DIR/results/$RUN_ID"
-if ! nssh "$REQUESTER" "docker ps -aq -f name=^$NAME\$" | grep -q .; then
-  log "starting $NAME on $REQUESTER"
-  # LLM を別の GPU PC で動かすときは，質問者の側の Ollama を起動しない（--no-deps）
-  deps_flag=""
-  if [ -n "$REQUESTER_LLM" ]; then deps_flag="--no-deps"; fi
-  nssh "$REQUESTER" "cd $REMOTE_DIR && docker compose --profile run run -d $deps_flag --name $NAME \
-    requester atrium --config /app/config.yaml run \
-    --data-dir /data --placement /app/placement.json --out-dir /app/results/$RUN_ID \
-    --ollama-url $REQUESTER_OLLAMA_URL" > /dev/null
-fi
+if [ -z "$EXTRA_REQUESTERS" ]; then
+  NAME="atrium-run-$RUN_ID"
+  RDIR="$REMOTE_DIR/results/$RUN_ID"
+  if ! nssh "$REQUESTER" "docker ps -aq -f name=^$NAME\$" | grep -q .; then
+    log "starting $NAME on $REQUESTER"
+    # LLM を別の GPU PC で動かすときは，質問者の側の Ollama を起動しない（--no-deps）
+    deps_flag=""
+    if [ -n "$REQUESTER_LLM" ]; then deps_flag="--no-deps"; fi
+    nssh "$REQUESTER" "cd $REMOTE_DIR && docker compose --profile run run -d $deps_flag --name $NAME \
+      requester atrium --config /app/config.yaml run \
+      --data-dir /data --placement /app/placement.json --out-dir /app/results/$RUN_ID \
+      --ollama-url $REQUESTER_OLLAMA_URL" > /dev/null
+  fi
 
-# 待機中の SSH の失敗では止めない（数時間の実験を，1 回の接続の失敗で置き去りにしないため）．
-# 状態が false と確かめられたときだけ待機を抜け，失敗が続いたときだけ実験を残して止まる
-MAX_POLL_FAILURES=30
-poll_failures=0
-while true; do
-  state=$(nssh "$REQUESTER" "docker inspect -f '{{.State.Running}}' $NAME" 2> /dev/null || echo unknown)
-  case "$state" in
-    true)
-      poll_failures=0
-      done_count=$(nssh "$REQUESTER" "wc -l < $RDIR/results.jsonl 2>/dev/null || echo 0" || echo "?")
-      log "running: $done_count questions done"
-      ;;
-    false) break ;;
-    *)
-      poll_failures=$((poll_failures + 1))
-      log "could not check $NAME ($poll_failures/$MAX_POLL_FAILURES)"
-      if [ "$poll_failures" -ge "$MAX_POLL_FAILURES" ]; then
-        log "giving up waiting; $NAME may still be running on $REQUESTER" >&2
-        exit 1
-      fi
-      ;;
-  esac
-  sleep "$POLL_INTERVAL_S"
-done
-EXIT_CODE=$(retry 3 nssh "$REQUESTER" "docker inspect -f '{{.State.ExitCode}}' $NAME")
-nssh "$REQUESTER" "docker logs $NAME" > "$OUT/requester.log" 2>&1 || true
-nssh "$REQUESTER" "docker rm $NAME" > /dev/null || true
-# 質問者が制御点自身なら，結果は既に $OUT にある
-if ! is_control_host "$REQUESTER"; then
-  retry 3 nrsync -a "$(ssh_dest "$REQUESTER"):$RDIR/" "$OUT/"
+  # 待機中の SSH の失敗では止めない（数時間の実験を，1 回の接続の失敗で置き去りにしないため）．
+  # 状態が false と確かめられたときだけ待機を抜け，失敗が続いたときだけ実験を残して止まる
+  MAX_POLL_FAILURES=30
+  poll_failures=0
+  while true; do
+    state=$(nssh "$REQUESTER" "docker inspect -f '{{.State.Running}}' $NAME" 2> /dev/null || echo unknown)
+    case "$state" in
+      true)
+        poll_failures=0
+        done_count=$(nssh "$REQUESTER" "wc -l < $RDIR/results.jsonl 2>/dev/null || echo 0" || echo "?")
+        log "running: $done_count questions done"
+        ;;
+      false) break ;;
+      *)
+        poll_failures=$((poll_failures + 1))
+        log "could not check $NAME ($poll_failures/$MAX_POLL_FAILURES)"
+        if [ "$poll_failures" -ge "$MAX_POLL_FAILURES" ]; then
+          log "giving up waiting; $NAME may still be running on $REQUESTER" >&2
+          exit 1
+        fi
+        ;;
+    esac
+    sleep "$POLL_INTERVAL_S"
+  done
+  EXIT_CODE=$(retry 3 nssh "$REQUESTER" "docker inspect -f '{{.State.ExitCode}}' $NAME")
+  nssh "$REQUESTER" "docker logs $NAME" > "$OUT/requester.log" 2>&1 || true
+  nssh "$REQUESTER" "docker rm $NAME" > /dev/null || true
+  # 質問者が制御点自身なら，結果は既に $OUT にある
+  if ! is_control_host "$REQUESTER"; then
+    retry 3 nrsync -a "$(ssh_dest "$REQUESTER"):$RDIR/" "$OUT/"
+  fi
+else
+  # ── 複数の質問者（cluster.extra_requesters．d0009 A1）──────────────────────────
+  # 質問者 i（0 が cluster.requester，1 以降が extra_requesters）が，並べた順の問の i mod N を同時の数の合計の 1/N で流す．
+  # 各質問者は準備（シャードの発見・ルーターの読み込み）の後，全員が同じ時刻（START_AT）まで待ってから流し始める．
+  # 結果は質問者ごとに results/<run_id>/req<i>/ へ書き，終わってから 1 つの実行（results.jsonl・run_meta.json）にまとめる．
+  # 同じ run_id で再実行すると，各質問者の req<i>/ の成功済みの問を飛ばして失敗した問だけを流す．
+  MAX_POLL_FAILURES=30
+  START_DELAY_S=180
+  FAULT_PLAN="$OUT/fault_plan.txt"
+  read -r -a REQ_HOSTS <<< "$REQUESTER $EXTRA_REQUESTERS"
+  N_REQ=${#REQ_HOSTS[@]}
+  RDIR="$REMOTE_DIR/results/$RUN_ID"
+
+  # req_name <i>: 質問者 i のコンテナ名
+  req_name() { echo "atrium-run-$RUN_ID-r$1"; }
+
+  # req_launch <i> <start_at>: 質問者 i のコンテナを起動する（動いている・残っているコンテナがあれば起動し直さず待ち直す）
+  req_launch() {
+    local i=$1 start_at=$2 host=${REQ_HOSTS[$1]} name
+    name=$(req_name "$1")
+    if nssh "$host" "docker ps -aq -f name=^$name\$" | grep -q .; then return 0; fi
+    local args="atrium --config /app/config.yaml run --data-dir /data --placement /app/placement.json \
+      --out-dir /app/results/$RUN_ID/req$i --ollama-url $REQUESTER_OLLAMA_URL \
+      --requester-index $i --requester-count $N_REQ --requester-host $host --start-at $start_at"
+    log "starting $name on $host"
+    if [ "$i" = 0 ]; then
+      local deps_flag=""
+      if [ -n "$REQUESTER_LLM" ]; then deps_flag="--no-deps"; fi
+      nssh "$host" "cd $REMOTE_DIR && mkdir -p $RDIR/req$i && docker compose --profile run run -d $deps_flag --name $name requester $args" > /dev/null
+    else
+      nssh "$host" "cd $REMOTE_DIR && mkdir -p $RDIR/req$i && docker compose -f compose.requester_extra.yml -p atrium-requester \
+        --profile run run -d --name $name requester $args" > /dev/null
+    fi
+  }
+
+  # 障害の記録（H-A1F．判定に使わない）．$FAULT_PLAN（"<止める秒> <戻す秒> <host>..."）があれば，START_AT から <止める秒> 後にそれらの
+  # ホストの node のコンテナを止め，<戻す秒> 後に戻す（データ・image は消さない）．止めた時刻と戻した時刻は $OUT/fault_log.txt に残す．
+  # 流し直しの start で二重に止めないよう，計画は読んだら fault_plan.used.txt へ移す．背景で動かし，終了の後始末でも必ず戻す
+  FAULT_STOP_S="" FAULT_RESTORE_S="" FAULT_HOSTS=""
+  if [ -f "$FAULT_PLAN" ]; then
+    read -r FAULT_STOP_S FAULT_RESTORE_S FAULT_HOSTS < "$FAULT_PLAN"
+    mv "$FAULT_PLAN" "$OUT/fault_plan.used.txt"
+  fi
+  fault_inject() {
+    local start_at=$1 wait_s
+    wait_s=$(( start_at + FAULT_STOP_S - $(date +%s) ))
+    if [ "$wait_s" -gt 0 ]; then sleep "$wait_s"; fi
+    for h in $FAULT_HOSTS; do
+      nssh "$h" "cd $REMOTE_DIR && docker compose stop node" > /dev/null 2>&1 || true
+      echo "$(date +%s.%N) stop $h" >> "$OUT/fault_log.txt"
+    done
+    sleep "$((FAULT_RESTORE_S - FAULT_STOP_S))"
+    fault_restore
+  }
+  # 止めたノードを戻す（二重に呼んでも害は無い）
+  fault_restore() {
+    local h
+    for h in $FAULT_HOSTS; do
+      nssh "$h" "cd $REMOTE_DIR && docker compose start node" > /dev/null 2>&1 || log "FAILED to restore node on $h (run: cd $REMOTE_DIR && docker compose start node)"
+      echo "$(date +%s.%N) start $h" >> "$OUT/fault_log.txt"
+    done
+  }
+
+  START_AT=$(( $(date +%s) + START_DELAY_S ))
+  for i in "${!REQ_HOSTS[@]}"; do req_launch "$i" "$START_AT"; done
+  FAULT_PID=""
+  if [ -n "$FAULT_HOSTS" ]; then
+    trap 'rc=$?; fault_restore; echo $rc > "$OUT/.exit"' EXIT
+    fault_inject "$START_AT" &
+    FAULT_PID=$!
+  fi
+
+  # 待機中の SSH の失敗では止めない（単一の質問者と同じ）．全質問者のコンテナが止まったと確かめられたときだけ待機を抜ける
+  declare -A POLL_FAILURES=()
+  while true; do
+    running=0
+    for i in "${!REQ_HOSTS[@]}"; do
+      host=${REQ_HOSTS[$i]}
+      state=$(nssh "$host" "docker inspect -f '{{.State.Running}}' $(req_name "$i")" 2> /dev/null || echo unknown)
+      case "$state" in
+        true)
+          running=$((running + 1))
+          POLL_FAILURES[$i]=0
+          done_count=$(nssh "$host" "wc -l < $RDIR/req$i/results.jsonl 2>/dev/null || echo 0" || echo "?")
+          log "req$i ($host) running: $done_count questions done"
+          ;;
+        false) ;;
+        *)
+          running=$((running + 1))
+          POLL_FAILURES[$i]=$(( ${POLL_FAILURES[$i]:-0} + 1 ))
+          log "could not check $(req_name "$i") (${POLL_FAILURES[$i]}/$MAX_POLL_FAILURES)"
+          if [ "${POLL_FAILURES[$i]}" -ge "$MAX_POLL_FAILURES" ]; then
+            log "giving up waiting; $(req_name "$i") may still be running on $host" >&2
+            exit 1
+          fi
+          ;;
+      esac
+    done
+    if [ "$running" = 0 ]; then break; fi
+    sleep "$POLL_INTERVAL_S"
+  done
+  if [ -n "$FAULT_PID" ]; then wait "$FAULT_PID" || true; fi
+
+  # 各質問者の終了コードの最大（2 は一部の問の失敗，1 は実験自体の失敗）・ログ・結果を回収する
+  EXIT_CODE=0
+  for i in "${!REQ_HOSTS[@]}"; do
+    host=${REQ_HOSTS[$i]}
+    name=$(req_name "$i")
+    code=$(retry 3 nssh "$host" "docker inspect -f '{{.State.ExitCode}}' $name")
+    case "$code" in 0) ;; 2) [ "$EXIT_CODE" = 1 ] || EXIT_CODE=2 ;; *) EXIT_CODE=1 ;; esac
+    mkdir -p "$OUT/req$i"
+    nssh "$host" "docker logs $name" > "$OUT/req$i/requester.log" 2>&1 || true
+    nssh "$host" "docker rm $name" > /dev/null || true
+    if ! is_control_host "$host"; then
+      retry 3 nrsync -a "$(ssh_dest "$host"):$RDIR/req$i/" "$OUT/req$i/"
+    fi
+  done
+  docker run --rm --user "$HOST_UID:$HOST_GID" -v "$PWD:/work" -w /work "$IMAGE_FULL" \
+    atrium --config config.yaml merge-requesters --run-dir "results/$RUN_ID"
 fi
 # 専門家のログはこの実行の直後に集める（後で deploy すると --force-recreate で消えるため）
 mkdir -p "$OUT/logs"

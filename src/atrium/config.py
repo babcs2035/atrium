@@ -319,6 +319,9 @@ class ClusterConfig(_Strict):
     # Ollama の一部の層が CPU で動いて生成が約 4 倍遅くなった（2026-10-08 の s8）．別の GPU に分けると，
     # 同じモデル・同じ設定のまま全層を GPU に載せられる
     requester_llm: DeviceConfig | None = None
+    # d0009 A1（Iteration 23）：追加の質問者．requester と合わせて N = 1 + len(extra_requesters) 台の質問者が，問を i mod N で分けて
+    # 同時に流す．受信箱を持つ専門家（experts のデバイス）を置いてよい（そのデバイスは専門家と質問者を兼ねる）．既定は空で従来の 1 台
+    extra_requesters: list[DeviceConfig] = Field(default_factory=list)
     experts: list[DeviceConfig] = Field(min_length=1)
     gpu_workers: list[DeviceConfig] = Field(default_factory=list)
     shard_budget_gb: float = Field(gt=0)
@@ -343,7 +346,16 @@ class ClusterConfig(_Strict):
 
         experts と gpu_workers の両方に置くことだけは許す．GPU PC は，データ準備（gpu_workers）と
         実験（experts）で時間を分けて使い，同時には持たないため（p0004 §8.1．ユーザーの承認 U2）．
+        extra_requesters（d0009 A1．backlog B83）は experts・gpu_workers との重なりも許す（受信箱を持つ PC が質問する
+        ことそのものを測るため）．ただし extra_requesters の中の重複と，requester・requester_llm との重なりは拒否する．
         """
+        extras = self.extra_requester_hosts()
+        taken = [self.requester.host] + ([self.requester_llm.host] if self.requester_llm else [])
+        extra_conflicts = sorted({h for h in extras if extras.count(h) > 1 or h in taken})
+        if extra_conflicts:
+            raise ValueError(
+                f"extra_requesters must be distinct from each other and from requester(_llm): {extra_conflicts}"
+            )
         experts = set(self.expert_hosts())
         # experts にもある GPU PC は，時間を分けて使うので gpu_workers の側では数えない
         workers_only = [h for h in self.gpu_worker_hosts() if h not in experts]
@@ -360,7 +372,12 @@ class ClusterConfig(_Strict):
     def devices(self) -> list[DeviceConfig]:
         """全デバイスを，質問者・質問者の LLM・専門家・埋め込みの分担の順に返す．"""
         llm = [self.requester_llm] if self.requester_llm is not None else []
-        return [self.requester, *llm, *self.experts, *self.gpu_workers]
+        extras = [d for d in self.extra_requesters if d.host not in self.expert_hosts()]
+        return [self.requester, *llm, *self.experts, *self.gpu_workers, *extras]
+
+    def extra_requester_hosts(self) -> list[str]:
+        """追加の質問者のホストの一覧（config.yaml の順）．"""
+        return [d.host for d in self.extra_requesters]
 
     def requester_llm_host(self) -> str:
         """質問者の LLM（Ollama）が動くホスト（requester_llm を省略したら質問者自身）．"""
@@ -481,6 +498,28 @@ class AtriumConfig(_Strict):
         """管理 API の状態（離脱・外したメール・足したメール）はプロセスごとに持つので，node_admin は 1 プロセスのノードに限る．"""
         if self.cluster.node_admin and self.experiment.node_workers != 1:
             raise ValueError("cluster.node_admin requires experiment.node_workers = 1")
+        return self
+
+    @model_validator(mode="after")
+    def _check_extra_requesters(self) -> AtriumConfig:
+        """複数の質問者（cluster.extra_requesters）は，各台が 1 プロセスで問を i mod N に分けて流すので，
+        requester_procs・churn・central_local（質問者ごとに全メールの索引が要る）とは併用せず，各台が 1 問以上を同時に持てる parallel を要る．"""
+        n_extra = len(self.cluster.extra_requesters)
+        if n_extra == 0:
+            return self
+        exp = self.experiment
+        if (
+            exp.requester_procs != 1
+            or exp.churn is not None
+            or exp.routing == "central_local"
+            or exp.dataset != "enronqa"
+        ):
+            raise ValueError(
+                "cluster.extra_requesters requires dataset=enronqa, experiment.requester_procs = 1, "
+                "no churn and routing != central_local"
+            )
+        if exp.parallel < 1 + n_extra:
+            raise ValueError("experiment.parallel must be >= the number of requesters")
         return self
 
     @model_validator(mode="after")

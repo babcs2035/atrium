@@ -58,13 +58,14 @@ open_registry_tunnel() {
   trap 'ssh -S "$TUNNEL_SOCKET" -O exit "$CONTROL" 2> /dev/null || true' EXIT
 }
 
-# イメージ（node / full．node_admin なら node-embed も）を操作端末で build し，制御点の registry へ push する．setup と deploy の両方で呼び，
+# イメージ（node / full．node_admin か extra_requesters なら node-embed も）を操作端末で build し，制御点の registry へ push する．setup と deploy の両方で呼び，
 # イメージを常に今のコードと config.yaml の版にそろえる（古いイメージが新しい設定を読めずに失敗したため）．
 # 変更が無ければ build も push もキャッシュで済む
 publish_images() {
   # node-embed は cluster.node_admin（p0007 I5〜I7）のノード用．使わない設定では build も push もしない
   local targets="node full"
-  if [ -n "$NODE_ADMIN" ]; then targets="$targets node-embed"; fi
+  # extra_requesters（d0009 A1）の質問者も node-embed で動く（CPU 版の torch．専門家の PC に 19 GB の full を置かない）
+  if [ -n "$NODE_ADMIN" ] || [ -n "$EXTRA_REQUESTERS" ]; then targets="$targets node-embed"; fi
   for target in $targets; do
     local image="localhost:$LOCAL_REGISTRY_PORT/atrium-$target:latest"
     log "building $image (git $GIT_HEAD)"

@@ -12,7 +12,7 @@ from typing import Literal
 
 from atrium.config import AtriumConfig
 
-Role = Literal["node", "node_gpu", "requester", "requester_cpu", "requester_llm"]
+Role = Literal["node", "node_gpu", "requester", "requester_cpu", "requester_extra", "requester_llm"]
 
 TEMPLATE_DIR = Path("docker")
 
@@ -32,7 +32,7 @@ def compose_values(
         "HOST_UID": str(uid),
         "HOST_GID": str(gid),
     }
-    if role in ("requester", "requester_cpu", "requester_llm"):
+    if role in ("requester", "requester_cpu", "requester_extra", "requester_llm"):
         values["REQUESTER_NUM_PARALLEL"] = str(cfg.llm.requester_num_parallel)
         return values
     if not node_id or not shard_ids:

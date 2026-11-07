@@ -1,0 +1,21 @@
+# 追加の質問者（cluster.extra_requesters．d0009 A1．backlog B83）の compose のひな形．受信箱を持つ専門家の PC に置くので，
+# 専門家の compose.yml（同じ cluster.remote_dir）を書き換えないよう別のファイル（compose.requester_extra.yml）と別の project 名
+# （`docker compose -f compose.requester_extra.yml -p atrium-requester`）で使い，イメージは CPU 版の torch を持つ atrium-node-embed
+# （約 3 GB．atrium-full は 19 GB あり専門家の PC に置かない）にする．GPU を要求せず Ollama も動かさない（生成は GPU の専門家が行う）．
+# ドル記号と波括弧で書いた変数は config.yaml の値で，deploy が `atrium render-compose --role requester_extra` で埋めて置く．
+services:
+  requester:
+    image: localhost:${REGISTRY_PORT}/atrium-node-embed:latest
+    profiles: ["run"]
+    # 結果ファイルの所有者を SSH のユーザーにそろえる（制御点から rsync で回収するため）
+    user: "${HOST_UID}:${HOST_GID}"
+    environment:
+      HOME: /tmp
+      HF_HOME: /cache/huggingface
+      HF_HUB_OFFLINE: "1"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./placement.json:/app/placement.json:ro
+      - ./data:/data:ro
+      - ./results:/app/results
+      - ./hf-cache:/cache/huggingface

@@ -1268,9 +1268,16 @@ class Requester:
 
 
 async def run_questions(
-    requester: Requester, questions: Sequence[Question], out_path: Path, parallel: int
+    requester: Requester,
+    questions: Sequence[Question],
+    out_path: Path,
+    parallel: int,
+    row_fields: dict[str, Any] | None = None,
 ) -> int:
-    """質問を並列に処理し，終わった順に out_path へ追記する．失敗した問数を返す．"""
+    """質問を並列に処理し，終わった順に out_path へ追記する．失敗した問数を返す．
+
+    row_fields は各結果の行へそのまま足す欄（複数の質問者の実行で requester_host・requester_index を残す．d0009 A1）．
+    """
     semaphore = asyncio.Semaphore(parallel)
     lock = asyncio.Lock()
     failures = 0
@@ -1281,6 +1288,8 @@ async def run_questions(
             nonlocal failures
             async with semaphore:
                 record = await requester.process(q)
+            if row_fields:
+                record = {**record, **row_fields}
             async with lock:
                 out.write(json.dumps(record, ensure_ascii=False) + "\n")
                 out.flush()

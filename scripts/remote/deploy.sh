@@ -106,10 +106,13 @@ render_compose() {
   uid=$(nssh "$host" "id -u")
   gid=$(nssh "$host" "id -g")
   mkdir -p artifacts/compose
+  # 追加の質問者（requester_extra．d0009 A1）は専門家の compose.yml を書き換えないよう別のファイルに置く
+  local dest=compose.yml
+  if [ "$role" = requester_extra ]; then dest=compose.requester_extra.yml; fi
   docker run --rm --user "$HOST_UID:$HOST_GID" -v "$PWD:/work" -w /work "$IMAGE_FULL" \
     atrium --config config.yaml render-compose --role "$role" --uid "$uid" --gid "$gid" "$@" \
-    > "artifacts/compose/$host.yml"
-  nrsync -az "artifacts/compose/$host.yml" "$(ssh_dest "$host"):$REMOTE_DIR/compose.yml"
+    > "artifacts/compose/$host.$dest"
+  nrsync -az "artifacts/compose/$host.$dest" "$(ssh_dest "$host"):$REMOTE_DIR/$dest"
   nssh "$host" "rm -f $REMOTE_DIR/.env"
 }
 
@@ -232,6 +235,33 @@ deploy_requester() {
   prune_old_images "$host"
 }
 
+# 追加の質問者（cluster.extra_requesters．d0009 A1）．受信箱を持つ専門家の PC に置くので，専門家の deploy の後に呼ぶ．
+# 専門家の compose.yml は書き換えず，別の compose（compose.requester_extra.yml）と project 名 atrium-requester で
+# atrium-node-embed（CPU 版の torch．約 3 GB）の質問者を使う．質問者に要る資材は deploy_requester と同じ項目（ただし GPU・Ollama・
+# 再ランクのモデルは要らない）．イメージの取得の後のディスク使用率が 90% を超えたら止め，MemAvailable を記録する（G-R）
+DISK_LIMIT_PCT=90
+deploy_extra_requester() {
+  local host=$1 used_pct
+  ensure_tunnel "$host"
+  nssh "$host" "mkdir -p $REMOTE_DIR/data/$DATASET $REMOTE_DIR/results $REMOTE_DIR/hf-cache"
+  for item in benchmark manifest.json queries router qrels labels summary ce_table; do
+    if [ -e "$DS_DIR/$item" ]; then
+      nrsync -aL --delete "$DS_DIR/$item" "$(ssh_dest "$host"):$REMOTE_DIR/data/$DATASET/"
+    fi
+  done
+  nrsync -az config.yaml "$(ssh_dest "$host"):$REMOTE_DIR/config.yaml"
+  nrsync -az "artifacts/$DATASET/placement.json" "$(ssh_dest "$host"):$REMOTE_DIR/placement.json"
+  render_compose "$host" requester_extra
+  retry 3 nssh "$host" "cd $REMOTE_DIR && docker compose -f compose.requester_extra.yml -p atrium-requester --profile run pull -q"
+  prune_old_images "$host"
+  used_pct=$(nssh "$host" "df --output=pcent $REMOTE_DIR | tail -1 | tr -dc 0-9")
+  log "$host: disk used ${used_pct}%, $(nssh "$host" "grep MemAvailable /proc/meminfo")"
+  if [ "$used_pct" -gt "$DISK_LIMIT_PCT" ]; then
+    log "$host: disk usage ${used_pct}% exceeds ${DISK_LIMIT_PCT}%" >&2
+    return 1
+  fi
+}
+
 # 質問者の LLM（Ollama）だけを動かす GPU PC（cluster.requester_llm）
 deploy_requester_llm() {
   local host=$1
@@ -262,6 +292,11 @@ run_parallel deploy deploy_requester "$REQUESTER"
 if [ -n "$REQUESTER_LLM" ]; then
   log "deploying requester LLM $REQUESTER_LLM"
   run_parallel deploy deploy_requester_llm "$REQUESTER_LLM"
+fi
+if [ -n "$EXTRA_REQUESTERS" ]; then
+  log "deploying extra requesters $EXTRA_REQUESTERS"
+  # shellcheck disable=SC2086
+  run_parallel deploy-extra deploy_extra_requester $EXTRA_REQUESTERS
 fi
 if [ "${#idle[@]}" -gt 0 ]; then
   log "stopping ${#idle[@]} unassigned experts"
