@@ -1,0 +1,22 @@
+# 1794044370 2026-11-07T18:39:30
+== wafl500
+17.21 W, 0 %, 74 MiB
+== wafl501
+21.63 W, 0 %, 1 MiB
+== wafl502
+17.31 W, 0 %, 32 MiB
+== wafl503
+14.47 W, 0 %, 32 MiB
+== wafl504
+11.92 W, 0 %, 1 MiB
+== wafl505
+14.31 W, 0 %, 1 MiB
+== wafl506
+12.19 W, 0 %, 1 MiB
+== wafl507
+17.29 W, 0 %, 1 MiB
+== wafl508
+14.85 W, 0 %, 1 MiB
+== wafl509
+17.47 W, 0 %, 8767 MiB
+pid=663986  8758 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4

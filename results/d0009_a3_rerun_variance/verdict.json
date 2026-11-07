@@ -1,0 +1,32 @@
+{
+ "verdict_original": {
+  "delta": -0.009790209790209614,
+  "bootstrap_two_stage_ci95": [
+   -0.026456876456876454,
+   0.0065268065268065285
+  ],
+  "analytic_ci95": [
+   -0.026251695122040175,
+   0.006671275541620605
+  ],
+  "H_V1": {
+   "holds": false,
+   "n_pairs": 6,
+   "min_p": 0.04635347433291122,
+   "rule": "同じ設定の 6 組の McNemar の正確検定が全て p >= 0.05"
+  },
+  "H_V2": {
+   "margin": 0.02,
+   "bootstrap_low_above": false,
+   "analytic_low_above": false,
+   "verdict": "not_non_inferior",
+   "superior": false
+  },
+  "H_V3": {
+   "width_ratio": 0.9929824561403509,
+   "limit": 1.2,
+   "reading": "small"
+  }
+ },
+ "verdict_revised": null
+}

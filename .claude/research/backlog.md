@@ -17,6 +17,19 @@
 
 ---
 
+## B82 [auto-decided 2026-11-08] Iteration 22（d0009 A3）は採用．Iteration 23 のレバーは `d0009.A1_multi_requester`（`n_requesters`）
+- 状況: Iteration 22 の phase 3．H（2,860 問）で Δ = −0.0098，揺れを含めた区間 −0.026〜+0.007（2 段のブートストラップ・分散の分解とも）．H-V1 不成立（C1 対 C3 の p = 0.046），H-V2 非劣性を満たさない（劣性も示せない），H-V3 小さい（0.993），δ_rev = 0.02（元と同じ．`verdict_revised` は null）．詳細は journal の Iteration 22「実行済み」．
+- 自動選択: (1) Iteration 22 を採用とし，レバー `d0009.A3_rerun_variance`（値は 1 つ）を完了とした．(2) 次のレバーは config.yml の levers の d0009 節の順のとおり `d0009.A1_multi_requester`（値 `n_requesters`）．iteration_name は「質問者を複数の PC にしたときの正答率・負荷・露出・障害」．
+- 根拠: (1) 成功条件 (1)〜(3) を満たす（仮説の成否は採用の条件にしない測定のイテレーション）．(2) d0009 §D の高の残り（A1・B3）のうち，levers の順で A1 が先．A3 で決めた区間の作り方（journal の Iteration 22 の「区間の作り方」）と H を，A1 の精度の判定に使える．
+- A1 の事前登録への申し送り: (a) 精度の判定は H（運用ルール 10）で，A3 の区間の作り方を使う．H の 2,860 問では区間の半幅が約 0.0165 あるので，「質問者が変わっても正答率が変わらない」を同等性で判定するなら，検出できる差の大きさを先に書く．P2P の流し直しの揺れは正答率で 0.001 以下（候補の文字列 99.4% 一致）なので，同じ質問を質問者を変えて流した組の McNemar の不一致の数が，揺れ（1〜3 問）を超えるかでも読める．(b) `cluster.requester` は今は 1 台の `DeviceConfig`．複数の質問者は追加だけのキー（例：`cluster.extra_requesters: []`．既定は空で今の挙動）で表し，既存の `requester` の形式を変えない形を優先する．既存の形式を互換でない形に変える必要が出たら `[needs-human]` で止める（B73・B25 (a)）．(c) 受信箱を持つ PC（専門家）が質問者を兼ねる形は，運用ルール 2 の「1 台の役割は 1 つ」とぶつかる．B73 で A1 の評価は承認済みだが，兼ねる形をとるなら事前登録でその旨と理由を書き，[auto-decided] で残す．(d) 選択（R3′）の cross-encoder は制御点に GPU が無いので，質問者を GPU の無い PC に置く限りオフラインの当てはめ（運用ルール 11 の併記）になる．負荷の基準（採点あり 0.601 問/秒・なし 1.014 問/秒）は制御点の GPU があった時期の値で，同じ時間帯に交互に流した条件どうしでだけ比べる．
+- 要レビュー: (a) H-V1 を規則どおり不成立とした（補正なしの 6 つの検定の 1 つが p = 0.046．Holm の補正なら棄却しない）．規則を変えて読み直すなら `verdict_revised` として別に出す．(b) **同じ repo で 2 つの研究サイクルのオーケストレータが同時に動いていた**（2026-11-08 01:20 頃．`claude --permission-mode auto /research-cycle continue`（PID 723366）と，daemon から起動された別のセッション（PID 722553．`--fork-session --resume`））．後者の rc-executor が採点・選択・sanitize と journal の「採点・G0・集計の結果」を書き，前者の rc-evaluator（この記録を書いた側）が集計・判定・commit を行った．二重の採点は避けた（rc-evaluator は採点を始めず，終わるまで待った）が，後者がこの後に自分の rc-evaluator を起動すると journal・backlog・commit が二重になる．どちらか一方を止める判断は人間に委ねる．(c) gpu4 の GPU は `src/gen1.py`（他のプロジェクトのプロセス．最大約 29 GB）と共有で，採点・cross-encoder の速さが時間とともに変わる．
+
+## B81 [needs-human 2026-11-07] 「手動で対応した」後も，ctrl5 から専門家 20 台への ssh が全台失敗する（B80 の継続）
+- 状況: B80 への人間の回答（「手動で対応した」）を受け rc-executor で再確認したところ，`ssh wafl-ctrl5 "ssh -o BatchMode=yes <host> true"` が 192.168.13.100〜109・192.168.14.100〜109 の全 20 台で rc=255（`Too many authentication failures`）．`IdentitiesOnly=yes` でも同じ．ctrl5 に ssh-agent は無く，鍵は `id_ed25519` の 1 つ．実験は起動していない（a3_chain.sh 未起動）．Slack で @mention 済み．
+- 選択肢: (1) ctrl5 の `~/.ssh/id_ed25519.pub` を 20 台の `authorized_keys` へ配布する（推奨．人間の操作）．(2) 対応した内容を教えてもらい，別の経路・別の鍵があれば ctrl5 の設定を合わせる．(3) P の構成を変える（事前登録の変更）か，iteration を中止する．
+- 再開の手順: B80 と同じ．
+- [human-decided 2026-11-07] 人間が A1（ctrl5 の公開鍵を 20 台の `authorized_keys` へ配布）を実行し，ssh できるようにしたと回答．status を running に戻し，rc-executor が ssh を再確認してから a3_chain.sh を起動する．
+
 ## B80 [needs-human 2026-11-06] Iteration 22 の実機の実行が，wafl-ctrl5 から専門家 20 台（192.168.13.100〜109・192.168.14.100〜109）へ ssh できず始められない
 - 状況: Iteration 22（d0009 A3）の phase 2 で，事前登録（commit 4960466）・実装（commit f7e7ae2・5153663）・質問集合 H・ゲート G-E・G2 までは済んだ．実機の smoke の deploy（`mise run deploy`．操作端末 gpu4）が，制御点 wafl-ctrl5 から専門家 192.168.13.100〜109・192.168.14.100〜109 の 20 台へ ssh するところで全て `Received disconnect from <host> port 22:2: Too many authentication failures` になり失敗した（`results/d0009_a3_rerun_variance/smoke_p.deploy.log`）．wafl500〜509（192.168.15.x）へは同じ制御点から ssh でき，deploy も成功した．
 - 切り分け: (a) ctrl5 の `~/.ssh` の鍵は `id_ed25519` の 1 つだけ（2026-02-12 作成．変更なし）．この鍵を 13.x・14.x の専門家が受け付けない（`ssh -v` で鍵を提示した後に切断される．ホスト鍵は known_hosts と一致．TCP の 22 番は開いている）．(b) 操作端末 gpu4 の鍵を `ssh -A` で転送しても同じ．(c) 13.x・14.x の専門家は `:8100/healthz` に応答しない（コンテナが動いていない）．(d) ctrl5 の `authorized_keys` は今日 16:22 に更新されている（gpu4 の鍵の追加と思われる）．13.x・14.x の専門家の `authorized_keys` も同時期に変わった可能性があるが，こちらからは確認できない．
@@ -25,6 +38,8 @@
 - 再開の手順: 認証が回復したら `state.json` の `status` を `waiting_experiment` にし，リポジトリの直下で `(nohup setsid sg docker -c "bash scripts/d0009/a3_chain.sh results/d0009_a3_rerun_variance/chain.log" > /dev/null 2>&1 < /dev/null &)` を実行する（P1 → C1 → P2 → C2 → P3 → C3．各回の前に全ノードを止め，GPU の空きを最大 2 時間待ち，deploy する．config.yaml は各回の後に元へ戻る）．事前の準備は完了している：H（2,862 問．`artifacts/enronqa/` と制御点の `<data_dir>/enronqa/` の `benchmark/holdout_*.jsonl`・`queries/holdout/`・`ce_table/holdout.jsonl`）．ゲート G-E（最小の余弦 0.99999988）・G1（上位 5 通の順序込みの一致 0.99898．集合は 1.0．2,940 問）・G2（選択の一致 1.0．2,940 問）は通過．G-J（記述）は一致率 R3′ 0.907・C1-RRF-CE 0.893 で基準 0.95 に届かず，「test の読み直し」に判定モデルの違い（gpu4 の Qwen 公式 GGUF と制御点の Ollama の qwen3:8b）を注記する．結果は `results/d0009_a3_rerun_variance/`（`g-e.json`・`g1/g1.json`・`g2.json`・`g-j.json`）．
 - 付記（実装上の判断・変更）: gpu4 の docker build が名前を引けなかったため `scripts/tasks/lib.sh` の `docker build` に `--network host` を足した（commit 5153663）．質問者に GPU が無いとき deploy が `docker/compose.requester_cpu.yml`（GPU・Ollama なし）を置く．これらは Iteration 22 の事前登録の「実装の要点」にある「質問者のコンテナが GPU を要求せずに起動すること」への対応で，wafl-ctrl5 での起動（compose・コンテナ）は smoke で確認できた（質問者のコンテナは 144 問を読み込み，holdout のクエリ埋め込みも引けた）．
 
+
+- [human-decided 2026-11-07] 人間が Slack で「手動で対応した」と回答．ssh の認証を回復したものと解釈し，status を running に戻して rc-executor へ再委譲する．rc-executor は実行前に ctrl5 から 20 台への ssh と 30 台の healthz 前提を確認し，回復していなければ再び blocked にする．
 
 ## B79 [auto-decided 2026-11-06] Iteration 22（d0009 A3）の設計：新しい質問集合 H，3 回ずつの交互の実機の実行，cross-encoder を gpu4 で事前に計算する扱い，区間の作り方
 - 状況: B73 で A3 の回数・区間の作り方・質問集合は rc-researcher が事前登録で決めることになっていた．加えて，運用ルール 8（2026-11-06）で制御点 wafl-ctrl5 の GPU が廃止され（`nvidia-smi` がドライバと通信できないことを 2026-11-06 に確かめた），主構成の選択（R3′）と C1-RRF-CE の再ランクを担っていた質問者の cross-encoder を実機の経路で動かせない．運用ルール 11 は「選択まで実機で通す．オフラインならその旨と一致の範囲を併記」，ルール 13 は「新しい精度の測定は実機」．

@@ -1,0 +1,67 @@
+{
+ "gate": "G0_G3",
+ "G0_P": {
+  "n_common": 2862,
+  "n_identical": 2862,
+  "agree": 1.0,
+  "threshold": 0.999,
+  "passed": true
+ },
+ "G3": {
+  "d0009_a3_p1": {
+   "n": 2862,
+   "n_failed": 0,
+   "failure_rate": 0.0,
+   "failed_qids": [],
+   "passed": true
+  },
+  "d0009_a3_p2": {
+   "n": 2862,
+   "n_failed": 0,
+   "failure_rate": 0.0,
+   "failed_qids": [],
+   "passed": true
+  },
+  "d0009_a3_p3": {
+   "n": 2862,
+   "n_failed": 0,
+   "failure_rate": 0.0,
+   "failed_qids": [],
+   "passed": true
+  },
+  "d0009_a3_c1": {
+   "n": 2862,
+   "n_failed": 1,
+   "failure_rate": 0.00034940600978336826,
+   "failed_qids": [
+    "enronqa/holdout/17206-1"
+   ],
+   "passed": true
+  },
+  "d0009_a3_c2": {
+   "n": 2862,
+   "n_failed": 1,
+   "failure_rate": 0.00034940600978336826,
+   "failed_qids": [
+    "enronqa/holdout/17206-1"
+   ],
+   "passed": true
+  },
+  "d0009_a3_c3": {
+   "n": 2862,
+   "n_failed": 1,
+   "failure_rate": 0.00034940600978336826,
+   "failed_qids": [
+    "enronqa/holdout/17206-1"
+   ],
+   "passed": true
+  }
+ },
+ "G0_C": {
+  "n_common": 2862,
+  "n_identical": 2862,
+  "agree": 1.0,
+  "threshold": 0.999,
+  "passed": true
+ }
+}
