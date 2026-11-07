@@ -20,6 +20,7 @@
   - 露出：主構成では質問者 1 台あたり少なくとも 37.6% のメールが渡る．質問者が増えると他人のメールを受け取る PC が増えるので，組織全体の露出は増えると考えられる．
   - 障害：質問者は停止した PC を問い合わせ先から外す仕組みを持たないので（B1），質問者の数だけ待ちが生じないか．
 - 報告書の今後の課題には入れていない（質疑で出た論点）．
+- 着手：Iteration 23（事前登録は journal の Iteration 23．設計の判断は `.claude/research/backlog.md` の B83）．質問者を wafl-ctrl5 と受信箱を持つ CPU の専門家 2 台（192.168.13.100・192.168.14.100）の 3 台にし，自分の受信箱は他の PC と同じく問い合わせ先とする．判定は新しく分けた質問 H．
 
 ### A2. 「わからない」を許す指示をやめたことによる作り話の評価（優先度：高）
 
@@ -126,7 +127,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 |---|---|---|---|
 | 1 | A2 | レバー `d0009.A2_fabrication` | 完了（Iteration 21．採用．`results/d0009_a2_fabrication/`） |
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
-| 3 | A1 | レバー `d0009.A1_multi_requester` | 未着手 |
+| 3 | A1 | レバー `d0009.A1_multi_requester` | 着手（Iteration 23） |
 | 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択を 1 つずつ） | 未着手 |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
