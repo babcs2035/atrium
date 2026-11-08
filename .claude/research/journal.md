@@ -3,6 +3,93 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 30: 主構成で PC を止めたときの P2P と中央集約の回答できる割合の測り直し
+
+**位置づけ**：レバー `d0009.A6_remeasure_main` の値 `failure`（d0009 A6．backlog B104 (2)・申し送り (a)〜(e)）．p0007 E1（`results/p0007_e1_failure`）は `hybrid_probe`・`retrieval_only`・`fusion: none`・test の質問で，「5 秒までに正解のメールが上位 5 通に入る」を答えられたとした．これを主構成（`bm25_probe` D = 24・`owner_answer`・m 3・`fusion: rrf`・R3′ の選択の経路あり）と H の質問で測り直す．設計の判断は backlog B105．d0009 A6 に着手を書いた（運用ルール 9）．この節が事前登録である．rc-executor が，本番の実機の実行（smoke を除く）より前に commit・push する．
+
+### 調査で分かったこと
+
+- **`atrium failure-run` は今のままでは主構成を扱えない（コードの確認．`src/atrium/failure_run.py`・`live_common.py`・`requester.py`）**：(i) 質問は `load_test_questions` で test の全問に固定され，`question_split`・`question_limit` を見ない．(ii) 「答えられた」は `is_hit`（`top_doc_ids` に正解のメール）で，`owner_answer` の結果の行には `top_doc_ids` が無い（`_owner_answers` は書かない）ので，全ての問が「答えられない」になる．(iii) 中央の側は索引の子プロセス（`CentralIndex`．RRF なら BM25 を含む）の検索だけで，C1-RRF-CE の cross-encoder の再ランクと生成を含まない．したがって追加だけの実装が要る（下の「実装の要点」）．
+- **主構成には p0007 E1 に無い依存がある（コードと placement の確認）**：`owner_answer` は選んだ 3 つの受信箱への `/v1/answer` を `gather_or_cancel` で待つので，1 つでも失敗すると問全体が失敗する（`tolerate_node_failures` が効くのは probe と断片の取得だけ）．CPU の専門家（192.168.13.x・14.x の 20 台）は生成を対応づけた GPU の PC（15.x）へ委託し（`placement.delegate_of`．GPU の PC 1 台に CPU の 2 台），`/v1/generate` も離脱中は 503 になる（`node.py` の `up_only`）．p0007 E1 の種 12 の止める集合は k = 1 が `192.168.15.106`（GPU の PC），k = 3・6・10 も 15.106 を含み，k = 6・10 は 15.105 も含む．つまり主構成では，止めた台の受信箱に加えて，止めた GPU の PC に生成を委託する CPU の 2 台の受信箱も答えられなくなる．
+- **オフラインの見込み（Iteration 29 の `d0009_a6_p_r1` の 288 問の選択と placement から．再選択を考えない粗い計算．判定に使わない）**：平常の「答えられた」（選んだ候補の文脈に正解のメール）は 0.875，候補のどれかの文脈に正解は 0.917，持ち主が候補に入る割合は 0.944．中央 C1-RRF-CE（`d0009_a6_c_r1`）の上位 5 通に正解は 0.944．止めた間の割合の見込みは，(a) p0007 と同じ「正解の受信箱が止まった問だけ落ちる」で k = 1・3・6・10 の順に 0.847・0.781・0.698・0.580，(b)「選んだ 3 つのいずれかの生成が止まった台（止めた台と，止めた GPU の PC に委託する台）なら落ちる」で 0.622・0.490・0.243・0.170．選んだ受信箱が止めた台にある問は 9.7%・27.4%・47.6%・71.9% で，availability ではこれらは probe に答えないので別の受信箱が選ばれる（Iteration 29 の表 `ce_table/holdout_owner.jsonl` に無い組になる）．
+- **p0007 E1 の値（`results/p0007_e1_failure/failure.json`．構成と質問が違うので比べない）**：窓 76.44 秒（停止 45 ＋ 中央の再起動 1.44 ＋ 30），中央の再起動後の割合 0.76・積分 22.8．P2P の止めた間の割合は availability 0.707〜0.491，container 0.328〜0.028（container では止めた間の問がほぼ全て時間切れ．4 本 × 45 秒 ÷ 5 秒 = 36 件の時間切れが全ての k で出た）．一方 Iteration 23（`docker compose stop`）は「止まった PC への要求は 0.06〜0.39 秒ですぐ失敗した」と記録しており，container の停止での失敗の形（応答しない／すぐ拒否）が 2 つの記録で食い違う．原因は確かめていない．今回は問ごとに失敗の形を記録して分ける．
+- **可用性の定義の慣行**：Google SRE は，要求ごとの可用性の SLI を「有効な要求のうち成功した割合」，待ち時間の SLI を「閾値より速い要求の割合」とする（Google SRE Workbook "Implementing SLOs"．https://sre.google/workbook/implementing-slos ・"The Art of SLOs" handbook．https://sre.google/static/pdf/art-of-slos-handbook-a4.pdf ）．p0007 E1 の「締め切りまでに正解の根拠が届いた割合」はこの 2 つを掛けた形に当たり，締め切りは利用者の待てる時間の仮定である（締め切りの値で積分の絶対値が変わることは d0007 §4.5 の 6 にも書かれている）．
+- **一部の応答で返す設計**：Dean & Barroso（"The Tail at Scale"．Communications of the ACM 56(2)，2013．https://cacm.acm.org/research/the-tail-at-scale ）は，大規模な検索では十分な割合の葉が応答した時点で「good enough」の結果を返し，遅い・止まった葉を待たない設計を挙げている．主構成の `gather_or_cancel`（3 候補の全てを要する）はこの逆で，止まった台の影響を増やす見込みがある．ただし今回は仕組みを変えない（B1 の領分．あるがままの値を測る）．
+- **環境の注意**：wafl500〜509 の GPU は共有で，止めるのは node のサービスだけ（Ollama・データ・image は止めない・消さない．`docs/d0003_experiment_workflow.md` §7.2）．交互の手順は Abedi & Brecht（ICPE 2017．Iteration 29 の節）に従い，ラウンドの中の条件の順序を無作為にする．
+
+### 仮説
+
+主構成の P2P は，止めた間の「答えられた」割合が p0007 E1 より大きく下がる．availability では，止めた GPU の PC に生成を委託する CPU の台を選んだ問が全体として失敗するので，割合は見込み (a) より (b) に近い．container では p0007 E1 と同じく時間切れか即時の失敗でほぼ 0 になる．中央の再起動後の割合（0.944）が P2P の平常（0.875）より高いので，中央の停止 45 秒の仮定でも，container の k ≥ 3 では中央の積分が P2P 以上になりうる（P2P の止めた間が 0 なら P2P は約 0.875 × 31 ≈ 27.5，中央は 0.944 × 30 ≈ 28.3．推測）．中央が検出と同時に再起動する場合は，全 8 条件で中央が上になる（構造上ほぼ決まっている）．
+
+### 単一レバー
+
+**障害の測定の構成**を，p0007 E1 の「`hybrid_probe`・`retrieval_only`・`fusion: none`・test の質問・答えられた＝5 秒までに正解が上位 5 通」から，**主構成（P2P の `owner_answer`・R3′ の選択の経路あり）・H の 288 問・答えられた＝締め切り D までに失敗なく回答を返し，選んだ候補の文脈（上位 5 通）に正解のメールがある**へ替える．止め方（availability・container），k（1・3・6・10．種 12．p0007 と同じホストの集合），止める時間 45 秒，基準 15 秒，復旧後 30 秒，区間の幅 5 秒は p0007 E1 と同じにする．
+
+- **「答えられた」の定義（主）**：問が D 秒以内に `error` なしで終わり，`owner_answer.candidates[chosen_index].context_doc_ids` に正解のメール（gold の `path`）がある．p0007 E1 の「正解が上位 5 通に入る」を，回答の生成まで通した形に延ばしたもの（回答の根拠が届いたか）．正誤の採点はしない．
+- **併記の定義（記述）**：(r) 回答を返した（D 以内・`error` なし），(o) 持ち主の候補が入った（正解の受信箱が候補にあり，その候補の文脈に正解のメール．選択の規則に依らない），(h) D/2 以内に「答えられた」（締め切りの感度．`e2e_s` から事後に計算）．
+- **締め切り D = 30 秒**（主）．根拠：Iteration 29 の P は parallel 30 で e2e の p50 17 秒・p95 40 秒．今回は `--stream-parallel 8` で GPU の PC 1 枚あたりの同時の生成は約 2.4（Iteration 29 は約 9）になり，e2e はそれより短い見込み（推測）．smoke の平常で「D 以内に回答を返した割合」が 0.98 未満なら，本番の前に D を 45 秒へ 1 回だけ上げて記録する（それ以上は変えずに止める）．
+- **中央の側**：止めて再起動するのは failure-run の索引の子プロセス（RRF なので BM25 の作り直しを含む．p0007 は `fusion: none` で含まなかった）で，再起動の時間 restart_to_answer_s を実測する．再起動後の「答えられた」割合 c は，同じ 288 問の C1-RRF-CE の上位 5 通に正解のメールがある割合を Iteration 29 の `d0009_a6_c_r1`〜`r4` から取る（4 回とも上位 5 通は同じ．G-C）．中央の生成（wafl509 の 1 枚）が D 以内に終わることは仮定する（中央に有利な仮定として明記）．failure-run の索引だけの割合（cross-encoder なし）も併記する．
+- **V2 は経路に無い**（運用ルール 11）．live の選択は R3′（表の得点の最大）で，「答えられた」は R3′ の選んだ候補で数える．V2 の選ぶ候補での値は，保存した候補の特徴量が failure-run の行に無いので出さない（主張できない範囲に書く）．
+
+### 固定する構成
+
+EnronQA・`question_split: holdout`・`question_limit: 2`（288 問）・`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`owner_answer`・`owner_m: 3`・`answer.aggregate: cross_encoder`・`retrieval.ce_scores: table`・`answer.save_candidates: true`・`retrieval.fusion: rrf`・`llm.answer_prompt_format: fill_in`・llama3.1:8b（wafl500〜509．Ollama の設定は今のまま）・温度 0・種 12・質問者 1 台（wafl-ctrl5）・30 台の専門家・`cluster.node_admin: true`（failure-run に必要．deploy の前に config.yaml に書き，後で `git checkout -- config.yaml` で戻す）．config は `scripts/d0009/a6_config.py p` の P と同じにし，違いは `node_admin` だけにする．failure-run の引数は `--baseline-s 15 --down-s 45 --post-s 30 --bin-s 5 --poll-interval-s 0.2 --stream-parallel 8 --answer-deadline-s 30 --central-questions 200`．
+
+### 実行の順序（事前に固定．Abedi & Brecht の無作為な交互の試行）
+
+3 ラウンド．各ラウンドは failure-run を 1 回流し（8 条件．中央の再起動の測定を含む），条件の順序は `--modes` と `--ks` の並びで与える．順序は `random.Random(12)` で，ラウンドごとに modes・ks の順に shuffle した結果で，結果を見る前に固定する．
+
+| ラウンド | `--modes` | `--ks` |
+|---|---|---|
+| r1 | availability,container | 1,3,10,6 |
+| r2 | container,availability | 6,3,1,10 |
+| r3 | availability,container | 1,3,10,6 |
+
+- 実行名は `results/d0009_a6_failure_r{1,2,3}/`（`bash scripts/tasks/live_run.sh failure_run <run_id> ...`）．deploy は最初に 1 回（config は 3 ラウンドで同じ）．各ラウンドの前後に `nvidia-smi`・`ollama ps` と他の研究者のプロセスを記録し，各ラウンドの後に 30 台の `/v1/profile` が 200 で node のサービスが動いていることを確かめる（G-R）．GPU の空きは各ラウンドの前に最大 2 時間待ち，空かなければ流して記録する．
+- smoke（判定に使わない）：`d0009_a6_failure_smoke`（`--ks 1 --modes availability,container --down-s 15 --baseline-s 10 --post-s 10`．D の確かめ・表の網羅・止めたノードの再開を確かめる）．
+- 所要の見込み（推測）：1 条件 約 2〜3 分（基準 15・停止 45・再開・復旧後 30 秒と締め切りの待ち），1 ラウンド 約 25 分，3 ラウンドと smoke・deploy で 約 2〜2.5 時間．表の作り足し（gpu4）は 約 1 時間．
+
+### 表の作り足し（gpu4．運用ルール 14．実機の前に）
+
+止めた台の受信箱を避けて別の受信箱が選ばれると，Iteration 29 の表（選ばれた 3 つの受信箱の文脈だけ）に無い組が出る．288 問の全 150 受信箱について，受信箱の中の上位 5 通（ノードの `/v1/answer` と同じ取り方．`fusion: rrf`・`k_context` 5）をオフラインで求め，`CrossEncoderReranker.scores`（同じ revision・4 組ずつ・候補ごとに別の呼び出し）で採点して，既存の組を全て含む上位集合の表を作る（最大 288 × 150 × 5 = 216,000 組．1 組 約 0.0135 秒で 約 50 分）．元の `holdout_owner.jsonl` は `holdout_owner.iter29.jsonl` として残し（消さない），上位集合を同じパスに置く．gpu4 と制御点の両方に置く．
+
+### 判定の規則（`results/d0009_a6_failure/verdict.json`．`verdict_original` は書き換えない）
+
+記号：条件 (m, k) のラウンド r の P2P の積分 I_P(m, k, r)（p0007 と同じ `integrate_rates`．時刻 0 から窓 W_r = 45 ＋ 中央の再起動の実測 ＋ 30 秒），中央の積分 I_C(r) = c × 30（45 秒の仮定．c は上の 0.944 の値）．
+
+- **H-A6F1（主．45 秒の仮定）**：各 (m, k) について，有効なラウンドの全てで I_P > I_C なら「P2P が上」，全てで I_P < I_C なら「中央が上」，それ以外は「決まらない」．`verdict_original` は 8 条件の結果の一覧と，p0007 E1 と同じ全体の判定「全 8 条件で P2P が上（E1 成立）」の真偽．
+- **H-A6F2（併記．検出と同時の再起動）**：窓 W0_r = 中央の再起動の実測 ＋ 30 秒で，I_P を [0, W0_r] で積分し，中央は c × 30 と比べる（p0007 の 31.44 秒の窓と同じ考え方）．同じ 3 値の規則で出すが採否に使わない．
+- **H-A6F3（記述．見込みとの照合）**：止めた間の割合（`fault_hit_rate`）を，上の見込み (a)・(b) と並べる．availability で実機の値が (a) と (b) のどちらに近いかを条件ごとに書く．
+- **併記**：条件ごとの平常の割合・止めた間の割合（主と (r)・(o)・(h)）・失敗の形の内訳（時間切れ・HTTP の失敗・表に無い組）・検出の時間・再開の時間・中央の再起動の内訳（索引の読み込み・BM25）・空の区間の数，ラウンドの間の範囲．p0007 E1 の値は並べるが比べない（構成・質問・定義が違う）．
+
+### ゲート（満たさなければ判定の前に止まり，原因を記録する）
+
+- **G-T（互換）**：`mise run check` が通る．`failure-run` の既定（test・`retrieval_only` の `is_hit`）の挙動が変わらない（既存の試験）．新しい「答えられた」の判定と質問集合の読み込みの試験を足す．
+- **G-TB（表）**：オフラインで求めた受信箱の中の上位 5 通が，`d0009_a3_p1` の 864 候補の `context_doc_ids` と全て一致し，既存の 4,320 組の得点が新しい表と |差| ≤ 1e−6．本番で「表に無い組」による失敗が 0（1 件でもあれば止めて表を直す）．
+- **G-B（平常）**：各ラウンドで，止める前の問（全 8 条件の合計）のうち D 以内に回答を返した割合 ≥ 0.95．
+- **G-R（再開）**：各ラウンドの後に 30 台の node が全て動いている（止めたまま終わらない）．満たさなければ次のラウンドに進まず再開してから記録する．
+- 有効なラウンドは G-B を満たし，失敗せずに 8 条件を流し終えたもの．
+
+### 成功条件（このイテレーションの採用）
+
+(1) G-T・G-TB・G-R を通過し，(2) 有効なラウンドが 2 以上あり，(3) H-A6F1・H-A6F2 を上の規則で判定し，H-A6F3 と併記の値を `verdict.json` に書く．仮説の成否は採用の条件にしない（測定のイテレーション）．採用なら値 `failure` を閉じ，次は `d0009.A6_remeasure_main` の値 `join`．
+
+### 期待効果（見込み．検証対象ではない）
+
+平常の「答えられた」は 0.85〜0.88．availability の止めた間は k = 1 で 0.6 前後，k = 10 で 0.2 前後（見込み (b) に近い）．container は全ての k で 0.1 未満．H-A6F1 は availability の 4 条件が「P2P が上」，container は k が大きいほど「中央が上」か「決まらない」．H-A6F2 は全 8 条件で「中央が上」．中央の再起動は BM25 を含めて p0007 の 1.44 秒より長い（数秒〜十数秒．推測）．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
+
+- `src/atrium/failure_run.py`：質問を `cfg.experiment.question_split`・`question_limit` で読む（test・null なら今と同じ）．`answer_mode: owner_answer` のときの「答えられた」を上の主の定義にし，(r)・(o) を `questions` の行に足す（本文は書かない）．`retrieval_only` の `is_hit` はそのまま．失敗の形（時間切れ・HTTP・表に無い組）を行に残す．
+- 中央の c は failure-run の外で計算する（`scripts/d0009/a6f_verdict.py` が `d0009_a6_c_r*` の `top_doc_ids` から求める）．
+- 表：`scripts/d0009/a6f_owner_table_all.py`（gpu4．G-TB の確かめを含む）．
+- 実行：`scripts/d0009/a6f_config.py`（`a6_config.py p` ＋ `cluster.node_admin: true`）と `scripts/d0009/a6f_chain.sh`（smoke → 3 ラウンド．各ラウンドの前後の記録と G-R）．
+- 集計：`scripts/d0009/a6f_verdict.py` → `results/d0009_a6_failure/verdict.json`・`failure_summary.json`．results は `sanitize_results.py` を通してから commit する．既存の results（運用ルール 12 の記録・`p0007_e1_failure`）は変えない．
+
+### 主張できない範囲（事前に書く）
+
+正答率（採点しない），V2 の選ぶ候補での割合，GPU の PC を含まない止める集合での値（種 12 の集合は全て 15.106 を含む），中央の cross-encoder・生成の再起動の時間（索引だけを測る），停止時間 45 秒以外の値（A5 の `central_outage_sweep` の領分）．
+
 ## Iteration 29: 主構成で負荷を同じ時間帯に交互に測り直したときの P2P と中央集約の処理量
 
 **位置づけ**：レバー `d0009.A6_remeasure_main` の値 `load`（d0009 A6．backlog B102 (2)・要レビュー (a)）．p0007 D の負荷は cross-encoder による選択を加える前の構成で測り，再実行で大小が逆転した（P2P 0.581〜0.626 → 0.481〜0.497，中央 0.531〜0.537 → 0.522〜0.535 問/秒）．これを主構成（P2P は R3′ の選択の経路あり，中央は C1-RRF-CE）で，同じ時間帯に交互に流して測り直す．設計の判断は backlog B103．d0009 A6 に着手を書いた（運用ルール 9）．この節が事前登録である．rc-executor が，本番の実機の実行（smoke を除く）より前に commit・push する．

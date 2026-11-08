@@ -78,6 +78,7 @@
   - 4 ラウンドの全てで，P2P（R3′ の選択の経路あり）の処理量は中央 C1-RRF-CE の 3.07〜3.09 倍（「P2P が高い」），生成を 10 枚に分けた準集権は P2P の 2.28〜2.38 倍（「準集権が高い」）．処理量の中央値は P2P 1.32，中央 0.43，準集権 3.03 問/秒（H の 288 問・parallel 30 の値で，p0007 D・Iteration 22 の問/秒とは比べない）．
   - 同じ条件のラウンドの揺れは P2P 0.19%・中央 0.8%・準集権 4.0% で，他の研究者の GPU のプロセスは全ラウンドで 0 だった．p0007 D の再実行で起きた大小の逆転は，この手順では起きなかった．3 条件とも律速は生成で，比は「GPU の枚数 ÷ 1 問あたりの生成の数」でおおむね説明できる（P2P は 1 問 3 回の生成を 10 枚で，中央は 1 回を 1 枚で行う）．
   - 制約：live の値は cross-encoder の計算を表で除いた経路の値で，選択は R3′ である．主構成の選択 V2 は実機の経路に無い．見積もり（記述）では，採点を 1 枚の GPU に置くと，gpu4 相当なら P2P 1.32・中央 0.43・準集権 1.49 問/秒，RTX 3060 相当なら P2P 0.53・中央と準集権 0.16 問/秒になり，準集権の利点は採点で消える．V2 の検証を 1 枚の RTX 5090 に置くと P2P の上限は 0.42 問/秒で，中央と同じ程度になる．
+- 着手（障害）：Iteration 30（事前登録は `.claude/research/journal.md` の Iteration 30．設計の判断は `.claude/research/backlog.md` の B105）．p0007 E1 と同じ止め方（availability・container）・k（1・3・6・10．種 12 の同じホスト）・停止 45 秒で，P2P の主構成（R3′ の選択の経路あり）を H の 288 問で 3 ラウンド流す．「答えられた」は，締め切り 30 秒以内に失敗なく回答を返し，選んだ候補の文脈に正解のメールがあること．中央は索引の再起動を実測し，再起動後の割合は C1-RRF-CE の上位 5 通に正解がある割合（Iteration 29 の実行から）とする．中央の停止 45 秒の仮定の値を主に，検出と同時に再起動する場合を併記する．`atrium failure-run` に主構成の質問集合と「答えられた」の判定を足す（追加だけ）．
 
 ## B. 実装の改善候補
 
@@ -166,7 +167,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
 | 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
-| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は次に着手．参加は未着手 |
+| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は着手（Iteration 30）．参加は未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |
 | 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 未着手 |

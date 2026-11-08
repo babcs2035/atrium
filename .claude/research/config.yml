@@ -342,7 +342,10 @@ levers:
             記述は journal の Iteration 29「実行済み」．判定（verdict_original）：H-A6L1「P が高い」（X_P/X_C 3.068〜3.093），H-A6L2「S が高い」（X_S/X_P 2.282〜2.377）．
             X の中央値 P 1.3205・C 0.4281・S 3.0342 問/秒（288 問の水準で Iteration 22・p0007 D とは比べない）．ラウンドの揺れは P 0.19%・C 0.8%・S 4.0%，他の研究者のプロセスは 0．
             live の値は cross-encoder の計算を表で除き，選択は R3′（V2 は経路に無い）．見積もり（記述）：採点を gpu4 相当に置くと X_est P 1.32・C 0.43・S 1.49，RTX 3060 相当なら P 0.53・C/S 0.16．
-            V2 を 1 枚の RTX 5090 に載せると上限 0.42 問/秒（C と同じ程度）．次は値 failure（backlog B104）"}
+            V2 を 1 枚の RTX 5090 に載せると上限 0.42 問/秒（C と同じ程度）．次は値 failure（backlog B104）．
+            着手：Iteration 30（値 failure．事前登録は journal の Iteration 30．backlog B105）．p0007 E1 と同じ止め方・k（種 12 の同じホスト）・停止 45 秒で，P の主構成を H の 288 問・stream_parallel 8 で 3 ラウンド．
+            答えられた＝締め切り 30 秒以内に失敗なく回答を返し，R3′ の選んだ候補の文脈に正解のメール．中央は索引（RRF の BM25 を含む）の再起動を実測し，再起動後の割合は C1-RRF-CE の上位 5 通の正解の割合（Iteration 29）．
+            failure-run に質問集合と答えられたの判定を追加，表 ce_table/holdout_owner.jsonl を全 150 受信箱の上位集合に作り足す（gpu4）"}
   - {name: d0009.A4_exposure_total, values: [with_generation_delegation],
      note: "d0009 A4（中）．主構成の露出の全体．37.6% は cross-encoder の採点で質問者へ渡る文書の下限である．GPU を持たない PC が
             回答の生成を GPU 搭載 PC に委託するときに送る文書を含めた全体の露出を，保存した文書の識別子から求める（p0007 B と同じ数え方）"}

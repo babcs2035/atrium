@@ -21,6 +21,10 @@
   W = down_s ＋ 中央の再起動の時間 ＋ post_s（復旧のあとに測る時間）として，P2P も中央も同じ窓で積分する．
   判定（事前登録）：測った全ての（止め方，k）で P2P の積分 > 中央の積分（`verdict_original`）．
 
+- **answer_mode=owner_answer の質問**（d0009 A6 障害）：質問は experiment.question_split・question_limit で選ぶ（test・null なら従来どおり全問）．「答えられた」は
+  answer_deadline_s 以内に error なしで終わり，選んだ候補の文脈（`owner_answer.candidates[chosen_index].context_doc_ids`）に正解のメールがあること．
+  併記に，回答を返した割合・持ち主の候補が入った割合・締め切りの半分以内の割合と，失敗の形（deadline・http・table_miss・other）を `owner` に残す．
+
 使い方（実機の本番の手順は docs/d0003_experiment_workflow.md の §7．制御点で `scripts/remote/failure_run.sh`）:
     atrium --config config.yaml failure-run --data-dir /data --placement placement.json --out-dir results/<run_id> \\
         --ollama-url http://ollama:11434 [--ks 1,3,6,10] [--modes availability,container]
@@ -36,6 +40,7 @@ import json
 import logging
 import multiprocessing as mp
 import random
+import re
 import statistics
 import time
 from collections.abc import Mapping, Sequence
@@ -59,7 +64,13 @@ from atrium.dynamics import (
     integrate_rates,
     judge_failure,
 )
-from atrium.live_common import is_hit, load_test_questions, write_json
+from atrium.live_common import (
+    has_owner_candidate_with_gold,
+    is_hit,
+    is_owner_answered,
+    load_split_questions,
+    write_json,
+)
 from atrium.paths import dataset_paths
 from atrium.requester import RETRIEVE_TIMEOUT_S, Requester
 from atrium.routing.central import CentralIndex
@@ -81,6 +92,12 @@ CONTROL_POLL_S = 0.1
 CONTROL_TIMEOUT_S = 900.0
 CENTRAL_WORKER_TIMEOUT_S = 1800.0
 CENTRAL_PROBE_K = 5
+# 失敗の形の分類（d0009 A6 障害）：締め切りで打ち切った／HTTP の失敗／事前の得点の表に無い組／その他
+FAILURE_DEADLINE = "deadline"
+FAILURE_HTTP = "http"
+FAILURE_TABLE_MISS = "table_miss"
+FAILURE_OTHER = "other"
+HTTP_STATUS_PATTERN = re.compile(r"\b([1-5]\d\d) [A-Z]")
 
 
 @dataclass(frozen=True)
@@ -424,6 +441,37 @@ class FailureContext:
     # ホスト → ノードの URL，ホスト → そのノードが持つ受信箱（シャード）
     url_of_host: dict[str, str]
     inboxes_of_host: dict[str, list[str]]
+    # answer_mode=owner_answer（d0009 A6）：「答えられた」を，選んだ候補の文脈に正解のメールがあること（失敗なし）で数え，失敗の形を残す
+    owner_answer: bool = False
+
+
+def classify_failure(error: str | None) -> tuple[str | None, str | None, int | None]:
+    """質問者の結果の `error`（`<例外の型>: <本文>`）を，失敗の形・例外の型・HTTP の状態に分ける（失敗していなければ全て None）．
+
+    本文は質問や URL を含みうるので残さない．table_miss は `TableCandidateScorer` の KeyError（表に無い組）．
+    """
+    if error is None:
+        return None, None, None
+    error_type = error.split(":", 1)[0]
+    if error_type == "KeyError":
+        return FAILURE_TABLE_MISS, error_type, None
+    exception = getattr(httpx, error_type, None)
+    if isinstance(exception, type) and issubclass(exception, httpx.HTTPError):
+        status = HTTP_STATUS_PATTERN.search(error)
+        return FAILURE_HTTP, error_type, int(status.group(1)) if status else None
+    return FAILURE_OTHER, error_type, None
+
+
+def owner_row_fields(record: Mapping[str, Any], bank: str, gold_doc: str) -> dict[str, Any]:
+    """owner_answer の 1 問の併記の値：回答を返したか（r）・持ち主の候補が入ったか（o）・失敗の形．"""
+    kind, error_type, status = classify_failure(record["error"])
+    return {
+        "returned": record["error"] is None,
+        "owner_hit": has_owner_candidate_with_gold(record, bank, gold_doc),
+        "failure_kind": kind,
+        "error_type": error_type,
+        "http_status": status,
+    }
 
 
 async def run_fault(
@@ -453,29 +501,40 @@ async def run_fault(
                 )
             except TimeoutError:
                 # 止まったノードへの要求は応答が無く，既定の打ち切りは長い．上限を超えた質問は答えられなかったものとして数える
-                rows.append(
-                    {
-                        "asked_at": asked,
-                        "hit": False,
-                        "bank": question.bank,
-                        "e2e_s": params.answer_deadline_s,
-                        "error": "answer deadline",
-                        "timed_out": True,
-                        "failed_nodes": 0,
-                    }
-                )
-                continue
-            rows.append(
-                {
+                timeout_row: dict[str, Any] = {
                     "asked_at": asked,
-                    "hit": is_hit(record, ctx.gold_doc_of[question.qid]),
+                    "hit": False,
                     "bank": question.bank,
-                    "e2e_s": record["timings"].get("e2e_s"),
-                    "error": record["error"],
-                    "timed_out": False,
-                    "failed_nodes": record.get("failed_nodes", 0) + record.get("probe_failed", 0),
+                    "e2e_s": params.answer_deadline_s,
+                    "error": "answer deadline",
+                    "timed_out": True,
+                    "failed_nodes": 0,
                 }
-            )
+                if ctx.owner_answer:
+                    timeout_row |= {
+                        "returned": False,
+                        "owner_hit": False,
+                        "failure_kind": FAILURE_DEADLINE,
+                        "error_type": None,
+                        "http_status": None,
+                    }
+                rows.append(timeout_row)
+                continue
+            gold_doc = ctx.gold_doc_of[question.qid]
+            row: dict[str, Any] = {
+                "asked_at": asked,
+                "hit": is_owner_answered(record, gold_doc)
+                if ctx.owner_answer
+                else is_hit(record, gold_doc),
+                "bank": question.bank,
+                "e2e_s": record["timings"].get("e2e_s"),
+                "error": record["error"],
+                "timed_out": False,
+                "failed_nodes": record.get("failed_nodes", 0) + record.get("probe_failed", 0),
+            }
+            if ctx.owner_answer:
+                row |= owner_row_fields(record, question.bank, gold_doc)
+            rows.append(row)
 
     stream_tasks = [asyncio.create_task(stream()) for _ in range(params.stream_parallel)]
     stopped = False
@@ -526,6 +585,64 @@ async def run_fault(
     )
 
 
+OWNER_ROW_KEYS = ("returned", "owner_hit", "failure_kind", "error_type", "http_status")
+
+
+def summarize_owner_rows(
+    rows: Sequence[Mapping[str, Any]],
+    rel: Sequence[float],
+    stop_requested_at: float,
+    params: FailureParams,
+) -> dict[str, Any]:
+    """owner_answer の質問の記録から，止める前（baseline）と止めている間（fault）の併記の値を数える（owner_answer の行が無ければ空）．
+
+    主の「答えられた」（hit）に加えて，(r) 回答を返した割合・(o) 持ち主の候補が入った割合・(h) 締め切りの半分以内に「答えられた」割合と，失敗の形の内訳．
+    """
+    if not rows or "returned" not in rows[0]:
+        return {}
+    half = params.answer_deadline_s / 2
+
+    def tally(selected: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        n = len(selected)
+        kinds: dict[str, int] = {}
+        for r in selected:
+            if r["failure_kind"] is not None:
+                kinds[r["failure_kind"]] = kinds.get(r["failure_kind"], 0) + 1
+        return {
+            "n": n,
+            "n_hit": sum(bool(r["hit"]) for r in selected),
+            "n_returned": sum(bool(r["returned"]) for r in selected),
+            "n_owner_hit": sum(bool(r["owner_hit"]) for r in selected),
+            "n_hit_within_half_deadline": sum(
+                bool(r["hit"]) and r["e2e_s"] is not None and r["e2e_s"] <= half for r in selected
+            ),
+            "failure_kinds": kinds,
+            "http_statuses": sorted({r["http_status"] for r in selected if r["http_status"]}),
+        }
+
+    def rates(counts: Mapping[str, Any]) -> dict[str, float | None]:
+        n = counts["n"]
+        return {
+            name: counts[key] / n if n else None
+            for name, key in (
+                ("hit", "n_hit"),
+                ("returned", "n_returned"),
+                ("owner_hit", "n_owner_hit"),
+                ("hit_within_half_deadline", "n_hit_within_half_deadline"),
+            )
+        }
+
+    baseline = tally([r for r in rows if r["asked_at"] < stop_requested_at])
+    fault = tally([r for r, t in zip(rows, rel, strict=True) if 0 <= t < params.down_s])
+    return {
+        "owner": {
+            "deadline_s": params.answer_deadline_s,
+            "baseline": {**baseline, "rates": rates(baseline)},
+            "fault": {**fault, "rates": rates(fault)},
+        }
+    }
+
+
 def summarize_fault(
     rows: Sequence[Mapping[str, Any]],
     t0: float,
@@ -563,6 +680,7 @@ def summarize_fault(
         if (r["failed_nodes"] > 0 or r["timed_out"]) and t >= 0
     ]
     first_failed = failed_rows[0] if failed_rows else None
+    owner_extra = summarize_owner_rows(rows, rel, stop.requested_at, params)
     return {
         "hosts": list(hosts),
         "k": len(hosts),
@@ -600,6 +718,7 @@ def summarize_fault(
                 "timed_out": bool(r["timed_out"]),
                 "gold_down": r["bank"] in down_inboxes,
                 "e2e_s": r["e2e_s"],
+                **{key: r[key] for key in OWNER_ROW_KEYS if key in r},
             }
             for t, r in zip(rel, rows, strict=True)
         ],
@@ -611,6 +730,7 @@ def summarize_fault(
         "integral_relative": integral / (base_rate * window_s)
         if base_rate > 0 and window_s > 0
         else None,
+        **owner_extra,
     }
 
 
@@ -698,6 +818,16 @@ async def run_failure(
                     "検出は生存の確認の打ち切り（LIVENESS_TIMEOUT_S）が上限"
                 ),
                 "liveness_timeout_s": LIVENESS_TIMEOUT_S,
+                **(
+                    {
+                        "answered_definition": (
+                            "answer_mode=owner_answer：answer_deadline_s 以内に error なしで終わり，選んだ候補の context_doc_ids に正解のメール"
+                            "（正誤は採点しない）．中央の割合は索引の上位 5 通の正解の割合（cross-encoder・生成を含まない）"
+                        )
+                    }
+                    if ctx.owner_answer
+                    else {}
+                ),
             },
             "window_s": window_s,
             "central": {
@@ -757,7 +887,9 @@ async def run_failure_command(
 
     paths = dataset_paths(data_dir, "enronqa")
     placement = read_placement(placement_path)
-    questions, gold = load_test_questions(paths)
+    questions, gold = load_split_questions(
+        paths, cfg.experiment.question_split, cfg.experiment.question_limit
+    )
     out_dir.mkdir(parents=True, exist_ok=True)
     shuffled = list(questions)
     random.Random(params.seed).shuffle(shuffled)
@@ -779,6 +911,7 @@ async def run_failure_command(
             gold_doc_of=gold_doc_of,
             url_of_host=url_of_host,
             inboxes_of_host={n.host: list(n.shard_ids) for n in placement.nodes},
+            owner_answer=cfg.experiment.answer_mode == "owner_answer",
         )
         injectors: dict[str, FailureInjector] = {
             "availability": AvailabilityInjector(client, url_of_host),

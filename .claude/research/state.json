@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 29,
-  "iteration_name": "主構成で負荷を同じ時間帯に交互に測り直したときの P2P と中央集約の処理量",
-  "phase": "evaluate",
+  "iteration": 30,
+  "iteration_name": "主構成で PC を止めたときの P2P と中央集約の回答できる割合の測り直し",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "d0009.A6_remeasure_main=load（負荷の測定の構成を p0007 D の選択前の構成から主構成へ：P〔P2P・answer.aggregate: cross_encoder・retrieval.ce_scores: table〕・C〔C1-RRF-CE〕・S〔C の生成を 10 枚へ〕を H の 288 問・parallel 30 で 4 ラウンド，Random(12) の順序で交互に実機．主の判定は P 対 C の組の比が全ラウンドで > 1.10 / < 1/1.10．採点・V2 の費用は gpu4 の測定から見積もり．事前登録は journal の Iteration 29．backlog B103）",
-  "experiment_dir": "results/d0009_a6_load",
-  "experiment_deadline": 1794235977,
+  "current_lever": "d0009.A6_remeasure_main=failure",
+  "experiment_dir": null,
+  "experiment_deadline": null,
   "updated_at": 1794170605,
   "last_slack_ts": "1794170664.164569",
-  "iteration_thread_ts": "1794160550.050239",
+  "iteration_thread_ts": "1794171510.579809",
   "notion_toggle_created": true,
-  "last_commit": "4578740"
+  "last_commit": "7f1be36"
 }

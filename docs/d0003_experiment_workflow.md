@@ -329,6 +329,11 @@ bash scripts/tasks/live_run.sh failure_run p0007_e1_smoke --ks 1,3 --modes avail
 - 診断：`failure.json` の `p2p[].questions`（質問ごとの記録）を，止めている間（`0 <= t_s < down_s`）の時間切れか否かで分けると，container の停止で割合が下がる原因を切り分けられる
   （`results/p0007_e_live/e_report.py` の `diag_rows`．p0007 E の結果：時間切れの質問が下がりの全てで，時間内に答えた質問の割合は平常と同じ）．
   集計は `uv run python results/p0007_e_live/e_report.py`（`results/p0007_e_verdict/`）．本番の実測の値（p0007 E）は journal の「p0007 E：障害と参加の結果と判定」．
+- 主構成（`answer_mode: owner_answer`．d0009 A6 障害）：質問は `experiment.question_split`・`question_limit` で選ぶ（test・null なら従来どおり全問）．「答えられた」は
+  `--answer-deadline-s` 以内に `error` なしで終わり，選んだ候補の文脈（`owner_answer.candidates[chosen_index].context_doc_ids`）に正解のメールがあること
+  （`answer.save_candidates: true` が要る．正誤は採点しない）．`p2p[].owner` に，回答を返した割合・持ち主の候補が入った割合・締め切りの半分以内の割合と，失敗の形
+  （deadline・http・table_miss・other）を残す．`retrieval.ce_scores: table` の表（`ce_table/holdout_owner.jsonl`）に無い組は KeyError（table_miss）の失敗になるので，
+  止めた台を避けて別の受信箱が選ばれる測定の前に，`scripts/d0009/a6f_owner_table_all.py` で全受信箱の上位 5 通へ表を作り足す．流し方は `scripts/d0009/a6f_chain.sh`．
 - 失敗時：`ctl/ack` が出ずに `TimeoutError` なら `failure_run.sh` の watcher が動いていない（`results/<run_id>/start.log`）．`node_admin` でなければ管理 API が無く availability が 404．
 
 ### 7.3 参加（`join-run`．E2）
