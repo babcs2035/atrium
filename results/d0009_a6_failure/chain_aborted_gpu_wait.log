@@ -1,0 +1,12 @@
+[07:10:55] deployed
+[2026-11-09_07:10:55] BEGIN d0009_a6_failure_smoke (D=30)
+[07:10:57] max GPU memory used on wafl500-509: 6908 MiB
+[07:12:00] max GPU memory used on wafl500-509: 6908 MiB
+[07:13:03] max GPU memory used on wafl500-509: 6908 MiB
+[07:14:05] max GPU memory used on wafl500-509: 6908 MiB
+[07:15:08] max GPU memory used on wafl500-509: 6908 MiB
+[07:16:11] max GPU memory used on wafl500-509: 6908 MiB
+[07:17:13] max GPU memory used on wafl500-509: 6908 MiB
+[07:18:16] max GPU memory used on wafl500-509: 6908 MiB
+[07:19:19] max GPU memory used on wafl500-509: 6908 MiB
+[07:20:21] max GPU memory used on wafl500-509: 6908 MiB

@@ -90,6 +90,71 @@ EnronQA・`question_split: holdout`・`question_limit: 2`（288 問）・`routin
 
 正答率（採点しない），V2 の選ぶ候補での割合，GPU の PC を含まない止める集合での値（種 12 の集合は全て 15.106 を含む），中央の cross-encoder・生成の再起動の時間（索引だけを測る），停止時間 45 秒以外の値（A5 の `central_outage_sweep` の領分）．
 
+### 実装・実験の記録（phase 2．rc-executor．数値のみ．解釈は phase 3）
+
+- **実装（追加だけ．commit ed27f77・7d0e6a4・4012d16）**：`src/atrium/live_common.py` に `load_split_questions`・`is_owner_answered`・`has_owner_candidate_with_gold`，`src/atrium/failure_run.py` に `classify_failure`・`owner_row_fields`・`summarize_owner_rows` と `FailureContext.owner_answer` を足した（`owner_answer` のときだけ行に returned・owner_hit・failure_kind を残し，`p2p[].owner` に平常・止めた間の集計を書く．test・retrieval_only の既定の出力は変えない）．試験 `tests/test_failure_owner_answer.py`（14 件）を追加．`scripts/d0009/a6f_{owner_table_all.py,config.py,chain.sh,verdict.py}` を追加．`docs/d0003_experiment_workflow.md` §7.2 に主構成の説明を足した．
+- **G-T**：`mise run check`（pytest 1025 件・ruff・mypy）が通過．既存の failure-run の試験（`test_failure_run.py`・`test_failure_control.py`）は変更なしで通過．
+- **表の作り足し（gpu4．`results/d0009_a6_failure/table/`）**：288 問 × 150 受信箱の上位 5 通を `FaissShardStore`（fusion=rrf）で求め，`CrossEncoderReranker.scores` で採点．一意な組 216,000．**G-TB 通過**：P の 864 候補の `context_doc_ids` はオフラインの検索と全て一致（不一致 0），既存の 4,320 組は全て新しい表にあり |差| の最大 0.0（許容 1e−6）．元の表は `holdout_owner.iter29.jsonl` として gpu4・制御点の両方に残した．所要は約 62 分，gpu4 の GPU は自分たちの Ollama（9.9 GB）以外に使用なし．
+- **実行中に直した 2 点（本番の前．どちらも commit 済み）**：(1) 空き判定が deploy 後の自分たちの Ollama（各台 約 6.9 GB）を他者の使用と数えて 2 時間待つところだったので，そのモデルの blob を開いていないプロセスのメモリだけを数えるようにした（中断した記録は `chain_aborted_gpu_wait.log`）．(2) 最初の smoke で `table_miss` が 4 件出た．原因は制御点の `ce_table/holdout_owner.jsonl` が古い表（4,320 組）のままだったこと（新しい表を制御点へ置き，元の表を `holdout_owner.iter29.jsonl` に残した．sha256 が gpu4 と一致）．その smoke は `d0009_a6_failure_smoke_stale_table` として残し，表を直した後の smoke を流し直した．chain に表の sha256 の一致と各回の `table_miss` = 0 の確かめを足した．
+- **実行（deploy 1 回．`results/d0009_a6_failure_{smoke,r1,r2,r3}/`．連続実行のログ `results/d0009_a6_failure/chain.log`）**：smoke（D = 30 秒のまま．平常の回答を返した割合 1.0 で D を上げる規則は発動せず）・r1・r2・r3 を事前登録の順で流した．各回の後に 30 台の node が全て動いている（G-R．`g_r_not_serving_after.txt` = none）．各回の前の他者の GPU メモリ 0 MiB（`gpu_wait_result.txt` = none）．表に無い組による失敗（G-TB の本番）は smoke・r1〜r3 とも 0．
+- **G-B**：各ラウンドの平常の「D 以内に回答を返した割合」は r1 0.9949・r2 1.0・r3 1.0（基準 0.95）．有効なラウンドは 3．
+- **中央**：c = 0.9444（`d0009_a6_c_r1`〜`r4` の上位 5 通に正解の割合．4 回とも同じ）．中央の再起動 restart_to_answer_s は 13.71・13.73・13.51 秒（索引の読み込み total 約 12.8 秒のうち BM25 の作り直し 約 12.1〜12.3 秒）．窓 W は 88.71・88.73・88.51 秒．failure-run の索引だけの再起動後の割合 0.92（200 問）．I_C = c × 30 = 28.33．
+- **判定（`results/d0009_a6_failure/verdict.json`．`verdict_original`）**：H-A6F1（45 秒の仮定）は全 8 条件で「P2P が上」（I_P は availability 61.95〜75.52，container 51.44〜61.61．全て I_C 28.33 より大）．全体の「全 8 条件で P2P が上（E1 成立）」は真．H-A6F2（検出と同時の再起動．窓 [0, 再起動 + 30 秒]）は availability k = 1・3 が「P2P が上」，availability k = 6・10 と container の全 k が「中央が上」（真偽「全 8 条件で P2P が上」は偽）．
+- **止めた間の割合（主．3 ラウンド）**：availability k = 1 は 0.711・0.702・0.702，k = 3 は 0.659 ×3，k = 6 は 0.435・0.432・0.435，k = 10 は 0.468 ×3．container k = 1 は 0.471・0.471・0.500，k = 3 は 0.500・0.545・0.636，k = 6 は 0.500・0.625・0.444，k = 10 は 0.400・0.556・0.333（止めた間の問は 8〜17 件）．見込み (a)・(b) との近さ（availability）は k = 1・6 が (b)，k = 3・10 が (a)（H-A6F3．3 ラウンドで同じ）．平常の主の割合 0.889〜0.923（(o) と同じ値）．
+- **失敗の形**：availability の止めた間の失敗は全て HTTP（状態 502．k = 1 で 10〜11 件，k = 3 で 10 件，k = 6 で 21〜22 件，k = 10 で 20 件）で deadline は 0．container の止めた間は deadline が 3〜8 件で，HTTP 502 は 0〜1 件．検出（p50）は availability 0.00〜0.02 秒，container 約 2.0 秒（生存の確認の打ち切り）．再開の返事は availability 0.0〜0.4 秒，container 1.9〜3.4 秒．
+- **`atrium metrics --json`**：failure-run は `metrics.json` を作らないので，最新の分析対象は p0007_f7_test のまま（今回の指標は `verdict.json`・`failure_summary.json`）．
+- **異常**：なし（止めたまま終わったノード 0．データ・image・Ollama は触っていない）．`results/` は未 commit（commit の前に `sanitize_results.py`・requester.log の確認を要する）．
+
+### Iteration 30 実行済み：分析・考察（2026-11-09．research-cycle の phase 3．判定：採用（H-A6F1 は全 8 条件で「P2P が上」＝E1 成立，H-A6F2 は availability k = 1・3 だけ「P2P が上」．有効なラウンドは 3）．値 `failure` を閉じ，次は値 `join`）
+
+**変更**：事前登録（commit ed27f77）のとおり，P2P の主構成（`bm25_probe` D = 24・`owner_answer`・m 3・`fusion: rrf`・R3′ の選択の経路あり．V2 は経路に無い）を H の 288 問・`--stream-parallel 8`・締め切り 30 秒で，p0007 E1 と同じ止め方（availability・container）・k（1・3・6・10．種 12 の同じホスト）・停止 45 秒で 3 ラウンド実機で流した（実装 ed27f77・7d0e6a4・4012d16）．中央は failure-run の索引の子プロセスの再起動を実測し，再起動後の割合 c は Iteration 29 の C1-RRF-CE の上位 5 通から取った．
+
+**結果**（`results/d0009_a6_failure/{verdict,failure_summary}.json`．事後の記述 `posthoc_completion.json`）
+- **ゲート**：G-T（pytest 1,025 件・ruff・mypy）・G-TB（P の 864 候補の文脈が全て一致，既存の 4,320 組の |差| 0.0，本番の表に無い組 0）・G-B（平常の回答を返した割合 0.995・1.0・1.0）・G-R（3 回とも 30 台が動いている）を通過．有効なラウンド 3．他の研究者の GPU メモリは各回の前に 0 MiB．
+- **中央**：c = 0.9444（4 回とも同じ）．再起動 13.71・13.73・13.51 秒（うち BM25 の作り直し 12.2〜12.3 秒．p0007 の `fusion: none` では 1.44 秒）．I_C = c × 30 = 28.33．
+
+| 止め方 | k | 止めた間の割合（登録の主．r1・r2・r3） | 止めた間の問の数 | 再開の前に答えた割合（事後） | I_P（45 秒の仮定） | H-A6F1 | I_P（検出と同時の再起動の窓） | H-A6F2 |
+|---|---|---|---|---|---|---|---|---|
+| availability | 1 | 0.711・0.702・0.702 | 45〜47 | 0.574〜0.578 | 72.3〜75.5 | P2P が上 | 31.6〜34.0 | P2P が上 |
+| availability | 3 | 0.659 ×3 | 44 | 0.523 | 71.4〜72.3 | P2P が上 | 30.2〜31.0 | P2P が上 |
+| availability | 6 | 0.432〜0.435 | 44〜46 | 0.273〜0.283 | 62.0〜63.7 | P2P が上 | 21.5〜22.8 | 中央が上 |
+| availability | 10 | 0.468 ×3 | 47 | 0.319 | 62.3〜63.9 | P2P が上 | 21.6〜23.0 | 中央が上 |
+| container | 1 | 0.471・0.471・0.500 | 16〜17 | 0.118〜0.125 | 53.9〜61.6 | P2P が上 | 13.3〜19.8 | 中央が上 |
+| container | 3 | 0.500・0.545・0.636 | 11〜12 | 0 | 55.0〜59.0 | P2P が上 | 13.2〜17.5 | 中央が上 |
+| container | 6 | 0.500・0.625・0.444 | 8〜10 | 0 | 51.4〜60.5 | P2P が上 | 10.2〜18.5 | 中央が上 |
+| container | 10 | 0.400・0.556・0.333 | 9〜10 | 0 | 57.7〜58.4 | P2P が上 | 16.0〜17.1 | 中央が上 |
+
+（中央 I_C は両方の窓で 28.33．平常の主の割合は 0.889〜0.923 で，持ち主の候補が入った割合 (o) と同じ値）
+
+**ノイズか信号か**
+- **H-A6F1 は信号だが，止めた間の割合にほとんど依らない構造の結果である**：I_P の最小 51.4 は I_C 28.33 の 1.8 倍．しかも I_P のうち止める時間の後（[45 秒, W]．約 43.7 秒）の部分だけで 38.9〜41.0（`posthoc_completion.json` の `integral_post_stop_only`）あり，それだけで I_C を超える．つまり止めた間の P2P の割合が 0 でも，中央が 45 ＋ 13.7 秒止まる仮定の下では「P2P が上」になる．p0007 E1 の限界 1（45 秒の仮定に依る）がそのまま当てはまり，主構成でも E1 の成立は P2P の障害への強さを示さない．
+- **H-A6F2 の availability k = 1・3 の「P2P が上」は僅差で，中央の BM25 の作り直しの時間に依る**：窓 W0 ≈ 43.7 秒はほぼ全て止めた間なので，I_P_w0 ≈ 止めた間の割合 × 43.7 で，I_C を超える境は割合 ≈ 0.648．k = 3 の 0.659 は 44 問のうち約 0.5 問分しか上回らない．3 ラウンドが同じ値（0.659 ×3）なのは，同じ問を同じ順で流す決定的な系で，availability では選択も同じになるためで，問の標本の揺れ（44 問の二項の標準誤差 約 0.07）を含まない．したがって k = 3 の向きは問の集合を替えれば入れ替わりうる（k = 1 は約 2.5 問分の差）．さらに，中央の再起動が p0007 と同じ 1.4 秒（BM25 を保存しておく実装）なら W0 ≈ 31.4 秒で境は割合 ≈ 0.90 になり，8 条件の全てで「中央が上」になる（計算．未測定）．
+- **availability の止めた間の割合は 3 ラウンドでほぼ同じ（範囲 0〜0.009）で再現性は高い**が，上のとおりこれは問の標本の不確かさを表さない．k = 10（0.468）が k = 6（0.433）より高い逆転は約 1.6 問分で，標本の揺れの中にある（信号とみなさない）．
+- **container の止めた間の割合（0.33〜0.64）は登録の数え方の作り物が大きい（事後の分析で判明）**：問を聞いた時刻で数えるので，止めたノードへの要求が応答しないまま（`unreachable_request_timeout_s` 120 秒）待ち，再開（45.6〜45.8 秒）の後に締め切り 30 秒以内で終わった問も「止めた間に答えられた」に入る．終わった時刻で分けると，k ≥ 3 では止めた間に聞いた問で再開の前に答えた問は 0（3 ラウンドとも），k = 1 でも 0.12 だった．再開の後に答えた問の e2e の中央値は k ≥ 3 で 21.7〜24.9 秒（k = 1 は 13.5〜20.8 秒．平常 6.6〜7.7 秒）で，終わった時刻は再開の確認の約 4〜10 秒後に集まる．止めた間の始めに聞いた問は締め切りで落ち，8 本の流れが待ちで埋まるので，k ≥ 3 では約 6〜23 秒の間に新しい問がほとんど聞かれない（空の区間 1〜7 個．`fill_forward` で直前の値が入る）．したがって container の値は「止めた間に答えられる」ではなく「45 秒の停止と 30 秒の締め切りの組み合わせで，再開まで待てた問の割合」であり，締め切りか停止の時間を変えると大きく変わる．止めたノードを外す仕組みが無い限り，container の止めた間は実質 0 で，p0007 E1（0.03〜0.33．締め切り 5 秒）と同じ姿である．availability にも同じ数え方の偏りは少しある（終わりが再開の後の答えた問 6〜7 件）が，停止の終わり際に聞いた問が普通に終わる分が主で，割合の大小は変わらない．
+
+**仮説との一致・不一致**
+- 一致：(i) 止めた間の割合の平常に対する比は availability で 0.79・0.72・0.47・0.51（k = 1・3・6・10）と，p0007 E1（0.94・0.90・0.79・0.66）より大きく下がった．失敗は全て HTTP 502 で，止めた GPU の PC に生成を委託する台を選んだ問が全体として失敗する経路（`gather_or_cancel`）が実際に効いている．(ii) container は実質 0（上の事後の分析．k ≥ 3 で再開の前に答えた問 0）．(iii) H-A6F2 は container の全 k と availability の k = 6・10 で「中央が上」．(iv) 中央の再起動は BM25 を含めて 13.7 秒で，「数秒〜十数秒」の見込みどおり．
+- 不一致：(i) availability の値は見込み (a) と (b) のどちらかに近いのではなく，全ての k で両者の間（ほぼ中点）にある．k = 1・3 の 0.70・0.66 は (b) 0.62・0.49 より高く，k = 6・10 の 0.43・0.47 は (a) 0.70・0.58 より低い．`closer_to` は中点のどちら側かを言うだけで，(a) か (b) の機構を支持する意味は無い．(b) は選択が止めた台を避けて選び直すこと（availability では止めた台は probe に答えない）を入れておらず低すぎ，(a) は委託の失敗を入れておらず高すぎる，と読める（推測）．(ii) H-A6F1 で container の k が大きいと「中央が上」になりうるとしたが，全条件で「P2P が上」．上のとおり 45 秒の仮定では構造上ほぼ決まっていた（事前の推測 27.5 は止めた後の P2P の時間を 31 秒と置いたが，実際の窓は 45 ＋ 13.7 ＋ 30 秒で止めた後が約 43.7 秒ある）．(iii) H-A6F2 を全 8 条件で「中央が上」としたが，availability の k = 1・3 は「P2P が上」．中央の再起動が BM25 の作り直しで 13.7 秒に延び，窓が長くなったため．
+- 想定外の挙動：言語崩れ・発散・OOM は無し．止めたままのノード 0．`table_miss` は本番 0（smoke の 4 件は制御点の表が古かったため．直した後の smoke から 0）．
+
+**判定（事前登録の規則．`verdict_original` は H-A6F1 の 8 条件が全て「P2P が上」・全体の E1 成立が真，H-A6F2 は availability k = 1・3 が「P2P が上」で残り 6 条件が「中央が上」（全 8 条件で P2P が上は偽）．書き換えていない）**：**採用**．成功条件 (1) G-T・G-TB・G-R を通過，(2) 有効なラウンド 3（≥ 2），(3) H-A6F1・H-A6F2 を規則で判定し H-A6F3 と併記の値を `verdict.json` に書いた，の全てを満たす（仮説の成否は条件にしていない）．値 `failure` を閉じ，次はレバー `d0009.A6_remeasure_main` の値 `join`．
+
+**事前登録からの偏差・追加**
+- (i) 止めた間の問を終わった時刻で分ける事後の記述（`scripts/d0009/a6f_posthoc_completion.py` → `results/d0009_a6_failure/posthoc_completion.json`）を phase 3 で足した．判定には使わず，`verdict.json` は変えていない．
+- (ii) `sanitize_results.py` は `results.jsonl` を対象とするが，failure-run の出力に `results.jsonl` は無く（`failure.json` の `questions` は時刻・真偽・失敗の形だけで回答の本文を持たない），通す対象が無かった．質問文を含む `requester.log`・`start.log`（stale smoke を含む）は `.gitignore` で除かれており commit しない．
+- (iii) 表の中間ファイル `results/d0009_a6_failure/table/partial.jsonl`（52 MB．216,000 組の質問文・doc_id・得点．sha256 da0a7a55…6fa2）と進捗の行だけの `table/run.log`（5.6 MB．43,000 行）は commit しない．理由：表の本体は data ディレクトリ（gpu4・制御点の `ce_table/holdout_owner.jsonl`．元は `holdout_owner.iter29.jsonl`）にあり，`scripts/d0009/a6f_owner_table_all.py` で作り直せる．GitHub の 50 MB の警告を超え，履歴から消せない．照合の結果は `table/table_check.json` に残す．
+
+**主張できる範囲**：H の 288 問・主構成（R3′ の選択の経路）・p0007 E1 と同じ止め方と k で，(1) availability の止め方では，止めた間に答えられた割合は 0.70（k = 1）〜0.43（k = 6）で，平常（約 0.9）に対する下がりは p0007 E1 より大きい．失敗は全て止めた台か，止めた GPU の PC に生成を委託する台を選んだ問の HTTP 502 である．(2) container の止め方では，止めたノードを外す仕組みが無いので，止めた間に聞いた問は k ≥ 3 で再開の前に 1 つも答えられない．(3) 中央が 45 秒止まる仮定では全 8 条件で窓の積分は P2P が上（E1 成立）だが，これは止めた後の P2P の時間だけで決まる．中央が検出と同時に再起動する場合，availability の k ≤ 3 以外は中央が上で，その k ≤ 3 の向きも中央の再起動の 13.7 秒（BM25 の作り直し 12.2 秒）に依る．
+**主張できない範囲**：正答率（採点していない），V2 の選ぶ候補での割合，GPU の PC を含まない止める集合，中央の cross-encoder・生成の再起動の時間，45 秒以外の停止時間（A5 の `central_outage_sweep`），問の集合を替えたときの k = 3 の H-A6F2 の向き．
+
+**運用ルール 12**：C3 の記録（`p0007_*` の verdict・`p0007_e1_failure` 等）は読んだだけで書き換えていない．
+
+**学び**
+- **障害の割合を「聞いた時刻」で数えると，応答しない停止では締め切りの長さが再開まで待てた問を「止めた間に答えた」に入れてしまう**．締め切り 5 秒の p0007 E1 では表に出なかったが，生成を含む主構成で締め切りを 30 秒にすると container の値が 0.03〜0.33 → 0.33〜0.64 に見かけ上上がった．障害の測定では，問ごとに終わった時刻と止めた台の再開の時刻を比べる（`posthoc_completion.json` の形）か，締め切りを停止の時間より十分短くする．次の `join` の「答えられるまで」でも，時刻の基準（聞いた時刻か終わった時刻か）を事前登録で決める．
+- **45 秒の仮定の下の窓の積分の比較は，P2P の止めた間の割合にほとんど感度が無い**（止めた後の 43.7 秒だけで I_C を超える）．E 軸で意味のある比較は，検出と同時の再起動の窓（H-A6F2）と止めた間の割合そのものである．中央の停止時間の閾値は A5 の `central_outage_sweep` で出すのが筋．
+- **同じ問を同じ順で流す決定的な系では，ラウンドを重ねても問の標本の揺れは測れない**：availability の 3 ラウンドはほぼ同じ値で，Iteration 29 の処理量と同じく「系の再現性」は分かるが，閾値に近い条件（k = 3 の H-A6F2）の向きの確かさは別の問の集合でしか確かめられない．閾値の近くでは，二項の幅を併記する．
+- **中央の再起動の費用は索引の構成で 10 倍変わる**：`fusion: rrf` の BM25 を読み込みのたびに作り直すと 1.4 → 13.7 秒．中央に有利・不利のどちらの仮定も実装の選択に依るので，中央の再起動を比較に使うときは何を作り直したかを併記する．
+
 ## Iteration 29: 主構成で負荷を同じ時間帯に交互に測り直したときの P2P と中央集約の処理量
 
 **位置づけ**：レバー `d0009.A6_remeasure_main` の値 `load`（d0009 A6．backlog B102 (2)・要レビュー (a)）．p0007 D の負荷は cross-encoder による選択を加える前の構成で測り，再実行で大小が逆転した（P2P 0.581〜0.626 → 0.481〜0.497，中央 0.531〜0.537 → 0.522〜0.535 問/秒）．これを主構成（P2P は R3′ の選択の経路あり，中央は C1-RRF-CE）で，同じ時間帯に交互に流して測り直す．設計の判断は backlog B103．d0009 A6 に着手を書いた（運用ルール 9）．この節が事前登録である．rc-executor が，本番の実機の実行（smoke を除く）より前に commit・push する．
@@ -406,167 +471,6 @@ G-V は通過する（得点の無い候補 < 0.5%）．dev の `v` の AUROC �
 - **「S3 を上回るときだけ V2」の条件は役に立った**：S3 だけでは Q でも 0 と区別できず（+0.0026），増分の出どころを v に帰せる根拠になった．学習した選択器に新しい特徴量を足すときは，足す前の選択器を対照として常に並べる．
 - **候補を全件採点しておくと，事後の分解が安く済む**：H2 の全候補の印があったので，S3 の Q の値や天井を，追加の採点なしで出せた．同じ回答の再採点で約 0.1% の正誤が揺れるので，基準の値は「同じ採点の印」から取り直してから比べる．
 - **Gemma 4 は 1 トークンの判別には使える**：fill_in の生成で破綻したモデルでも，`num_predict` 1・`top_logprobs` の形なら形の崩れは 0 だった．生成モデルとしての不適は，判別器としての不適を意味しない．
-
-## Iteration 27: 回答のプロンプトを穴埋めの書式から直接の指示に替えたときの正答率・作り話
-
-**位置づけ**：レバー `llm.answer_prompt_format`（既定 `fill_in` → `direct`）．Iteration 26 の評価で追加した（backlog B98 [auto-decided]）．設計の判断は backlog B99．生成モデルは llama3.1:8b に固定し，プロンプトと生成モデルを同時に動かさない．この節が事前登録である．rc-executor が，direct の実機の実行（smoke を含む）より前に commit・push する．d0009 の B3 の生成の側の項目として，d0009 に着手を書いた（運用ルール 9）．
-
-### 調査で分かったこと
-
-- **診断（phase 1．判定には使わない）**：gpu4 で G4（`gemma4-12b-it-qat`．`google/gemma-4-12B-it-qat-q4_0-gguf` rev 29d0977．sha256 93567e57…a538b．Iteration 26 の配布物と同じ層）を判定の container（Ollama 0.35.1）に取り込み，Iteration 26 の dev300 の途中までの実行の先頭 40 問について，base の dev（`p0007_a6_dev`）の 1 番目の候補の文脈 5 通で，3 つの形のプロンプトから生成した．設定は config.yaml の `llm` と同じ（`num_predict` 2048・`num_ctx` 16384・温度 0・`think: false`）．結果は `results/d0009_pf_diag/summary_gemma4-12b-it-qat.json`（スクリプトは `scripts/d0009/pf_import_g4.sh`・`pf_diag.py`）．
-
-| 形（G4．40 問） | 失敗 | 上限 2,048 に達した割合 | `Answer:` の行がある割合 | 出力が `Emails:` の書き写しで始まる割合 | 出力のトークン数の中央値 |
-|---|---|---|---|---|---|
-| fill_in（主構成の今のプロンプト） | 1（HTTP 500） | 0.923（36/39） | 0.077 | 1.000 | 2,048 |
-| direct（理由なし．答えの 1 文だけ） | 0 | 0.000 | 0.000 | 0.000 | 26 |
-| direct_cot（理由を述べてから `Answer:` の行） | 0 | 0.000 | 1.000 | 0.000 | 110 |
-
-  - gpu4 でも Iteration 26 の破綻（実機の dev300 の 48 問で 81% が上限）が再現した．HTTP 500 は 1 分 11 秒の生成の途中の中断で，実機の 502 と同じものと読む（推測）．
-  - **direct の形にすると，G4 の書き写しは 40 問の全てで止まった**．したがって B98 (2) の分岐は「止まる」で，このレバーに着手する．G4 の書き写しの主因は穴埋めの書式（欄の一覧を示し，最後の文の続きを書かせる形）と読める．Gemma 4 の文脈の長さや局所注意が主因である見込みは小さい（同じ文脈で direct は止まるため）．
-  - llama3.1:8b は gpu4 に無い．運用ルール 15 で取得は `hf` CLI に限られ，Meta は llama3.1:8b の公式の GGUF を出していない（現行の重みは Ollama の library の量子化．B90 (c)）．このため llama の direct の確かめは，実機の smoke（下の G-L）で行う．
-  - 参考（既存の実機の結果．llama3.1:8b・fill_in）：候補の出力のトークン数の中央値は 33（dev・H・H2 とも），上限に達した候補は dev 34/8,844（0.38%）・H 21/8,586・H2 30/8,421．
-- **プロンプトの書式の影響は大きく，モデルによって違う**：Sclar et al.（2024．"Quantifying Language Models' Sensitivity to Spurious Features in Prompt Design"．ICLR 2024．arXiv:2310.11324）は，意味を変えない書式の違いだけで，LLaMA-2-13B の few-shot の正答率が最大 76 pt 動き，書式の良し悪しはモデルの間で揃わないと報告している．He et al.（2024．"Does Prompt Formatting Have Any Impact on LLM Performance?"．arXiv:2411.10541）も，同じ内容を平文・Markdown・JSON・YAML で書き分けると GPT 系で最大 40% 程度の差が出て，大きいモデルほど揺れが小さいと報告している．今回の主構成の穴埋めの書式は，EnronQA の原論文の付録 B.5（DSPy の書式）と Llama に合わせたもので，別のモデルで同じ挙動になる保証は無い．
-- **DSPy 自体も chat のモデル向けの書式に移っている**：DSPy の既定の ChatAdapter は，入力と出力の欄を `[[ ## field ## ]]` の区切りで chat の messages に組み立てる（DSPy の文書 "ChatAdapter"．https://dspy.ai/current/api/adapters/ChatAdapter）．主構成のプロンプトは，それ以前の「Follow the following format.」の後に欄を並べ，最後の欄の途中で終える補完の書式である．
-- **Gemma 4 の chat の書式**：Gemma 4 は `<|turn>`・`<turn|>` の制御トークンで発話を区切り，system の役割を持つ（Google AI for Developers "Gemma 4 Prompt Formatting"．https://ai.google.dev/gemma/docs/core/prompt-formatting-gemma4）．取り込んだ G4 の Modelfile の停止の語は `<turn|>` で，公式の書式どおりである．したがって G4 の書き写しは，chat のテンプレートの誤りではなく，user の文面（穴埋めの書式）の読み方の違いによると読む（推測）．
-- **理由を述べさせることの効果**：Sprague et al.（2024．"To CoT or not to CoT? Chain-of-thought helps mainly on math and symbolic reasoning"．arXiv:2409.12183）のメタ分析では，CoT の利得は数学・記号の推論に集中し，常識・知識・文章の分類などでは 1% 未満が多い．EnronQA の回答は抽出型に近いので，理由を省いても正答率は大きくは変わらない見込みである（推測）．ただし，今回は理由を残す形（direct_cot）を選び，変える要素を「穴埋めの書式」だけに絞る（下の「単一レバー」）．
-
-### 仮説
-
-主構成のプロンプトを穴埋めの書式から直接の指示（理由を述べてから `Answer:` の行に 1 文で答える）に替えても，llama3.1:8b の R3′ の最終回答の正答率（Q．qwen3:8b の判定）は非劣性の幅 δ = 0.02 の内にとどまる（見込みは Δ = −0.01〜+0.01）．作り話の割合は ±0.005 の内で，露出は変わらない．これが成り立てば，direct の形はモデルを替える比較（llm.expert_model_gpu の再挑戦）の共通のプロンプトとして使える．
-
-### 単一レバー
-
-**`llm.answer_prompt_format`** を **`fill_in`（今の挙動）から `direct` へ**替える．EnronQA の回答のプロンプトの user の文面だけを替え，system の文面（`You answer questions about emails.`）・文脈 5 通の並べ方（`prompts.format_context`）・質問・回答の取り出し（`prompts.extract_free_answer`：最後の `Answer:` の行．無ければ全体）は変えない．
-
-- **direct の文面（固定．sha256 7a59a3ac559ecb5676868443491061c547bae44b5bcabb1394590667fd08222b）**：診断の `direct_cot` と同じ文字列である．`{context}`・`{question}` は fill_in と同じ値で埋める．
-
-```text
-Given emails and a question about one of those emails, write the answer to that question in a single sentence.
-
-Emails:
-{context}
-
-Question: {question}
-
-First explain your reasoning step by step in a few sentences. Then write the answer as a single sentence on a last line that starts with "Answer:".
-```
-
-- **direct_cot を選んだ理由**：3 つの形の選び方は，診断の前に「上限に達する割合 ≤ 5% と `Answer:` の行 ≥ 95% を満たす形のうち，理由を残す direct_cot を優先し，満たさなければ理由なしの direct」と決めていた（記録は診断の後のこの節）．診断は正誤を採点しておらず，正答率を見て選んではいない．理由を残すと，fill_in から変わる要素は「欄の一覧を示して最後の文の続きを書かせる書式」だけになる（理由の有無と回答の取り出しの規則は同じ）．理由なしの形は，書式と CoT の 2 つを同時に変えることになる．
-- **UNKNOWN を許す形**：`allow_unknown`（A5 の候補）と `direct` の組は定義しない（主構成は UNKNOWN の除外なしの通常のプロンプト）．組を指定したら ValueError で止める．
-- **固定する構成（Iteration 22 の P と同じ）**：`scripts/d0009/a3_config.py p` の条件．EnronQA・`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`answer_mode: owner_answer`・`owner_m: 3`・`retrieval.fusion: rrf`・UNKNOWN の除外なし・`answer.aggregate: max_score`・`save_candidates: true`・`http_pool: per_node`・`parallel: 30`・質問者 1 台（wafl-ctrl5）・30 台の専門家・`llm.expert_model_gpu: llama3.1:8b`（wafl500〜509）・温度 0・種 12・`num_ctx` 16384・`num_predict` 2048・`think: false`．選択は R3′（`ce_max` の最大．gpu4 でのオフラインの当てはめ．運用ルール 11 の併記：実機の選択との一致を確かめた範囲は `p0007_f6_agree` の 300 問と Iteration 22 の G2）．R3′ は回答の文字列を見ないので，候補の受信箱と文脈が同じなら選ぶ受信箱は fill_in と direct で同じになる．比べているのは「同じ受信箱の回答の文面」の違いである．
-- **判定モデル**：主構成の qwen3:8b（gpu4 の判定の container．Q4_K_M・温度 0・`think: false`．Iteration 22〜25 と同じ）．過去の数値と並ぶ．J1（Qwen3 14B Q8_0）は使わない．以降の主の判定モデルを J1 にするかは，B93 (b) のとおり人間の判断に残る（このイテレーションでは決めない）．
-
-### 質問集合（運用ルール 10）
-
-- **ゲート（dev）**：dev（2,948 問）．base は `p0007_a6_dev` の候補（fill_in）と，その qwen3:8b の印 `results/d0009_b3s_dev/candidate_judgements.jsonl`（R3′ 0.7229．2,131 問）．direct は今回実機で流す `d0009_pf_dev_direct`．dev は Iteration 25 で R3′ の正答率を見ているが，direct の値は一度も見ていない．
-- **判定**：**Q = H ∪ H2**（5,669 問）．base の H は `d0009_a3_p1`（Iteration 22．R3′ の印は `d0009_a3_p1_R3p`），base の H2 は `d0009_m1_h2_base`（Iteration 26．未採点．正答率を一度も見ていない）．direct は `d0009_pf_h_direct`・`d0009_pf_h2_direct`．H は fill_in の R3′ の正答率を見ているが，direct の値は見ていない．
-- base の H の残りの 4 回（`d0009_a3_p2`・`p3`・`d0009_a1_n1_r1`・`n1_r2`）との差は記述だけに使う．
-
-### 実行（実機．運用ルール 8・13）
-
-| 順 | run_id | 構成 | 問 | 条件 |
-|---|---|---|---|---|
-| 1 | `d0009_pf_smoke` | 固定する構成＋`answer_prompt_format: direct` | dev の先頭 30 問（`d0009_m1_dev300_g4_partial` の先頭 30 問と同じ qid を優先．同じにできなければ dev の受信箱ごとの先頭．どちらにしたかを記録） | G-T の後 |
-| 2 | `d0009_pf_dev_direct` | 同上 | dev（2,948 問） | G-L 通過 |
-| 3 | `d0009_pf_h2_direct` | 同上（`question_split: holdout2`） | H2（2,807 問） | G-D 通過 |
-| 4 | `d0009_pf_h_direct` | 同上（H の質問集合） | H（2,862 問） | G-D 通過 |
-
-- 前に全 11 台の GPU の使用状況と `ollama ps` を記録し，GPU の PC が空くまで最大 2 時間待つ（他の研究者のプロセスには触れない）．失敗した問（502・timeout）だけを同じ run_id で 1 回流し直すことは許す．`config.yaml` は実行の後に元へ戻す（commit しない）．所要の見込みは 1 回 50〜60 分（direct は出力のトークンが fill_in より増える見込み．G4 の診断では 26 → 110．llama で同じ割合とは限らない）．
-- **採点（gpu4．運用ルール 14）**：各実行の候補に `select-features`（`ce_max`）を計算し，R3′ の最終回答を `results/<run>_R3p` に書き出す．最終回答を qwen3:8b で採点する（`judge --resume`）．件数は dev 2,948・H 2,862・H2 2,807（direct）と，base の H2 の 2,807（`d0009_m1_h2_base_R3p`．採点の後に `sanitize_results.py` を通して commit する．B98 (d)）．作り話の 3 分類は Q の両側の不正解の最終回答（各 約 1,600 件の見込み）．wafl の GPU は実験の実行中は使わない．使うなら nvidia-smi で空きを確かめて記録する（Iteration 25 では wafl の Ollama の起動が権限の分類器に拒否された）．
-
-### 判定の規則（`results/d0009_pf_prompt/verdict.json`．`verdict_original` は書き換えない）
-
-記号：**Δ = acc(direct の R3′) − acc(fill_in の R3′)**（qwen3:8b の判定．失敗・判定不能は不正解として数える．分母は質問集合の全問）．
-
-- **検出できる差の大きさ（先に書く）**：同じ受信箱の回答の文面が変わるので，片方だけ正解の問（b + c）を Q の 8〜15%（450〜850 問）と見込む．対応ありの 95% の区間の半幅は 1.96·√(b + c)/n ≈ **0.007〜0.010** になる．dev（2,948 問）では 0.010〜0.014．
-- **主（H-PF1．正答率．Q）**：区間は (1) 問の対応ありのブートストラップ（10,000 回・種 12．Iteration 22 の作り方 1），(2) 分散の分解（作り方 2．σ²_u,P = 1.63e−7 を両側に足す）．結論は次の順に 1 つ決める．
-  - 「改善」：(1)(2) の両方の下端 > 0．
-  - 「悪化」：(1)(2) の両方の上端 < 0．下端 > −0.02 なら「悪化（非劣性の幅の内）」と付記する．
-  - 「非劣性」：上の 2 つに当たらず，(1)(2) の両方の下端 > −0.02（δ = 0.02．d0009 A3 の値）．
-  - 「決まらない」：それ以外．
-  - 併記：McNemar の b : c と正確検定の p（`atrium compare`），H と H2 に分けた Δ，区分 (a)(b)(c) の正答率，候補のどれかが正解の割合（天井．時間の許す範囲で候補の全件を採点した場合だけ），base の H の残り 4 回との Δ（記述）．
-- **H-PF2（作り話．記述と取り込みの条件）**：最終回答を A2 の 3 分類（`atrium abstain-judge`・`fabrication-eval`．Iteration 21 の規則とプロンプト．qwen3:8b）に分け，作り話の割合を fill_in と direct で出す（対応ありのブートストラップ区間．10,000 回・種 12）．人手での確かめは，2 つの形で正誤が食い違う問から 30 件（種 12）を agent が見て，判定モデルの正誤・3 分類との一致を記録する（記述）．
-- **H-PF3（露出．記述）**：`multi_requester_eval.exposure`（N = 1）で E_any を出す（分母 73,772）．プロンプトは送る文書を変えないので，同じ値になることを確かめる（違えば原因を記録する）．
-- **H-PF4（費用と形．記述）**：候補 1 件あたりの `output_tokens`・`decode_s`・`total_s` の中央値と p95，上限に達した候補の割合，`Answer:` の行が無い候補の割合，実行の処理量（問/秒）を fill_in（同じ質問集合の base）と並べる．base は別の日の実行なので，処理量の比は記述にとどめる．
-- **主構成への取り込み**：H-PF1 が「改善」か「非劣性」，H-PF2 の作り話の割合の増分（direct − fill_in）≤ +0.005，`total_s` の中央値が base の 2 倍以下，の全てを満たすときだけ，以降の d0009 の主構成のプロンプトを direct にする（config のコードの既定は fill_in のまま．d0009 の実行の設定で `direct` を指定する）．このとき次のイテレーションは，direct のまま生成モデルを替える（`llm.expert_model_gpu` の再挑戦）．base はこのイテレーションの llama の direct の実行である．満たさなければ fill_in のままにし，次は B3 の `answer_verification`（B88）にする．
-
-### ゲート（満たさなければ判定の前に止まり，原因を記録する）
-
-- **G-T（互換）**：`answer_prompt_format` の既定（`fill_in`）で `prompts.build_messages` の messages が今とバイト単位で同じであること（試験で固定）．direct の文面の sha256 が上の値であること（試験で固定）．`mise run check` を通ること（既知の不安定な試験は B78 (c) のとおり記録）．
-- **G-L（llama の direct の形．smoke の候補で数える）**：`d0009_pf_smoke` の候補（約 90 件）で，失敗 ≤ 1 問，上限 2,048 に達した割合 ≤ 5%，`Answer:` の行がある割合 ≥ 95%．満たさなければ dev の実行に進まず，「棄却（llama で direct の形が回答にならない）」とする．smoke の正誤は採点しない．
-- **G-S（候補の受信箱）**：direct の各実行の候補の受信箱の集合が，同じ質問集合の base（dev は `p0007_a6_dev`，H は `d0009_a3_p1`，H2 は `d0009_m1_h2_base`）と一致する割合 ≥ 0.99（融合得点の差 ≤ 1e-4 は同点として許す）．R3′ で選んだ受信箱の一致の割合も記録する．満たさなければ原因（シャード・取得の揺れ）を記録して止まる．
-- **G-D（dev．H・H2 に進むか）**：dev の **Δ_dev ≥ −0.010**（点の値．同じ qwen3:8b の判定の上で比べる）．根拠：Q の半幅は 0.007〜0.010 なので，真の Δ が −0.010 なら Q の下端は −0.02 付近になり，非劣性を示せる見込みが小さい．dev は別の日の base との比較で，再実行の変動を含む．**満たさなければ H・H2 の実機を流さず，このイテレーションは「棄却（ゲート G-D 不通過）」とする**．dev の Δ・b : c・区間（作り方 1）は通過・不通過のどちらでも `verdict.json` に書く．
-- **G-D′（記録の固定）**：G-D を通過したら，dev の結果をこの節の末尾に「追記」として書き，H・H2 の実行の前に commit・push する．
-- **G-J（採点）**：各実行の最終回答の判定不能 ≤ 1%．
-- **G3**：各実行の失敗（流し直しの後）≤ 1%．超えたら成功した問に絞り，その旨を記録する．
-- **G-F（形．dev の候補）**：`d0009_pf_dev_direct` の候補で，上限に達した割合 ≤ 1%（base の dev は 0.38%）．超えたら記述し，判定に「上限に達する回答が多い」と付ける（止まらない）．
-
-### 成功条件（このイテレーションの採用）
-
-(1) G-T・G-L・G-S・G3・G-J を通過し，G-D の結果（通過・不通過）を dev の値とともに `verdict.json` に書く．(2) G-D を通過した場合は，G-D′ の commit・push の後に H2・H を実機で流して採点し，H-PF1〜H-PF4 を上の規則で出す．(3) G-D が不通過なら，H・H2 を流さずに「棄却」として記録し，値 `direct` を閉じる．仮説の成否（「非劣性」にならないこと）は採用の条件にしない．採否は「主構成への取り込み」の条件で決める．
-
-### 期待効果（見込み．検証対象ではない）
-
-G-L は通過する（候補の `Answer:` の行 ≥ 98%）．dev の Δ は −0.01〜+0.01 で G-D を通る．Q の Δ は −0.01〜+0.01 で，H-PF1 は「非劣性」．作り話の割合の差は ±0.005．E_any は base と同じ値．出力のトークン数の中央値は 33 から 80〜120 に増え，`total_s` の中央値は base の 1.2〜1.6 倍．
-
-### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
-
-- **設定**：`src/atrium/config.py` の `LlmConfig` に `answer_prompt_format: Literal["fill_in", "direct"] = "fill_in"` を足す．`docs/d0002_configuration.md` に追記する．
-- **プロンプト**：`src/atrium/prompts.py` に direct の文面（上の固定の文字列．`ENRON_DIRECT_TEMPLATE` など）を足し，`build_messages` に引数 `answer_format`（既定 `"fill_in"`）を足す．`direct` は EnronQA だけで，他のデータセットか `allow_unknown=True` との組は ValueError．
-- **呼び出し**：`src/atrium/node.py` の `generate`（自分の生成と `/v1/generate` の委託の受け側の両方）で `cfg.llm.answer_prompt_format` を渡す．委託の要求の形（`GenerateRequest`）は変えない（委託先のノードも同じ config.yaml を読むため）．requester の `build_messages` の呼び出し（snippet_return 等）は今回の主構成では使わないので，既定のままでよい（渡すかは実装者が判断し，既定の挙動を変えない）．
-- **試験**：`tests/test_prompts.py` に，既定で messages が今と同じこと，direct の文面の sha256，`allow_unknown` と direct の組の ValueError，direct の出力からの回答の取り出し（`Answer:` の行あり・なし）を足す．
-- **実行の設定**：`scripts/d0009/a3_config.py` の形で `scripts/d0009/pf_config.py`（P の条件＋`llm.answer_prompt_format: direct`＋question_split）と，連鎖 `scripts/d0009/pf_chain.sh`（smoke → G-L の確かめ → dev → 採点 → G-D → H2・H）を作る．G-L の数え方は `scripts/d0009/pf_diag.py` の集計（上限・`Answer:` の行）と同じにする．
-- **集計**：`scripts/d0009/pf_verdict.py` で G-D・H-PF1〜H-PF4・G-S を `results/d0009_pf_prompt/verdict.json` に書く．区間は `atrium.rerun_variance` の関数，McNemar は `atrium compare` を再利用する．回答は `sanitize_results.py` を通してから commit する．既存の results（運用ルール 12 の記録を含む）は変えない．
-- **gpu4 の判定の container**：phase 1 で `scripts/d0009/pf_import_g4.sh` により，G4 の GGUF も読み取り専用で mount して作り直した（volume の qwen3:8b・qwen3:14b-q8_0 は残っている．G4 は volume に取り込み済みで，`ollama stop` で VRAM から外した）．採点は従来どおり qwen3:8b を使う．
-
-### 追記（phase 2．2026-11-08．実装・smoke の結果．判定ではなく記録）
-
-- **事前登録の commit**：`e4f0f15`（実装・試験・診断・実行のスクリプトを含む．direct の実機の実行より前に push 済み）．phase 1 の記述にあった `pf_config.py`・`pf_chain.sh` は未作成だったので，phase 2 で作ってから同じ commit に入れた．`pf_verdict.py`・`pf_gl.py`・`pf_score.sh` はその後に書いた（smoke の G-L の数えは `pf_gl.py`）．
-- **G-T**：通過．`mise run check` 985 件が通過（`tests/test_failure_run.py` の不安定な 1 件は，1 回目に失敗し，直前の commit でも失敗し，2 回目は通過．B78 (c) のとおり）．既定の messages は事前の `build_messages` の出力と sha256 が一致（試験で固定），direct の文面の sha256 は 7a59a3ac…8222b．
-- **smoke の条件の違い（記録）**：`question_limit` は受信箱ごとの先頭の数なので，30 問だけを指定できない．dev の受信箱ごとの先頭 1 問（150 問）を流した．Iteration 26 の dev300 の先頭 30 問の qid のうち 17 問が含まれる．G-L の判定は事前登録の「30 問」に最も近い，この 17 問の値とし，150 問の値を併記する．`Answer:` の行は，候補の回答が取り出し後の文字列で保存されるため，採った 1 つの候補の生の出力（`answer`）で数えた．
-- **G-L（`d0009_pf_smoke`．gpu のノードは wafl500〜509．実行の前に全 10 台の使用メモリは 74 MiB 以下．交絡なし）**：
-
-| 集合 | 失敗 | 上限 2,048 に達した割合 | `Answer:` の行がある割合 | 出力トークン数の中央値 |
-|---|---|---|---|---|
-| 17 問（先頭 30 問の qid と重なる分．判定） | 0 | 0.216（11/51 候補） | 1.000（17/17） | 146 |
-| 150 問（全問） | 0 | 0.224（101/450 候補） | 0.960（144/150） | 156 |
-
-  - **G-L は不通過**（上限に達した割合 ≤ 5% を満たさない．失敗と `Answer:` の行は満たす）．事前登録の規則により **dev 以降（`d0009_pf_dev_direct`・H2・H）は流さず，「棄却（llama で direct の形が回答にならない）」とする**．
-  - 上限に達した候補は 150 問の 80 問（53%）に 1〜2 件あり，3 候補が全て達した問はない．全候補の `total_s` の中央値は 62.7 秒（p95 205.8 秒．同時 30 問の待ちを含む値．別の日の base の dev は中央値 14.6 秒・p95 253.4 秒で，比は記述にとどめる）．採った候補の出力の 150 問中 5 問は 3,000 文字を超え，メールの本文を 1 通ずつ引用して「まだ見つからない」と読み進める途中で打ち切られていた（`answer` は sanitize 後に残る先頭と末尾で確認した）．参考：base の fill_in は上限に達した候補が dev で 0.38%．
-  - G4 の診断（direct_cot で上限 0/40）は，llama3.1:8b に当てはまらなかった．llama は理由を述べさせると，文脈の 5 通を順に読み直す形に入りやすい（推測．確かめるなら理由なしの `direct` を試す必要があるが，書式と CoT の 2 つを同時に変えることになる）．
-- **base の H2（`d0009_m1_h2_base`）の採点**：B98 (d) のため，R3′ の最終回答を `scripts/d0009/pf_score.sh` で qwen3:8b により採点した（`results/d0009_m1_h2_base_R3p`．2,807 問．失敗 0．qwen3:8b の正答 2,048・不正解 758・判定が付かなかった 1 件．判定不能 0．正答率は失敗・未判定を不正解として 0.7296．`sanitize_results.py` を通した）．base の dev の R3′ の派生 `results/d0009_pf_base_dev_R3p`（`atrium select-eval --apply R3 --ignore-unknown`．正答率 0.7229 = 2,131/2,948 で Iteration 25 の値と一致）も作った．
-
-### Iteration 27 実行済み：分析・考察（2026-11-08．research-cycle の phase 3．判定：棄却（ゲート G-L 不通過．llama で direct の形が回答にならない）．値 `direct` を閉じる）
-
-**変更**：事前登録（commit e4f0f15）のとおり，追加だけの設定キー `llm.answer_prompt_format`（`fill_in`〔既定〕/ `direct`）を実装し，固定する構成（Iteration 22 の P）に `direct` だけを足して実機の smoke `d0009_pf_smoke`（dev の受信箱ごとの先頭 1 問．150 問）を流した（commit 017c70c）．dev・H2・H の direct は流していない．`config.yaml` は元へ戻してある．
-
-**結果**
-- **G-T**：通過（既定の messages はバイト単位で同じ，direct の文面の sha256 一致，`mise run check` 985 件）．
-- **G-L**：**不通過**．判定に使う 17 問（事前登録の「先頭 30 問」と重なる分）で，失敗 0，`Answer:` の行 17/17 は満たしたが，上限 2,048 トークンに達した候補が 11/51（0.216．候補単位の Wilson 95% 区間 0.125〜0.346）で上限 5% を大きく超えた．150 問の全体でも 101/450（0.224．区間 0.188〜0.265），`Answer:` の行 0.960，失敗 0．
-- **記述（H-PF4 の一部）**：同じ 150 問の base（`p0007_a6_dev`．fill_in．別の日）の候補は上限 0/450・出力トークン数の中央値 30 で，direct は中央値 156（上限に達しない候補だけで 131）．候補の `total_s` の中央値は base 10.2 秒 → direct 62.7 秒（約 6 倍．同時 30 問の待ちを含む）．
-- **追加の集計（phase 3．事後の記述）**：上限に達した候補は，ほぼ全てが持ち主でない受信箱の候補だった．持ち主の受信箱の候補は 1/146（0.7%），持ち主でない受信箱の候補は 100/304（32.9%）．top_score の順位では 1 位 5/150・2 位 45/150・3 位 51/150．問ごとに上限の候補の数は 0 件 70 問・1 件 59 問・2 件 21 問．
-- **base の採点（B98 (d)）**：H2 の base の R3′ は qwen3:8b で 0.7296（`results/d0009_m1_h2_base_R3p`）．dev の base の R3′ は 0.7229（Iteration 25 と一致）．どちらも判定には使っていない．
-- 記録：`results/d0009_pf_prompt/verdict.json`（`verdict_original` と `verdict_revised`），`results/d0009_pf_smoke/gl.json`．`scripts/d0009/pf_verdict.py`（dev・full の段）は G-L で止まったので使っていない．
-
-**ノイズか信号か**：揺れの範囲ではない．閾値 5% に対して候補単位の区間の下端が 0.125（17 問）・0.188（150 問）で，同じ問の候補の相関を無視しない問単位でも 150 問中 80 問に上限の候補がある．同じ 150 問の base は 0/450 なので，原因は direct の文面と llama3.1:8b の組にある．
-
-**仮説との一致・不一致**：期待効果（G-L 通過．`Answer:` の行 ≥ 98%）は外れた．`Answer:` の行は採った候補でほぼ満たしたが，持ち主でない受信箱の候補で，llama がメールを 1 通ずつ引用して「まだ見つからない」と読み進め，上限で打ち切られた．H-PF1（非劣性）は検証していない．G4 の診断（direct_cot で上限 0/40）は llama に当てはまらなかった．
-
-**判定**：**棄却（ゲート G-L 不通過．llama で direct の形が回答にならない）**．事前登録の規則どおり，dev 以降の実機は流さず，値 `direct` を閉じる．主構成のプロンプトは `fill_in` のまま．`verdict_original` は `rejected_gate_GL_failed`．
-- 事後の読み替え（`verdict_revised`．採否に使わない）：G-L を持ち主の候補か，max_score で採った候補だけで数えれば，上限の割合は 0.7%・3.3% で 5% 以下になる．ただし R3′ は回答の文字列を見ずに選び，持ち主でない候補を選ぶ問（主構成で約 13%）では打ち切られた長い出力が最終回答になりうる．また全候補の生成の時間（約 6 倍）は取り込みの条件（`total_s` の中央値が base の 2 倍以下）にも当たらない見込みが大きい．読み替えでも判定は変わらない．
-
-**事前登録からの偏差**
-- (i) smoke は 30 問ではなく 150 問（`question_limit` は受信箱ごとの数で 30 問を指定できない）．G-L は重なる 17 問で判定し，150 問の値を併記した．結論は両方で同じ．
-- (ii) `Answer:` の行は，候補の回答が取り出し後で保存されるため，採った 1 つの候補の生の出力で数えた（事前登録は候補で数えると書いていた）．不通過の理由は上限の割合で，この偏差は結論に効かない．
-
-**主張できる範囲**：llama3.1:8b（主構成の設定．温度 0・`num_predict` 2048）に，理由を述べてから `Answer:` の行に答える直接の指示を与えると，答えが文脈に無い受信箱（持ち主でない受信箱）の候補の約 1/3 が上限まで読み進めて打ち切られる．持ち主の候補ではほぼ起きない（1/146）．
-**主張できない範囲**：(i) direct の形の正答率・作り話（採点していない）．(ii) 理由なしの direct で止まるか（試していない）．(iii) llama 以外のモデルでの挙動（G4 の診断は 40 問で，持ち主かを分けていない）．
-
-**学び**
-- **CoT の止まり方はモデルと「答えがあるか」で違う**：G4 は direct_cot で 0/40 だったが，llama は答えが文脈に無いときに理由の段で探し続ける．診断は持ち主の候補（文脈に答えがある側）に偏った 1 番目の候補の文脈で行っていたので，この挙動を見落とした．次にプロンプトを診断するときは，持ち主でない受信箱の文脈も含める（候補の 3 つ全てか，持ち主かで層に分ける）．
-- **穴埋めの書式は llama には「止まる」書式だった**：fill_in の上限は dev で 0.38% で，「Reasoning: Let's think step by step in order to」の続きの 1 文を書いて `Answer:` へ移る．同じ理由づけでも，自由に書かせる指示は llama の出力を約 5 倍に延ばす．
-- **上限の候補は検証の手がかりになりうる**：llama が direct_cot で上限まで探し続けるのは，ほぼ持ち主でない受信箱（答えが文脈に無い）である．文脈が回答を支えるかを LLM に問う B3 の `answer_verification` は，この「答えが無いと分かる」性質を選択に使う筋で，次のイテレーションの事前登録の参考になる（推測．採否の根拠ではない）．
-- **最新の LLM への替え（人間の指示 B89 の主題）の前提が残っていない**：G4 は fill_in で書き写し，llama は direct_cot で探し続けるので，両方で回答を作る共通のプロンプトはまだ無い．候補は理由なしの direct（診断で G4 は上限 0/40）だが，fill_in から書式と CoT の 2 つを同時に変える（backlog B100 の要レビュー）．
 
 ## p0007 F-7：P2P-R3′ の候補数 m を 4 にした結果と判定（2026-10-24〜25．`results/p0007_f7_*`）
 

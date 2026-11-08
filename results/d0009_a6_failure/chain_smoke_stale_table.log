@@ -1,0 +1,11 @@
+[07:24:38] deployed
+[2026-11-09_07:24:38] BEGIN d0009_a6_failure_smoke (D=30)
+[07:24:40] max other-process GPU memory on wafl500-509: 0 MiB
+[07:25:43] max other-process GPU memory on wafl500-509: 0 MiB
+[07:26:46] max other-process GPU memory on wafl500-509: 0 MiB
+[07:26:46] d0009_a6_failure_smoke confound=none
+[07:29:57] d0009_a6_failure_smoke live_run=0
+[07:29:59] d0009_a6_failure_smoke G-R ok (all nodes serving)
+[07:29:59] smoke baseline returned rate=1 (min 0.98)
+[2026-11-09_07:29:59] BEGIN d0009_a6_failure_r1 (D=30)
+[07:30:02] max other-process GPU memory on wafl500-509: 0 MiB

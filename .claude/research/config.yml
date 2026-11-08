@@ -345,7 +345,12 @@ levers:
             V2 を 1 枚の RTX 5090 に載せると上限 0.42 問/秒（C と同じ程度）．次は値 failure（backlog B104）．
             着手：Iteration 30（値 failure．事前登録は journal の Iteration 30．backlog B105）．p0007 E1 と同じ止め方・k（種 12 の同じホスト）・停止 45 秒で，P の主構成を H の 288 問・stream_parallel 8 で 3 ラウンド．
             答えられた＝締め切り 30 秒以内に失敗なく回答を返し，R3′ の選んだ候補の文脈に正解のメール．中央は索引（RRF の BM25 を含む）の再起動を実測し，再起動後の割合は C1-RRF-CE の上位 5 通の正解の割合（Iteration 29）．
-            failure-run に質問集合と答えられたの判定を追加，表 ce_table/holdout_owner.jsonl を全 150 受信箱の上位集合に作り足す（gpu4）"}
+            failure-run に質問集合と答えられたの判定を追加，表 ce_table/holdout_owner.jsonl を全 150 受信箱の上位集合に作り足す（gpu4）．
+            完了（failure）：Iteration 30（2026-11-09．採用）．結果は results/d0009_a6_failure/（verdict.json・failure_summary.json・事後の記述 posthoc_completion.json・table/table_check.json），
+            実行は results/d0009_a6_failure_r{1,2,3}/，記述は journal の Iteration 30「実行済み」．判定（verdict_original）：H-A6F1 は全 8 条件で「P2P が上」（I_P 51.4〜75.5 対 I_C 28.33．E1 成立）．
+            ただし止める時間の後の P2P の積分だけ（38.9〜41.0）で I_C を超え，止めた間の割合に依らない．H-A6F2（検出と同時の再起動）は availability k = 1・3 が「P2P が上」，残り 6 条件は「中央が上」
+            （k = 3 は境 0.648 を約 0.5 問分上回るだけ）．止めた間の割合は availability 0.70・0.66・0.43・0.47（失敗は全て委託・止めた台の HTTP 502），container は登録の値 0.33〜0.64 だが，
+            再開の前に答えた問は k ≥ 3 で 0（再開まで待って締め切り内に終わった問が入る．posthoc_completion.json）．中央の再起動 13.5〜13.7 秒（BM25 の作り直し 12.2 秒）．次は値 join（backlog B106）"}
   - {name: d0009.A4_exposure_total, values: [with_generation_delegation],
      note: "d0009 A4（中）．主構成の露出の全体．37.6% は cross-encoder の採点で質問者へ渡る文書の下限である．GPU を持たない PC が
             回答の生成を GPU 搭載 PC に委託するときに送る文書を含めた全体の露出を，保存した文書の識別子から求める（p0007 B と同じ数え方）"}

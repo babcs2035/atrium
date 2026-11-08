@@ -1,0 +1,35 @@
+[07:34:15] deployed
+[2026-11-09_07:34:15] BEGIN d0009_a6_failure_smoke (D=30)
+[07:34:18] max other-process GPU memory on wafl500-509: 0 MiB
+[07:35:21] max other-process GPU memory on wafl500-509: 0 MiB
+[07:36:23] max other-process GPU memory on wafl500-509: 0 MiB
+[07:36:23] d0009_a6_failure_smoke confound=none
+[07:40:04] d0009_a6_failure_smoke live_run=0
+[07:40:06] d0009_a6_failure_smoke G-R ok (all nodes serving)
+[07:40:06] d0009_a6_failure_smoke table_miss=0
+[07:40:06] smoke baseline returned rate=1 (min 0.98)
+[2026-11-09_07:40:06] BEGIN d0009_a6_failure_r1 (D=30)
+[07:40:09] max other-process GPU memory on wafl500-509: 0 MiB
+[07:41:12] max other-process GPU memory on wafl500-509: 0 MiB
+[07:42:15] max other-process GPU memory on wafl500-509: 0 MiB
+[07:42:15] d0009_a6_failure_r1 confound=none
+[07:59:09] d0009_a6_failure_r1 live_run=0
+[07:59:11] d0009_a6_failure_r1 G-R ok (all nodes serving)
+[07:59:11] d0009_a6_failure_r1 table_miss=0
+[2026-11-09_07:59:11] BEGIN d0009_a6_failure_r2 (D=30)
+[07:59:13] max other-process GPU memory on wafl500-509: 0 MiB
+[08:00:16] max other-process GPU memory on wafl500-509: 0 MiB
+[08:01:19] max other-process GPU memory on wafl500-509: 0 MiB
+[08:01:19] d0009_a6_failure_r2 confound=none
+[08:18:12] d0009_a6_failure_r2 live_run=0
+[08:18:14] d0009_a6_failure_r2 G-R ok (all nodes serving)
+[08:18:14] d0009_a6_failure_r2 table_miss=0
+[2026-11-09_08:18:14] BEGIN d0009_a6_failure_r3 (D=30)
+[08:18:17] max other-process GPU memory on wafl500-509: 0 MiB
+[08:19:20] max other-process GPU memory on wafl500-509: 0 MiB
+[08:20:22] max other-process GPU memory on wafl500-509: 0 MiB
+[08:20:22] d0009_a6_failure_r3 confound=none
+[08:37:16] d0009_a6_failure_r3 live_run=0
+[08:37:18] d0009_a6_failure_r3 G-R ok (all nodes serving)
+[08:37:18] d0009_a6_failure_r3 table_miss=0
+[2026-11-09_08:37:21] ALL DONE

@@ -1,0 +1,1122 @@
+{
+ "rounds": {
+  "d0009_a6_failure_r1": {
+   "valid": true,
+   "gates": {
+    "n_conditions": 8,
+    "baseline_returned_rate": 0.9948979591836735,
+    "G_B": true,
+    "G_R": true,
+    "n_table_miss": 0
+   },
+   "deadline_s": 30.0,
+   "window_s": 88.70550246909261,
+   "central": {
+    "restart_to_answer_s": 13.705502469092607,
+    "restart_to_ready_s": 13.680665286025032,
+    "index_load": {
+     "n_docs": 73772,
+     "n_inboxes": 150,
+     "read_docs_s": 0.7312896646326408,
+     "read_emb_s": 0.19015290832612664,
+     "total_s": 13.180113526876085,
+     "bm25_s": 12.232597016962245
+    },
+    "hit_rate_after_restart_index_only": 0.92
+   },
+   "conditions": [
+    {
+     "mode": "availability",
+     "k": 1,
+     "hosts": [
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.8888888888888888,
+      "returned": 0.9629629629629629,
+      "owner_hit": 0.8888888888888888,
+      "hit_within_half_deadline": 0.8888888888888888
+     },
+     "baseline_n": 27,
+     "fault_rates": {
+      "hit": 0.7111111111111111,
+      "returned": 0.7777777777777778,
+      "owner_hit": 0.7333333333333333,
+      "hit_within_half_deadline": 0.5111111111111111
+     },
+     "fault_n": 45,
+     "fault_failure_kinds": {
+      "http": 10
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {
+      "http": 1
+     },
+     "integral": 75.51502627861642,
+     "integral_w0": 33.98821149908361,
+     "detection_s_p50": 0.002061523962765932,
+     "ready_s_max": 0.04850968800019473,
+     "first_failed_request_s": 0.7883680160157382,
+     "n_timeouts": 0,
+     "n_questions": 118,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 3,
+     "hosts": [
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.6590909090909091,
+      "returned": 0.7727272727272727,
+      "owner_hit": 0.6818181818181818,
+      "hit_within_half_deadline": 0.4772727272727273
+     },
+     "fault_n": 44,
+     "fault_failure_kinds": {
+      "http": 10
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 72.31859770718783,
+     "integral_w0": 30.985264373854513,
+     "detection_s_p50": 0.004057609010487795,
+     "ready_s_max": 0.09504034195560962,
+     "first_failed_request_s": 2.2243848510552198,
+     "n_timeouts": 0,
+     "n_questions": 113,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 10,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.13.107",
+      "192.168.13.109",
+      "192.168.14.101",
+      "192.168.14.102",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.46808510638297873,
+      "returned": 0.574468085106383,
+      "owner_hit": 0.46808510638297873,
+      "hit_within_half_deadline": 0.1702127659574468
+     },
+     "fault_n": 47,
+     "fault_failure_kinds": {
+      "http": 20
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 62.32204570837082,
+     "integral_w0": 21.551163932959,
+     "detection_s_p50": 0.008459781587589532,
+     "ready_s_max": 0.34128010901622474,
+     "first_failed_request_s": 0.8343931169947609,
+     "n_timeouts": 0,
+     "n_questions": 113,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 6,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.43478260869565216,
+      "returned": 0.5217391304347826,
+      "owner_hit": 0.43478260869565216,
+      "hit_within_half_deadline": 0.13043478260869565
+     },
+     "fault_n": 46,
+     "fault_failure_kinds": {
+      "http": 22
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 62.78399698168958,
+     "integral_w0": 21.857621364416435,
+     "detection_s_p50": 0.018341511022299528,
+     "ready_s_max": 0.38166347006335855,
+     "first_failed_request_s": 0.23087517509702593,
+     "n_timeouts": 0,
+     "n_questions": 112,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 1,
+     "hosts": [
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.47058823529411764,
+      "returned": 0.5294117647058824,
+      "owner_hit": 0.47058823529411764,
+      "hit_within_half_deadline": 0.29411764705882354
+     },
+     "fault_n": 17,
+     "fault_failure_kinds": {
+      "deadline": 7,
+      "http": 1
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 56.66383580242594,
+     "integral_w0": 17.5,
+     "detection_s_p50": 2.0023393909214064,
+     "ready_s_max": 1.913652335992083,
+     "first_failed_request_s": 2.430893951910548,
+     "n_timeouts": 8,
+     "n_questions": 92,
+     "empty_bins": 1,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 3,
+     "hosts": [
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.5,
+      "returned": 0.5833333333333334,
+      "owner_hit": 0.5,
+      "hit_within_half_deadline": 0.0
+     },
+     "fault_n": 12,
+     "fault_failure_kinds": {
+      "deadline": 5
+     },
+     "fault_http_statuses": [],
+     "baseline_failure_kinds": {},
+     "integral": 57.663835802425936,
+     "integral_w0": 15.78883580242594,
+     "detection_s_p50": 2.0041867790278047,
+     "ready_s_max": 2.7366768119391054,
+     "first_failed_request_s": 0.3938551800092682,
+     "n_timeouts": 9,
+     "n_questions": 87,
+     "empty_bins": 4,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 10,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.13.107",
+      "192.168.13.109",
+      "192.168.14.101",
+      "192.168.14.102",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.92,
+      "returned": 1.0,
+      "owner_hit": 0.92,
+      "hit_within_half_deadline": 0.92
+     },
+     "baseline_n": 25,
+     "fault_rates": {
+      "hit": 0.4,
+      "returned": 0.5,
+      "owner_hit": 0.4,
+      "hit_within_half_deadline": 0.1
+     },
+     "fault_n": 10,
+     "fault_failure_kinds": {
+      "deadline": 5
+     },
+     "fault_http_statuses": [],
+     "baseline_failure_kinds": {},
+     "integral": 57.69654483241694,
+     "integral_w0": 16.205502469092607,
+     "detection_s_p50": 2.007638198963832,
+     "ready_s_max": 3.3014717410551384,
+     "first_failed_request_s": 2.948773281998001,
+     "n_timeouts": 11,
+     "n_questions": 98,
+     "empty_bins": 3,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 6,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.5,
+      "returned": 0.6,
+      "owner_hit": 0.5,
+      "hit_within_half_deadline": 0.0
+     },
+     "fault_n": 10,
+     "fault_failure_kinds": {
+      "deadline": 4
+     },
+     "fault_http_statuses": [],
+     "baseline_failure_kinds": {},
+     "integral": 51.44359770718784,
+     "integral_w0": 10.186084567879636,
+     "detection_s_p50": 2.005907502025366,
+     "ready_s_max": 3.184557529981248,
+     "first_failed_request_s": 0.3965397970750928,
+     "n_timeouts": 10,
+     "n_questions": 88,
+     "empty_bins": 6,
+     "central_index_only_integral": 27.6
+    }
+   ]
+  },
+  "d0009_a6_failure_r2": {
+   "valid": true,
+   "gates": {
+    "n_conditions": 8,
+    "baseline_returned_rate": 1.0,
+    "G_B": true,
+    "G_R": true,
+    "n_table_miss": 0
+   },
+   "deadline_s": 30.0,
+   "window_s": 88.7251119200373,
+   "central": {
+    "restart_to_answer_s": 13.725111920037307,
+    "restart_to_ready_s": 13.700294806971215,
+    "index_load": {
+     "n_docs": 73772,
+     "n_inboxes": 150,
+     "read_docs_s": 0.726304104202427,
+     "read_emb_s": 0.18739507626742125,
+     "total_s": 13.197279048035853,
+     "bm25_s": 12.25764781597536
+    },
+    "hit_rate_after_restart_index_only": 0.92
+   },
+   "conditions": [
+    {
+     "mode": "container",
+     "k": 6,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.625,
+      "returned": 0.625,
+      "owner_hit": 0.625,
+      "hit_within_half_deadline": 0.0
+     },
+     "fault_n": 8,
+     "fault_failure_kinds": {
+      "http": 1,
+      "deadline": 2
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 53.21024826618857,
+     "integral_w0": 13.375079942883792,
+     "detection_s_p50": 2.0063847540295683,
+     "ready_s_max": 3.2372011960251257,
+     "first_failed_request_s": 26.988153259968385,
+     "n_timeouts": 10,
+     "n_questions": 94,
+     "empty_bins": 7,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 3,
+     "hosts": [
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.5454545454545454,
+      "returned": 0.6363636363636364,
+      "owner_hit": 0.5454545454545454,
+      "hit_within_half_deadline": 0.0
+     },
+     "fault_n": 11,
+     "fault_failure_kinds": {
+      "deadline": 4
+     },
+     "fault_http_statuses": [],
+     "baseline_failure_kinds": {},
+     "integral": 55.026699221624604,
+     "integral_w0": 13.150074613358203,
+     "detection_s_p50": 2.0041453710291535,
+     "ready_s_max": 2.7343258729670197,
+     "first_failed_request_s": 0.23274163901805878,
+     "n_timeouts": 9,
+     "n_questions": 87,
+     "empty_bins": 6,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 1,
+     "hosts": [
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.47058823529411764,
+      "returned": 0.47058823529411764,
+      "owner_hit": 0.47058823529411764,
+      "hit_within_half_deadline": 0.35294117647058826
+     },
+     "fault_n": 17,
+     "fault_failure_kinds": {
+      "deadline": 8,
+      "http": 1
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 53.91360398352937,
+     "integral_w0": 13.308445253370639,
+     "detection_s_p50": 2.0020329360850155,
+     "ready_s_max": 1.9639278650283813,
+     "first_failed_request_s": 0.28658657101914287,
+     "n_timeouts": 8,
+     "n_questions": 103,
+     "empty_bins": 3,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 10,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.13.107",
+      "192.168.13.109",
+      "192.168.14.101",
+      "192.168.14.102",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.5555555555555556,
+      "returned": 0.5555555555555556,
+      "owner_hit": 0.5555555555555556,
+      "hit_within_half_deadline": 0.0
+     },
+     "fault_n": 9,
+     "fault_failure_kinds": {
+      "deadline": 3,
+      "http": 1
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 58.433445253370635,
+     "integral_w0": 17.05844525337064,
+     "detection_s_p50": 2.007678728434257,
+     "ready_s_max": 3.3644425120437518,
+     "first_failed_request_s": 0.6896431639324874,
+     "n_timeouts": 10,
+     "n_questions": 89,
+     "empty_bins": 5,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 6,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9230769230769231,
+      "returned": 1.0,
+      "owner_hit": 0.9230769230769231,
+      "hit_within_half_deadline": 0.9230769230769231
+     },
+     "baseline_n": 26,
+     "fault_rates": {
+      "hit": 0.4318181818181818,
+      "returned": 0.5227272727272727,
+      "owner_hit": 0.4318181818181818,
+      "hit_within_half_deadline": 0.11363636363636363
+     },
+     "fault_n": 44,
+     "fault_failure_kinds": {
+      "http": 21
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 63.70003884623288,
+     "integral_w0": 22.76876086622356,
+     "detection_s_p50": 0.0165398659883067,
+     "ready_s_max": 0.336742599029094,
+     "first_failed_request_s": 0.05375648697372526,
+     "n_timeouts": 0,
+     "n_questions": 112,
+     "empty_bins": 1,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 3,
+     "hosts": [
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.6590909090909091,
+      "returned": 0.7727272727272727,
+      "owner_hit": 0.6818181818181818,
+      "hit_within_half_deadline": 0.45454545454545453
+     },
+     "fault_n": 44,
+     "fault_failure_kinds": {
+      "http": 10
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 71.80844525337064,
+     "integral_w0": 30.55844525337064,
+     "detection_s_p50": 0.0031774090602993965,
+     "ready_s_max": 0.10871081799268723,
+     "first_failed_request_s": 2.422428608057089,
+     "n_timeouts": 0,
+     "n_questions": 112,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 1,
+     "hosts": [
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.7021276595744681,
+      "returned": 0.7659574468085106,
+      "owner_hit": 0.723404255319149,
+      "hit_within_half_deadline": 0.574468085106383
+     },
+     "fault_n": 47,
+     "fault_failure_kinds": {
+      "http": 11
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 72.30844525337064,
+     "integral_w0": 31.568545647650133,
+     "detection_s_p50": 0.005282897036522627,
+     "ready_s_max": 0.04930791002698243,
+     "first_failed_request_s": 2.317652264959179,
+     "n_timeouts": 0,
+     "n_questions": 118,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 10,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.13.107",
+      "192.168.13.109",
+      "192.168.14.101",
+      "192.168.14.102",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.46808510638297873,
+      "returned": 0.574468085106383,
+      "owner_hit": 0.46808510638297873,
+      "hit_within_half_deadline": 0.1702127659574468
+     },
+     "fault_n": 47,
+     "fault_failure_kinds": {
+      "http": 20
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 63.908660964601275,
+     "integral_w0": 23.005413102875796,
+     "detection_s_p50": 0.007839719473849982,
+     "ready_s_max": 0.3472009199904278,
+     "first_failed_request_s": 0.7870149170048535,
+     "n_timeouts": 0,
+     "n_questions": 112,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    }
+   ]
+  },
+  "d0009_a6_failure_r3": {
+   "valid": true,
+   "gates": {
+    "n_conditions": 8,
+    "baseline_returned_rate": 1.0,
+    "G_B": true,
+    "G_R": true,
+    "n_table_miss": 0
+   },
+   "deadline_s": 30.0,
+   "window_s": 88.50771070807241,
+   "central": {
+    "restart_to_answer_s": 13.507710708072409,
+    "restart_to_ready_s": 13.480774953961372,
+    "index_load": {
+     "n_docs": 73772,
+     "n_inboxes": 150,
+     "read_docs_s": 0.706579314195551,
+     "read_emb_s": 0.1807300983928144,
+     "total_s": 12.981200992129743,
+     "bm25_s": 12.068605651031248
+    },
+    "hit_rate_after_restart_index_only": 0.92
+   },
+   "conditions": [
+    {
+     "mode": "availability",
+     "k": 1,
+     "hosts": [
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.7021276595744681,
+      "returned": 0.7659574468085106,
+      "owner_hit": 0.723404255319149,
+      "hit_within_half_deadline": 0.574468085106383
+     },
+     "fault_n": 47,
+     "fault_failure_kinds": {
+      "http": 11
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 74.44421864458035,
+     "integral_w0": 33.77626685990161,
+     "detection_s_p50": 0.0035534959752112627,
+     "ready_s_max": 0.05410222592763603,
+     "first_failed_request_s": 1.3192490909714252,
+     "n_timeouts": 0,
+     "n_questions": 118,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 3,
+     "hosts": [
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.6590909090909091,
+      "returned": 0.7727272727272727,
+      "owner_hit": 0.6818181818181818,
+      "hit_within_half_deadline": 0.45454545454545453
+     },
+     "fault_n": 44,
+     "fault_failure_kinds": {
+      "http": 10
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 71.41247261283429,
+     "integral_w0": 30.16247261283431,
+     "detection_s_p50": 0.014208005042746663,
+     "ready_s_max": 0.1440135999582708,
+     "first_failed_request_s": 2.425340275047347,
+     "n_timeouts": 0,
+     "n_questions": 112,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 10,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.13.107",
+      "192.168.13.109",
+      "192.168.14.101",
+      "192.168.14.102",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.46808510638297873,
+      "returned": 0.574468085106383,
+      "owner_hit": 0.46808510638297873,
+      "hit_within_half_deadline": 0.1702127659574468
+     },
+     "fault_n": 47,
+     "fault_failure_kinds": {
+      "http": 20
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 63.04342499378669,
+     "integral_w0": 22.42052202070287,
+     "detection_s_p50": 0.009443617542274296,
+     "ready_s_max": 0.3793542010243982,
+     "first_failed_request_s": 1.0642320920014754,
+     "n_timeouts": 0,
+     "n_questions": 114,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "availability",
+     "k": 6,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.43478260869565216,
+      "returned": 0.5217391304347826,
+      "owner_hit": 0.43478260869565216,
+      "hit_within_half_deadline": 0.13043478260869565
+     },
+     "fault_n": 46,
+     "fault_failure_kinds": {
+      "http": 22
+     },
+     "fault_http_statuses": [
+      502
+     ],
+     "baseline_failure_kinds": {},
+     "integral": 61.95497809026745,
+     "integral_w0": 21.485998211179062,
+     "detection_s_p50": 0.005501247069332749,
+     "ready_s_max": 0.32135124201886356,
+     "first_failed_request_s": 0.019024005043320358,
+     "n_timeouts": 0,
+     "n_questions": 112,
+     "empty_bins": 0,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 1,
+     "hosts": [
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.5,
+      "returned": 0.5625,
+      "owner_hit": 0.5,
+      "hit_within_half_deadline": 0.3125
+     },
+     "fault_n": 16,
+     "fault_failure_kinds": {
+      "deadline": 7
+     },
+     "fault_http_statuses": [],
+     "baseline_failure_kinds": {},
+     "integral": 61.61485356521526,
+     "integral_w0": 19.75771070807241,
+     "detection_s_p50": 2.0019724699668586,
+     "ready_s_max": 1.9296097500482574,
+     "first_failed_request_s": 2.521665271022357,
+     "n_timeouts": 9,
+     "n_questions": 88,
+     "empty_bins": 3,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 3,
+     "hosts": [
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.92,
+      "returned": 1.0,
+      "owner_hit": 0.92,
+      "hit_within_half_deadline": 0.92
+     },
+     "baseline_n": 25,
+     "fault_rates": {
+      "hit": 0.6363636363636364,
+      "returned": 0.7272727272727273,
+      "owner_hit": 0.6363636363636364,
+      "hit_within_half_deadline": 0.09090909090909091
+     },
+     "fault_n": 11,
+     "fault_failure_kinds": {
+      "deadline": 3
+     },
+     "fault_http_statuses": [],
+     "baseline_failure_kinds": {},
+     "integral": 59.04937737473907,
+     "integral_w0": 17.50771070807241,
+     "detection_s_p50": 2.0047871719580144,
+     "ready_s_max": 2.6910507639404386,
+     "first_failed_request_s": 0.4800853830529377,
+     "n_timeouts": 8,
+     "n_questions": 88,
+     "empty_bins": 4,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 10,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.13.107",
+      "192.168.13.109",
+      "192.168.14.101",
+      "192.168.14.102",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.92,
+      "returned": 1.0,
+      "owner_hit": 0.92,
+      "hit_within_half_deadline": 0.92
+     },
+     "baseline_n": 25,
+     "fault_rates": {
+      "hit": 0.3333333333333333,
+      "returned": 0.4444444444444444,
+      "owner_hit": 0.3333333333333333,
+      "hit_within_half_deadline": 0.0
+     },
+     "fault_n": 9,
+     "fault_failure_kinds": {
+      "deadline": 5
+     },
+     "fault_http_statuses": [],
+     "baseline_failure_kinds": {},
+     "integral": 57.95215515251685,
+     "integral_w0": 16.00771070807241,
+     "detection_s_p50": 2.009488262468949,
+     "ready_s_max": 3.137570113991387,
+     "first_failed_request_s": 2.5239273129263893,
+     "n_timeouts": 12,
+     "n_questions": 90,
+     "empty_bins": 5,
+     "central_index_only_integral": 27.6
+    },
+    {
+     "mode": "container",
+     "k": 6,
+     "hosts": [
+      "192.168.13.101",
+      "192.168.13.103",
+      "192.168.13.105",
+      "192.168.14.105",
+      "192.168.15.105",
+      "192.168.15.106"
+     ],
+     "baseline_rates": {
+      "hit": 0.9166666666666666,
+      "returned": 1.0,
+      "owner_hit": 0.9166666666666666,
+      "hit_within_half_deadline": 0.9166666666666666
+     },
+     "baseline_n": 24,
+     "fault_rates": {
+      "hit": 0.4444444444444444,
+      "returned": 0.4444444444444444,
+      "owner_hit": 0.4444444444444444,
+      "hit_within_half_deadline": 0.0
+     },
+     "fault_n": 9,
+     "fault_failure_kinds": {
+      "deadline": 5
+     },
+     "fault_http_statuses": [],
+     "baseline_failure_kinds": {},
+     "integral": 60.45215515251685,
+     "integral_w0": 18.50771070807241,
+     "detection_s_p50": 2.007826478977222,
+     "ready_s_max": 3.2186948290327564,
+     "first_failed_request_s": 2.020279507036321,
+     "n_timeouts": 12,
+     "n_questions": 89,
+     "empty_bins": 5,
+     "central_index_only_integral": 27.6
+    }
+   ]
+  }
+ },
+ "restart_to_answer_s_median": 13.705502469092607,
+ "p0007_e1_reference": {
+  "window_s": 76.44251029798761,
+  "rows": [
+   {
+    "mode": "availability",
+    "k": 1,
+    "baseline_hit_rate": 0.7483443708609272,
+    "fault_hit_rate": 0.7068273092369478,
+    "integral": 53.743290031204246
+   },
+   {
+    "mode": "availability",
+    "k": 3,
+    "baseline_hit_rate": 0.7407407407407407,
+    "fault_hit_rate": 0.6666666666666666,
+    "integral": 51.95228351494777
+   },
+   {
+    "mode": "availability",
+    "k": 6,
+    "baseline_hit_rate": 0.7515151515151515,
+    "fault_hit_rate": 0.5938775510204082,
+    "integral": 48.81551248519273
+   },
+   {
+    "mode": "availability",
+    "k": 10,
+    "baseline_hit_rate": 0.7421383647798742,
+    "fault_hit_rate": 0.4911242603550296,
+    "integral": 44.02828172656839
+   },
+   {
+    "mode": "container",
+    "k": 1,
+    "baseline_hit_rate": 0.7421383647798742,
+    "fault_hit_rate": 0.3283582089552239,
+    "integral": 35.41040185057757
+   },
+   {
+    "mode": "container",
+    "k": 3,
+    "baseline_hit_rate": 0.75,
+    "fault_hit_rate": 0.13513513513513514,
+    "integral": 28.567610851908324
+   },
+   {
+    "mode": "container",
+    "k": 6,
+    "baseline_hit_rate": 0.7777777777777778,
+    "fault_hit_rate": 0.05555555555555555,
+    "integral": 25.286267232161563
+   },
+   {
+    "mode": "container",
+    "k": 10,
+    "baseline_hit_rate": 0.7469135802469136,
+    "fault_hit_rate": 0.027777777777777776,
+    "integral": 23.76954763835231
+   }
+  ],
+  "note": "構成・質問・定義が違うので比べない"
+ }
+}

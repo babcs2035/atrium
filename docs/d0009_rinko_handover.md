@@ -79,6 +79,11 @@
   - 同じ条件のラウンドの揺れは P2P 0.19%・中央 0.8%・準集権 4.0% で，他の研究者の GPU のプロセスは全ラウンドで 0 だった．p0007 D の再実行で起きた大小の逆転は，この手順では起きなかった．3 条件とも律速は生成で，比は「GPU の枚数 ÷ 1 問あたりの生成の数」でおおむね説明できる（P2P は 1 問 3 回の生成を 10 枚で，中央は 1 回を 1 枚で行う）．
   - 制約：live の値は cross-encoder の計算を表で除いた経路の値で，選択は R3′ である．主構成の選択 V2 は実機の経路に無い．見積もり（記述）では，採点を 1 枚の GPU に置くと，gpu4 相当なら P2P 1.32・中央 0.43・準集権 1.49 問/秒，RTX 3060 相当なら P2P 0.53・中央と準集権 0.16 問/秒になり，準集権の利点は採点で消える．V2 の検証を 1 枚の RTX 5090 に置くと P2P の上限は 0.42 問/秒で，中央と同じ程度になる．
 - 着手（障害）：Iteration 30（事前登録は `.claude/research/journal.md` の Iteration 30．設計の判断は `.claude/research/backlog.md` の B105）．p0007 E1 と同じ止め方（availability・container）・k（1・3・6・10．種 12 の同じホスト）・停止 45 秒で，P2P の主構成（R3′ の選択の経路あり）を H の 288 問で 3 ラウンド流す．「答えられた」は，締め切り 30 秒以内に失敗なく回答を返し，選んだ候補の文脈に正解のメールがあること．中央は索引の再起動を実測し，再起動後の割合は C1-RRF-CE の上位 5 通に正解がある割合（Iteration 29 の実行から）とする．中央の停止 45 秒の仮定の値を主に，検出と同時に再起動する場合を併記する．`atrium failure-run` に主構成の質問集合と「答えられた」の判定を足す（追加だけ）．
+- 完了（障害）：Iteration 30（2026-11-09．採用）．結果は `results/d0009_a6_failure/`（`verdict.json`・`failure_summary.json`・事後の記述 `posthoc_completion.json`・表の照合 `table/table_check.json`），各実行は `results/d0009_a6_failure_r{1,2,3}/`，記述は `.claude/research/journal.md` の Iteration 30．判定：
+  - 中央が 45 秒止まる仮定では，全 8 条件で窓の積分は P2P が上（E1 成立．P2P 51.4〜75.5 対 中央 28.33）．ただし止める時間の後の P2P の積分だけで中央を超えるので，この判定は止めた間の P2P の割合に依らない（p0007 E1 の限界と同じ．P2P の障害への強さは示していない）．中央が検出と同時に再起動する場合は，availability の k = 1・3 だけ P2P が上，残りの 6 条件は中央が上．
+  - 止めた間に答えられた割合は，availability で 0.70・0.66・0.43・0.47（k = 1・3・6・10．平常は約 0.9）．失敗は全て，止めた台か，止めた GPU の PC に生成を委託する台を選んだ問の HTTP 502 で，p0007 E1 より平常からの下がりが大きい．container では止めたノードを外す仕組みが無く，k ≥ 3 で止めた間に聞いた問のうち再開の前に答えた問は 0（登録の値 0.33〜0.64 は，再開まで待って締め切り 30 秒以内に終わった問を含む）．
+  - 中央の再起動は 13.5〜13.7 秒で，その 12.2 秒は RRF の BM25 の作り直し（p0007 の `fusion: none` では 1.44 秒）．
+  - 制約：live の選択は R3′ で V2 は経路に無い．「答えられた」は根拠が届いたかで正誤ではない．中央の再起動後の割合は C1-RRF-CE の上位 5 通から取り，中央の生成が締め切り内に終わることを仮定した．
 
 ## B. 実装の改善候補
 
@@ -167,7 +172,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
 | 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
-| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は着手（Iteration 30）．参加は未着手 |
+| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は完了（Iteration 30．採用．45 秒の仮定で全 8 条件 P2P が上だが止めた間の割合に依らない．検出と同時の再起動では availability k ≤ 3 以外は中央が上．`results/d0009_a6_failure/`）．参加は未着手（Iteration 31 の予定） |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |
 | 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 未着手 |
