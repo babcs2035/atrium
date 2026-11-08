@@ -99,6 +99,11 @@
   - H2（受信箱ごとの 41〜60 番目．2,807 問）の差 +0.0075 は記述で，判定にも事後の根拠にも使わない．基準の選択の再計算（ゲート G-R）は H の 1 問が float32 の同点の丸めで食い違い，事前登録の文言どおりには不通過として残した（同点を許す読み替えは `verdict_revised`．判定は変わらない）．
   - 追加だけの設定キー `routing.owner_score`・`owner_score_agg`・`owner_score_k`・`owner_ranker_path`（既定は今の挙動）と `atrium owner-score-eval`，質問集合 `holdout2`・`holdout_q` は残してある．
 - 着手（回答の選択）：Iteration 25（事前登録は `.claude/research/journal.md` の Iteration 25．設計の判断は `.claude/research/backlog.md` の B87）．保存した 3 候補から最終回答を選ぶ規則を，今の R3′（文脈の関連度の最大）から，dev で 5 通り（回答を入れた cross-encoder の得点 2 つと，回答の長さ・他の候補との一致・「書かれていない」型の表現を含む候補の正しさのロジスティック回帰 2 つ）から選んだ規則へ替える．dev の増分 +0.006 のオフラインのゲートを通れば，H2 を主構成で実機で 1 回流し，H と H2 の同じ候補の上で正答率・作り話・露出を比べる．
+- 完了（回答の選択）：Iteration 25（2026-11-08．棄却．オフラインのゲートで止め，実機は流していない）．結果は `results/d0009_b3_select/`（`verdict.json`・`select_dev.json`・記録としての重み `answer_selector.json`），dev を H と同じ判定モデル（qwen3:8b）で採り直した印は `results/d0009_b3s_dev/`，記述は `.claude/research/journal.md` の Iteration 25．判定：
+  - dev（2,948 問）の正答率は，今の R3′ 0.7229 に対し，回答を入れた cross-encoder の 2 つが 0.6842・0.4956（悪化），候補の正しさのロジスティック回帰の 2 つが 0.7263（選択）・0.7276．選んだ規則の増分 +0.0034 は実機に進む条件（+0.006 以上）に届かず，事前登録の規則で棄却とした．主構成の選択は R3′ のまま．
+  - 候補のどれかが正解の割合（選択の天井）は dev で 0.750 で，R3′ との差は 80 問（2.7%）しかない．回帰で効いた特徴量はほぼ「書かれていない」型の表現だけで，取り戻したのは純 10 問．
+  - dev の R3′ の正答率は，旧い判定モデルの印では 0.7778 で，判定モデルを替えると水準が約 5 pt 動く．質問集合の間で正答率を比べるときは同じ判定モデルの値だけを並べる．
+  - 追加だけの CLI `atrium answer-select-eval` と `atrium select-features --answer-aware` は残してある．次は，LLM に文脈が回答を支えるかを問う検証で選ぶ案（値 `answer_verification`．`.claude/research/backlog.md` の B88）．
 
 ## C. 手続き上の注意
 
@@ -142,7 +147,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 1 | A2 | レバー `d0009.A2_fabrication` | 完了（Iteration 21．採用．`results/d0009_a2_fabrication/`） |
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
-| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は着手（Iteration 25．事前登録は journal の Iteration 25） |
+| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は未着手（Iteration 25 の評価で追加．backlog B88） |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |

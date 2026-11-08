@@ -299,7 +299,7 @@ levers:
             R3′ の当てはめ results/d0009_a1_*_R3p/，記述は journal の Iteration 23「実行済み」．判定（verdict_original）：H-A1a（R3′）決まらない（Δ −0.0024．区間 −0.0054〜+0.0005．
             下端が ±0.005 をわずかに超える．非劣性 δ 0.02 は満たす．事後の幅 0.006 なら同等＝verdict_revised．採否に使わない），H-A1a′ 決まらない（Δ −0.0028），H-A1L 変わらない（0.96・1.01），
             露出 E_pair 0.370 → 0.473・E_max 0.161，障害は質問者ごとに別々に当たり失敗はすぐ返る．N3 では候補の文字列の一致が 0.99 → 0.89 に下がった（要求の届き方の揺れ．backlog B84）"}
-  - {name: d0009.B3_owner_and_selection, values: [owner_identification, answer_selection],
+  - {name: d0009.B3_owner_and_selection, values: [owner_identification, answer_selection, answer_verification],
      note: "d0009 B3（高．研究の主課題）．持ち主の特定と回答の選択の改良．主構成の差の寄与は，持ち主が候補に入らない問（6.8%）−0.022，
             入っているのに持ち主以外を選ぶ問（6.6%）−0.016，持ち主を選んだ問（86.6%）+0.014．候補のいずれかが正解の割合 0.7989（中央 0.7976），
             持ち主を必ず選ぶ規則でも 0.7840 なので，両方を改良する．1 イテレーションで動かすのは値のどちらか 1 つ（単一レバー原則）．
@@ -313,7 +313,13 @@ levers:
             （verdict_original に残す．同点を許す読み替えは verdict_revised で判定は不変）．次は値 answer_selection（backlog B86）．
             着手：Iteration 25（値 answer_selection．事前登録は journal の Iteration 25．backlog B87）．保存した 3 候補の選択を R3′ から，dev で 5 通り
             （回答を入れた cross-encoder 2・候補の正しさのロジスティック回帰 2．回答の長さ・一致・「書かれていない」型の表現を含む）から選んだ規則へ替える．
-            dev の増分 +0.006 のオフラインのゲートを通れば，H2 を主構成で実機で 1 回流し，Q = H（d0009_a3_p1）∪ H2 の同じ候補の上で比べる"}
+            dev の増分 +0.006 のオフラインのゲートを通れば，H2 を主構成で実機で 1 回流し，Q = H（d0009_a3_p1）∪ H2 の同じ候補の上で比べる．
+            完了（answer_selection）：Iteration 25（2026-11-08．棄却〔ゲート G-D 不通過．実機は流していない〕）．結果は results/d0009_b3_select/（verdict.json・select_dev.json・answer_selector.json），
+            dev の採り直しの印は results/d0009_b3s_dev/，記述は journal の Iteration 25「実行済み」．dev（2,948 問．qwen3:8b の印）の正答率は R3′ 0.7229・S1 0.6842・S2 0.4956・S3 0.7263（選択）・S4 0.7276．
+            S3 の増分 +0.0034（37 : 27．区間 −0.0017〜+0.0088．記述）が +0.006 に届かない．候補のどれかが正解の天井 0.750（R3′ との差 80 問）．主構成の選択は R3′ のまま．
+            値 answer_verification は Iteration 25 の評価で追加（backlog B88 [auto-decided]）．仮称．保存した 3 候補のそれぞれについて，LLM に「質問者へ渡る同じ上位 5 通の文脈が回答を支えるか」を問い，
+            その得点（Yes の確率など）で選ぶ（Speculative RAG の検証の形．B87 (b) で退けた案の再検討）．回答の文字列と既存の特徴量の組み替えでは取れなかった「文脈による裏付け」を直接見る．
+            検証の LLM（判定モデル qwen3:8b と別の系統を優先），プロンプト，得点，R3′ との組み合わせ，dev のゲート，質問集合は rc-researcher が事前登録で決める"}
   - {name: d0009.A6_remeasure_main, values: [load, failure, join],
      note: "d0009 A6（中）．負荷・障害・参加を主構成（cross-encoder による選択あり）で測り直す（p0007 D・E は選択を加える前の構成）．
             負荷は再実行で大小が逆転した（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒．生成を 10 台に分散した中央は P2P の約 2.4 倍）ので，
