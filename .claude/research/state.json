@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 24,
-  "iteration_name": "持ち主の特定を改良したときの正答率・露出・推定されやすさ",
-  "phase": "evaluate",
+  "iteration": 25,
+  "iteration_name": "回答の選択を改良したときの正答率・作り話・露出",
+  "phase": "research",
   "status": "running",
-  "current_lever": "d0009.B3_owner_and_selection=owner_identification（probe の 2 段目の得点を dev で選んだ投票・学習の得点へ．事前登録は journal の Iteration 24・backlog B85）",
-  "experiment_dir": "results/d0009_b3_owner",
+  "current_lever": "d0009.B3_owner_and_selection=answer_selection（保存した 3 候補の選択を R3′ から dev で 5 通りから選んだ規則へ．事前登録は journal の Iteration 25・backlog B87）",
+  "experiment_dir": null,
   "experiment_deadline": null,
-  "updated_at": 1794104298,
-  "last_slack_ts": "1794100530.888429",
-  "iteration_thread_ts": "1794101058.874429",
-  "notion_toggle_created": true,
-  "last_commit": "041564e"
+  "updated_at": 1794104827,
+  "last_slack_ts": "1794104374.915699",
+  "iteration_thread_ts": null,
+  "notion_toggle_created": false,
+  "last_commit": "b551e81"
 }

@@ -98,6 +98,7 @@
   - 上位 k 通の得点の和で数える投票は hit@3 を 5〜12 pt 下げる．得点の集め方の改良で取り戻せる持ち主の取りこぼしは hit@3 で +0.005 程度にとどまり，正答率の改善として検出できる大きさに届かない．
   - H2（受信箱ごとの 41〜60 番目．2,807 問）の差 +0.0075 は記述で，判定にも事後の根拠にも使わない．基準の選択の再計算（ゲート G-R）は H の 1 問が float32 の同点の丸めで食い違い，事前登録の文言どおりには不通過として残した（同点を許す読み替えは `verdict_revised`．判定は変わらない）．
   - 追加だけの設定キー `routing.owner_score`・`owner_score_agg`・`owner_score_k`・`owner_ranker_path`（既定は今の挙動）と `atrium owner-score-eval`，質問集合 `holdout2`・`holdout_q` は残してある．
+- 着手（回答の選択）：Iteration 25（事前登録は `.claude/research/journal.md` の Iteration 25．設計の判断は `.claude/research/backlog.md` の B87）．保存した 3 候補から最終回答を選ぶ規則を，今の R3′（文脈の関連度の最大）から，dev で 5 通り（回答を入れた cross-encoder の得点 2 つと，回答の長さ・他の候補との一致・「書かれていない」型の表現を含む候補の正しさのロジスティック回帰 2 つ）から選んだ規則へ替える．dev の増分 +0.006 のオフラインのゲートを通れば，H2 を主構成で実機で 1 回流し，H と H2 の同じ候補の上で正答率・作り話・露出を比べる．
 
 ## C. 手続き上の注意
 
@@ -141,7 +142,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 1 | A2 | レバー `d0009.A2_fabrication` | 完了（Iteration 21．採用．`results/d0009_a2_fabrication/`） |
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
-| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は次に着手（Iteration 25 の予定） |
+| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は着手（Iteration 25．事前登録は journal の Iteration 25） |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |

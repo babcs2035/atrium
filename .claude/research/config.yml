@@ -310,7 +310,10 @@ levers:
             完了（owner_identification）：Iteration 24（2026-11-08．棄却〔ゲート G-H 不通過．実機は流していない〕）．結果は results/d0009_b3_owner/（verdict.json・owner_score.json・owner_ranker.json），
             記述は journal の Iteration 24「実行済み」．dev で学習（L）を選択（hit@3 0.9322 対 基準 0.9261．G-D 通過），H の hit@3 の差 +0.0028（−0.0014〜+0.0073）で +0.010 に届かない．
             投票の sum は −5〜−12 pt．主構成は CombMAX（owner_score: fused_max）のまま．H2 の +0.0075 は記述で事後の根拠にしない．G-R は H の 1 問が float32 の同点で厳密には不通過
-            （verdict_original に残す．同点を許す読み替えは verdict_revised で判定は不変）．次は値 answer_selection（backlog B86）"}
+            （verdict_original に残す．同点を許す読み替えは verdict_revised で判定は不変）．次は値 answer_selection（backlog B86）．
+            着手：Iteration 25（値 answer_selection．事前登録は journal の Iteration 25．backlog B87）．保存した 3 候補の選択を R3′ から，dev で 5 通り
+            （回答を入れた cross-encoder 2・候補の正しさのロジスティック回帰 2．回答の長さ・一致・「書かれていない」型の表現を含む）から選んだ規則へ替える．
+            dev の増分 +0.006 のオフラインのゲートを通れば，H2 を主構成で実機で 1 回流し，Q = H（d0009_a3_p1）∪ H2 の同じ候補の上で比べる"}
   - {name: d0009.A6_remeasure_main, values: [load, failure, join],
      note: "d0009 A6（中）．負荷・障害・参加を主構成（cross-encoder による選択あり）で測り直す（p0007 D・E は選択を加える前の構成）．
             負荷は再実行で大小が逆転した（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒．生成を 10 台に分散した中央は P2P の約 2.4 倍）ので，
