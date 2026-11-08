@@ -136,7 +136,8 @@ for host in $EXTRA_REQUESTERS; do
 done
 cp "artifacts/$DATASET/placement.json" "$OUT/placement.json"
 
-if [ -z "$EXTRA_REQUESTERS" ]; then
+# 障害の記録（$OUT/fault_plan.txt）は複数の質問者の枝だけが実行するので，計画があれば質問者が 1 台でもその枝（req0 だけ）を使う
+if [ -z "$EXTRA_REQUESTERS" ] && [ ! -f "$OUT/fault_plan.txt" ]; then
   NAME="atrium-run-$RUN_ID"
   RDIR="$REMOTE_DIR/results/$RUN_ID"
   if ! nssh "$REQUESTER" "docker ps -aq -f name=^$NAME\$" | grep -q .; then

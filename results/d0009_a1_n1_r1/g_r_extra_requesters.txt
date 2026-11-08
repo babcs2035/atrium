@@ -1,0 +1,9 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+ Image localhost:5000/atrium-node-embed:latest Pulling 
+ Image localhost:5000/atrium-node-embed:latest Pulled 
+[04:20:00] 192.168.13.100: disk used 68%, MemAvailable:   14913868 kB
+ Image localhost:5000/atrium-node-embed:latest Pulling 
+ Image localhost:5000/atrium-node-embed:latest Pulled 
+[04:19:59] 192.168.14.100: disk used 66%, MemAvailable:   15092920 kB

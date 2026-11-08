@@ -1,0 +1,47 @@
+{
+ "verdict_original": {
+  "H_A1a": {
+   "verdict": "undecided",
+   "margin": 0.005,
+   "delta": -0.002445842068483528,
+   "bootstrap_two_stage_ci95": [
+    -0.005415793151642208,
+    0.0005241090146750524
+   ],
+   "analytic_ci95": [
+    -0.005140975112261919,
+    0.000249290975294763
+   ]
+  },
+  "H_A1a_prime": {
+   "verdict": "undecided",
+   "delta": -0.002797202797202747,
+   "bootstrap_two_stage_ci95": [
+    -0.005594405594405594,
+    0.0
+   ],
+   "analytic_ci95": [
+    -0.00540519698451436,
+    -0.00018920860989123404
+   ]
+  },
+  "H_A1L": {
+   "verdict": "unchanged",
+   "ratio_n3_over_n1": {
+    "r1": 0.9622708060551831,
+    "r2": 1.0128342069660496
+   },
+   "range": [
+    0.9,
+    1.1
+   ]
+  },
+  "gates_pass": {
+   "G_A": true,
+   "G_N1": true,
+   "G_N3": true,
+   "G3": true
+  }
+ },
+ "verdict_revised": null
+}

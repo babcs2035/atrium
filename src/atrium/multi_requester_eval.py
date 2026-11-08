@@ -237,8 +237,19 @@ def throughput(run_dir: Path) -> dict[str, Any]:
                 "control_cpu_busy": req.get("control_cpu_busy"),
             }
         )
+    # 失敗した問を同じ run_id で流し直すと run_meta.json の finished_at・CPU の欄は流し直しのものに上書きされる．
+    # phase1_run_meta.json（a1_phase1_snapshot.sh が 1 回目の終わりに写したもの）があれば，1 回目だけの処理量も出す
+    first_pass = None
+    phase1 = run_dir / "phase1_run_meta.json"
+    if phase1.exists():
+        meta1 = json.loads(phase1.read_text(encoding="utf-8"))
+        n_rows1 = int((run_dir / "phase1_n_rows.txt").read_text(encoding="utf-8"))
+        n_ok1 = n_rows1 - meta1["failures"]
+        wall1 = meta1["finished_at"] - meta1["started_at"]
+        first_pass = {"n_ok": n_ok1, "wall_s": wall1, "throughput": n_ok1 / wall1}
     return {
         "run": run_dir.name,
+        "first_pass": first_pass,
         "n_ok": len(ok),
         "n_failed": len(rows) - len(ok),
         "wall_s": wall,

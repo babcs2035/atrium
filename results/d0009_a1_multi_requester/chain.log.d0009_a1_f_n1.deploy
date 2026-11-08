@@ -1,0 +1,82 @@
+[deploy] $ bash scripts/tasks/deploy.sh
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[09:31:39] building localhost:15000/atrium-node:latest (git 9e6a52bed1bf-dirty)
+[09:31:43] building localhost:15000/atrium-full:latest (git 9e6a52bed1bf-dirty)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[09:32:06] GPU experts: 192.168.15.100 192.168.15.101 192.168.15.102 192.168.15.103 192.168.15.104 192.168.15.105 192.168.15.106 192.168.15.107 192.168.15.108 192.168.15.109
+[09:32:10] placement: 30 expert nodes
+[09:32:10] deploying experts
+[09:33:52] ok: 192.168.15.101
+[09:33:52] ok: 192.168.15.100
+[09:33:52] ok: 192.168.15.103
+[09:33:52] ok: 192.168.15.102
+[09:33:52] ok: 192.168.15.105
+[09:33:52] ok: 192.168.15.104
+[09:33:52] ok: 192.168.15.107
+[09:33:52] ok: 192.168.15.106
+[09:33:52] ok: 192.168.15.109
+[09:33:52] ok: 192.168.15.108
+[09:33:52] ok: 192.168.13.109
+[09:33:52] ok: 192.168.13.108
+[09:33:52] ok: 192.168.13.107
+[09:33:52] ok: 192.168.13.106
+[09:33:52] ok: 192.168.13.105
+[09:33:52] ok: 192.168.13.104
+[09:33:52] ok: 192.168.13.103
+[09:33:52] ok: 192.168.13.102
+[09:33:52] ok: 192.168.13.101
+[09:33:52] ok: 192.168.13.100
+[09:33:52] ok: 192.168.14.104
+[09:33:52] ok: 192.168.14.105
+[09:33:52] ok: 192.168.14.106
+[09:33:52] ok: 192.168.14.107
+[09:33:52] ok: 192.168.14.100
+[09:33:52] ok: 192.168.14.101
+[09:33:53] ok: 192.168.14.102
+[09:33:53] ok: 192.168.14.103
+[09:33:53] ok: 192.168.14.108
+[09:33:53] ok: 192.168.14.109
+[09:33:53] deploying requester wafl-ctrl5
+[09:34:08] ok: wafl-ctrl5
+[09:34:08] waiting for experts to become healthy
+[09:34:08] ok: 192.168.15.101
+[09:34:08] ok: 192.168.15.100
+[09:34:08] ok: 192.168.15.103
+[09:34:08] ok: 192.168.15.102
+[09:34:08] ok: 192.168.15.105
+[09:34:08] ok: 192.168.15.104
+[09:34:08] ok: 192.168.15.107
+[09:34:08] ok: 192.168.15.106
+[09:34:08] ok: 192.168.15.109
+[09:34:08] ok: 192.168.15.108
+[09:34:08] ok: 192.168.13.109
+[09:34:08] ok: 192.168.13.108
+[09:34:08] ok: 192.168.13.107
+[09:34:08] ok: 192.168.13.106
+[09:34:08] ok: 192.168.13.105
+[09:34:08] ok: 192.168.13.104
+[09:34:08] ok: 192.168.13.103
+[09:34:08] ok: 192.168.13.102
+[09:34:08] ok: 192.168.13.101
+[09:34:08] ok: 192.168.13.100
+[09:34:08] ok: 192.168.14.104
+[09:34:08] ok: 192.168.14.105
+[09:34:08] ok: 192.168.14.106
+[09:34:08] ok: 192.168.14.107
+[09:34:08] ok: 192.168.14.100
+[09:34:08] ok: 192.168.14.101
+[09:34:08] ok: 192.168.14.102
+[09:34:08] ok: 192.168.14.103
+[09:34:08] ok: 192.168.14.108
+[09:34:08] ok: 192.168.14.109
+[09:34:08] deploy done

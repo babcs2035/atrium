@@ -1,0 +1,62 @@
+[2026-11-08_04:32:57] BEGIN d0009_a1_n1_r1
+[04:33:03] max GPU memory used on wafl500-509: 74 MiB
+[04:34:06] max GPU memory used on wafl500-509: 74 MiB
+[04:35:09] max GPU memory used on wafl500-509: 74 MiB
+[04:35:09] d0009_a1_n1_r1 confound=none
+[04:37:48] d0009_a1_n1_r1 deployed
+[05:28:57] d0009_a1_n1_r1 start=2 inner=2
+[05:30:30] d0009_a1_n1_r1 resume start=0 inner=0
+[05:30:31] d0009_a1_n1_r1 analyze=0
+[2026-11-08_05:30:31] BEGIN d0009_a1_n3_r1
+[05:30:37] max GPU memory used on wafl500-509: 74 MiB
+[05:31:39] max GPU memory used on wafl500-509: 74 MiB
+[05:32:41] max GPU memory used on wafl500-509: 74 MiB
+[05:32:41] d0009_a1_n3_r1 confound=none
+[05:35:26] d0009_a1_n3_r1 deployed
+[06:28:40] d0009_a1_n3_r1 start=2 inner=2
+[06:32:27] d0009_a1_n3_r1 resume start=0 inner=0
+[06:32:29] d0009_a1_n3_r1 analyze=0
+[2026-11-08_06:32:29] BEGIN d0009_a1_n3_r2
+[06:32:34] max GPU memory used on wafl500-509: 74 MiB
+[06:33:36] max GPU memory used on wafl500-509: 74 MiB
+[06:34:38] max GPU memory used on wafl500-509: 74 MiB
+[06:34:38] d0009_a1_n3_r2 confound=none
+[06:37:29] d0009_a1_n3_r2 deployed
+[07:30:43] d0009_a1_n3_r2 start=0 inner=0
+[07:30:45] d0009_a1_n3_r2 analyze=0
+[2026-11-08_07:30:45] BEGIN d0009_a1_n1_r2
+[07:30:50] max GPU memory used on wafl500-509: 74 MiB
+[07:31:52] max GPU memory used on wafl500-509: 74 MiB
+[07:32:54] max GPU memory used on wafl500-509: 74 MiB
+[07:32:54] d0009_a1_n1_r2 confound=none
+[07:35:32] d0009_a1_n1_r2 deployed
+[08:26:41] d0009_a1_n1_r2 start=0 inner=0
+[08:26:42] d0009_a1_n1_r2 analyze=0
+[2026-11-08_08:26:42] BEGIN d0009_a1_n3_hi
+[08:26:48] max GPU memory used on wafl500-509: 74 MiB
+[08:27:50] max GPU memory used on wafl500-509: 74 MiB
+[08:28:52] max GPU memory used on wafl500-509: 74 MiB
+[08:28:52] d0009_a1_n3_hi confound=none
+[08:31:22] d0009_a1_n3_hi deployed
+[09:24:35] d0009_a1_n3_hi start=2 inner=2
+[09:29:25] d0009_a1_n3_hi resume start=0 inner=0
+[09:29:26] d0009_a1_n3_hi analyze=0
+[2026-11-08_09:29:26] BEGIN d0009_a1_f_n1
+[09:29:32] max GPU memory used on wafl500-509: 74 MiB
+[09:30:34] max GPU memory used on wafl500-509: 74 MiB
+[09:31:36] max GPU memory used on wafl500-509: 74 MiB
+[09:31:36] d0009_a1_f_n1 confound=none
+[09:34:08] d0009_a1_f_n1 deployed
+[09:34:15] d0009_a1_f_n1 fault plan: 60 180 192.168.14.107 192.168.13.109 192.168.14.103
+[09:38:55] d0009_a1_f_n1 start=0 inner=0
+[09:38:56] d0009_a1_f_n1 analyze=0
+[2026-11-08_09:38:56] BEGIN d0009_a1_f_n3
+[09:39:01] max GPU memory used on wafl500-509: 74 MiB
+[09:40:04] max GPU memory used on wafl500-509: 74 MiB
+[09:41:06] max GPU memory used on wafl500-509: 74 MiB
+[09:41:06] d0009_a1_f_n3 confound=none
+[09:43:45] d0009_a1_f_n3 deployed
+[09:43:52] d0009_a1_f_n3 fault plan: 60 180 192.168.14.107 192.168.13.109 192.168.14.103
+[09:51:52] d0009_a1_f_n3 start=2 inner=2
+[09:51:53] d0009_a1_f_n3 analyze=0
+[2026-11-08_09:51:57] ALL DONE

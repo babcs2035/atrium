@@ -36,6 +36,8 @@ def _config_dict() -> dict[str, Any]:
     raw: dict[str, Any] = yaml.safe_load((REPO_ROOT / "config.yaml").read_text(encoding="utf-8"))
     raw["experiment"].update(dataset="enronqa", routing="flood_score", answer_mode="retrieval_only")
     raw["experiment"]["parallel"] = 30
+    # 実験の実行の間は config.yaml に追加の質問者が入るので，既定（キー無し）の状態から始める
+    raw["cluster"].pop("extra_requesters", None)
     return raw
 
 

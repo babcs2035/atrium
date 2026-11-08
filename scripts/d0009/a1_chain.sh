@@ -16,7 +16,8 @@ FREE_MIB=1000
 NEED_CONSEC=3
 INTERVAL_S=60
 MAX_WAIT_S=7200
-ORDER=(n1_r1 n3_r1 n3_r2 n1_r2 n3_hi f_n1 f_n3)
+# A1_ORDER で回を絞れる（空白区切り．実装の不具合の後の流し直し用）
+read -r -a ORDER <<< "${A1_ORDER:-n1_r1 n3_r1 n3_r2 n1_r2 n3_hi f_n1 f_n3}"
 CONTROL=wafl-ctrl5
 REMOTE_DIR=/home/denjo/workspace/ktakahashi/atrium
 # 障害の記録で止める CPU の専門家の数と，止める・戻す時刻（開始からの秒）．質問者を兼ねる 13.100・14.100 は除く（種 12 で抽出）
