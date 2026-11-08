@@ -123,8 +123,19 @@ run_one() {
   if [ ! -f "results/$run/failure.json" ]; then
     echo "[$(date +%T)] $run FAILED (no failure.json; inspect $LOG.$run.live and results/$run/start.log)" >> "$LOG"; exit 1
   fi
+  # G-TB：表に無い組による失敗が 1 件でもあれば，次へ進まずに止めて表を直す
+  misses=$(jq '[.p2p[].questions[] | select(.failure_kind == "table_miss")] | length' "results/$run/failure.json")
+  echo "[$(date +%T)] $run table_miss=$misses" >> "$LOG"
+  if [ "$misses" != 0 ]; then
+    echo "[$(date +%T)] $run G-TB FAILED (table_miss=$misses); fix the table before the next run" >> "$LOG"; exit 1
+  fi
 }
 
+# G-TB：制御点の表が gpu4 の表（a6f_owner_table_all.py の出力）と同じであること（deploy が制御点の表を質問者へ配る）
+TABLE=enronqa/ce_table/holdout_owner.jsonl
+local_sha=$(sha256sum "artifacts/$TABLE" | cut -d' ' -f1)
+control_sha=$(ssh -n -o BatchMode=yes "$CONTROL" "sha256sum /home/denjo/atrium-data/$TABLE" 2> /dev/null | cut -d' ' -f1)
+if [ "$local_sha" != "$control_sha" ]; then echo "[$(date +%T)] TABLE MISMATCH between gpu4 and control" >> "$LOG"; exit 1; fi
 # 前の実験のノードを止め，config を作って deploy する（deploy は最初に 1 回．config は全ラウンドで同じ）
 bash scripts/tasks/remote.sh stop > "$LOG.pre_stop" 2>&1 < /dev/null
 mkdir -p results/d0009_a6_failure
