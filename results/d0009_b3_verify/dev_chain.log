@@ -1,0 +1,2 @@
+{"run": "d0009_b3s_dev", "n_candidates": 8844, "n_verified_now": 8844, "n_no_score": 0, "n_failed_now": 0, "prompt_sha256": "26ec41b634b6a15b2d0abbeff9e4e67c03840f305bae8f71a76577bfda182688"}
+{"G_D": "passed", "chosen": "V2", "gain": 0.007462686567164201}

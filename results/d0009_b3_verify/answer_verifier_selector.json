@@ -1,0 +1,40 @@
+{
+ "chosen": "V2",
+ "trained_on": "dev (2948 questions; results/d0009_b3s_dev)",
+ "model": "LogisticRegression(C=1.0, random_state=12, penalty=l2)",
+ "not_written_pattern": "\\b(not (mentioned|provided|specified|stated|included|available)|does not (mention|say|specify|provide|include|state)|no (information|mention)|cannot be determined|unable to (determine|find)|there is no)\\b",
+ "verify_prompt_sha256": "26ec41b634b6a15b2d0abbeff9e4e67c03840f305bae8f71a76577bfda182688",
+ "weights": {
+  "V2": {
+   "rule": "V2",
+   "features": [
+    "ce_max",
+    "ce_top1",
+    "probe_fused",
+    "top_score",
+    "bm25_max",
+    "rrf_max",
+    "avg_logprob",
+    "log_chars",
+    "agree",
+    "not_written",
+    "v"
+   ],
+   "coef": [
+    0.4487150250248549,
+    0.12806045988335293,
+    0.35675185026224326,
+    0.06151749272718974,
+    0.13128776533405506,
+    0.11714170242846406,
+    0.3016815083314685,
+    0.020626555537919044,
+    -0.06627645784823433,
+    -3.2985787502513575,
+    0.6097354830568366
+   ],
+   "intercept": -0.721509548305892
+  }
+ },
+ "chosen_sha256": "32e47f6416ecc39b8c47026313b021ef5f03aef8bec9bd6e768aef797fc4a2bd"
+}

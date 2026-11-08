@@ -1,0 +1,237 @@
+2026-11-08 20:52:11,674 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-11-08 20:52:11,674 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-11-08 20:52:11,674 INFO faiss.loader: Loading faiss.
+2026-11-08 20:52:11,686 INFO faiss.loader: Successfully loaded faiss.
+{
+ "G_R": {
+  "dev_r3p_correct": 2131,
+  "dev_r3p_recomputed_correct": 2131,
+  "dev_r3p_expected": 2131,
+  "dev_s3_correct": 2141,
+  "dev_s3_expected": 2141,
+  "h_vs_a3_p1_R3p": {
+   "n": 2862,
+   "n_identical": 2862,
+   "n_identical_tie_tolerant": 2862
+  },
+  "h_strictly_identical": true,
+  "passed": true
+ },
+ "G_V": {
+  "n_candidates": 8844,
+  "n_no_score": 0,
+  "no_score_rate": 0.0,
+  "max_no_score_rate": 0.01,
+  "n_first_token_not_yes_no": 0,
+  "first_token_not_yes_no_rate": 0.0,
+  "n_answer_empty": 0,
+  "errors": {},
+  "passed": true
+ },
+ "G_D": {
+  "dev_accuracy": {
+   "R3p": {
+    "n": 2948,
+    "correct": 2131,
+    "accuracy": 0.7228629579375848
+   },
+   "S3": {
+    "n": 2948,
+    "correct": 2141,
+    "accuracy": 0.7262550881953868
+   },
+   "V1": {
+    "n": 2948,
+    "correct": 1645,
+    "accuracy": 0.5580054274084125
+   },
+   "V2": {
+    "n": 2948,
+    "correct": 2153,
+    "accuracy": 0.730325644504749
+   }
+  },
+  "selection": {
+   "chosen": "V2",
+   "eligible": [
+    "V1",
+    "V2"
+   ],
+   "best_dev_accuracy": 0.730325644504749,
+   "within_tolerance": [
+    "V2"
+   ],
+   "v2_exceeds_s3": true
+  },
+  "gain_over_r3p": 0.007462686567164201,
+  "min_gain": 0.006,
+  "passed": true,
+  "s3_dev_accuracy_reference": 0.7263,
+  "paired_vs_r3p": {
+   "S3": {
+    "n": 2948,
+    "acc_new": 0.7262550881953868,
+    "acc_base": 0.7228629579375848,
+    "delta": 0.0033921302578018998,
+    "bootstrap_ci95": [
+     -0.0016960651289009499,
+     0.008819538670284939
+    ],
+    "analytic_ci95": [
+     -0.0020455448112017896,
+     0.00882980532680559
+    ],
+    "se_q": 0.002713445208708004,
+    "se_total": 0.0027728658281028357,
+    "df": 2225.052250691548,
+    "t": 1.9610307191545893,
+    "b_only_new": 37,
+    "c_only_base": 27,
+    "mcnemar_p": 0.2604354765766535
+   },
+   "V1": {
+    "n": 2948,
+    "acc_new": 0.5580054274084125,
+    "acc_base": 0.7228629579375848,
+    "delta": -0.16485753052917232,
+    "bootstrap_ci95": [
+     -0.17978290366350066,
+     -0.15027137042062416
+    ],
+    "analytic_ci95": [
+     -0.17958783610923448,
+     -0.15012722494911016
+    ],
+    "se_q": 0.007493804550492426,
+    "se_total": 0.007515524375649446,
+    "df": 120077.584245415,
+    "t": 1.959983740827036,
+    "b_only_new": 41,
+    "c_only_base": 527,
+    "mcnemar_p": 1.2955040295072561e-108
+   },
+   "V2": {
+    "n": 2948,
+    "acc_new": 0.730325644504749,
+    "acc_base": 0.7228629579375848,
+    "delta": 0.007462686567164179,
+    "bootstrap_ci95": [
+     0.0023744911804613297,
+     0.012890094979647219
+    ],
+    "analytic_ci95": [
+     0.0021122252062613827,
+     0.012813147928066974
+    ],
+    "se_q": 0.002667879793963049,
+    "se_total": 0.002728292981891117,
+    "df": 2085.3973370893773,
+    "t": 1.961102197020689,
+    "b_only_new": 42,
+    "c_only_base": 20,
+    "mcnemar_p": 0.007148733833163067
+   }
+  },
+  "n_dev": 2948,
+  "cross_validation": "GroupKFold(5) by the gold inbox (S3, V2)",
+  "segments": {
+   "R3p": {
+    "a_owner_out": {
+     "n": 218,
+     "correct": 58,
+     "accuracy": 0.26605504587155965,
+     "share": 0.07394843962008141
+    },
+    "b_owner_chosen": {
+     "n": 2516,
+     "correct": 1960,
+     "accuracy": 0.7790143084260731,
+     "share": 0.8534599728629579
+    },
+    "c_owner_in_not_chosen": {
+     "n": 214,
+     "correct": 113,
+     "accuracy": 0.5280373831775701,
+     "share": 0.07259158751696065
+    }
+   },
+   "S3": {
+    "a_owner_out": {
+     "n": 218,
+     "correct": 64,
+     "accuracy": 0.29357798165137616,
+     "share": 0.07394843962008141
+    },
+    "b_owner_chosen": {
+     "n": 2530,
+     "correct": 1970,
+     "accuracy": 0.7786561264822134,
+     "share": 0.8582089552238806
+    },
+    "c_owner_in_not_chosen": {
+     "n": 200,
+     "correct": 107,
+     "accuracy": 0.535,
+     "share": 0.06784260515603799
+    }
+   },
+   "V1": {
+    "a_owner_out": {
+     "n": 218,
+     "correct": 58,
+     "accuracy": 0.26605504587155965,
+     "share": 0.07394843962008141
+    },
+    "b_owner_chosen": {
+     "n": 1736,
+     "correct": 1479,
+     "accuracy": 0.8519585253456221,
+     "share": 0.5888738127544098
+    },
+    "c_owner_in_not_chosen": {
+     "n": 994,
+     "correct": 108,
+     "accuracy": 0.10865191146881288,
+     "share": 0.33717774762550884
+    }
+   },
+   "V2": {
+    "a_owner_out": {
+     "n": 218,
+     "correct": 61,
+     "accuracy": 0.2798165137614679,
+     "share": 0.07394843962008141
+    },
+    "b_owner_chosen": {
+     "n": 2534,
+     "correct": 1982,
+     "accuracy": 0.7821625887924231,
+     "share": 0.8595658073270014
+    },
+    "c_owner_in_not_chosen": {
+     "n": 196,
+     "correct": 110,
+     "accuracy": 0.5612244897959183,
+     "share": 0.06648575305291723
+    }
+   }
+  },
+  "ceilings": {
+   "any_candidate_correct": 0.75,
+   "owner_candidate_given_owner_in": {
+    "n": 2730,
+    "accuracy": 0.7695970695970696
+   },
+   "owner_candidate_in_segment_c": {
+    "n": 214,
+    "accuracy": 0.6588785046728972
+   }
+  },
+  "n_chosen_differs_from_r3p": {
+   "S3": 223,
+   "V1": 1154,
+   "V2": 251
+  }
+ }
+}
