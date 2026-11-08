@@ -17,6 +17,27 @@
 
 ---
 
+## B95 [human-decided 2026-11-08] B94 は選択肢 2（A2）：判定モデルは J1（Qwen3 14B の Q8_0）だけ
+- 回答の内容: 人間が B94 の選択肢 2 を承認した．承認の範囲は次のとおり．`Qwen/Qwen3-14B-GGUF` の `Qwen3-14B-Q8_0.gguf`（15.70 GB．rev 530227a7d994db8eca5ab5ced2fb692b614357fd）を gpu4 で `hf download`（既定のキャッシュ）すること，gpu4 の既存の判定の container（`atrium-judge-ollama-local`）で `ollama create` で登録すること，それで採点すること．wafl の Ollama は使わない．Phi-4（J2）は取得しない．
+- 対応: journal の Iteration 26 の事前登録を，判定モデル 1 つの規則に確定させた．主判定は J1 での α = 0.05 の単独の McNemar の正確検定で，補正はしない．G-K は参考の qwen3:8b との κ ≥ 0.40 で確かめ，同じ Qwen の系統なので独立の確かめにならないことを併記する．判定モデルの間の差の指標は出さない．結論には「判定モデル 1 つ（Qwen3 14B）」と付け，系統の違う判定モデルで確かめていないことを限界として書く．採点の見込みは J1 だけに直した（約 2.3 万件，gpu4 で 8〜10 時間）．config.yml の note と state.json の current_lever も揃えた．
+- 要レビュー: 判定モデルが 1 系統（Qwen）だけなので，Qwen に特有の好みが base と G4 の比較に入っても見分けられない．系統の違う判定モデルで確かめるには，Phi-4 などの取得の承認が改めて要る．
+
+## B94 [needs-human → human-decided 2026-11-08．B95 で選択肢 2 に決定・解決済み] Iteration 26 の判定モデルの取得と，gpu4 の判定の container への登録の承認（判定モデルを「よりメジャーなもの」へ選び直した後）
+- 経緯: 最初の案（J1 Granite 4.2 30B・J2 Ministral 3 14B．合計 32.1 GB）は，人間に承認されなかった（「もう少しメジャーなモデルにせよ」）．どちらも元モデルの HF の 30 日の downloads が 3.3 万・16.7 万と少なかった．そこで「メジャーさ」を測れる基準 CJ7 として事前登録に足し，選び直した（journal の Iteration 26「判定モデル」）．
+- 状況: 選び直した判定モデルは J1 Qwen3 14B（`Qwen/Qwen3-14B-GGUF` の `Qwen3-14B-Q8_0.gguf`．15.70 GB．rev 530227a．元モデルの 30 日の downloads 12,952,853・likes 534）と，J2 Phi-4（`microsoft/phi-4-gguf` の `phi-4-Q8_0.gguf`．15.58 GB．rev 6edc2ef．293,650・2,340）である．どちらも B92 の承認の範囲（Gemma 4 12B の 6.98 GB）を超えるので，rc-researcher は取得していない．gpu4 の空きは 1.5 TB．どちらも gated ではない（Qwen3 は Apache 2.0，Phi-4 は MIT）．Slack での @mention は呼び出し元に委ねる．
+- 選択肢（承認は人間から来るまで得たとみなさない．どれも採点は gpu4 の既存の判定の container で行い，wafl の Ollama は使わない）:
+  1. (Recommended) J1 と J2 の両方（31.3 GB）．系統の違う 2 つの判定モデルで，McNemar の 2 本に Holm の補正をかける．採点は最終回答が各 11,338 件，作り話が各 約 3,000 件，参考の qwen3:8b が約 8,500 件で，gpu4 を 10〜14 時間使う見込み．
+  2. J1 だけ（Qwen3 14B の Q8_0．15.70 GB）．判定モデル 1 つでの単独の検定になる．参考の qwen3:8b と同じ系統なので，系統の違う確かめが無い．採点は約 6〜8 時間．
+  3. J1 を Q4_K_M にしたもの（9.00 GB．以前の `judge_reference_model` の qwen3:14b と同じ量子化）だけ．取得量が最も小さい．限界は 2 と同じで，精度は Q8_0 より低い．
+  4. 取得しない．既存の qwen3:8b（CJ1〜CJ5・CJ7 を満たす．30 日の downloads 6,976,036）を唯一の判定モデルにする．取得量は 0．判定モデルが最も小さく古いので，精度の限界が最も大きい．
+- 再開の手順: 人間が番号で答えたら `[human-decided]` を追記する．rc-executor が事前登録を commit・push してから，journal の Iteration 26「採点の手順」を始める．生成の実行（実機）はやり直さない．
+
+## B93 [human-decided 2026-11-08] Iteration 26 の採点の設計は C1 に統一する（2 × 2 は取り消し）．回答は base（llama3.1:8b）と Gemma 4 12B，判定は gpu4 に載る回答と別系統の公式モデル
+- 状況: rc-executor が生成を終え，採点を保留していた間に，人間が Slack で 3 回指示した．(1) 判定モデルも替え，回答 2 種 × 判定 2 種（llama3.1:8b・Gemma 4 12B）の全組み合わせで採り直す案．(2) それを C1 に差し替える．Answering は 12 GB に載る 2 種のまま（配備の前提と運用ルール 13 を守る）．Grading はオフライン処理で gpu4（32 GB）に載ればよく，回答の系統と違う系統の公式モデルを選ぶ．(3)「2 × 2 ではなく C1 の方針で統一せよ」．
+- 回答の内容と対応: (1) の 2 × 2 の設計は取り消した．journal・config.yml・state.json に 2 × 2 の記述は残していない．journal の Iteration 26 の事前登録は C1 だけの 1 つの設計に書き直した．判定モデルは選定基準 CJ1〜CJ6 で J1 Granite 4.2 30B・J2 Ministral 3 14B としたが，人間に承認されず，B94 で CJ7（メジャーさ）を足して J1 Qwen3 14B・J2 Phi-4 に選び直した．主判定は判定モデルごとの McNemar の 2 本で，Holm の補正をかける．qwen3:8b は過去の数値との橋渡しの参考で，採否には使わない．config.yml の levers の値は `gemma4-12b-it-qat` の 1 つにした．取得の承認は B94．
+- Llama の新しい版の確かめ（人間の指示 (1) の一部）: Meta の Llama の名前での最新は Llama 4（2025-04．109B 以上）で，2026 年の公開は Muse の名前である．Muse Glimmer 30B（`meta-models` org．2026-08-09．Apache 2.0）は公式の GGUF（Q4_K_M 16.76 GB）がある．ただし 12 GB に載らないので，回答には使えない．Muse Spark Open は 816B-A42B である．Llama 3.2 1B・3B（2024-09）は base より小さい．したがって，12 GB に載る Meta の公式モデルでは llama3.1:8b が最も新しく大きく，base はこれを据え置く．
+- 要レビュー: (a) 判定モデルを替えたので，Iteration 26 の正答率の水準は過去の値（qwen3:8b の判定）と並べられない．並べるときは参考の qwen3:8b の値を使う．(b) 以降の d0009 の主構成の判定モデルをどれにするかは決めていない（人間の判断に残す）．(c) dev300 は生成の後に採点するので，実機へ進むかの事前ゲートとしては働かなかった．記述として残す．
+
 ## B92 [human-decided 2026-11-08] B91 は A2（1 モデルに絞る）．対象は Gemma 4 12B（`gemma4-12b-it-qat`）だけ
 - 状況: Slack のスレッド返信「A2: Gemma 4 12B にしてみよ」．B91 の (i)〜(iii) を Gemma 4 12B 1 個について承認したものと扱う（取得は `google/gemma-4-12B-it-qat-q4_0-gguf` の 6.98 GB だけ．配布と wafl の Ollama の起動を含む）．Ministral 3 8B・Granite 4.2 8B は今回は取得せず，journal の事前登録から外す．
 - 事前登録の修正（実行の前に commit・push する）: 比較は G4 対 base の 1 本になるので，Holm の補正は不要（α = 0.05 の単独の検定）．実行の順は `d0009_m1_h2_base` → `h2_g4` → `h_g4`．dev300 は G4 の 1 回．M3・GR に関するゲート・取り込みの条件は適用しない．閾値は変えない．

@@ -341,13 +341,14 @@ levers:
             採点のモデルは 8B の生成モデルと同じ 12 GB の GPU に共存できなかった（journal の F-6）ので，採点を置く GPU の割り当ても合わせて設計する．
             wafl500〜509 の GPU は共有なので，他の研究者のプロセスに触れない"}
   # ---- 人間の指示（2026-11-08．backlog B89 [human-decided]）：最新の LLM に替えたときにどうなるか ----
-  - {name: llm.expert_model_gpu, values: [gemma4-12b-it-qat, ministral3-8b-instruct-2512, granite4.2-8b],
-     note: "Iteration 26 で追加（backlog B89 [human-decided]・B90 [auto-decided]・B91 [needs-human]）．主構成 R3′ の候補の回答を作る生成モデル（GPU の PC wafl500〜509 の
-            Ollama 0.35.1．CPU の専門家は生成をそこへ委託する）だけを，現行の llama3.1:8b から各社の公式の最新モデルへ替えて，同じ質問集合で 1 つずつ比べる（1 イテレーションの中で
-            値を 3 つ流す．動かすのはモデルの識別子だけ）．値は開発元の公式 org の GGUF だけ：google/gemma-4-12B-it-qat-q4_0-gguf（Q4_0 QAT）・
-            mistralai/Ministral-3-8B-Instruct-2512-GGUF（Q4_K_M）・ibm-granite/granite-4.2-8b-GGUF（Q4_K_M）．`hf` で取得し ollama create で登録する．
-            判定モデル（qwen3:8b）・cross-encoder・埋め込み・プロンプト・m・取得の設定・num_ctx・num_parallel・temperature・think は変えない．
-            選定基準・除外した候補（Qwen3.8 は 12 GB に載らず判定モデルと同じ系統など）・多重比較の補正は journal の Iteration 26 の事前登録"}
+  - {name: llm.expert_model_gpu, values: [gemma4-12b-it-qat],
+     note: "Iteration 26 で追加（backlog B89〜B94）．主構成 R3′ の候補の回答を作る生成モデル（GPU の PC wafl500〜509．RTX 3060 12 GB の Ollama 0.35.1．
+            CPU の専門家は生成をそこへ委託する）を，base の llama3.1:8b から Gemma 4 12B-it（google/gemma-4-12B-it-qat-q4_0-gguf の Q4_0 QAT）へ替える．
+            プロンプト・m・取得の設定・num_ctx・num_parallel・temperature・think・cross-encoder・埋め込みは変えない．
+            採点は保存した回答へのオフライン処理で，gpu4（RTX 5090 32 GB）に載る公式モデルのうち，回答の系統（Meta・Google）と開発元が違い，メジャーさの基準 CJ7
+            （HF の 30 日の downloads ≥ 100 万か likes ≥ 1,000）を満たす J1 Qwen3 14B（Qwen/Qwen3-14B-GGUF の Q8_0）の 1 つを判定モデルにする（B95）．
+            主判定は J1 での α = 0.05 の単独の McNemar．qwen3:8b の採点は過去の数値との橋渡しの参考．判定モデルを替えたので，過去の正答率の数値とは並べない．
+            選定基準・除外した候補・ゲートは journal の Iteration 26 の事前登録"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．
