@@ -74,6 +74,10 @@
 - 現状：負荷・障害・参加は cross-encoder による選択を加える前の構成で測った．負荷の大小は再実行で逆転し（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒），生成を 10 台に分散した中央集約型は P2P 構成の約 2.4 倍だった．
 - 確かめること：主構成で負荷・障害・参加を測り直す．負荷は同じ時間帯に交互に流した条件どうしでしか比べられないので，その手順を守る．
 - 着手（負荷）：Iteration 29（事前登録は `.claude/research/journal.md` の Iteration 29．設計の判断は `.claude/research/backlog.md` の B103）．P2P の主構成（R3′ の選択の経路あり）・中央 C1-RRF-CE・準集権（C1-RRF-CE の生成を 10 枚に分ける）を，H の 288 問・parallel 30 で 4 ラウンド，ラウンドごとに無作為な順序で交互に実機で流す．cross-encoder の得点は両側とも事前に計算した表を引き（制御点に GPU が無い），採点の計算の費用は gpu4 の測定から別に見積もる．
+- 完了（負荷）：Iteration 29（2026-11-09．採用）．結果は `results/d0009_a6_load/`（`verdict.json`・`load.json`・採点の費用 `table/cost.json`），各実行は `results/d0009_a6_{p,c,s}_r{1..4}/`，記述は `.claude/research/journal.md` の Iteration 29．判定：
+  - 4 ラウンドの全てで，P2P（R3′ の選択の経路あり）の処理量は中央 C1-RRF-CE の 3.07〜3.09 倍（「P2P が高い」），生成を 10 枚に分けた準集権は P2P の 2.28〜2.38 倍（「準集権が高い」）．処理量の中央値は P2P 1.32，中央 0.43，準集権 3.03 問/秒（H の 288 問・parallel 30 の値で，p0007 D・Iteration 22 の問/秒とは比べない）．
+  - 同じ条件のラウンドの揺れは P2P 0.19%・中央 0.8%・準集権 4.0% で，他の研究者の GPU のプロセスは全ラウンドで 0 だった．p0007 D の再実行で起きた大小の逆転は，この手順では起きなかった．3 条件とも律速は生成で，比は「GPU の枚数 ÷ 1 問あたりの生成の数」でおおむね説明できる（P2P は 1 問 3 回の生成を 10 枚で，中央は 1 回を 1 枚で行う）．
+  - 制約：live の値は cross-encoder の計算を表で除いた経路の値で，選択は R3′ である．主構成の選択 V2 は実機の経路に無い．見積もり（記述）では，採点を 1 枚の GPU に置くと，gpu4 相当なら P2P 1.32・中央 0.43・準集権 1.49 問/秒，RTX 3060 相当なら P2P 0.53・中央と準集権 0.16 問/秒になり，準集権の利点は採点で消える．V2 の検証を 1 枚の RTX 5090 に置くと P2P の上限は 0.42 問/秒で，中央と同じ程度になる．
 
 ## B. 実装の改善候補
 
@@ -162,7 +166,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
 | 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
-| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は着手（Iteration 29）．障害・参加は未着手 |
+| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は次に着手．参加は未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |
 | 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 未着手 |
