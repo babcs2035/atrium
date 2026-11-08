@@ -9,6 +9,7 @@
       queries/<encoder>.npy          全質問のクエリ埋め込み（行は query_ids.json の順）
       queries/query_ids.json
       ce_table/<split>.jsonl         中央の再ランクの cross-encoder の得点の表（retrieval.ce_scores=table）
+      ce_table/<split>_owner.jsonl   P2P の候補の文脈の cross-encoder の得点の表（owner_answer・retrieval.ce_scores=table）
       queries/holdout/               holdout（d0009 A3）の質問のクエリ埋め込みと query_ids.json（既存の queries/ は変えない）
       queries/holdout2/              holdout2（d0009 B3）の同じもの
       queries/holdout_q/             holdout と holdout2 の連結（d0009 B3）の同じもの
@@ -99,6 +100,10 @@ class DatasetPaths:
     def ce_table(self, split: str) -> Path:
         """分割ごとの cross-encoder の得点の表（retrieval.ce_scores=table．`atrium ce-table` が書く．d0009 A3）．"""
         return self.root / "ce_table" / f"{split}.jsonl"
+
+    def ce_table_owner(self, split: str) -> Path:
+        """分割ごとの，P2P の候補の文脈の cross-encoder の得点の表（owner_answer で retrieval.ce_scores=table．d0009 A6）．"""
+        return self.root / "ce_table" / f"{split}_owner.jsonl"
 
     @property
     def labels(self) -> Path:

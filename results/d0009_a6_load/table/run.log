@@ -1,0 +1,30 @@
+{
+ "t_P": {
+  "median_s": 0.2023570125165861,
+  "mean_s": 0.21836975593174024,
+  "p95_s": 0.2946330680279061,
+  "repeat_means_s": [
+   0.2184300588974616,
+   0.218536389140354,
+   0.21912859701862747
+  ],
+  "n_questions": 288,
+  "pairs_per_question_mean": 15.0,
+  "n_unique_pairs": 4320
+ },
+ "t_C": {
+  "median_s": 0.6694628379773349,
+  "mean_s": 0.7238352170689824,
+  "p95_s": 0.984488561982289,
+  "repeat_means_s": [
+   0.7229993530658653,
+   0.7246611324939699,
+   0.7244652537968553
+  ],
+  "n_questions": 288,
+  "pairs_per_question_mean": 50.0,
+  "max_abs_diff_vs_existing_table": 0.0,
+  "tolerance": 0.0001,
+  "matches_existing_table": true
+ }
+}

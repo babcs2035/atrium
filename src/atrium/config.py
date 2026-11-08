@@ -552,12 +552,21 @@ class AtriumConfig(_Strict):
 
     @model_validator(mode="after")
     def _check_ce_table(self) -> AtriumConfig:
-        """表から引く得点（ce_scores=table）は，中央の再ランク（central_local・merge=cross_encoder）だけで使う（d0009 A3）．"""
-        if self.retrieval.ce_scores == "table" and (
-            self.experiment.routing != "central_local" or self.retrieval.merge != "cross_encoder"
-        ):
+        """表から引く得点（ce_scores=table）は，中央の再ランク（central_local・merge=cross_encoder．d0009 A3）か，
+        候補の文脈の採点（owner_answer・answer.aggregate=cross_encoder．d0009 A6）だけで使う．"""
+        if self.retrieval.ce_scores != "table":
+            return self
+        central_rerank = (
+            self.experiment.routing == "central_local" and self.retrieval.merge == "cross_encoder"
+        )
+        owner_scoring = (
+            self.experiment.answer_mode == "owner_answer"
+            and self.answer.aggregate == "cross_encoder"
+        )
+        if not (central_rerank or owner_scoring):
             raise ValueError(
-                "retrieval.ce_scores=table requires routing=central_local and merge=cross_encoder"
+                "retrieval.ce_scores=table requires routing=central_local and merge=cross_encoder, "
+                "or answer_mode=owner_answer and answer.aggregate=cross_encoder"
             )
         return self
 

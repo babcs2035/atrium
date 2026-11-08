@@ -22,11 +22,13 @@ from atrium.manifest import Placement, read_placement
 from atrium.paths import DatasetPaths, dataset_paths
 from atrium.requester import (
     CachedQueryEmbedder,
+    CandidateScorer,
     CrossEncoderReranker,
     LiveMedcptEmbedder,
     QueryEmbedder,
     Requester,
     Reranker,
+    TableCandidateScorer,
     TableReranker,
     apply_pool_assign,
     apply_sniffio_lookup,
@@ -203,7 +205,22 @@ async def build_requester(
     needs_cross_encoder = cfg.retrieval.merge == "cross_encoder" or (
         cfg.experiment.answer_mode == "owner_answer" and cfg.answer.aggregate == "cross_encoder"
     )
-    reranker = CrossEncoderReranker() if needs_cross_encoder else None
+    # ce_scores=table（d0009 A6）：候補の採点は表を引き，質問者の CPU に cross-encoder を読み込まない（運用ルール 8）
+    owner_table = (
+        cfg.experiment.answer_mode == "owner_answer"
+        and cfg.answer.aggregate == "cross_encoder"
+        and cfg.retrieval.ce_scores == "table"
+    )
+    reranker = (
+        CrossEncoderReranker()
+        if cfg.retrieval.merge == "cross_encoder" or (needs_cross_encoder and not owner_table)
+        else None
+    )
+    candidate_scorer: CandidateScorer | TableCandidateScorer | None = (
+        TableCandidateScorer(paths.ce_table_owner(cfg.experiment.question_split))
+        if owner_table
+        else reranker
+    )
     requester = Requester(
         cfg=cfg,
         placement=placement,
@@ -215,7 +232,7 @@ async def build_requester(
         tolerate_node_failures=tolerate_node_failures,
         reranker=reranker,
         # answer.aggregate=cross_encoder（p0007 F-6）：候補の文脈を質問者の GPU の cross-encoder で採点する
-        candidate_scorer=reranker if cfg.answer.aggregate == "cross_encoder" else None,
+        candidate_scorer=candidate_scorer if cfg.answer.aggregate == "cross_encoder" else None,
         rm_qrels=load_rm_qrels(paths.rm_qrels) if cfg.retrieval.merge == "qrels_oracle" else {},
         gold_docs=(
             load_gold_docs(paths, [q.qid for q in load_questions(paths.questions, None)])

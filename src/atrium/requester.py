@@ -363,6 +363,26 @@ class TableReranker:
         return [docs[int(i)] for i in order]
 
 
+class TableCandidateScorer:
+    """事前に計算した表（`<split>_owner.jsonl`）を引く，候補の文脈の採点（retrieval.ce_scores=table・owner_answer．d0009 A6）．
+
+    質問者に GPU が無いときに，CrossEncoderReranker.scores と同じ得点を (質問文, 文書 ID) → 得点の表から返す．
+    表に無い組は，黙って補わずに KeyError にする（その問は失敗になる）．
+    """
+
+    def __init__(self, table_path: Path) -> None:
+        """表（1 行 1 組の JSON: query・doc_id・score）を読む．"""
+        self._scores: dict[tuple[str, str], float] = {}
+        with table_path.open(encoding="utf-8") as f:
+            for line in f:
+                row = json.loads(line)
+                self._scores[(row["query"], row["doc_id"])] = float(row["score"])
+
+    def scores_by_doc_id(self, query: str, doc_ids: Sequence[str]) -> list[float]:
+        """質問と各文書の関連度を，文書の順に返す．"""
+        return [self._scores[(query, d)] for d in doc_ids]
+
+
 def load_rm_qrels(path: Path) -> dict[str, dict[str, int]]:
     """FeB4RAG の結果統合用ラベル（qid Q0 docid rel）を読む．"""
     out: dict[str, dict[str, int]] = defaultdict(dict)
@@ -399,7 +419,7 @@ class Requester:
     ollama_url: str
     reranker: Reranker | None = None
     # answer.aggregate=cross_encoder（p0007 F-6）：候補の文脈を採点する cross-encoder．他の統合の規則では None
-    candidate_scorer: CandidateScorer | None = None
+    candidate_scorer: CandidateScorer | TableCandidateScorer | None = None
     rm_qrels: dict[str, dict[str, int]] = field(default_factory=dict)
     # EQ7b：質問者のメンバー表（見えているノードの URL）．None なら全ノードが見えている（従来どおり）
     visible_urls: frozenset[str] | None = None
@@ -850,8 +870,13 @@ class Requester:
             raise RuntimeError("answer.aggregate=cross_encoder requires a candidate scorer")
         out: list[float | None] = []
         for a in answers:
-            texts = [f"{d.title}\n{d.content}".strip() for d in a.context_docs or []]
-            values = self.candidate_scorer.scores(query, texts)
+            if isinstance(self.candidate_scorer, TableCandidateScorer):
+                values = self.candidate_scorer.scores_by_doc_id(
+                    query, [d.doc_id for d in a.context_docs or []]
+                )
+            else:
+                texts = [f"{d.title}\n{d.content}".strip() for d in a.context_docs or []]
+                values = self.candidate_scorer.scores(query, texts)
             out.append(max(values) if values else None)
         return out
 

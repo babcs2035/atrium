@@ -32,7 +32,7 @@ from atrium.prompts import (
     extract_selected_index,
     is_unknown_answer,
 )
-from atrium.requester import Requester, discover_shards
+from atrium.requester import Requester, TableCandidateScorer, discover_shards
 from atrium.routing import AllRouter, build_source_profiles
 from atrium.store import RetrievedDoc, load_shard
 from tests.conftest import HostDispatchTransport, ollama_mock, with_experiment, write_faiss_shard
@@ -620,6 +620,65 @@ async def test_cross_encoder_aggregate_answers_with_the_candidate_the_scorer_pre
     # 通常のプロンプトで答えさせ（UNKNOWN を許さない），生成は候補ごとに 1 回
     assert all("write UNKNOWN" not in p for ps in harness.node_prompts.values() for p in ps)
     assert info["n_generations"] == 3
+
+
+def write_owner_table(path: Path, scores: dict[str, float]) -> Path:
+    """QUESTION の質問文について，文書 ID → 得点の表（`<split>_owner.jsonl` と同じ形）を書く．"""
+    rows = [
+        {"qid": QUESTION.qid, "query": QUESTION.question, "doc_id": d, "score": v}
+        for d, v in scores.items()
+    ]
+    path.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+    return path
+
+
+async def test_cross_encoder_aggregate_with_a_score_table_picks_like_the_live_scorer(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    """ce_scores=table（d0009 A6）：表の得点（質問文と文書 ID で引く）が最大の候補を採る．"""
+    table = write_owner_table(
+        tmp_path / "t.jsonl", {"a-00/f/0": 0.5, "b-00/f/0": 3.0, "c-00/f/0": -2.0}
+    )
+    replies = {"node-a": "Answer: ALPHA", "node-b": "Answer: BETA", "node-c": "Answer: GAMMA"}
+    harness = Harness(owner_cfg(cfg, "cross_encoder"), tmp_path, replies)
+    requester = harness.requester()
+    requester.candidate_scorer = TableCandidateScorer(table)
+    await harness.discover(requester)
+    record = await requester.process(QUESTION)
+
+    info = record["owner_answer"]
+    assert isinstance(info, dict)
+    assert record["final_answer"] == "BETA"
+    assert info["ce_max"] == [0.5, 3.0, -2.0]
+
+
+async def test_cross_encoder_aggregate_with_a_score_table_fails_the_question_for_a_missing_pair(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    """表に無い (質問文, 文書 ID) の組は黙って補わず，その問を失敗（error）にする．"""
+    table = write_owner_table(tmp_path / "t.jsonl", {"a-00/f/0": 0.5, "b-00/f/0": 3.0})
+    replies = {"node-a": "Answer: ALPHA", "node-b": "Answer: BETA", "node-c": "Answer: GAMMA"}
+    harness = Harness(owner_cfg(cfg, "cross_encoder"), tmp_path, replies)
+    requester = harness.requester()
+    requester.candidate_scorer = TableCandidateScorer(table)
+    await harness.discover(requester)
+    record = await requester.process(QUESTION)
+    assert "KeyError" in str(record["error"])
+    assert "final_answer" not in record
+
+
+def test_ce_scores_table_is_allowed_for_owner_answer_with_cross_encoder_aggregate(
+    cfg: AtriumConfig,
+) -> None:
+    """ce_scores=table は owner_answer・answer.aggregate=cross_encoder でも使える．それ以外の owner_answer は拒否する．"""
+    from atrium.config import AtriumConfig as Config
+
+    base = owner_cfg(cfg, "cross_encoder").model_dump()
+    base["retrieval"]["ce_scores"] = "table"
+    assert Config.model_validate(base).retrieval.ce_scores == "table"
+    base["answer"]["aggregate"] = "max_score"
+    with pytest.raises(ValueError, match="ce_scores=table"):
+        Config.model_validate(base)
 
 
 async def test_cross_encoder_aggregate_does_not_store_email_text_in_the_record(
