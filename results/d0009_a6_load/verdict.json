@@ -1,0 +1,215 @@
+{
+ "verdict_original": {
+  "H-A6L1_P_vs_C": "P が高い",
+  "H-A6L2_S_vs_P": "S が高い",
+  "ratio_threshold": 1.1,
+  "valid_rounds": {
+   "p": 4,
+   "c": 4,
+   "s": 4
+  },
+  "success_condition_valid_rounds_ge_3_each": true
+ },
+ "H-A6L1_rounds": {
+  "r1": {
+   "q": 3.0931618968177457,
+   "valid": true
+  },
+  "r2": {
+   "q": 3.0890977633268086,
+   "valid": true
+  },
+  "r3": {
+   "q": 3.0805846764352918,
+   "valid": true
+  },
+  "r4": {
+   "q": 3.06808538724555,
+   "valid": true
+  }
+ },
+ "H-A6L2_rounds": {
+  "r1": {
+   "q": 2.2988113038367897,
+   "valid": true
+  },
+  "r2": {
+   "q": 2.376638586204378,
+   "valid": true
+  },
+  "r3": {
+   "q": 2.2818854548793674,
+   "valid": true
+  },
+  "r4": {
+   "q": 2.296921028485973,
+   "valid": true
+  }
+ },
+ "using_x_log_instead": {
+  "H-A6L1_P_vs_C": "P が高い",
+  "H-A6L2_S_vs_P": "S が高い"
+ },
+ "sensitivity_excluding_other_processes": {
+  "P_vs_C": {
+   "q": [
+    3.0931618968177457,
+    3.0890977633268086,
+    3.0805846764352918,
+    3.06808538724555
+   ],
+   "n": 4
+  },
+  "S_vs_P": {
+   "q": [
+    2.2988113038367897,
+    2.376638586204378,
+    2.2818854548793674,
+    2.296921028485973
+   ],
+   "n": 4
+  }
+ },
+ "gates": {
+  "G-S": {
+   "passed": true,
+   "detail": {
+    "r1": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0,
+     "n_mismatched": 0,
+     "mismatched_qids": []
+    },
+    "r2": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0,
+     "n_mismatched": 0,
+     "mismatched_qids": []
+    },
+    "r3": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0,
+     "n_mismatched": 0,
+     "mismatched_qids": []
+    },
+    "r4": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0,
+     "n_mismatched": 0,
+     "mismatched_qids": []
+    }
+   }
+  },
+  "G-C": {
+   "passed": true,
+   "detail": {
+    "c_r1": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0
+    },
+    "c_r2": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0
+    },
+    "c_r3": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0
+    },
+    "c_r4": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0
+    },
+    "s_r1": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0
+    },
+    "s_r2": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0
+    },
+    "s_r3": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0
+    },
+    "s_r4": {
+     "n": 288,
+     "strict": 1.0,
+     "tie_tolerant": 1.0
+    }
+   }
+  },
+  "G-F": {
+   "p": {
+    "r1": 0.0,
+    "r2": 0.0,
+    "r3": 0.0,
+    "r4": 0.0
+   },
+   "c": {
+    "r1": 0.0,
+    "r2": 0.0,
+    "r3": 0.0,
+    "r4": 0.0
+   },
+   "s": {
+    "r1": 0.0,
+    "r2": 0.0,
+    "r3": 0.0,
+    "r4": 0.0
+   }
+  }
+ },
+ "H-A6L3": {
+  "note": "記述（採否に使わない）．X_est = min(X_live の中央値, X_ce)．RTX 3060 換算は 1 組 0.126 s（F-6）×組の数（推測）",
+  "p": {
+   "x_live_median": 1.3204539160495412,
+   "t_gpu4_s": 0.2023570125165861,
+   "x_ce_gpu4": 4.941761036910126,
+   "x_est_gpu4": 1.3204539160495412,
+   "t_rtx3060_est_s": 1.8900000000000001,
+   "x_ce_rtx3060_est": 0.5291005291005291,
+   "x_est_rtx3060": 0.5291005291005291
+  },
+  "c": {
+   "x_live_median": 0.4280759771006817,
+   "t_gpu4_s": 0.6694628379773349,
+   "x_ce_gpu4": 1.4937348920237687,
+   "x_est_gpu4": 0.4280759771006817,
+   "t_rtx3060_est_s": 6.3,
+   "x_ce_rtx3060_est": 0.15873015873015872,
+   "x_est_rtx3060": 0.15873015873015872
+  },
+  "s": {
+   "x_live_median": 3.0342266320707987,
+   "t_gpu4_s": 0.6694628379773349,
+   "x_ce_gpu4": 1.4937348920237687,
+   "x_est_gpu4": 1.4937348920237687,
+   "t_rtx3060_est_s": 6.3,
+   "x_ce_rtx3060_est": 0.15873015873015872,
+   "x_est_rtx3060": 0.15873015873015872
+  }
+ },
+ "H-A6V": {
+  "note": "記述．V2 を 1 枚の RTX 5090（並列 2）で載せた場合の検証の容量（問/秒）と，委託で渡る文書",
+  "v2_capacity_q_per_s": 0.42194092827004215,
+  "v2_sequential_s_per_question": 4.74,
+  "p_x_live_median": 1.3204539160495412,
+  "p_x_est_gpu4_with_v2": 0.42194092827004215,
+  "delegated_docs_per_question_max": 15,
+  "e_any": {
+   "H": 0.3698,
+   "Q": 0.5498
+  }
+ }
+}

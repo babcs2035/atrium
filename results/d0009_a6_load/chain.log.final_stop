@@ -1,0 +1,41 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[05:42:54] ok: 192.168.13.100
+[05:42:54] ok: 192.168.13.101
+[05:42:54] ok: 192.168.13.102
+[05:42:54] ok: 192.168.13.103
+[05:42:54] ok: 192.168.13.104
+[05:42:54] ok: 192.168.13.105
+[05:42:54] ok: 192.168.13.106
+[05:42:54] ok: 192.168.13.107
+[05:42:54] ok: 192.168.13.108
+[05:42:54] ok: 192.168.13.109
+[05:42:54] ok: 192.168.14.100
+[05:42:54] ok: 192.168.14.101
+[05:42:54] ok: 192.168.14.102
+[05:42:54] ok: 192.168.14.103
+[05:42:54] ok: 192.168.14.104
+[05:42:54] ok: 192.168.14.105
+[05:42:54] ok: 192.168.14.106
+[05:42:54] ok: 192.168.14.107
+[05:42:54] ok: 192.168.14.108
+[05:42:54] ok: 192.168.14.109
+[05:42:54] ok: 192.168.15.100
+[05:42:54] ok: 192.168.15.101
+[05:42:55] ok: 192.168.15.102
+[05:42:55] ok: 192.168.15.103
+[05:42:55] ok: 192.168.15.104
+[05:42:55] ok: 192.168.15.105
+[05:42:55] ok: 192.168.15.106
+[05:42:55] ok: 192.168.15.107
+[05:42:55] ok: 192.168.15.108
+[05:42:55] ok: 192.168.15.109
+[05:42:55] ok: wafl-ctrl5
+[05:42:55] stop done

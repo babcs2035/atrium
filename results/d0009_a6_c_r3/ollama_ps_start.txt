@@ -1,0 +1,12 @@
+# 2026-11-09T04:45:19
+== wafl500
+== wafl501
+== wafl502
+== wafl503
+== wafl504
+== wafl505
+== wafl506
+== wafl507
+== wafl508
+== wafl509
+llama3.1:8b    46e0c10c039e    9.0 GB    100% GPU     16384      Forever    

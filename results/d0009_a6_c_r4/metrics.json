@@ -1,0 +1,71 @@
+{
+ "all": {
+  "n": 288,
+  "n_unlabeled": 288,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "mean_selected_sources": 0.0,
+   "mean_relevant_sources": 0.0,
+   "mean_shards_queried": 0.0,
+   "query_reduction_vs_all": 0.0
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {
+   "embed_s": {
+    "p50": 8.396198973059654e-05,
+    "p95": 0.0002858554769773025,
+    "n": 288
+   },
+   "retrieve_s": {
+    "p50": 0.027440197009127587,
+    "p95": 0.2719097946712272,
+    "n": 288
+   },
+   "generate_s": {
+    "p50": 68.79313446296146,
+    "p95": 80.48582061512862,
+    "n": 288
+   },
+   "e2e_s": {
+    "p50": 68.82453619193984,
+    "p95": 80.51609003458289,
+    "n": 288
+   }
+  },
+  "mean_bytes_received": 0.0,
+  "mean_snippets_exposed": 0.0,
+  "exposure": {
+   "mean_docs_exposed": 0.0,
+   "mean_query_recipients": 0.0
+  },
+  "gold_doc_retrieval": {
+   "recall_at_k": 0.9444444444444444,
+   "n": 288.0
+  }
+ },
+ "test": {
+  "n": 0,
+  "n_unlabeled": 0,
+  "failure_rate": 0.0,
+  "selection": {
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "mean_selected_sources": 0.0,
+   "mean_relevant_sources": 0.0,
+   "mean_shards_queried": 0.0,
+   "query_reduction_vs_all": 0.0
+  },
+  "label_consistency": null,
+  "accuracy": null,
+  "latency": {},
+  "mean_bytes_received": 0.0,
+  "mean_snippets_exposed": 0.0,
+  "exposure": null,
+  "gold_doc_retrieval": null
+ }
+}
