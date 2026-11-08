@@ -273,6 +273,8 @@ levers:
   # 費用が小さく後の判定の前提になるもの（A2 は既存の結果の集計，A3 は δ の根拠）を先にした．
   # 固定する構成は P2P の主構成 R3′（bm25_probe・owner_answer・retrieval.fusion: rrf・UNKNOWN の除外なしの通常のプロンプト・
   # answer.aggregate: cross_encoder・owner_m 3）と，中央の C1-RRF-CE．判定の質問集合は運用ルール 10（C1），選択の実機の扱いは 11（C2）．
+  # Iteration 28 の採用（backlog B102）から，P2P の主構成の最終回答の選択は R3′ ではなく V2（S3 の特徴量 + Gemma 4 12B の検証の得点の回帰．
+  # results/d0009_b3_verify/answer_verifier_selector.json．gpu4 でのオフラインの当てはめで実機の経路には無い）．正答率を R3′ の過去の値と並べるときは選択の違いを併記する．
   # 着手・完了の書き込みは運用ルール 9．各項目の詳細は d0009 の同じ ID の節を読む．
   - {name: d0009.A2_fabrication, values: [three_way_judge],
      note: "d0009 A2（高）．「わからない」を許す指示をやめたことによる作り話の評価．回答を「正解・わからない・誤答」の 3 つに分けて，
@@ -324,7 +326,11 @@ levers:
             再開（Iteration 27 の評価．backlog B100 [auto-decided]）：llm.answer_prompt_format の direct が棄却になり，Iteration 27 の事前登録の規則で次の値は answer_verification．Iteration 28 で着手する．
             着手：Iteration 28（値 answer_verification．事前登録は journal の Iteration 28．backlog B101）．検証の LLM は gpu4 に取り込み済みの gemma4-12b-it-qat（生成とも判定とも開発元が違う．追加の取得なし）．
             候補ごとに同じ上位 5 通の文脈・質問・回答を与えて Yes / No の 1 トークンを問い，v = logP(yes) − logP(no) を得点にする．dev で V1（v の最大）と V2（S3 の 10 特徴量 + v の回帰．S3 の 0.7263 を超えるときだけ選べる）から選び，
-            dev の増分 +0.006 の G-D を通れば，Q = H（d0009_a3_p1）∪ H2（d0009_m1_h2_base．既存の候補．実機は流さない）で比べる．新しい CLI atrium verify-features と answer-select-eval の --verify-features（追加だけ）"}
+            dev の増分 +0.006 の G-D を通れば，Q = H（d0009_a3_p1）∪ H2（d0009_m1_h2_base．既存の候補．実機は流さない）で比べる．新しい CLI atrium verify-features と answer-select-eval の --verify-features（追加だけ）．
+            完了（answer_verification）：Iteration 28（2026-11-09．採用）．結果は results/d0009_b3_verify/（verdict.json・verify_dev.json・answer_select_q.json・post.json・s3_q_post.json・
+            重み answer_verifier_selector.json），検証の得点は results/d0009_b3v_{dev,h,h2}/verify_features.jsonl，記述は journal の Iteration 28「実行済み」．dev は V1 0.5580（−0.165）・V2 0.7303（+0.0075．S3 0.7263 を上回る）で V2 を選択．
+            Q（5,669 問）で V2 0.7313 対 R3′ 0.7238（Δ +0.0076．79 : 36．区間 +0.0037〜+0.0115）で「改善」，作り話の割合の差 −0.0009，E_any 不変 0.5498．V2 − S3 は Q で +0.0049（事後の記述）．
+            以降の d0009 の主構成の選択は V2（オフラインの当てはめ．backlog B102）．B3 の 3 つの値は全て閉じた"}
   - {name: d0009.A6_remeasure_main, values: [load, failure, join],
      note: "d0009 A6（中）．負荷・障害・参加を主構成（cross-encoder による選択あり）で測り直す（p0007 D・E は選択を加える前の構成）．
             負荷は再実行で大小が逆転した（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒．生成を 10 台に分散した中央は P2P の約 2.4 倍）ので，

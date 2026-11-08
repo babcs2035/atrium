@@ -110,6 +110,12 @@
   - 上限に達した候補はほぼ全て持ち主でない受信箱の候補だった（100/304．持ち主の候補は 1/146）．答えが文脈に無いと，メールを 1 通ずつ引用して探し続け，打ち切られる．主構成のプロンプトは穴埋めの書式のまま．
   - 生成モデルの替え（Gemma 4 12B は穴埋めの書式で書き写しが止まらない）に使える共通のプロンプトは得られていない．理由なしの直接の指示は試しておらず，人間の判断に残す（`.claude/research/backlog.md` の B100 (a)）．追加だけの設定キー `llm.answer_prompt_format`（既定 `fill_in`）は残してある．
 - 着手（回答の検証）：Iteration 28（事前登録は `.claude/research/journal.md` の Iteration 28．設計の判断は `.claude/research/backlog.md` の B88・B100・B101）．保存した 3 候補のそれぞれについて，検証の LLM（Gemma 4 12B．生成の llama3.1:8b とも判定の qwen3:8b とも開発元が違う）に「質問者へ渡る同じ上位 5 通の文脈が回答を支えるか」を問い，Yes と No の対数確率の差で選ぶ規則（学習なしの V1 か，Iteration 25 の特徴量に足した回帰の V2）を dev で選ぶ．dev の増分 +0.006 のオフラインのゲートを通れば，H と H2 の既存の候補（`d0009_a3_p1`・`d0009_m1_h2_base`）の上で正答率・作り話・露出を比べる．実機は使わない．
+- 完了（回答の検証）：Iteration 28（2026-11-09．採用）．結果は `results/d0009_b3_verify/`（`verdict.json`・dev の `verify_dev.json`・Q の `answer_select_q.json`・作り話と露出と費用の `post.json`・事後の記述 `s3_q_post.json`・固定した重み `answer_verifier_selector.json`），検証の得点は `results/d0009_b3v_{dev,h,h2}/verify_features.jsonl`，記述は `.claude/research/journal.md` の Iteration 28．判定：
+  - dev（2,948 問）で，v の最大だけで選ぶ V1 は 0.5580（R3′ 0.7229 から −0.165．持ち主以外の文脈に支えられた誤答を選ぶ）で，Iteration 25 の特徴量に v を足した回帰の V2 は 0.7303（+0.0075）だった．V2 を選んだ．
+  - Q = H ∪ H2（5,669 問）で V2 0.7313 対 R3′ 0.7238（差 +0.0076．95% 区間の下端 +0.0037．b : c = 79 : 36）で「改善」．作り話の割合は 0.2484 → 0.2475（増えていない），露出 E_any は 0.5498 で変わらない．H2 だけの差は +0.0039（区間は 0 を含む）．
+  - 増分のうち v を足した分（V2 − S3）は Q で +0.0049（区間の下端 +0.0023）で，Iteration 25 の特徴量だけ（S3）の +0.0026 は 0 と区別できない．
+  - **以降の d0009 の主構成の最終回答の選択は V2 とする**（`.claude/research/backlog.md` の B102）．選択は gpu4 でのオフラインの当てはめで，実機の経路には載せていない（質問者に GPU が無く，Gemma 4 12B は 12 GB の GPU で生成の llama3.1:8b と同時に載らない見積もり）．検証の費用は候補 1 件 約 1.6 秒（RTX 5090），検証を GPU の PC へ委託すると 1 問あたり最大 15 通の文書が委託先へ渡る．正答率を R3′ の過去の値と並べるときは選択の違いを併記する．
+  - 追加だけの CLI `atrium verify-features` と `atrium answer-select-eval --verify-features` を残してある．
 
 ## C. 手続き上の注意
 
@@ -122,6 +128,7 @@
 
 - 主構成の最終的な回答は，実機で候補の回答を保存した後に，選択の規則（cross-encoder）をオフラインで当てはめて決めた．
 - 選択まで実機で通した実行（`p0007_f6_agree`，300 問）では，選んだ候補の番号がオフラインの選択と 300 問全てで一致した（得点の差の最大 0.0）．test の全 2,939 問では確かめていない．
+- Iteration 28 から主構成の選択は V2（B3 の「回答の検証」）で，これも保存した候補へのオフラインの当てはめである．V2 は実機で通した実行が無い．
 
 ### C3. 輪講資料の図とスライドが読む記録
 
@@ -153,7 +160,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 1 | A2 | レバー `d0009.A2_fabrication` | 完了（Iteration 21．採用．`results/d0009_a2_fabrication/`） |
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
-| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は着手（Iteration 28．backlog B88・B100・B101）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
+| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |
