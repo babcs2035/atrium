@@ -45,14 +45,18 @@ retry() {
   return 1
 }
 
-# 他の研究者の GPU の使用が無い（使用メモリが FREE_MIB 未満）状態が NEED_CONSEC 回続くのを最大 MAX_WAIT_S 秒待つ．戻り値 0：空いた／1：空かなかった
+# 他の研究者の GPU の使用が無い（自分たちの Ollama の llama3.1:8b 以外のプロセスのメモリが FREE_MIB 未満）状態が NEED_CONSEC 回続くのを最大 MAX_WAIT_S 秒待つ．
+# deploy の後は自分たちの Ollama がモデルを GPU に載せたままなので，全体の使用メモリではなく，そのモデルの blob を開いていないプロセスだけを数える．
+# 戻り値 0：空いた／1：空かなかった
+OWN_MODEL_BLOB=667b0c1932bc6ffc
 wait_for_free_gpus() {
   local consec=0 waited=0 used
   while [ "$waited" -lt "$MAX_WAIT_S" ]; do
     used=$(for i in 0 1 2 3 4 5 6 7 8 9; do
-      ssh -n -o BatchMode=yes -o ConnectTimeout=15 "wafl50$i" "nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits" 2> /dev/null | grep -v '^\*\*'
+      ssh -n -o BatchMode=yes -o ConnectTimeout=15 "wafl50$i" "total=0; for pid in \$(nvidia-smi --query-compute-apps=pid --format=csv,noheader); do \
+        case \"\$(tr '\\0' ' ' < /proc/\$pid/cmdline)\" in *$OWN_MODEL_BLOB*) ;; *) m=\$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader,nounits | grep \"^\$pid,\" | cut -d, -f2 | tr -d ' '); total=\$((total + \${m:-0}));; esac; done; echo \$total" 2> /dev/null | grep -v '^\*\*'
     done | sort -n | tail -1)
-    echo "[$(date +%T)] max GPU memory used on wafl500-509: ${used:-?} MiB" >> "$LOG"
+    echo "[$(date +%T)] max other-process GPU memory on wafl500-509: ${used:-?} MiB" >> "$LOG"
     if [ -n "${used:-}" ] && [ "$used" -lt "$FREE_MIB" ]; then consec=$((consec + 1)); else consec=0; fi
     if [ "$consec" -ge "$NEED_CONSEC" ]; then return 0; fi
     sleep "$INTERVAL_S"
