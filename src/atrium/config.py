@@ -94,9 +94,11 @@ class ExperimentConfig(_Strict):
     answer_mode: AnswerMode
     question_limit: int | None = None
     # 流す質問の分割（p0007 A1）．test：questions.jsonl（従来）／dev：dev_questions.jsonl（設定の選択用．EnronQA のみ）／
-    # holdout：holdout_questions.jsonl（test の並べ替えの 21〜40 番目．判定専用．EnronQA のみ．d0009 A3）．
+    # holdout：holdout_questions.jsonl（test の並べ替えの 21〜40 番目．判定専用．EnronQA のみ．d0009 A3）／
+    # holdout2：holdout2_questions.jsonl（同じ並べ替えの 41〜60 番目．判定専用．EnronQA のみ．d0009 B3）／
+    # holdout_q：holdout と holdout2 の連結（1 つの実行で両方を流す．d0009 B3）．
     # question_limit は選んだ分割の中で各問題集（EnronQA は受信箱）の先頭からの数
-    question_split: Literal["test", "dev", "holdout"] = "test"
+    question_split: Literal["test", "dev", "holdout", "holdout2", "holdout_q"] = "test"
     parallel: int = Field(default=4, ge=1)
     seed: int = 12
     # 質問者の HTTP 接続の持ち方（Iteration 5）．shared：全ノードで 1 つの池（上限 512．従来の挙動）／
@@ -231,6 +233,15 @@ class RoutingConfig(_Strict):
     bm25_probe_d: dict[DatasetName, int] = Field(default_factory=dict)
     # bm25_probe の probe の得点 z(密ベクトル) + w × z(BM25) の BM25 側の重み w（A3 の事前登録の wb = 2）
     bm25_weight: float = Field(default=2.0, gt=0)
+    # bm25_probe の probe の 2 段目で受信箱を並べる得点の作り方（d0009 B3．Iteration 24）．fused_max：受信箱ごとの最大の
+    # z(max dense) + bm25_weight × z(max bm25)（従来）／vote：node が返す受信箱の上位 owner_score_k 通の得点を，1 問の中で答えた全受信箱で
+    # まとめて標準化し，owner_score_agg（sum・expsum）で受信箱の得点にして，z(agg dense) + bm25_weight × z(agg bm25)／
+    # learned：owner_ranker_path の重み（dev で学習したロジスティック回帰．7 個の特徴量．atrium.owner_score）
+    owner_score: Literal["fused_max", "vote", "learned"] = "fused_max"
+    owner_score_agg: Literal["sum", "expsum"] = "sum"
+    owner_score_k: int = Field(default=1, ge=1)
+    # learned の重みの JSON．`<data_dir>/enronqa/summary/` の下のファイル名（deploy が summary ごと質問者へ配る）
+    owner_ranker_path: str | None = None
 
 
 class LlmConfig(_Strict):
@@ -520,6 +531,20 @@ class AtriumConfig(_Strict):
             )
         if exp.parallel < 1 + n_extra:
             raise ValueError("experiment.parallel must be >= the number of requesters")
+        return self
+
+    @model_validator(mode="after")
+    def _check_owner_score(self) -> AtriumConfig:
+        """fused_max 以外の得点は bm25_probe の probe の応答（上位 k 通の得点）を使うので routing=bm25_probe のときだけ使え，learned は重みのファイルを要る（d0009 B3）．"""
+        r = self.routing
+        if r.owner_score == "fused_max":
+            return self
+        if self.experiment.routing != "bm25_probe":
+            raise ValueError(
+                f"routing.owner_score={r.owner_score} requires experiment.routing=bm25_probe"
+            )
+        if r.owner_score == "learned" and r.owner_ranker_path is None:
+            raise ValueError("routing.owner_score=learned requires routing.owner_ranker_path")
         return self
 
     @model_validator(mode="after")

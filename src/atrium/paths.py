@@ -10,6 +10,8 @@
       queries/query_ids.json
       ce_table/<split>.jsonl         中央の再ランクの cross-encoder の得点の表（retrieval.ce_scores=table）
       queries/holdout/               holdout（d0009 A3）の質問のクエリ埋め込みと query_ids.json（既存の queries/ は変えない）
+      queries/holdout2/              holdout2（d0009 B3）の同じもの
+      queries/holdout_q/             holdout と holdout2 の連結（d0009 B3）の同じもの
       labels/labels.json             質問 ID → 関連ありのデータ源
       labels/split.json              ルーター学習の train / val / test の質問 ID
       router/                        学習済みルーター（atrium.routing.ragroute）
@@ -81,6 +83,18 @@ class DatasetPaths:
     def holdout_query_ids(self) -> Path:
         """holdout のクエリ埋め込みの行と質問 ID の対応．"""
         return self.holdout_queries / "query_ids.json"
+
+    def split_queries(self, split: str) -> Path:
+        """追加の質問集合（holdout・holdout2・holdout_q）のクエリ埋め込みのディレクトリ．"""
+        return self.queries / split
+
+    def split_query_embeddings(self, split: str, encoder: str) -> Path:
+        """追加の質問集合の検索器ごとのクエリ埋め込み．"""
+        return self.split_queries(split) / f"{safe_name(encoder)}.npy"
+
+    def split_query_ids(self, split: str) -> Path:
+        """追加の質問集合のクエリ埋め込みの行と質問 ID の対応．"""
+        return self.split_queries(split) / "query_ids.json"
 
     def ce_table(self, split: str) -> Path:
         """分割ごとの cross-encoder の得点の表（retrieval.ce_scores=table．`atrium ce-table` が書く．d0009 A3）．"""

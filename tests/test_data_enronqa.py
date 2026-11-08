@@ -177,3 +177,57 @@ def test_holdout_questions_are_the_21st_to_40th_of_the_test_permutation_and_leav
         got = {g["path"] for g in gold.values() if g["split"] == "holdout" and g["inbox"] == inbox}
         assert got == expected
     assert (bench / HOLDOUT_GOLD_FILE).exists()
+
+    # d0009 B3：holdout2 は同じ並べ替えの 41〜60 番目で，既存のファイル（holdout を含む）を変えず，qid が重ならない
+    holdout_before = {
+        name: (bench / name).read_bytes() for name in (*before, "holdout_questions.jsonl")
+    }
+    write_holdout_files(cfg, paths, "holdout2")
+    assert {name: (bench / name).read_bytes() for name in holdout_before} == holdout_before
+    holdout2_q = load_questions(bench / QUESTION_FILES["holdout2"])
+    assert all(q.qid.startswith("enronqa/holdout2/") for q in holdout2_q)
+    assert not {q.qid for q in holdout2_q} & {q.qid for q in holdout_q + test_q}
+    # a は 55 問から 40 問の後の 15 問，b は 25 問なので 40 問以降が無く 0 問
+    assert [sum(q.bank == inbox for q in holdout2_q) for inbox in ("a", "b")] == [15, 0]
+    rng = np.random.default_rng(cfg.experiment.seed)
+    order_a = [int(i) for i in rng.permutation(counts["a"])]
+    got_a = {g["path"] for g in read_gold(paths).values() if g["split"] == "holdout2"}
+    assert got_a == {f"a/inbox/{i}." for i in order_a[40:60]}
+
+
+def test_holdout_q_concatenates_holdout_and_holdout2_questions_and_query_embeddings(
+    tmp_path: Path,
+) -> None:
+    """d0009 B3：holdout_q は holdout の全問，次に holdout2 の全問．質問の ID・クエリ埋め込みの行は元のまま．"""
+    from atrium.benchmarks import Question, load_questions, write_questions
+    from atrium.config import AtriumConfig, load_config
+    from atrium.data_enronqa import QUESTION_FILES, write_holdout_q
+    from tests.conftest import REPO_ROOT
+
+    cfg: AtriumConfig = load_config(REPO_ROOT / "config.yaml")
+    encoder = cfg.data.require_enronqa().encoder
+    paths = dataset_paths(tmp_path, "enronqa")
+    bench = paths.questions.parent
+    bench.mkdir(parents=True)
+    embeddings = {}
+    for name, n in (("holdout", 3), ("holdout2", 2)):
+        questions = [
+            Question(f"enronqa/{name}/{i}", "a", f"q {name} {i}", {}, "x") for i in range(n)
+        ]
+        write_questions(bench / QUESTION_FILES[name], questions)
+        paths.split_queries(name).mkdir(parents=True)
+        paths.split_query_ids(name).write_text(json.dumps([q.qid for q in questions]))
+        embeddings[name] = np.random.default_rng(len(name)).normal(size=(n, 4)).astype(np.float32)
+        np.save(paths.split_query_embeddings(name, encoder), embeddings[name])
+
+    write_holdout_q(cfg, paths)
+
+    combined = load_questions(bench / QUESTION_FILES["holdout_q"])
+    assert [q.qid for q in combined] == [
+        *(f"enronqa/holdout/{i}" for i in range(3)),
+        *(f"enronqa/holdout2/{i}" for i in range(2)),
+    ]
+    ids = json.loads(paths.split_query_ids("holdout_q").read_text())
+    assert ids == [q.qid for q in combined]
+    matrix = np.load(paths.split_query_embeddings("holdout_q", encoder))
+    assert np.array_equal(matrix, np.concatenate([embeddings["holdout"], embeddings["holdout2"]]))

@@ -1010,6 +1010,9 @@ class Requester:
         encoded_embeddings: dict[str, bytes] | None = None,
         bm25: Bm25Query | None = None,
         bm25_out: dict[str, float] | None = None,
+        topk: int | None = None,
+        dense_topk_out: dict[str, list[float]] | None = None,
+        bm25_topk_out: dict[str, list[float]] | None = None,
     ) -> dict[str, float]:
         """probe（/v1/probe）の 1 段目：クエリ埋め込みを送り，データ源ごとの最高の検索スコアを集める．
 
@@ -1017,6 +1020,8 @@ class Requester:
         渡し，そのシャードを持つノードにだけ，候補のシャードの shard_ids で送る．
         bm25（bm25_probe．p0007 A4）を渡すと，質問の語の統計を要求に載せ，ノードが返した受信箱の中の BM25 の最大を bm25_out
         （データ源の名前 → BM25 の最大）に集める．返す値は従来どおり密ベクトルの最高の検索スコア．
+        topk（d0009 B3．owner_score が vote・learned のとき．bm25 が要る）を渡すと，要求に載せ，ノードが返した受信箱ごとの密ベクトルの内積・BM25 の
+        上位 topk 個の得点を dense_topk_out・bm25_topk_out（データ源の名前 → 降順の得点）に集める．
         """
         target_set = None if targets is None else set(targets)
         source_of_shard = {
@@ -1041,6 +1046,8 @@ class Requester:
             bm25_part = (
                 b"" if bm25 is None else b',"bm25":' + encode_json_like_httpx(bm25.model_dump())
             )
+            if topk is not None:
+                bm25_part += b',"topk":' + str(topk).encode()
             if encoder in encoded_embeddings:
                 body = (
                     b'{"shard_ids":'
@@ -1052,7 +1059,10 @@ class Requester:
                 )
             else:
                 req = ProbeRequest(
-                    shard_ids=shard_ids, embedding=embeddings[encoder].tolist(), bm25=bm25
+                    shard_ids=shard_ids,
+                    embedding=embeddings[encoder].tolist(),
+                    bm25=bm25,
+                    topk=topk,
                 )
                 body = req.model_dump(exclude_none=True)
             response = await post_with_retry(
@@ -1094,6 +1104,19 @@ class Requester:
                 for sid, score in resp.bm25.items():
                     name = source_of_shard[sid].source
                     bm25_out[name] = max(bm25_out.get(name, float("-inf")), score)
+            if topk is not None and dense_topk_out is not None and bm25_topk_out is not None:
+                if resp.dense_topk is None or resp.bm25_topk is None:
+                    raise ValueError(
+                        f"node {resp.node_id} returned no top-k scores for a topk probe"
+                    )
+                # EnronQA は 1 データ源 1 シャード．複数のシャードなら上位 topk 個を取り直す
+                for out, got in (
+                    (dense_topk_out, resp.dense_topk),
+                    (bm25_topk_out, resp.bm25_topk),
+                ):
+                    for sid, values in got.items():
+                        name = source_of_shard[sid].source
+                        out[name] = sorted([*out.get(name, []), *values], reverse=True)[:topk]
         return best
 
     def _route(
@@ -1136,17 +1159,26 @@ class Requester:
             tokens=tuple(tokenize(question.question)),
         )
         sources = self._routable_sources()
+        first_stage: dict[str, float] = {}
         if isinstance(router, (DeviceProbeRouter, SummaryProbeRouter)):
             missing = [s.source for s in sources if s.source not in self._device_of_source]
             if missing:
                 raise ValueError(f"device_probe needs single-shard sources: {missing[:5]}")
-            candidates = router.candidates(query, sources, self._device_of_source)
+            if isinstance(router, SummaryProbeRouter):
+                candidates, first_stage = router.candidates_with_scores(
+                    query, sources, self._device_of_source
+                )
+            else:
+                candidates = router.candidates(query, sources, self._device_of_source)
         else:
             candidates = router.candidates(query, sources)
         first_stage_s = time.perf_counter() - start
         if isinstance(router, Bm25ProbeRouter):
-            # bm25_probe：probe に質問の語の統計を載せ，密ベクトルと BM25 の 2 つの得点で上位 m 個を選ぶ
+            # bm25_probe：probe に質問の語の統計を載せ，密ベクトルと BM25 の 2 つの得点で上位 m 個を選ぶ．
+            # owner_score が vote・learned（d0009 B3）なら，要求に topk も付け，応答の上位の得点から選ぶ
             bm25_scores: dict[str, float] = {}
+            dense_topk: dict[str, list[float]] = {}
+            bm25_topk: dict[str, list[float]] = {}
             probe_scores = await self._probe(
                 embeddings,
                 record,
@@ -1154,13 +1186,20 @@ class Requester:
                 encoded_embeddings,
                 bm25=router.bm25_query(query),
                 bm25_out=bm25_scores,
+                topk=router.topk,
+                dense_topk_out=dense_topk,
+                bm25_topk_out=bm25_topk,
             )
             start = time.perf_counter()
-            selected = router.select_among(candidates, probe_scores, bm25_scores)
+            selected = router.select_among(
+                candidates, probe_scores, bm25_scores, dense_topk, bm25_topk, first_stage
+            )
             if self.cfg.answer.save_candidates:
                 # p0007 A5：選んだ受信箱の probe の得点（密ベクトル・BM25・融合得点）を，候補の選び方の特徴量として残す
                 # probe に答えた受信箱が m 個に満たないと，答えなかった受信箱も選ばれうる（その得点は None）
-                fused = router.fused_scores(candidates, probe_scores, bm25_scores)
+                fused = router.fused_scores(
+                    candidates, probe_scores, bm25_scores, dense_topk, bm25_topk, first_stage
+                )
                 record["probe_selected_scores"] = {
                     s: {
                         "dense": probe_scores.get(s),

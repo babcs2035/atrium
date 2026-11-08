@@ -304,7 +304,13 @@ levers:
             入っているのに持ち主以外を選ぶ問（6.6%）−0.016，持ち主を選んだ問（86.6%）+0.014．候補のいずれかが正解の割合 0.7989（中央 0.7976），
             持ち主を必ず選ぶ規則でも 0.7840 なので，両方を改良する．1 イテレーションで動かすのは値のどちらか 1 つ（単一レバー原則）．
             公開情報を詳しくすると持ち主の PC を推定されやすくなる（top-1：重心 0.526・語の統計 0.635・両方 0.726）ので，
-            改良では正答率と露出と推定されやすさを同時に測る．判定は運用ルール 10 の質問集合で行う．複数のイテレーションに分けてよい"}
+            改良では正答率と露出と推定されやすさを同時に測る．判定は運用ルール 10 の質問集合で行う．複数のイテレーションに分けてよい．
+            着手：Iteration 24（値 owner_identification．事前登録は journal の Iteration 24．backlog B85）．probe の 2 段目の得点を dev で選んだ投票（上位 k 通）か学習の得点に替える
+            （追加だけのキー `routing.owner_score`・`owner_score_agg`・`owner_score_k`・`owner_ranker_path`）．H の hit@3 +0.010 のオフラインのゲートを通れば，H ∪ H2（受信箱ごとの 41〜60 番目を追加）で base・new を 1 回ずつ実機で流す．
+            完了（owner_identification）：Iteration 24（2026-11-08．棄却〔ゲート G-H 不通過．実機は流していない〕）．結果は results/d0009_b3_owner/（verdict.json・owner_score.json・owner_ranker.json），
+            記述は journal の Iteration 24「実行済み」．dev で学習（L）を選択（hit@3 0.9322 対 基準 0.9261．G-D 通過），H の hit@3 の差 +0.0028（−0.0014〜+0.0073）で +0.010 に届かない．
+            投票の sum は −5〜−12 pt．主構成は CombMAX（owner_score: fused_max）のまま．H2 の +0.0075 は記述で事後の根拠にしない．G-R は H の 1 問が float32 の同点で厳密には不通過
+            （verdict_original に残す．同点を許す読み替えは verdict_revised で判定は不変）．次は値 answer_selection（backlog B86）"}
   - {name: d0009.A6_remeasure_main, values: [load, failure, join],
      note: "d0009 A6（中）．負荷・障害・参加を主構成（cross-encoder による選択あり）で測り直す（p0007 D・E は選択を加える前の構成）．
             負荷は再実行で大小が逆転した（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒．生成を 10 台に分散した中央は P2P の約 2.4 倍）ので，

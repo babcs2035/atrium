@@ -1,0 +1,137 @@
+{
+ "preregistration": "journal Iteration 24 / backlog B85",
+ "split_sizes": {
+  "dev": 2948,
+  "holdout": 2862
+ },
+ "G_D": {
+  "dev_hit3_by_candidate": {
+   "V_sum_k3_wb1": 0.8772048846675712,
+   "V_sum_k3_wb2": 0.878561736770692,
+   "V_sum_k3_wb3": 0.8775440976933514,
+   "V_sum_k5_wb1": 0.8063093622795116,
+   "V_sum_k5_wb2": 0.8175033921302578,
+   "V_sum_k5_wb3": 0.8229308005427408,
+   "V_expsum_k3_wb1": 0.9246947082767978,
+   "V_expsum_k3_wb2": 0.9284260515603799,
+   "V_expsum_k3_wb3": 0.9257123473541384,
+   "V_expsum_k5_wb1": 0.921302578018996,
+   "V_expsum_k5_wb2": 0.9226594301221167,
+   "V_expsum_k5_wb3": 0.921302578018996,
+   "L": 0.932157394843962
+  },
+  "dev_hit3_baseline_fused_max": 0.9260515603799185,
+  "dev_hit1_baseline_fused_max": 0.8351424694708277,
+  "selection": {
+   "chosen": "L",
+   "best_dev_hit3": 0.932157394843962,
+   "within_tolerance": [
+    "L"
+   ]
+  },
+  "gain_over_baseline": 0.006105834464043447,
+  "min_gain": 0.005,
+  "passed": true,
+  "n_dev": 2948,
+  "l_cross_validation": "GroupKFold(5) by the gold inbox"
+ },
+ "G_R": {
+  "test_vs_offline_selection": {
+   "n": 2940,
+   "n_questions": 2940,
+   "n_identical": 2940,
+   "agree": 1.0
+  },
+  "holdout_vs_p1_candidates": {
+   "n": 2862,
+   "n_questions": 2862,
+   "n_identical": 2861,
+   "agree": 0.9996505939902166
+  },
+  "offline_selection": "results/p0007_a4_build_summary/offline_selection.json",
+  "p1_run": "results/d0009_a3_p1",
+  "passed": false
+ },
+ "G_P_offline": {
+  "attribution_top1": 0.7258396161754627,
+  "attribution_auc": 0.974758337075465,
+  "advert_bytes": 29727744,
+  "expected": {
+   "top1": 0.726,
+   "auc": 0.975,
+   "advert_bytes": 29727744
+  },
+  "passed": true
+ },
+ "learned_ranker": {
+  "path": "results/d0009_b3_owner/owner_ranker.json",
+  "coef": {
+   "max_dense": 0.4741703619921008,
+   "max_bm25": 0.8958161438298408,
+   "sum5_dense": -0.5171333503675396,
+   "sum5_bm25": -0.4014279164146222,
+   "expsum5_dense": 0.25889392117119103,
+   "expsum5_bm25": 0.4778156520875489,
+   "first_stage": 0.31885126973212635
+  },
+  "intercept": -7.684309514625545
+ },
+ "G_H": {
+  "evaluated": true,
+  "spec": "L",
+  "holdout": {
+   "hit3": {
+    "n": 2862,
+    "spec": 0.9353598881900769,
+    "baseline": 0.93256464011181,
+    "gain": 0.002795248078266946,
+    "ci95": [
+     -0.001397624039133473,
+     0.007337526205450734
+    ],
+    "n_only_spec": 25,
+    "n_only_baseline": 17
+   },
+   "hit1": {
+    "n": 2862,
+    "spec": 0.8490566037735849,
+    "baseline": 0.8438155136268344,
+    "gain": 0.005241090146750524,
+    "ci95": [
+     -0.0017470300489168414,
+     0.01222921034241789
+    ],
+    "n_only_spec": 57,
+    "n_only_baseline": 42
+   }
+  },
+  "holdout2_descriptive": {
+   "hit3": {
+    "n": 2807,
+    "spec": 0.940149625935162,
+    "baseline": 0.9326683291770573,
+    "gain": 0.007481296758104738,
+    "ci95": [
+     0.003206270039187745,
+     0.012112575703598147
+    ],
+    "n_only_spec": 31,
+    "n_only_baseline": 10
+   },
+   "hit1": {
+    "n": 2807,
+    "spec": 0.8564303526897044,
+    "baseline": 0.8550053437833987,
+    "gain": 0.0014250089063056644,
+    "ci95": [
+     -0.004987531172069825,
+     0.007837548984681154
+    ],
+    "n_only_spec": 44,
+    "n_only_baseline": 40
+   }
+  },
+  "min_gain": 0.01,
+  "passed": false
+ }
+}

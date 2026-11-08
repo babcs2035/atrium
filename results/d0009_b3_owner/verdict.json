@@ -1,0 +1,125 @@
+{
+ "verdict_original": {
+  "hypothesis": "H-B3a（持ち主の特定の得点の替え方は R3′ の正答率を上げる）．実機に進むかはオフラインの G-D・G-H で決める",
+  "verdict": "rejected_gate_not_passed",
+  "live_run": false,
+  "reason": "G-H 不通過（H の hit@3 の増分が +0.010 に届かず，区間の下端も 0 以下）．実機を流さない．",
+  "G_D": {
+   "chosen": "L",
+   "dev_hit3_chosen": 0.932157394843962,
+   "dev_hit3_baseline": 0.9260515603799185,
+   "gain": 0.006105834464043447,
+   "min_gain": 0.005,
+   "passed": true,
+   "dev_hit3_by_candidate": {
+    "V_sum_k3_wb1": 0.8772048846675712,
+    "V_sum_k3_wb2": 0.878561736770692,
+    "V_sum_k3_wb3": 0.8775440976933514,
+    "V_sum_k5_wb1": 0.8063093622795116,
+    "V_sum_k5_wb2": 0.8175033921302578,
+    "V_sum_k5_wb3": 0.8229308005427408,
+    "V_expsum_k3_wb1": 0.9246947082767978,
+    "V_expsum_k3_wb2": 0.9284260515603799,
+    "V_expsum_k3_wb3": 0.9257123473541384,
+    "V_expsum_k5_wb1": 0.921302578018996,
+    "V_expsum_k5_wb2": 0.9226594301221167,
+    "V_expsum_k5_wb3": 0.921302578018996,
+    "L": 0.932157394843962
+   }
+  },
+  "G_H": {
+   "holdout_hit3": {
+    "n": 2862,
+    "spec": 0.9353598881900769,
+    "baseline": 0.93256464011181,
+    "gain": 0.002795248078266946,
+    "ci95": [
+     -0.001397624039133473,
+     0.007337526205450734
+    ],
+    "n_only_spec": 25,
+    "n_only_baseline": 17
+   },
+   "min_gain": 0.01,
+   "passed": false,
+   "holdout2_hit3_descriptive": {
+    "n": 2807,
+    "spec": 0.940149625935162,
+    "baseline": 0.9326683291770573,
+    "gain": 0.007481296758104738,
+    "ci95": [
+     0.003206270039187745,
+     0.012112575703598147
+    ],
+    "n_only_spec": 31,
+    "n_only_baseline": 10
+   }
+  },
+  "G_R": {
+   "test_vs_offline_selection": {
+    "n": 2940,
+    "n_questions": 2940,
+    "n_identical": 2940,
+    "agree": 1.0
+   },
+   "holdout_vs_p1_candidates": {
+    "n": 2862,
+    "n_questions": 2862,
+    "n_identical": 2861,
+    "agree": 0.9996505939902166
+   },
+   "offline_selection": "results/p0007_a4_build_summary/offline_selection.json",
+   "p1_run": "results/d0009_a3_p1",
+   "passed": false,
+   "holdout_tie_tolerant": {
+    "n": 2862,
+    "strict": 2861,
+    "tie_tolerant": 2862,
+    "tie_abs_tol": 0.0001,
+    "mismatches": [
+     {
+      "qid": "enronqa/holdout/816-0",
+      "live": [
+       "holst-k",
+       "sager-e",
+       "swerzbin-m"
+      ],
+      "offline": [
+       "holst-k",
+       "stclair-c",
+       "swerzbin-m"
+      ],
+      "tolerant_match": true
+     }
+    ]
+   }
+  },
+  "G_P_offline": {
+   "attribution_top1": 0.7258396161754627,
+   "attribution_auc": 0.974758337075465,
+   "advert_bytes": 29727744,
+   "expected": {
+    "top1": 0.726,
+    "auc": 0.975,
+    "advert_bytes": 29727744
+   },
+   "passed": true
+  },
+  "G_T": "mise run check: ruff・ruff format・mypy 通過，pytest 956 件通過（1 回目に tests/test_failure_run.py の 1 件が時間依存で失敗．B78 (c) の既知の不安定な試験．単独で 3 回・全体の 2 回目は通過）．新しいキーを書かない config の既存の挙動は tests/test_bm25_probe.py の既存の試験と，probe の応答の本文が従来と同じことを確かめる tests/test_owner_score.py で確認"
+ },
+ "verdict_revised": {
+  "post_hoc": true,
+  "used_for_adoption": false,
+  "written_by": "rc-evaluator（Iteration 24 の phase 3．2026-11-08）",
+  "verdict": "rejected_gate_not_passed",
+  "live_run": false,
+  "G_R": {
+   "passed": true,
+   "rule": "同点を許す一致（融合得点の差の絶対値 ≤ 1e-4 の受信箱の入れ替わりを一致とみなす．G-S の『同点を許す規則は p0007 A4 と同じ』を G-R にも当てはめた読み替え）",
+   "test_vs_offline_selection": "2940/2940（厳密に一致）",
+   "holdout_vs_p1_candidates": "2861/2862（厳密），2862/2862（同点を許す）．食い違う 1 問 enronqa/holdout/816-0 は 3 番目と 4 番目の受信箱の融合得点の差が 4e-6（float32 の丸め）"
+  },
+  "reason": "verdict_original は事前登録の『全問一致』を厳密に読んで G-R を不通過としている．原因は float32 の同点の丸め 1 問で，基準の得点の再実装の誤りではない．同点を許すと G-R は通過する．どちらで読んでも G-H は不通過（H の hit@3 の増分 +0.0028．この 1 問がどちらに数えられても増分の変化は 1/2862 ≈ 0.00035 以下で +0.010 に届かない）なので，判定（実機を流さず棄却）は変わらない．",
+  "holdout2_note": "H2 の hit@3 の増分 +0.0075（区間 +0.0032〜+0.0121）は記述で，選択・判定・事後の根拠のいずれにも使わない．事後に H ∪ H2 を合わせても増分は +0.0051（29/5669 問）で，+0.010 には届かない"
+ }
+}

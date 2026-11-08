@@ -1,0 +1,25 @@
+{
+ "features": [
+  "max_dense",
+  "max_bm25",
+  "sum5_dense",
+  "sum5_bm25",
+  "expsum5_dense",
+  "expsum5_bm25",
+  "first_stage"
+ ],
+ "coef": [
+  0.4741703619921008,
+  0.8958161438298408,
+  -0.5171333503675396,
+  -0.4014279164146222,
+  0.25889392117119103,
+  0.4778156520875489,
+  0.31885126973212635
+ ],
+ "intercept": -7.684309514625545,
+ "trained_on": "dev (2948 questions)",
+ "model": "LogisticRegression(C=1.0, random_state=12, penalty=l2)",
+ "top_k": 5,
+ "n_features": 7
+}

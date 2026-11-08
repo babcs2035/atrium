@@ -241,13 +241,25 @@ def make_router(cfg: AtriumConfig, router_dir: Path, labels_path: Path | None = 
                 f"routing={name} requires dataset=enronqa and routing.top_m.{dataset}, "
                 f"routing.bm25_probe_d.{dataset}"
             )
+        summary_dir = router_dir.parent / SUMMARY_DIRNAME
+        ranker = None
+        if cfg.routing.owner_score == "learned":
+            from atrium.owner_score import load_ranker
+
+            if cfg.routing.owner_ranker_path is None:
+                raise ValueError("routing.owner_score=learned requires routing.owner_ranker_path")
+            ranker = load_ranker(summary_dir / cfg.routing.owner_ranker_path)
         return Bm25ProbeRouter(
             cfg.answer.owner_m if owner else cfg.routing.top_m[dataset],
             cfg.routing.bm25_probe_d[dataset],
-            load_summary(router_dir.parent / SUMMARY_DIRNAME),
+            load_summary(summary_dir),
             cfg.data.require_enronqa().encoder,
             cfg.routing.summary_weight,
             cfg.routing.bm25_weight,
+            cfg.routing.owner_score,
+            cfg.routing.owner_score_agg,
+            cfg.routing.owner_score_k,
+            ranker,
         )
     if name in by_name:
         if dataset not in cfg.routing.top_m:

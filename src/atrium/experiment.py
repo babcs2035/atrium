@@ -145,10 +145,12 @@ def _make_embedder(
         return LiveMedcptEmbedder(m.query_encoder, m.article_encoder, m.embed_precision)
     # central_local はノードを発見せず（sources が空），EnronQA の符号化器の埋め込みだけを使う
     encoders = sorted({s.encoder for s in sources}) or [cfg.data.require_enronqa().encoder]
-    if cfg.experiment.question_split == "holdout":
-        # holdout（d0009 A3）のクエリ埋め込みは，既存の queries/ とは別のファイル（queries/holdout/）に置く
+    split = cfg.experiment.question_split
+    if split in ("holdout", "holdout2", "holdout_q"):
+        # holdout・holdout2・holdout_q（d0009 A3・B3）のクエリ埋め込みは，既存の queries/ とは別のファイル（queries/<split>/）に置く
         return CachedQueryEmbedder(
-            paths.holdout_query_ids, {e: paths.holdout_query_embeddings(e) for e in encoders}
+            paths.split_query_ids(split),
+            {e: paths.split_query_embeddings(split, e) for e in encoders},
         )
     return CachedQueryEmbedder(paths.query_ids, {e: paths.query_embeddings(e) for e in encoders})
 

@@ -19,6 +19,7 @@
     probe-reach               centroid_probe の K ごとの届くデバイスの数と再現率（EnronQA．Iteration 4．制御点のコンテナ）
     device-probe-eval         device_probe の D ごとの hit@m と D の選択（EnronQA．Iteration 7．制御点のコンテナ）
     frontier-eval             汎用のルーティング方式のフロンティア評価（EnronQA．p0006 P2．制御点のコンテナ）
+    owner-score-eval          probe の 2 段目の得点（vote・learned）のオフラインの評価（EnronQA．d0009 B3）
     build-summary             term_probe・hybrid_probe・bm25_probe の要約の成果物とオフラインの選択を作る（EnronQA．p0006 P4・p0007 A4．制御点のコンテナ）
     frontier-verdict          複数のデータの frontier.json から汎用の判定を出す（p0006 §7.3．操作端末）
     node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
@@ -80,6 +81,9 @@ ENRONQA_STEPS = (
     "queries",
     "holdout",
     "holdout-queries",
+    "holdout2",
+    "holdout2-queries",
+    "holdout-q",
     "labels",
     "shards",
     "train",
@@ -402,6 +406,12 @@ def cmd_data(args: argparse.Namespace, cfg: AtriumConfig) -> int:
                 eq.write_holdout_files(cfg, paths)
             elif step == "holdout-queries":
                 eq.embed_holdout_queries(cfg, paths)
+            elif step == "holdout2":
+                eq.write_holdout_files(cfg, paths, "holdout2")
+            elif step == "holdout2-queries":
+                eq.embed_holdout_queries(cfg, paths, "holdout2")
+            elif step == "holdout-q":
+                eq.write_holdout_q(cfg, paths)
             elif step == "labels":
                 eq.write_labels(cfg, paths)
             elif step == "shards":
@@ -545,6 +555,30 @@ def cmd_build_summary(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         Path(args.out_dir),
     )
     print(json.dumps(summary, indent=1))
+    return 0
+
+
+def cmd_owner_score_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """probe の 2 段目の得点（vote・learned）の dev での選択・H のゲート・基準の退行の確認を行い，owner_score.json を書く（d0009 B3）．"""
+    from atrium import owner_score_eval
+    from atrium.manifest import read_placement
+
+    out_dir = Path(args.out_dir)
+    result = owner_score_eval.run(
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        read_placement(Path(args.placement)),
+        Path(args.work_dir) if args.work_dir else None,
+        out_dir,
+        Path(args.offline_selection),
+        Path(args.p1_run),
+        Path(args.ranker_out),
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "owner_score.json").write_text(
+        json.dumps(result, indent=1, ensure_ascii=False), encoding="utf-8"
+    )
+    print(json.dumps(result, indent=1, ensure_ascii=False))
     return 0
 
 
@@ -1633,6 +1667,25 @@ def build_parser() -> argparse.ArgumentParser:
         "--reference-metrics", required=True, help="退行の確認の基準（EQ2 の metrics.json）"
     )
     p.set_defaults(func=cmd_owner_eval)
+
+    p = sub.add_parser(
+        "owner-score-eval",
+        help="probe の 2 段目の得点（vote・learned）のオフラインの評価（EnronQA．d0009 B3）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--placement", required=True, help="配置（実機の実行の placement.json）")
+    p.add_argument("--work-dir", help="本文の埋め込みのキャッシュ（body_emb.npz）の置き場所")
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--offline-selection",
+        required=True,
+        help="G-R の基準（build-summary の offline_selection.json）",
+    )
+    p.add_argument(
+        "--p1-run", required=True, help="G-R の基準（Iteration 22 の P1 の実行のディレクトリ）"
+    )
+    p.add_argument("--ranker-out", required=True, help="learned の重みの JSON の書き出し先")
+    p.set_defaults(func=cmd_owner_score_eval)
 
     p = sub.add_parser(
         "header-eval", help="持ち主推定の入力からヘッダーを除いた測り直し（EnronQA．Iteration 2）"

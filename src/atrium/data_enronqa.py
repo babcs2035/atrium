@@ -9,6 +9,9 @@
     queries    抜き出した全質問のクエリ埋め込み
     holdout    test の受信箱ごとの並べ替えの 21〜40 番目の質問（holdout．d0009 A3．判定専用）を別のファイルへ追加する
     holdout-queries  holdout のクエリ埋め込みを queries/holdout/ へ書く（既存の queries/ は変えない）
+    holdout2   test の受信箱ごとの並べ替えの 41〜60 番目の質問（holdout2．d0009 B3．判定専用）を別のファイルへ追加する
+    holdout2-queries  holdout2 のクエリ埋め込みを queries/holdout2/ へ書く
+    holdout-q  holdout と holdout2 を連結した質問集合 holdout_q（質問とクエリ埋め込みを queries/holdout_q/ へ．d0009 B3）
     labels     関連ラベル（質問 → 正解のメールの受信箱）と分割（train / val / test）
     shards     受信箱ごとのシャード（本文と埋め込みは corpus への symlink）と，公開情報（Advert）
 
@@ -61,12 +64,21 @@ QUESTION_FILES = {
     "dev": "dev_questions.jsonl",
     "train": "train_questions.jsonl",
     "holdout": "holdout_questions.jsonl",
+    "holdout2": "holdout2_questions.jsonl",
+    # holdout と holdout2 を 1 つの実行で流すための連結（d0009 B3．gold は holdout・holdout2 のものをそのまま使う）
+    "holdout_q": "holdout_q_questions.jsonl",
 }
 GOLD_FILE = "gold.jsonl"
 # holdout（d0009 A3）：新しく分けた質問．gold.jsonl は変えず，別のファイルに足す（質問の ID は enronqa/holdout/<行>-<番号>）
 HOLDOUT_GOLD_FILE = "holdout_gold.jsonl"
-# holdout は test の並べ替えの先頭 test_per_inbox 問を飛ばし，次の HOLDOUT_PER_INBOX 問を取る（20 問に満たない受信箱は取れる分だけ）
+# holdout2（d0009 B3．Iteration 24）：holdout の次の 20 問．holdout と同じ手順・同じ並べ替えの続きで，gold は別のファイルに足す
+HOLDOUT2_GOLD_FILE = "holdout2_gold.jsonl"
+# holdout は test の並べ替えの先頭 test_per_inbox 問を飛ばし，次の HOLDOUT_PER_INBOX 問を取る（20 問に満たない受信箱は取れる分だけ）．
+# holdout2 はさらに HOLDOUT_PER_INBOX 問を飛ばした次の HOLDOUT_PER_INBOX 問（添字 40〜59）
 HOLDOUT_PER_INBOX = 20
+# 追加の質問集合の名前 → gold のファイル名，および test の並べ替えで test_per_inbox 問の後に飛ばす HOLDOUT_PER_INBOX 問の塊の数
+EXTRA_SPLIT_GOLD_FILES = {"holdout": HOLDOUT_GOLD_FILE, "holdout2": HOLDOUT2_GOLD_FILE}
+EXTRA_SPLIT_SKIPPED_BLOCKS = {"holdout": 0, "holdout2": 1}
 # 分割の名前 → labels/split.json のキー（既存の train_router・分析と同じ名前）
 SPLIT_KEYS = {"train": "train", "dev": "val", "test": "test"}
 HEADER_SEPARATOR = "====================================="
@@ -338,46 +350,45 @@ def write_questions_files(cfg: AtriumConfig, paths: DatasetPaths) -> None:
             f.write(json.dumps(g, ensure_ascii=False) + "\n")
 
 
-def write_holdout_files(cfg: AtriumConfig, paths: DatasetPaths) -> None:
-    """test の並べ替えの 21〜40 番目の質問（holdout）を，既存の質問・gold を変えずに別のファイルへ書く（d0009 A3）．
+def write_holdout_files(cfg: AtriumConfig, paths: DatasetPaths, split: str = "holdout") -> None:
+    """test の並べ替えの続きの質問（holdout は 21〜40 番目，holdout2 は 41〜60 番目）を，既存の質問・gold を変えずに別のファイルへ書く（d0009 A3・B3）．
 
-    holdout の qid が test・dev・train のどれとも重なれば誤りとして止める．既に書いてあれば飛ばす．
+    qid が test・dev・train・（holdout2 では）holdout のどれとも重なれば誤りとして止める．既に書いてあれば飛ばす．
     """
     e = cfg.data.require_enronqa()
     bench = paths.questions.parent
-    if (bench / HOLDOUT_GOLD_FILE).exists():
+    gold_file = EXTRA_SPLIT_GOLD_FILES[split]
+    if (bench / gold_file).exists():
         return
+    skip = e.test_per_inbox + EXTRA_SPLIT_SKIPPED_BLOCKS[split] * HOLDOUT_PER_INBOX
     questions, gold = _pick_questions(
-        cfg,
-        paths,
-        "test",
-        _duplicate_email_paths(cfg, paths),
-        "holdout",
-        e.test_per_inbox,
-        HOLDOUT_PER_INBOX,
+        cfg, paths, "test", _duplicate_email_paths(cfg, paths), split, skip, HOLDOUT_PER_INBOX
     )
     from atrium.benchmarks import load_questions
 
-    used = {q.qid for split in SPLITS for q in load_questions(bench / QUESTION_FILES[split])}
+    existing = [QUESTION_FILES[s] for s in (*SPLITS, *EXTRA_SPLIT_GOLD_FILES) if s != split]
+    used = {
+        q.qid for name in existing if (bench / name).exists() for q in load_questions(bench / name)
+    }
     if used & {q.qid for q in questions}:
-        raise ValueError("holdout qids overlap with test/dev/train qids")
+        raise ValueError(f"{split} qids overlap with the other splits' qids")
     # 同じ受信箱に同じ文面の質問（別のメールについての定型の質問）が test にもある場合は，qid も正解のメールも別なので除かず，件数だけ記録する
     test_pairs = {(q.bank, q.question) for q in load_questions(bench / QUESTION_FILES["test"])}
     same_text = sum((q.bank, q.question) in test_pairs for q in questions)
     logger.info(
-        "holdout: %d questions have the same text as a test question of the same inbox", same_text
+        "%s: %d questions have the same text as a test question of the same inbox", split, same_text
     )
-    write_questions(bench / QUESTION_FILES["holdout"], questions)
-    with (bench / HOLDOUT_GOLD_FILE).open("w", encoding="utf-8") as f:
+    write_questions(bench / QUESTION_FILES[split], questions)
+    with (bench / gold_file).open("w", encoding="utf-8") as f:
         for g in gold:
             f.write(json.dumps(g, ensure_ascii=False) + "\n")
-    logger.info("holdout: %d questions", len(questions))
+    logger.info("%s: %d questions", split, len(questions))
 
 
 def read_gold(paths: DatasetPaths) -> dict[str, dict[str, Any]]:
-    """質問 ID → 正解の情報（受信箱・メールの path・正解・別解・誤答）．holdout の gold があれば加える（d0009 A3）．"""
+    """質問 ID → 正解の情報（受信箱・メールの path・正解・別解・誤答）．holdout・holdout2 の gold があれば加える（d0009 A3・B3）．"""
     gold: dict[str, dict[str, Any]] = {}
-    for name in (GOLD_FILE, HOLDOUT_GOLD_FILE):
+    for name in (GOLD_FILE, *EXTRA_SPLIT_GOLD_FILES.values()):
         file = paths.questions.parent / name
         if name == GOLD_FILE or file.exists():
             with file.open(encoding="utf-8") as f:
@@ -429,22 +440,54 @@ def embed_queries(cfg: AtriumConfig, paths: DatasetPaths) -> None:
     np.save(out, emb)
 
 
-def embed_holdout_queries(cfg: AtriumConfig, paths: DatasetPaths) -> None:
-    """holdout の質問のクエリ埋め込みを queries/holdout/ へ書く（既存の queries/ は変えない．query_ids.json の順）．"""
+def embed_holdout_queries(cfg: AtriumConfig, paths: DatasetPaths, split: str = "holdout") -> None:
+    """holdout・holdout2 の質問のクエリ埋め込みを queries/<split>/ へ書く（既存の queries/ は変えない．query_ids.json の順）．"""
     from atrium.benchmarks import load_questions
     from atrium.encoders import ArcticEncoder
 
     e = cfg.data.require_enronqa()
-    out = paths.holdout_query_embeddings(e.encoder)
+    out = paths.split_query_embeddings(split, e.encoder)
     if out.exists():
         return
-    questions = load_questions(paths.questions.parent / QUESTION_FILES["holdout"])
+    questions = load_questions(paths.questions.parent / QUESTION_FILES[split])
     emb = ArcticEncoder(e.encoder, e.embed_batch_size).encode_queries(
         [q.question for q in questions]
     )
-    paths.holdout_queries.mkdir(parents=True, exist_ok=True)
-    paths.holdout_query_ids.write_text(json.dumps([q.qid for q in questions]), encoding="utf-8")
+    paths.split_queries(split).mkdir(parents=True, exist_ok=True)
+    paths.split_query_ids(split).write_text(
+        json.dumps([q.qid for q in questions]), encoding="utf-8"
+    )
     np.save(out, emb)
+
+
+def write_holdout_q(cfg: AtriumConfig, paths: DatasetPaths) -> None:
+    """holdout と holdout2 を連結した質問集合 holdout_q の質問・クエリ埋め込みを書く（1 つの実行で両方を流すため．既に書いてあれば飛ばす）．
+
+    質問の ID・正解は元のまま（holdout の gold と holdout2 の gold が引ける）．順序は holdout の全問，次に holdout2 の全問．
+    """
+    from atrium.benchmarks import load_questions
+
+    e = cfg.data.require_enronqa()
+    bench = paths.questions.parent
+    out = paths.split_query_embeddings("holdout_q", e.encoder)
+    if (bench / QUESTION_FILES["holdout_q"]).exists() and out.exists():
+        return
+    parts = ("holdout", "holdout2")
+    questions = [q for name in parts for q in load_questions(bench / QUESTION_FILES[name])]
+    if len({q.qid for q in questions}) != len(questions):
+        raise ValueError("holdout and holdout2 share qids")
+    rows: list[F32Array] = []
+    ids: list[str] = []
+    for name in parts:
+        stored: list[str] = json.loads(paths.split_query_ids(name).read_text(encoding="utf-8"))
+        matrix = np.load(paths.split_query_embeddings(name, e.encoder))
+        rows.append(matrix)
+        ids += stored
+    paths.split_queries("holdout_q").mkdir(parents=True, exist_ok=True)
+    write_questions(bench / QUESTION_FILES["holdout_q"], questions)
+    paths.split_query_ids("holdout_q").write_text(json.dumps(ids), encoding="utf-8")
+    np.save(out, np.concatenate(rows))
+    logger.info("holdout_q: %d questions", len(questions))
 
 
 def write_labels(cfg: AtriumConfig, paths: DatasetPaths) -> None:

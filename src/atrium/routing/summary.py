@@ -25,6 +25,13 @@ from typing import Any, Literal
 import numpy as np
 
 from atrium.arrays import F32Array, F64Array
+from atrium.owner_score import (
+    LEARNED_K,
+    AggName,
+    LearnedRanker,
+    learned_features,
+    vote_scores,
+)
 from atrium.protocol import Bm25Query
 from atrium.routing import RoutingQuery, SourceProfile
 from atrium.routing.advert import top_m
@@ -39,6 +46,7 @@ FLOAT32_BYTES = 4
 # 語の統計の 1 組（語の番号と文書頻度）を float32 の 2 個として数える（frontier_methods と同じ）
 TERM_ENTRY_BYTES = 8
 Mode = Literal["term", "hybrid"]
+OwnerScoreName = Literal["fused_max", "vote", "learned"]
 
 
 @dataclass(frozen=True)
@@ -184,6 +192,15 @@ class SummaryProbeRouter:
         device_of_source: Mapping[str, str],
     ) -> list[str]:
         """1 段目：要約の得点の上位 D 台のデバイスに載る全てのデータ源（probe を送る先）を names の順で返す．"""
+        return self.candidates_with_scores(query, sources, device_of_source)[0]
+
+    def candidates_with_scores(
+        self,
+        query: RoutingQuery,
+        sources: Sequence[SourceProfile],
+        device_of_source: Mapping[str, str],
+    ) -> tuple[list[str], dict[str, float]]:
+        """`candidates` と，候補のデータ源 → 載るデバイスの 1 段目の得点（bm25_probe の learned が特徴量に使う．d0009 B3）．"""
         from atrium.frontier_methods import aggregate_max, cori_scores, multi_scores, zscore_rows
 
         names = [s.source for s in sources]
@@ -201,7 +218,8 @@ class SummaryProbeRouter:
             scores = zscore_rows(terms) + self._weight * zscore_rows(centroid)
         top = np.argsort(-scores[0], kind="stable")[: self.probe_d]
         chosen = set(top.tolist())
-        return [n for n, d in zip(names, index.tolist(), strict=True) if d in chosen]
+        picked = [(n, d) for n, d in zip(names, index.tolist(), strict=True) if d in chosen]
+        return [n for n, _ in picked], {n: float(scores[0, d]) for n, d in picked}
 
     def select(self, query: RoutingQuery, sources: Sequence[SourceProfile]) -> list[str]:
         """デバイスの対応はルーターの外にあるので，質問者の candidates と select_among を使う．"""
@@ -223,7 +241,11 @@ class SummaryProbeRouter:
 
 
 class Bm25ProbeRouter(SummaryProbeRouter):
-    """bm25_probe（p0007 A4）：1 段目は hybrid_probe と同じ．probe の得点を，密ベクトルと本文の BM25 の標準化の和にする．"""
+    """bm25_probe（p0007 A4）：1 段目は hybrid_probe と同じ．probe の得点を，密ベクトルと本文の BM25 の標準化の和にする．
+
+    owner_score（d0009 B3）で 2 段目の得点の作り方を替えられる（既定の fused_max は A4 のまま）：vote は probe の応答の上位 k 個の得点の投票，
+    learned は dev で学習した重み（atrium.owner_score）．vote・learned では probe の要求に topk を付け，node が上位の得点を返す．
+    """
 
     def __init__(
         self,
@@ -233,16 +255,33 @@ class Bm25ProbeRouter(SummaryProbeRouter):
         encoder: str,
         weight: float,
         bm25_weight: float,
+        owner_score: OwnerScoreName = "fused_max",
+        owner_score_agg: AggName = "sum",
+        owner_score_k: int = 1,
+        ranker: LearnedRanker | None = None,
     ) -> None:
-        """hybrid_probe と同じ引数に，probe の得点の BM25 側の重みを足す（要約に bm25_stats.npz が無ければ拒否する）．"""
+        """hybrid_probe と同じ引数に，probe の得点の BM25 側の重みと 2 段目の得点の作り方を足す（要約に bm25_stats.npz が無ければ拒否する）．"""
         super().__init__("hybrid", m, probe_d, artifact, encoder, weight)
         if artifact.bm25 is None:
             raise ValueError(
                 "the summary has no bm25_stats.npz; rerun atrium build-summary (routing=bm25_probe)"
             )
+        if owner_score == "learned" and ranker is None:
+            raise ValueError("owner_score=learned needs the ranker weights")
         self.name = "bm25_probe"
         self._bm25_weight = bm25_weight
         self._stats: Bm25Stats = artifact.bm25
+        self._owner_score = owner_score
+        self._agg = owner_score_agg
+        self._k = owner_score_k
+        self._ranker = ranker
+
+    @property
+    def topk(self) -> int | None:
+        """probe の要求に付ける topk（fused_max は付けない）．"""
+        if self._owner_score == "vote":
+            return self._k
+        return LEARNED_K if self._owner_score == "learned" else None
 
     def bm25_query(self, query: RoutingQuery) -> Bm25Query:
         """probe の要求に載せる，質問の語（重複を除く）ごとの IDF と，長さの平均．"""
@@ -257,9 +296,13 @@ class Bm25ProbeRouter(SummaryProbeRouter):
         candidates: Sequence[str],
         probe_scores: Mapping[str, float],
         bm25_scores: Mapping[str, float],
+        dense_topk: Mapping[str, Sequence[float]] | None = None,
+        bm25_topk: Mapping[str, Sequence[float]] | None = None,
+        first_stage: Mapping[str, float] | None = None,
     ) -> dict[str, float]:
-        """probe に答えた候補 → `z(dense) + w × z(bm25)`（密ベクトルと BM25 の得点をそれぞれ標準化．平均・母標準偏差）．
+        """probe に答えた候補 → 2 段目の得点．fused_max は `z(dense) + w × z(bm25)`（密ベクトルと BM25 の得点をそれぞれ標準化．平均・母標準偏差）．
 
+        vote・learned は dense_topk・bm25_topk（候補 → 降順の上位の得点）から atrium.owner_score の得点を作る（learned は first_stage も要る）．
         答えなかった候補（得点が無い・有限でない）は標準化に含めず，結果にも入れない．
         """
         from atrium.frontier_methods import Z_EPSILON
@@ -271,6 +314,8 @@ class Bm25ProbeRouter(SummaryProbeRouter):
         ]
         if not answered:
             return {}
+        if self._owner_score != "fused_max":
+            return self._topk_scores(answered, dense_topk, bm25_topk, first_stage)
         dense = np.asarray([probe_scores[c] for c in answered], dtype=np.float64)
         bm25 = np.asarray([bm25_scores[c] for c in answered], dtype=np.float64)
 
@@ -280,15 +325,53 @@ class Bm25ProbeRouter(SummaryProbeRouter):
 
         return dict(zip(answered, (z(dense) + self._bm25_weight * z(bm25)).tolist(), strict=True))
 
+    def _topk_scores(
+        self,
+        answered: Sequence[str],
+        dense_topk: Mapping[str, Sequence[float]] | None,
+        bm25_topk: Mapping[str, Sequence[float]] | None,
+        first_stage: Mapping[str, float] | None,
+    ) -> dict[str, float]:
+        """vote・learned の得点（質問 1 つ分の配列にして atrium.owner_score を呼ぶ．上位の得点を返さなかった候補は答えなかった扱い）．"""
+        if dense_topk is None or bm25_topk is None:
+            raise ValueError(f"owner_score={self._owner_score} needs the top-k scores of the probe")
+        usable = [c for c in answered if dense_topk.get(c) and bm25_topk.get(c)]
+        if not usable:
+            return {}
+        width = self.topk or 1
+
+        def padded(lists: Mapping[str, Sequence[float]]) -> F64Array:
+            out = np.full((1, len(usable), width), np.nan, dtype=np.float64)
+            for i, c in enumerate(usable):
+                values = list(lists[c])[:width]
+                out[0, i, : len(values)] = values
+            return out
+
+        dense_top, bm25_top = padded(dense_topk), padded(bm25_topk)
+        mask = np.ones((1, len(usable)), dtype=bool)
+        if self._owner_score == "vote":
+            scores = vote_scores(dense_top, bm25_top, mask, self._agg, self._k, self._bm25_weight)
+        else:
+            if first_stage is None or self._ranker is None:
+                raise ValueError("owner_score=learned needs the first-stage scores and the ranker")
+            first = np.asarray([[first_stage[c] for c in usable]], dtype=np.float64)
+            scores = self._ranker.scores(learned_features(dense_top, bm25_top, mask, first), mask)
+        return dict(zip(usable, scores[0].tolist(), strict=True))
+
     def select_among(
         self,
         candidates: Sequence[str],
         probe_scores: Mapping[str, float],
         bm25_scores: Mapping[str, float] | None = None,
+        dense_topk: Mapping[str, Sequence[float]] | None = None,
+        bm25_topk: Mapping[str, Sequence[float]] | None = None,
+        first_stage: Mapping[str, float] | None = None,
     ) -> list[str]:
         """`fused_scores` の上位 m 個を返す（probe に答えなかった候補は選ばれない）．"""
         if bm25_scores is None:
             raise ValueError("bm25_probe needs the BM25 scores of the probe responses")
-        fused = self.fused_scores(candidates, probe_scores, bm25_scores)
+        fused = self.fused_scores(
+            candidates, probe_scores, bm25_scores, dense_topk, bm25_topk, first_stage
+        )
         scores = [fused.get(c, float("-inf")) for c in candidates]
         return top_m(candidates, scores, self.m)

@@ -56,6 +56,8 @@ class ProbeRequest(_Model):
     embedding: list[float]
     # bm25_probe だけが付ける（省略なら従来と同じ要求）
     bm25: Bm25Query | None = None
+    # routing.owner_score が vote・learned のときだけ付ける（d0009 B3）：シャードごとに密ベクトルの内積と BM25 の上位 topk 個の得点も返させる
+    topk: int | None = Field(default=None, ge=1)
 
 
 class ProbeResponse(_Model):
@@ -65,6 +67,10 @@ class ProbeResponse(_Model):
     scores: dict[str, float]
     duration_s: float
     bm25: dict[str, float] | None = None
+    # 要求に topk があるときだけ返す（d0009 B3）：シャード ID → 降順の上位 topk 個（文書が少なければその数）の密ベクトルの内積・BM25 の得点．
+    # 要求に topk が無ければ応答の本文にこれらのキーを含めない（従来と同じ本文）
+    dense_topk: dict[str, list[float]] | None = None
+    bm25_topk: dict[str, list[float]] | None = None
 
 
 class AnswerRequest(_Model):

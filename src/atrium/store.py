@@ -220,6 +220,19 @@ class FaissShardStore:
             scores[hidden] = 0.0
         return float(scores.max()) if scores.size else 0.0
 
+    def probe_bm25_topk(
+        self, idf_of_term: Mapping[str, float], avg_doc_len: float, k: int
+    ) -> list[float]:
+        """`probe_bm25` と同じ得点の降順の上位 k 個（d0009 B3．文書が k 個に満たなければその数．外した文書は 0 点として数える）．"""
+        if self._probe_bm25 is None:
+            raise ValueError("this shard was loaded without the body BM25 probe index")
+        scores = self._probe_bm25.scores_with_idf(idf_of_term, avg_doc_len)
+        with self._lock:
+            hidden = np.fromiter(self._hidden, dtype=np.int64, count=len(self._hidden))
+        if hidden.size:
+            scores[hidden] = 0.0
+        return [float(x) for x in np.sort(scores)[::-1][:k]]
+
     def _read_doc(self, global_idx: int) -> dict[str, str]:
         if global_idx >= self._base_rows:
             return self._extra[global_idx - self._base_rows]

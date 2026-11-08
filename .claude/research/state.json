@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 23,
-  "iteration_name": "質問者を複数の PC にしたときの正答率・負荷・露出・障害",
+  "iteration": 24,
+  "iteration_name": "持ち主の特定を改良したときの正答率・露出・推定されやすさ",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "d0009.A1_multi_requester=n_requesters (N: 1 -> 3, cluster.extra_requesters)",
-  "experiment_dir": "results/d0009_a1_multi_requester",
-  "experiment_deadline": 1794155597,
-  "updated_at": 1794100041,
-  "last_slack_ts": "1794077640.192199",
-  "iteration_thread_ts": "1794078238.632709",
+  "current_lever": "d0009.B3_owner_and_selection=owner_identification（probe の 2 段目の得点を dev で選んだ投票・学習の得点へ．事前登録は journal の Iteration 24・backlog B85）",
+  "experiment_dir": "results/d0009_b3_owner",
+  "experiment_deadline": null,
+  "updated_at": 1794104298,
+  "last_slack_ts": "1794100530.888429",
+  "iteration_thread_ts": "1794101058.874429",
   "notion_toggle_created": true,
-  "last_commit": "3335dc0"
+  "last_commit": "041564e"
 }

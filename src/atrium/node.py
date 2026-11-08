@@ -423,26 +423,43 @@ def create_app(
             duration_s=time.perf_counter() - start,
         )
 
-    @app.post("/v1/probe", dependencies=up_only)
+    # response_model_exclude_unset：topk の無い要求の応答は，dense_topk・bm25_topk のキーを含まない従来と同じ本文にする
+    @app.post("/v1/probe", dependencies=up_only, response_model_exclude_unset=True)
     def probe(req: ProbeRequest) -> ProbeResponse:
         start = time.perf_counter()
         scores: dict[str, float] = {}
         bm25: dict[str, float] | None = None if req.bm25 is None else {}
+        dense_topk: dict[str, list[float]] = {}
+        bm25_topk: dict[str, list[float]] = {}
+        if req.topk is not None and req.bm25 is None:
+            raise NodeError(400, "Invalid probe request", "topk needs bm25")
         for shard_id in req.shard_ids:
             store = store_of(shard_id)
-            docs = search(store, 1, req.embedding, None, None)
+            # topk（d0009 B3）の応答の先頭は従来の最高の内積と同じ値（検索の結果の先頭）
+            docs = search(store, req.topk or 1, req.embedding, None, None)
             scores[shard_id] = docs[0].score if docs else float("-inf")
+            if req.topk is not None:
+                dense_topk[shard_id] = [d.score for d in docs]
             if bm25 is not None and req.bm25 is not None:
                 # routing=bm25_probe（p0007 A4）：受信箱の中の本文の BM25 の最大（質問者から渡された統計で採点する）
                 if not isinstance(store, FaissShardStore):
                     raise NodeError(400, "Invalid probe request", "bm25 needs a faiss shard")
                 try:
                     bm25[shard_id] = store.probe_bm25(req.bm25.idf, req.bm25.avg_doc_len)
+                    if req.topk is not None:
+                        bm25_topk[shard_id] = store.probe_bm25_topk(
+                            req.bm25.idf, req.bm25.avg_doc_len, req.topk
+                        )
                 except ValueError as exc:
                     raise NodeError(400, "Invalid probe request", str(exc)) from exc
-        return ProbeResponse(
+        response = ProbeResponse(
             node_id=node_id, scores=scores, bm25=bm25, duration_s=time.perf_counter() - start
         )
+        if req.topk is not None:
+            # 代入した欄は model_fields_set に入り，exclude_unset の応答に載る
+            response.dense_topk = dense_topk
+            response.bm25_topk = bm25_topk
+        return response
 
     def fusion_maxima(
         shard_ids: list[str], req: AnswerRequest
