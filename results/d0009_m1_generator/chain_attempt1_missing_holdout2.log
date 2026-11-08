@@ -1,0 +1,8 @@
+[2026-11-08_15:06:10] BEGIN d0009_m1_h2_base
+[15:06:14] max GPU memory used on wafl500-509: 74 MiB
+[15:07:17] max GPU memory used on wafl500-509: 74 MiB
+[15:08:19] max GPU memory used on wafl500-509: 74 MiB
+[15:08:19] d0009_m1_h2_base confound=none
+[15:10:45] d0009_m1_h2_base deployed
+[15:12:30] d0009_m1_h2_base start=1 inner=1
+[15:12:30] d0009_m1_h2_base START FAILED (nodes are left running; inspect results/d0009_m1_generator/chain.log.d0009_m1_h2_base.start)

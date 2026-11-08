@@ -1,0 +1,16 @@
+[start] $ bash scripts/tasks/start.sh ${usage_run_id:-}
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[16:19:31] run d0009_m1_dev300_g4 (kind=e1_routing dataset=enronqa routing=bm25_probe answer_mode=owner_answer)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[start] ERROR sh exited with non-zero status: killed by SIGTERM
+[start] ERROR task failed

@@ -1,0 +1,2 @@
+NAME              ID              SIZE     PROCESSOR    CONTEXT    UNTIL   
+qwen3:14b-q8_0    1ffd24f96703    20 GB    100% GPU     16384      Forever    

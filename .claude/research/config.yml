@@ -348,7 +348,21 @@ levers:
             採点は保存した回答へのオフライン処理で，gpu4（RTX 5090 32 GB）に載る公式モデルのうち，回答の系統（Meta・Google）と開発元が違い，メジャーさの基準 CJ7
             （HF の 30 日の downloads ≥ 100 万か likes ≥ 1,000）を満たす J1 Qwen3 14B（Qwen/Qwen3-14B-GGUF の Q8_0）の 1 つを判定モデルにする（B95）．
             主判定は J1 での α = 0.05 の単独の McNemar．qwen3:8b の採点は過去の数値との橋渡しの参考．判定モデルを替えたので，過去の正答率の数値とは並べない．
-            選定基準・除外した候補・ゲートは journal の Iteration 26 の事前登録"}
+            選定基準・除外した候補・ゲートは journal の Iteration 26 の事前登録．
+            完了：Iteration 26（2026-11-08．棄却〔主構成のプロンプトのままでは G4 の生成が破綻．人間の判断 B96・B97 で中止〕）．
+            G4 は dev300 の最初の 48 問で失敗 12.5%（502），候補 126 件のうち 102 件が num_predict の上限 2,048 トークンまで Emails: 欄を書き写した（base の約 1/15 の速さ）．
+            base の H2（results/d0009_m1_h2_base．失敗 0）は完走．H-M1〜H-M4・κ は未取得．原因は未検証（journal の Iteration 26「実行済み」，results/d0009_m1_generator/verdict.json）．
+            主構成の生成モデルは llama3.1:8b のまま．モデル替えの再挑戦は下の llm.answer_prompt_format の後に行う（backlog B98）"}
+  - {name: llm.answer_prompt_format, values: [direct],
+     note: "Iteration 26 の評価で追加（backlog B98 [auto-decided]）．仮称．主構成の EnronQA の回答のプロンプト（src/atrium/prompts.py．EnronQA の付録 B.5 の DSPy 風の穴埋めの書式．
+            「Follow the following format.」の後に欄を示し「Reasoning: Let's think step by step in order to」で終える．既定 fill_in ＝今の挙動）を，
+            chat の user のメッセージとして直接に答えを求める指示の形（direct．同じ文脈 5 通・同じ質問・1 文で答える指示．文面は rc-researcher が事前登録で固定）へ替える．
+            生成モデルは llama3.1:8b に固定する（プロンプトと生成モデルを同時に動かさない．単一レバー）．
+            phase 1 で先に原因を確かめる：gpu4 のオフラインで，G4（gemma4-12b-it-qat）と llama3.1:8b に fill_in・direct の各形で dev の数十問を生成し，上限に達する割合と Answer の有無を比べる（診断で，判定には使わない）．
+            direct でも G4 の書き写しが止まらなければ，このレバーは着手せずに閉じ，次は B3 の answer_verification（B88）にする．
+            止まるなら，llama3.1:8b の fill_in 対 direct を dev のオフラインのゲートと Q = H ∪ H2 で比べる（base の H2 の候補は results/d0009_m1_h2_base を使える）．
+            その後のイテレーションで，direct の形のまま生成モデルを替える（llm.expert_model_gpu の再挑戦）．判定モデルは主構成の qwen3:8b を推奨（J1 にするかは B93 (b) で人間の判断に残っている）．
+            G-L の smoke は主構成の実際のプロンプトで行う（Iteration 26 の学び）"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

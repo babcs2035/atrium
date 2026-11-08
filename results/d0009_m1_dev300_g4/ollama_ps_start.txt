@@ -1,0 +1,21 @@
+# 2026-11-08T16:19:26
+== wafl500
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl501
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl502
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl503
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl504
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl505
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl506
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl507
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl508
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    
+== wafl509
+gemma4-12b-it-qat:latest    fd821969f5a7    7.9 GB    100% GPU     16384      Forever    

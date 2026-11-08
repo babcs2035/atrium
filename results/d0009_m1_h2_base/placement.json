@@ -1,0 +1,357 @@
+{
+ "dataset": "enronqa",
+ "nodes": [
+  {
+   "host": "192.168.13.100",
+   "url": "http://192.168.13.100:8100",
+   "shard_ids": [
+    "dasovich-j",
+    "phanis-s",
+    "quenet-j",
+    "solberg-g",
+    "south-s"
+   ]
+  },
+  {
+   "host": "192.168.13.101",
+   "url": "http://192.168.13.101:8100",
+   "shard_ids": [
+    "kaminski-v",
+    "linder-e",
+    "merriss-s",
+    "meyers-a",
+    "slinger-r"
+   ]
+  },
+  {
+   "host": "192.168.13.102",
+   "url": "http://192.168.13.102:8100",
+   "shard_ids": [
+    "brawner-s",
+    "dickson-s",
+    "maggi-m",
+    "shackleton-s",
+    "townsend-j"
+   ]
+  },
+  {
+   "host": "192.168.13.103",
+   "url": "http://192.168.13.103:8100",
+   "shard_ids": [
+    "panus-s",
+    "reitmeyer-j",
+    "ring-a",
+    "sanchez-m",
+    "taylor-m"
+   ]
+  },
+  {
+   "host": "192.168.13.104",
+   "url": "http://192.168.13.104:8100",
+   "shard_ids": [
+    "benson-r",
+    "holst-k",
+    "mann-k",
+    "mckay-b",
+    "pimenov-v"
+   ]
+  },
+  {
+   "host": "192.168.13.105",
+   "url": "http://192.168.13.105:8100",
+   "shard_ids": [
+    "bailey-s",
+    "donohoe-t",
+    "gang-l",
+    "jones-t",
+    "swerzbin-m"
+   ]
+  },
+  {
+   "host": "192.168.13.106",
+   "url": "http://192.168.13.106:8100",
+   "shard_ids": [
+    "carson-m",
+    "harris-s",
+    "kean-s",
+    "king-j",
+    "kuykendall-t"
+   ]
+  },
+  {
+   "host": "192.168.13.107",
+   "url": "http://192.168.13.107:8100",
+   "shard_ids": [
+    "beck-s",
+    "motley-m",
+    "pereira-s",
+    "scholtes-d",
+    "sturm-f"
+   ]
+  },
+  {
+   "host": "192.168.13.108",
+   "url": "http://192.168.13.108:8100",
+   "shard_ids": [
+    "badeer-r",
+    "donoho-l",
+    "griffith-j",
+    "rapp-b",
+    "sanders-r"
+   ]
+  },
+  {
+   "host": "192.168.13.109",
+   "url": "http://192.168.13.109:8100",
+   "shard_ids": [
+    "ermis-f",
+    "martin-t",
+    "nemec-g",
+    "thomas-p",
+    "whitt-m"
+   ]
+  },
+  {
+   "host": "192.168.14.100",
+   "url": "http://192.168.14.100:8100",
+   "shard_ids": [
+    "causholli-m",
+    "kitchen-l",
+    "salisbury-h",
+    "staab-t",
+    "storey-g"
+   ]
+  },
+  {
+   "host": "192.168.14.101",
+   "url": "http://192.168.14.101:8100",
+   "shard_ids": [
+    "gilbertsmith-d",
+    "lay-k",
+    "neal-s",
+    "quigley-d",
+    "schwieger-j"
+   ]
+  },
+  {
+   "host": "192.168.14.102",
+   "url": "http://192.168.14.102:8100",
+   "shard_ids": [
+    "giron-d",
+    "grigsby-m",
+    "platter-p",
+    "scott-s",
+    "ybarbo-p"
+   ]
+  },
+  {
+   "host": "192.168.14.103",
+   "url": "http://192.168.14.103:8100",
+   "shard_ids": [
+    "gay-r",
+    "germany-c",
+    "lenhart-m",
+    "love-p",
+    "whalley-l"
+   ]
+  },
+  {
+   "host": "192.168.14.104",
+   "url": "http://192.168.14.104:8100",
+   "shard_ids": [
+    "dorland-c",
+    "farmer-d",
+    "hayslett-r",
+    "tycholiz-b",
+    "zufferli-j"
+   ]
+  },
+  {
+   "host": "192.168.14.105",
+   "url": "http://192.168.14.105:8100",
+   "shard_ids": [
+    "arora-h",
+    "lewis-a",
+    "schoolcraft-d",
+    "shapiro-r",
+    "tholt-j"
+   ]
+  },
+  {
+   "host": "192.168.14.106",
+   "url": "http://192.168.14.106:8100",
+   "shard_ids": [
+    "guzman-m",
+    "richey-c",
+    "smith-m",
+    "steffes-j",
+    "stokley-c"
+   ]
+  },
+  {
+   "host": "192.168.14.107",
+   "url": "http://192.168.14.107:8100",
+   "shard_ids": [
+    "campbell-l",
+    "derrick-j",
+    "lokey-t",
+    "rodrique-r",
+    "ruscitti-k"
+   ]
+  },
+  {
+   "host": "192.168.14.108",
+   "url": "http://192.168.14.108:8100",
+   "shard_ids": [
+    "cuilla-m",
+    "skilling-j",
+    "stclair-c",
+    "whalley-g",
+    "zipper-a"
+   ]
+  },
+  {
+   "host": "192.168.14.109",
+   "url": "http://192.168.14.109:8100",
+   "shard_ids": [
+    "haedicke-m",
+    "hendrickson-s",
+    "parks-j",
+    "stepenovitch-j",
+    "ward-k"
+   ]
+  },
+  {
+   "host": "192.168.15.100",
+   "url": "http://192.168.15.100:8100",
+   "shard_ids": [
+    "davis-d",
+    "mckay-j",
+    "mclaughlin-e",
+    "presto-k",
+    "sager-e"
+   ]
+  },
+  {
+   "host": "192.168.15.101",
+   "url": "http://192.168.15.101:8100",
+   "shard_ids": [
+    "cash-m",
+    "delainey-d",
+    "fischer-m",
+    "forney-j",
+    "horton-s"
+   ]
+  },
+  {
+   "host": "192.168.15.102",
+   "url": "http://192.168.15.102:8100",
+   "shard_ids": [
+    "allen-p",
+    "buy-r",
+    "hodge-j",
+    "saibi-e",
+    "shankman-j"
+   ]
+  },
+  {
+   "host": "192.168.15.103",
+   "url": "http://192.168.15.103:8100",
+   "shard_ids": [
+    "heard-m",
+    "hyatt-k",
+    "lokay-m",
+    "mccarty-d",
+    "wolfe-j"
+   ]
+  },
+  {
+   "host": "192.168.15.104",
+   "url": "http://192.168.15.104:8100",
+   "shard_ids": [
+    "baughman-d",
+    "corman-s",
+    "crandell-s",
+    "fossum-d",
+    "hernandez-j"
+   ]
+  },
+  {
+   "host": "192.168.15.105",
+   "url": "http://192.168.15.105:8100",
+   "shard_ids": [
+    "hain-m",
+    "hyvl-d",
+    "may-l",
+    "ring-r",
+    "rogers-b"
+   ]
+  },
+  {
+   "host": "192.168.15.106",
+   "url": "http://192.168.15.106:8100",
+   "shard_ids": [
+    "arnold-j",
+    "blair-l",
+    "perlingiere-d",
+    "semperger-c",
+    "williams-j"
+   ]
+  },
+  {
+   "host": "192.168.15.107",
+   "url": "http://192.168.15.107:8100",
+   "shard_ids": [
+    "geaccone-t",
+    "keavey-p",
+    "keiser-k",
+    "mcconnell-m",
+    "symes-k"
+   ]
+  },
+  {
+   "host": "192.168.15.108",
+   "url": "http://192.168.15.108:8100",
+   "shard_ids": [
+    "mims-thurston-p",
+    "shively-h",
+    "watson-k",
+    "weldon-c",
+    "williams-w3"
+   ]
+  },
+  {
+   "host": "192.168.15.109",
+   "url": "http://192.168.15.109:8100",
+   "shard_ids": [
+    "bass-e",
+    "dean-c",
+    "lavorato-j",
+    "lucci-p",
+    "white-s"
+   ]
+  }
+ ],
+ "delegate_of": {
+  "192.168.13.100": "192.168.15.100",
+  "192.168.13.101": "192.168.15.100",
+  "192.168.13.102": "192.168.15.101",
+  "192.168.13.103": "192.168.15.101",
+  "192.168.13.104": "192.168.15.102",
+  "192.168.13.105": "192.168.15.102",
+  "192.168.13.106": "192.168.15.103",
+  "192.168.13.107": "192.168.15.103",
+  "192.168.13.108": "192.168.15.104",
+  "192.168.13.109": "192.168.15.104",
+  "192.168.14.100": "192.168.15.105",
+  "192.168.14.101": "192.168.15.105",
+  "192.168.14.102": "192.168.15.106",
+  "192.168.14.103": "192.168.15.106",
+  "192.168.14.104": "192.168.15.107",
+  "192.168.14.105": "192.168.15.107",
+  "192.168.14.106": "192.168.15.108",
+  "192.168.14.107": "192.168.15.108",
+  "192.168.14.108": "192.168.15.109",
+  "192.168.14.109": "192.168.15.109"
+ }
+}

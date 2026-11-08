@@ -1,0 +1,36 @@
+{
+  "verdict_original": {
+    "hypothesis": "H-M1（生成モデルを llama3.1:8b から Gemma 4 12B（gemma4-12b-it-qat）へ替えると，R3′ の最終回答の正答率が J1（Qwen3 14B Q8_0）の判定で上がる）",
+    "verdict": "rejected_aborted_generation_runaway",
+    "decided_by": "human（backlog B96・B97．選択肢 A1）．事前登録の規則に「破綻で止めたときの判定」は無く，閉じ方は人間の判断による",
+    "live_run": "partial（base の H2 は完走．G4 は dev300 の最初の 48 問で中止．G4 の H・H2 は流していない）",
+    "reason": "主構成のプロンプト（src/atrium/prompts.py の穴埋めの書式）のまま，G4 は回答を作らずにメールの本文を書き写し続けた．失敗 6/48 問（12.5%．502），成功した候補 126 件のうち 102 件が num_predict の上限 2,048 トークンに達した．処理は約 4 問/分で，base（H2：2,807 問/46.1 分 ≈ 61 問/分）の約 1/15．H・H2 の全量は 20 時間以上の見込み．",
+    "cause": "未検証．推定は「Follow the following format の後の Emails: 欄を Gemma 4 が書き写す（書式の続きを書く Llama と違う）」．think: false の素直な 3 問の smoke では正常（smoke_g4.json）",
+    "evidence": [
+      "results/d0009_m1_generator/gemma4_runaway_evidence.json",
+      "results/d0009_m1_dev300_g4_partial/results.jsonl（sanitize_results.py を通した後．集計は通す前に取った）"
+    ],
+    "gates": {
+      "G_M": "J1 は記録あり（j1_gguf.json：sha256・revision・取得の日時）．G4 の sha256 と取得の日時は models.json に記録されていない（未記録）",
+      "G_L": "通過（G4・J1 とも think: false の 3 問で思考の文・空の出力なし）",
+      "G_V": "通過（G4 は wafl500〜509 の全てで 100% GPU，J1 は gpu4 で 100% GPU）",
+      "G_T": "連続実行の最中の mise run check は config.yaml を G4 に替えていたため無効（30 failed）．phase 3 で config.yaml を戻した後に pytest 976 passed・1 failed（B78 (c) の不安定な試験），ruff・format・mypy は通過（事後の確かめ）",
+      "G_S": null,
+      "G3": "base の H2 は失敗 0．G4 は H・H2 を流していないので未取得（dev300 の途中では 12.5%）",
+      "G_J": null,
+      "G_K": null
+    },
+    "H_M1": null,
+    "H_M2": null,
+    "H_M3": null,
+    "H_M4": {
+      "base_h2_questions_per_min": 60.9,
+      "g4_dev300_partial_questions_per_min_approx": 4,
+      "g4_output_tokens_median": 2048,
+      "note": "G4 の値は dev300 の最初の 48 問だけの記述．total_s の中央値の比較（取り込みの条件）は取っていない"
+    },
+    "j1_judge_speed": "base の H の最終回答 2,862 件のうち 1,186 件を約 73 分で採点（約 16 件/分）．事前登録の見込みの約 1/2．採点は中止し，判定は使わない",
+    "limits": "Gemma 4 12B の 1 系統で，主構成のプロンプトとの相性を見ただけで，生成の能力の評価ではない．原因は確かめていない"
+  },
+  "verdict_revised": null
+}

@@ -1,0 +1,13 @@
+{
+ "n_rows": 48,
+ "n_error": 6,
+ "errors": {
+  "HTTPStatusError: Server error '502 Bad G": 6
+ },
+ "n_node_answers": 126,
+ "n_output_tokens_at_cap_2048": 102,
+ "output_tokens_median": 2048.0,
+ "candidate_answer_chars_median": 7013.0,
+ "candidate_answer_chars_gt_1000": 102,
+ "n_candidates": 126
+}

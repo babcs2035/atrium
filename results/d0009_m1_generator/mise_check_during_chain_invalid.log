@@ -1,0 +1,1336 @@
+[check] $ uv run pytest -q
+.......................................F................................ [  7%]
+..FFFF.....................................F.F......F...........F..F.... [ 14%]
+........................................................................ [ 22%]
+.........................................F.............................. [ 29%]
+........................................................................ [ 36%]
+........................................................................ [ 44%]
+.........F.F....................................................F....... [ 51%]
+..............F......................................................... [ 58%]
+......................................................FF.....FFF........ [ 66%]
+............................................................FFFFF.....FF [ 73%]
+.............F..............................F........................... [ 81%]
+........................................................................ [ 88%]
+...................................F.................................... [ 95%]
+.........................................                                [100%]
+=================================== FAILURES ===================================
+_______ test_question_split_defaults_to_test_and_accepts_dev_for_enronqa _______
+
+>   ???
+E   AssertionError: assert 'holdout2' == 'test'
+E     
+E     - test
+E     + holdout2
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_benchmarks_config.py:51: AssertionError
+_ test_make_router_builds_bm25_probe_from_the_config_and_the_summary_directory _
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_make_router_builds_bm25_p0')
+
+>   ???
+E   AssertionError: assert 3 == 2
+E    +  where 3 = <atrium.routing.summary.Bm25ProbeRouter object at 0x75e437064830>.m
+E    +    where <atrium.routing.summary.Bm25ProbeRouter object at 0x75e437064830> = make_router(AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300))), (PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_make_router_builds_bm25_p0') / 'router'))
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_bm25_probe.py:371: AssertionError
+_ test_the_default_config_keeps_the_existing_routers_and_adds_the_bm25_probe_keys _
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+
+>   ???
+E   AssertionError: assert 'bm25_probe' == 'all'
+E     
+E     - all
+E     + bm25_probe
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_bm25_probe.py:380: AssertionError
+________ test_live_selection_equals_the_offline_bm25_fuse_selection[1] _________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_live_selection_equals_the0')
+m = 1
+
+>   ???
+E   AssertionError: assert 'probe_selected_scores' not in {'qid': 'enron/q0', 'bank': 'enron', 'gold': None, 'routing': 'bm25_probe', ...}
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_bm25_probe.py:482: AssertionError
+________ test_live_selection_equals_the_offline_bm25_fuse_selection[2] _________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_live_selection_equals_the1')
+m = 2
+
+>   ???
+E   AssertionError: assert 'probe_selected_scores' not in {'qid': 'enron/q0', 'bank': 'enron', 'gold': None, 'routing': 'bm25_probe', ...}
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_bm25_probe.py:482: AssertionError
+_ test_index_returns_the_top_five_documents_over_all_inboxes_like_central_eval _
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_index_returns_the_top_fiv0')
+
+    def test_index_returns_the_top_five_documents_over_all_inboxes_like_central_eval(
+        cfg: AtriumConfig, tmp_path: Path
+    ) -> None:
+        embs, doc_ids = write_corpus(tmp_path)
+        index = CentralIndex.from_corpus(central_cfg(cfg), dataset_paths(tmp_path, "enronqa"))
+        queries = np.random.default_rng(4).normal(size=(10, DIM)).astype(np.float32)
+    
+        expected = dense_top_k(queries, np.concatenate(list(embs.values())), K)
+    
+        for query, rows in zip(queries, expected.tolist(), strict=True):
+>           found = index.search(query, K)
+                    ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_central_local.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/atrium/routing/central.py:248: in search
+    for i in self.search_ids(query, k, query_text)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <atrium.routing.central.CentralIndex object at 0x75e42d714fb0>
+embedding = array([-0.65179116, -0.17471729,  1.663724  ,  0.65914774, -1.6413972 ,
+       -0.00520326], dtype=float32)
+k = 5, query_text = None
+
+    def search_ids(self, embedding: F32Array, k: int, query_text: str | None = None) -> list[int]:
+        """上位 k 行の番号（得点の高い順．同点は番号の小さい方を先にする）．
+    
+        密ベクトルのみなら質問の埋め込みとの内積の順．BM25 の索引があれば query_text が必須で，RRF で選んだ k 行を内積の降順に並べる．
+        """
+        dense = self.emb @ np.asarray(embedding, dtype=np.float32)
+        if self._bm25 is None:
+            return [int(i) for i in top_k_indices(dense[None, :], k)[0]]
+        from atrium.routing.advert import tokenize
+    
+        if query_text is None or self._fusion_depth is None:
+>           raise ValueError("fusion=rrf requires the query text")
+E           ValueError: fusion=rrf requires the query text
+
+src/atrium/routing/central.py:234: ValueError
+___________________ test_ties_are_broken_by_the_smaller_row ____________________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_ties_are_broken_by_the_sm0')
+
+    def test_ties_are_broken_by_the_smaller_row(cfg: AtriumConfig, tmp_path: Path) -> None:
+        write_corpus(tmp_path)
+        index = CentralIndex.from_corpus(central_cfg(cfg), dataset_paths(tmp_path, "enronqa"))
+        index.emb[:] = 0.0  # 全文書が同点
+>       assert [d.doc_id for d in index.search(np.ones(DIM, np.float32), K)] == index.doc_ids[:K]
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_central_local.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/atrium/routing/central.py:248: in search
+    for i in self.search_ids(query, k, query_text)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <atrium.routing.central.CentralIndex object at 0x75e42d6daa80>
+embedding = array([1., 1., 1., 1., 1., 1.], dtype=float32), k = 5
+query_text = None
+
+    def search_ids(self, embedding: F32Array, k: int, query_text: str | None = None) -> list[int]:
+        """上位 k 行の番号（得点の高い順．同点は番号の小さい方を先にする）．
+    
+        密ベクトルのみなら質問の埋め込みとの内積の順．BM25 の索引があれば query_text が必須で，RRF で選んだ k 行を内積の降順に並べる．
+        """
+        dense = self.emb @ np.asarray(embedding, dtype=np.float32)
+        if self._bm25 is None:
+            return [int(i) for i in top_k_indices(dense[None, :], k)[0]]
+        from atrium.routing.advert import tokenize
+    
+        if query_text is None or self._fusion_depth is None:
+>           raise ValueError("fusion=rrf requires the query text")
+E           ValueError: fusion=rrf requires the query text
+
+src/atrium/routing/central.py:234: ValueError
+_ test_central_local_is_limited_to_the_b1_equivalent_single_process_condition[changes2] _
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+changes = {'dataset': 'medrag'}
+
+    @pytest.mark.parametrize(
+        "changes",
+        [
+            {"answer_mode": "retrieval_only"},
+            {"requester_procs": 2, "parallel": 2},
+            {"dataset": "medrag"},
+        ],
+    )
+    def test_central_local_is_limited_to_the_b1_equivalent_single_process_condition(
+        cfg: AtriumConfig, changes: dict[str, object]
+    ) -> None:
+        base = {**cfg.experiment.model_dump(), "routing": "central_local", "dataset": "enronqa"}
+        base["answer_mode"] = "snippet_return"
+>       with pytest.raises(ValueError, match="central_local"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'central_local'
+E         Actual message: "1 validation error for ExperimentConfig\n  Value error, experiment.question_split=holdout2 requires dataset=enronqa and no churn [type=value_error, input_value={'kind': 'e1_routing', 'd...eneration': 'requester'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+
+tests/test_central_local.py:223: AssertionError
+______________ test_holdout_question_split_is_limited_to_enronqa _______________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+
+    def test_holdout_question_split_is_limited_to_enronqa(cfg: AtriumConfig) -> None:
+        base = cfg.experiment.model_dump()
+>       with pytest.raises(ValueError, match="question_split=holdout"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_central_local.py:415: Failed
+_______ test_appended_mail_is_searchable_and_truncate_restores_the_index _______
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_appended_mail_is_searchab0')
+
+>   ???
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_central_updates.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <atrium.routing.central.CentralIndex object at 0x75e42d6e3950>
+embedding = array([ 0.18161467,  0.4317845 ,  0.1736544 , -0.6848475 ,  0.47579116,
+        0.23458298], dtype=float32)
+k = 5, query_text = None
+
+    def search_ids(self, embedding: F32Array, k: int, query_text: str | None = None) -> list[int]:
+        """上位 k 行の番号（得点の高い順．同点は番号の小さい方を先にする）．
+    
+        密ベクトルのみなら質問の埋め込みとの内積の順．BM25 の索引があれば query_text が必須で，RRF で選んだ k 行を内積の降順に並べる．
+        """
+        dense = self.emb @ np.asarray(embedding, dtype=np.float32)
+        if self._bm25 is None:
+            return [int(i) for i in top_k_indices(dense[None, :], k)[0]]
+        from atrium.routing.advert import tokenize
+    
+        if query_text is None or self._fusion_depth is None:
+>           raise ValueError("fusion=rrf requires the query text")
+E           ValueError: fusion=rrf requires the query text
+
+src/atrium/routing/central.py:234: ValueError
+_________ test_churn_is_only_accepted_for_sequential_enronqa_retrieval _________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+
+>   ???
+E   pydantic_core._pydantic_core.ValidationError: 1 validation error for ExperimentConfig
+E     Value error, experiment.question_split=holdout2 requires dataset=enronqa and no churn [type=value_error, input_value={'kind': 'e1_routing', 'd...eneration': 'requester'}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.13/v/value_error
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_churn_live.py:36: ValidationError
+___ test_central_restart_is_measured_including_process_start_and_index_load ____
+
+cluster = MiniCluster(cfg=AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='all', answer_m...>, 'node-0': <httpx.ASGITransport object at 0x75e42d74a0c0>, 'node-1': <httpx.ASGITransport object at 0x75e42d0c3560>})
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_central_restart_is_measur0')
+
+>   ???
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_failure_run.py:181: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/atrium/failure_run.py:352: in measure_central_restart
+    central.search(embedding, CENTRAL_PROBE_K, text)
+src/atrium/failure_run.py:312: in search
+    _, ids = self._conn.recv()
+             ^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py:250: in recv
+    buf = self._recv_bytes()
+          ^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py:430: in _recv_bytes
+    buf = self._recv(4)
+          ^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <multiprocessing.connection.Connection object at 0x75e42d53b0e0>
+size = 4, read = <built-in function read>
+
+    def _recv(self, size, read=_read):
+        buf = io.BytesIO()
+        handle = self._handle
+        remaining = size
+        while remaining > 0:
+            chunk = read(handle, remaining)
+            n = len(chunk)
+            if n == 0:
+                if remaining == size:
+>                   raise EOFError
+E                   EOFError
+
+../../.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py:399: EOFError
+----------------------------- Captured stderr call -----------------------------
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ktakahashi/workspace/atrium/src/atrium/failure_run.py", line 276, in _central_worker
+    ids = index.search_ids(np.asarray(embedding, dtype=np.float32), k, text)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/src/atrium/routing/central.py", line 234, in search_ids
+    raise ValueError("fusion=rrf requires the query text")
+ValueError: fusion=rrf requires the query text
+------------------------------ Captured log call -------------------------------
+WARNING  atrium.failure_run:failure_run.py:333 the central process was already gone
+__ test_run_failure_compares_p2p_with_the_central_restart_on_the_same_window ___
+
+cluster = MiniCluster(cfg=AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='all', answer_m...>, 'node-0': <httpx.ASGITransport object at 0x75e42d26b470>, 'node-1': <httpx.ASGITransport object at 0x75e42c9403b0>})
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_run_failure_compares_p2p_0')
+
+>   ???
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_failure_run.py:224: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/atrium/failure_run.py:637: in run_failure
+    restart = await asyncio.to_thread(
+../../.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py:25: in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py:59: in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/atrium/failure_run.py:352: in measure_central_restart
+    central.search(embedding, CENTRAL_PROBE_K, text)
+src/atrium/failure_run.py:312: in search
+    _, ids = self._conn.recv()
+             ^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py:250: in recv
+    buf = self._recv_bytes()
+          ^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py:430: in _recv_bytes
+    buf = self._recv(4)
+          ^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <multiprocessing.connection.Connection object at 0x75e42d6e3f80>
+size = 4, read = <built-in function read>
+
+    def _recv(self, size, read=_read):
+        buf = io.BytesIO()
+        handle = self._handle
+        remaining = size
+        while remaining > 0:
+            chunk = read(handle, remaining)
+            n = len(chunk)
+            if n == 0:
+                if remaining == size:
+>                   raise EOFError
+E                   EOFError
+
+../../.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py:399: EOFError
+----------------------------- Captured stderr call -----------------------------
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ktakahashi/workspace/atrium/src/atrium/failure_run.py", line 276, in _central_worker
+    ids = index.search_ids(np.asarray(embedding, dtype=np.float32), k, text)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/src/atrium/routing/central.py", line 234, in search_ids
+    raise ValueError("fusion=rrf requires the query text")
+ValueError: fusion=rrf requires the query text
+------------------------------ Captured log call -------------------------------
+WARNING  atrium.failure_run:failure_run.py:333 the central process was already gone
+_______________________ test_default_http_pool_is_shared _______________________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+
+>   ???
+E   AssertionError: assert 'per_node' == 'shared'
+E     
+E     - shared
+E     + per_node
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_http_pool.py:39: AssertionError
+______ test_central_index_with_rrf_shares_bm25_statistics_across_inboxes _______
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_central_index_with_rrf_sh0')
+
+>   ???
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_hybrid.py:260: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/atrium/routing/central.py:248: in search
+    for i in self.search_ids(query, k, query_text)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <atrium.routing.central.CentralIndex object at 0x75e3bdb0c710>
+embedding = array([ 0.34558418,  0.82161814,  0.33043706, -1.3031572 ,  0.9053559 ,
+        0.44637457], dtype=float32)
+k = 3, query_text = None
+
+    def search_ids(self, embedding: F32Array, k: int, query_text: str | None = None) -> list[int]:
+        """上位 k 行の番号（得点の高い順．同点は番号の小さい方を先にする）．
+    
+        密ベクトルのみなら質問の埋め込みとの内積の順．BM25 の索引があれば query_text が必須で，RRF で選んだ k 行を内積の降順に並べる．
+        """
+        dense = self.emb @ np.asarray(embedding, dtype=np.float32)
+        if self._bm25 is None:
+            return [int(i) for i in top_k_indices(dense[None, :], k)[0]]
+        from atrium.routing.advert import tokenize
+    
+        if query_text is None or self._fusion_depth is None:
+>           raise ValueError("fusion=rrf requires the query text")
+E           ValueError: fusion=rrf requires the query text
+
+src/atrium/routing/central.py:234: ValueError
+_______ test_retrieve_returns_the_document_identical_to_the_query_first ________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+shard_root = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_retrieve_returns_the_docu0')
+
+>   ???
+E   assert 400 == 200
+E    +  where 400 = <Response [400 Bad Request]>.status_code
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_node.py:55: AssertionError
+_____________ test_retrieve_unknown_shard_returns_problem_details ______________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+shard_root = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_retrieve_unknown_shard_re0')
+
+>   ???
+E   assert 400 == 404
+E    +  where 400 = <Response [400 Bad Request]>.status_code
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_node.py:69: AssertionError
+_________ test_offline_node_rejects_requests_with_503_until_it_is_back _________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+shard_root = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_offline_node_rejects_requ0')
+
+>   ???
+E   assert 400 == 200
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_node.py:152: AssertionError
+_______ test_added_mail_is_embedded_on_the_node_and_timings_are_returned _______
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+root = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_added_mail_is_embedded_on0')
+
+>   ???
+E   KeyError: 'docs'
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_node_admin.py:67: KeyError
+____________ test_hidden_mail_is_not_retrieved_but_can_be_exported _____________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+root = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_hidden_mail_is_not_retrie0')
+
+>   ???
+E   KeyError: 'docs'
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_node_admin.py:93: KeyError
+______________________ test_owner_answer_requires_enronqa ______________________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+
+>   ???
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'owner_answer requires dataset=enronqa'
+E     Actual message: "1 validation error for ExperimentConfig\n  Value error, experiment.question_split=holdout2 requires dataset=enronqa and no churn [type=value_error, input_value={'kind': 'e1_routing', 'd...eneration': 'requester'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_owner_answer.py:435: AssertionError
+___________ test_default_answer_settings_keep_the_existing_behavior ____________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+
+>   ???
+E   AssertionError: assert (3, 'max_score') == (2, 'max_score')
+E     
+E     At index 0 diff: 3 != 2
+E     Use -v to get more diff
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_owner_answer.py:440: AssertionError
+_____ test_save_candidates_keeps_every_candidate_answer_with_its_features ______
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_save_candidates_keeps_eve0')
+
+>   ???
+E   KeyError: 'owner_answer'
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_owner_answer.py:462: KeyError
+------------------------------ Captured log call -------------------------------
+ERROR    atrium.requester:requester.py:1303 question enronqa/test/0-0 failed
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 1276, in process
+  |     await self._owner_answers(question, selected, embeddings, record)
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 755, in _owner_answers
+  |     answers = await gather_or_cancel([ask(p, u) for p, u in zip(profiles, urls, strict=True)])
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 243, in gather_or_cancel
+  |     async with asyncio.TaskGroup() as tg:
+  |                ^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 71, in __aexit__
+  |     return await self._aexit(et, exc)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 164, in _aexit
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 748, in ask
+    |     response = await self.client.post(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    |     return await self.request(
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    |     return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/mnt/data-raid/ktakahashi/workspace/atrium/tests/conftest.py", line 117, in handle_async_request
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1310, in handle
+    |     await super().handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 282, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 360, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 519, in answer
+    |     bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    |     return await loop.run_in_executor(None, func_call)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    |     result = self.fn(*self.args, **self.kwargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 476, in fusion_maxima
+    |     s.fusion_maxima(req.embedding, req.question)
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 301, in fusion_maxima
+    |     dense, bm25_scores = self._dense_and_bm25(query, query_text)
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 287, in _dense_and_bm25
+    |     raise ValueError("fusion=rrf requires the BM25 index")
+    | ValueError: fusion=rrf requires the BM25 index
+    +------------------------------------
+__ test_save_candidates_reads_the_log_probability_from_the_delegate_gpu_node ___
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_save_candidates_reads_the0')
+
+>   ???
+E   KeyError: 'owner_answer'
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_owner_answer.py:497: KeyError
+------------------------------ Captured log call -------------------------------
+ERROR    atrium.requester:requester.py:1303 question enronqa/test/0-0 failed
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 1276, in process
+  |     await self._owner_answers(question, selected, embeddings, record)
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 755, in _owner_answers
+  |     answers = await gather_or_cancel([ask(p, u) for p, u in zip(profiles, urls, strict=True)])
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 243, in gather_or_cancel
+  |     async with asyncio.TaskGroup() as tg:
+  |                ^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 71, in __aexit__
+  |     return await self._aexit(et, exc)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 164, in _aexit
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 748, in ask
+    |     response = await self.client.post(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    |     return await self.request(
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    |     return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/mnt/data-raid/ktakahashi/workspace/atrium/tests/conftest.py", line 117, in handle_async_request
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1310, in handle
+    |     await super().handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 282, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 360, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 519, in answer
+    |     bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    |     return await loop.run_in_executor(None, func_call)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    |     result = self.fn(*self.args, **self.kwargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 476, in fusion_maxima
+    |     s.fusion_maxima(req.embedding, req.question)
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 301, in fusion_maxima
+    |     dense, bm25_scores = self._dense_and_bm25(query, query_text)
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 287, in _dense_and_bm25
+    |     raise ValueError("fusion=rrf requires the BM25 index")
+    | ValueError: fusion=rrf requires the BM25 index
+    +------------------------------------
+_ test_max_score_with_save_candidates_keeps_every_candidate_under_the_normal_prompt _
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_max_score_with_save_candi0')
+
+>   ???
+E   KeyError: 'owner_answer'
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_owner_answer.py:511: KeyError
+------------------------------ Captured log call -------------------------------
+ERROR    atrium.requester:requester.py:1303 question enronqa/test/0-0 failed
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 1276, in process
+  |     await self._owner_answers(question, selected, embeddings, record)
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 755, in _owner_answers
+  |     answers = await gather_or_cancel([ask(p, u) for p, u in zip(profiles, urls, strict=True)])
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 243, in gather_or_cancel
+  |     async with asyncio.TaskGroup() as tg:
+  |                ^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 71, in __aexit__
+  |     return await self._aexit(et, exc)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 164, in _aexit
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (3 sub-exceptions)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 748, in ask
+    |     response = await self.client.post(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    |     return await self.request(
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    |     return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/mnt/data-raid/ktakahashi/workspace/atrium/tests/conftest.py", line 117, in handle_async_request
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1310, in handle
+    |     await super().handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 282, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 360, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 519, in answer
+    |     bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    |     return await loop.run_in_executor(None, func_call)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    |     result = self.fn(*self.args, **self.kwargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 476, in fusion_maxima
+    |     s.fusion_maxima(req.embedding, req.question)
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 301, in fusion_maxima
+    |     dense, bm25_scores = self._dense_and_bm25(query, query_text)
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 287, in _dense_and_bm25
+    |     raise ValueError("fusion=rrf requires the BM25 index")
+    | ValueError: fusion=rrf requires the BM25 index
+    +---------------- 2 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 748, in ask
+    |     response = await self.client.post(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    |     return await self.request(
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    |     return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/mnt/data-raid/ktakahashi/workspace/atrium/tests/conftest.py", line 117, in handle_async_request
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1310, in handle
+    |     await super().handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 282, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 360, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 519, in answer
+    |     bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    |     return await loop.run_in_executor(None, func_call)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    |     result = self.fn(*self.args, **self.kwargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 476, in fusion_maxima
+    |     s.fusion_maxima(req.embedding, req.question)
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 301, in fusion_maxima
+    |     dense, bm25_scores = self._dense_and_bm25(query, query_text)
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 287, in _dense_and_bm25
+    |     raise ValueError("fusion=rrf requires the BM25 index")
+    | ValueError: fusion=rrf requires the BM25 index
+    +---------------- 3 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 748, in ask
+    |     response = await self.client.post(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    |     return await self.request(
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    |     return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/mnt/data-raid/ktakahashi/workspace/atrium/tests/conftest.py", line 117, in handle_async_request
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1310, in handle
+    |     await super().handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 282, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 360, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 519, in answer
+    |     bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    |     return await loop.run_in_executor(None, func_call)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    |     result = self.fn(*self.args, **self.kwargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 476, in fusion_maxima
+    |     s.fusion_maxima(req.embedding, req.question)
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 301, in fusion_maxima
+    |     dense, bm25_scores = self._dense_and_bm25(query, query_text)
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 287, in _dense_and_bm25
+    |     raise ValueError("fusion=rrf requires the BM25 index")
+    | ValueError: fusion=rrf requires the BM25 index
+    +------------------------------------
+_____ test_cross_encoder_aggregate_does_not_store_email_text_in_the_record _____
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_cross_encoder_aggregate_d0')
+
+>   ???
+E   assert ('b-00/f/0' in '{"qid": "enronqa/test/0-0", "bank": "a", "gold": "ALPHA", "routing": "all", "answer_mode": "owner_answer", "timings":..."error": "ValueError: fusion=rrf requires the BM25 index", "selected_sources": ["a", "b", "c"], "n_shards_queried": 3}')
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_owner_answer.py:632: AssertionError
+------------------------------ Captured log call -------------------------------
+ERROR    atrium.requester:requester.py:1303 question enronqa/test/0-0 failed
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 1276, in process
+  |     await self._owner_answers(question, selected, embeddings, record)
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 755, in _owner_answers
+  |     answers = await gather_or_cancel([ask(p, u) for p, u in zip(profiles, urls, strict=True)])
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 243, in gather_or_cancel
+  |     async with asyncio.TaskGroup() as tg:
+  |                ^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 71, in __aexit__
+  |     return await self._aexit(et, exc)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 164, in _aexit
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 748, in ask
+    |     response = await self.client.post(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    |     return await self.request(
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    |     return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/mnt/data-raid/ktakahashi/workspace/atrium/tests/conftest.py", line 117, in handle_async_request
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1310, in handle
+    |     await super().handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 282, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 360, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 519, in answer
+    |     bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    |     return await loop.run_in_executor(None, func_call)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    |     result = self.fn(*self.args, **self.kwargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 476, in fusion_maxima
+    |     s.fusion_maxima(req.embedding, req.question)
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 301, in fusion_maxima
+    |     dense, bm25_scores = self._dense_and_bm25(query, query_text)
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 287, in _dense_and_bm25
+    |     raise ValueError("fusion=rrf requires the BM25 index")
+    | ValueError: fusion=rrf requires the BM25 index
+    +------------------------------------
+_ test_other_rules_do_not_ask_for_context_docs_or_record_cross_encoder_fields __
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_other_rules_do_not_ask_fo0')
+
+>   ???
+E   KeyError: 'owner_answer'
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_owner_answer.py:645: KeyError
+------------------------------ Captured log call -------------------------------
+ERROR    atrium.requester:requester.py:1303 question enronqa/test/0-0 failed
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 1276, in process
+  |     await self._owner_answers(question, selected, embeddings, record)
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 755, in _owner_answers
+  |     answers = await gather_or_cancel([ask(p, u) for p, u in zip(profiles, urls, strict=True)])
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 243, in gather_or_cancel
+  |     async with asyncio.TaskGroup() as tg:
+  |                ^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 71, in __aexit__
+  |     return await self._aexit(et, exc)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/taskgroups.py", line 164, in _aexit
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (2 sub-exceptions)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 748, in ask
+    |     response = await self.client.post(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    |     return await self.request(
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    |     return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/mnt/data-raid/ktakahashi/workspace/atrium/tests/conftest.py", line 117, in handle_async_request
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1310, in handle
+    |     await super().handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 282, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 360, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 519, in answer
+    |     bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    |     return await loop.run_in_executor(None, func_call)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    |     result = self.fn(*self.args, **self.kwargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 476, in fusion_maxima
+    |     s.fusion_maxima(req.embedding, req.question)
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 301, in fusion_maxima
+    |     dense, bm25_scores = self._dense_and_bm25(query, query_text)
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 287, in _dense_and_bm25
+    |     raise ValueError("fusion=rrf requires the BM25 index")
+    | ValueError: fusion=rrf requires the BM25 index
+    +---------------- 2 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/requester.py", line 748, in ask
+    |     response = await self.client.post(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    |     return await self.request(
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    |     return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/mnt/data-raid/ktakahashi/workspace/atrium/tests/conftest.py", line 117, in handle_async_request
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1310, in handle
+    |     await super().handle(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/routing.py", line 282, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 360, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 519, in answer
+    |     bm25_max, rrf_max = await asyncio.to_thread(fusion_maxima, req.shard_ids, req)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    |     return await loop.run_in_executor(None, func_call)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    |     result = self.fn(*self.args, **self.kwargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/node.py", line 476, in fusion_maxima
+    |     s.fusion_maxima(req.embedding, req.question)
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 301, in fusion_maxima
+    |     dense, bm25_scores = self._dense_and_bm25(query, query_text)
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ktakahashi/workspace/atrium/src/atrium/store.py", line 287, in _dense_and_bm25
+    |     raise ValueError("fusion=rrf requires the BM25 index")
+    | ValueError: fusion=rrf requires the BM25 index
+    +------------------------------------
+______________ test_a_non_default_owner_score_requires_bm25_probe ______________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+
+    def test_a_non_default_owner_score_requires_bm25_probe(cfg: AtriumConfig) -> None:
+        routing = cfg.routing.model_copy(update={"owner_score": "vote"})
+>       with pytest.raises(ValueError, match="requires experiment.routing=bm25_probe"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_owner_score.py:138: Failed
+______ test_lean_responses_from_a_live_node_equal_the_direct_asgi_answers ______
+
+live_node = ('http://127.0.0.1:49207', <fastapi.applications.FastAPI object at 0x75e3bc55ef30>)
+
+>   ???
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_pool_assign.py:274: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x75e3bc3cf020>, base = 'http://asgi'
+emb = [-0.527903820525131, -0.7936679315385684, -0.20788351477863798, -0.6900554583951795, -0.8669698086408202, -0.19681797102985032, ...]
+
+>   ???
+E   KeyError: 'docs'
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_pool_assign.py:269: KeyError
+___________ test_non_faiss_shard_body_is_unchanged_under_pre_encoded ___________
+
+cfg = AtriumConfig(experiment=ExperimentConfig(kind='e1_routing', dataset='enronqa', routing='bm25_probe', answer_mode='owne...ute_negatives=10, judge_model='qwen3:8b', judge_reference_model='qwen3:14b', judge_validate_n=500, judge_kappa_n=300)))
+tmp_path = PosixPath('/tmp/pytest-of-ktakahashi/pytest-55/test_non_faiss_shard_body_is_u0')
+corpus = {'p0': array([[ 0.34558418,  0.82161814,  0.33043706, -1.3031572 ,  0.9053559 ,
+         0.44637457, -0.5369532 ,  0.5...5, -0.95039964,  0.00651499, -1.1238662 , -1.0928943 ,
+         1.4569619 , -0.05318422, -0.05390203]], dtype=float32)}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x75e3b43403b0>
+
+>   ???
+E   assert [b'{"shard_id...question 0"}'] == [b'{"shard_id..._text":null}']
+E     
+E     At index 0 diff: b'{"shard_id":"pubmed-00","k":3,"embedding":null,"query_id":"0000","query_text":"question 0"}' != b'{"shard_id":"pubmed-00","k":3,"embedding":null,"query_id":"0000","query_text":null}'
+E     Use -v to get more diff
+
+/mnt/data-raid/ktakahashi/workspace/atrium/tests/test_retrieve_body.py:145: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_benchmarks_config.py::test_question_split_defaults_to_test_and_accepts_dev_for_enronqa
+FAILED tests/test_bm25_probe.py::test_make_router_builds_bm25_probe_from_the_config_and_the_summary_directory
+FAILED tests/test_bm25_probe.py::test_the_default_config_keeps_the_existing_routers_and_adds_the_bm25_probe_keys
+FAILED tests/test_bm25_probe.py::test_live_selection_equals_the_offline_bm25_fuse_selection[1]
+FAILED tests/test_bm25_probe.py::test_live_selection_equals_the_offline_bm25_fuse_selection[2]
+FAILED tests/test_central_local.py::test_index_returns_the_top_five_documents_over_all_inboxes_like_central_eval
+FAILED tests/test_central_local.py::test_ties_are_broken_by_the_smaller_row
+FAILED tests/test_central_local.py::test_central_local_is_limited_to_the_b1_equivalent_single_process_condition[changes2]
+FAILED tests/test_central_local.py::test_holdout_question_split_is_limited_to_enronqa
+FAILED tests/test_central_updates.py::test_appended_mail_is_searchable_and_truncate_restores_the_index
+FAILED tests/test_churn_live.py::test_churn_is_only_accepted_for_sequential_enronqa_retrieval
+FAILED tests/test_failure_run.py::test_central_restart_is_measured_including_process_start_and_index_load
+FAILED tests/test_failure_run.py::test_run_failure_compares_p2p_with_the_central_restart_on_the_same_window
+FAILED tests/test_http_pool.py::test_default_http_pool_is_shared - AssertionE...
+FAILED tests/test_hybrid.py::test_central_index_with_rrf_shares_bm25_statistics_across_inboxes
+FAILED tests/test_node.py::test_retrieve_returns_the_document_identical_to_the_query_first
+FAILED tests/test_node.py::test_retrieve_unknown_shard_returns_problem_details
+FAILED tests/test_node.py::test_offline_node_rejects_requests_with_503_until_it_is_back
+FAILED tests/test_node_admin.py::test_added_mail_is_embedded_on_the_node_and_timings_are_returned
+FAILED tests/test_node_admin.py::test_hidden_mail_is_not_retrieved_but_can_be_exported
+FAILED tests/test_owner_answer.py::test_owner_answer_requires_enronqa - Asser...
+FAILED tests/test_owner_answer.py::test_default_answer_settings_keep_the_existing_behavior
+FAILED tests/test_owner_answer.py::test_save_candidates_keeps_every_candidate_answer_with_its_features
+FAILED tests/test_owner_answer.py::test_save_candidates_reads_the_log_probability_from_the_delegate_gpu_node
+FAILED tests/test_owner_answer.py::test_max_score_with_save_candidates_keeps_every_candidate_under_the_normal_prompt
+FAILED tests/test_owner_answer.py::test_cross_encoder_aggregate_does_not_store_email_text_in_the_record
+FAILED tests/test_owner_answer.py::test_other_rules_do_not_ask_for_context_docs_or_record_cross_encoder_fields
+FAILED tests/test_owner_score.py::test_a_non_default_owner_score_requires_bm25_probe
+FAILED tests/test_pool_assign.py::test_lean_responses_from_a_live_node_equal_the_direct_asgi_answers
+FAILED tests/test_retrieve_body.py::test_non_faiss_shard_body_is_unchanged_under_pre_encoded
+30 failed, 947 passed in 62.92s (0:01:02)
+[check] ERROR task failed

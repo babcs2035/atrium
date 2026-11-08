@@ -1,0 +1,12 @@
+  Model
+    architecture        qwen3    
+    parameters          14.8B    
+    context length      40960    
+    embedding length    5120     
+    quantization        Q8_0     
+
+  Capabilities
+    tools         
+    thinking      
+    completion    
+

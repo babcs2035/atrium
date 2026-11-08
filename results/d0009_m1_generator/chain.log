@@ -1,0 +1,15 @@
+[2026-11-08_15:23:00] BEGIN d0009_m1_h2_base
+[15:23:04] max GPU memory used on wafl500-509: 74 MiB
+[15:24:07] max GPU memory used on wafl500-509: 74 MiB
+[15:25:09] max GPU memory used on wafl500-509: 74 MiB
+[15:25:09] d0009_m1_h2_base confound=none
+[15:27:36] d0009_m1_h2_base deployed
+[16:14:44] d0009_m1_h2_base start=0 inner=0
+[16:14:45] d0009_m1_h2_base analyze=0
+[2026-11-08_16:14:45] BEGIN d0009_m1_dev300_g4
+[16:14:51] max GPU memory used on wafl500-509: 74 MiB
+[16:15:53] max GPU memory used on wafl500-509: 74 MiB
+[16:16:55] max GPU memory used on wafl500-509: 74 MiB
+[16:16:55] d0009_m1_dev300_g4 confound=none
+[16:19:23] d0009_m1_dev300_g4 deployed
+[16:36:14] chain killed by executor: Gemma 4 runaway generation

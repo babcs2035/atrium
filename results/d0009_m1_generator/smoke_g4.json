@@ -1,0 +1,20 @@
+[
+ {
+  "q": "What is the capital of France?",
+  "content": "The capital of France is Paris.",
+  "thinking": null,
+  "eval_count": 8
+ },
+ {
+  "q": "Summarize in one sentence: The meeting is moved from Monday to Wednesday at 3pm in room 12.",
+  "content": "The meeting has been rescheduled from Monday to Wednesday at 3 p.m. in room 12.",
+  "thinking": null,
+  "eval_count": 23
+ },
+ {
+  "q": "Answer using only the email. Email: 'Please send the Q3 report to Dana by Friday.' Question: Who should receive the Q3 report, and by when?",
+  "content": "Dana should receive the Q3 report by Friday.",
+  "thinking": null,
+  "eval_count": 11
+ }
+]
