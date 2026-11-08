@@ -334,7 +334,10 @@ levers:
   - {name: d0009.A6_remeasure_main, values: [load, failure, join],
      note: "d0009 A6（中）．負荷・障害・参加を主構成（cross-encoder による選択あり）で測り直す（p0007 D・E は選択を加える前の構成）．
             負荷は再実行で大小が逆転した（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒．生成を 10 台に分散した中央は P2P の約 2.4 倍）ので，
-            同じ時間帯に交互に流した条件どうしでだけ比べる．1 イテレーションに値を 1 つずつ．GPU の共有の記録は B67 と同じ"}
+            同じ時間帯に交互に流した条件どうしでだけ比べる．1 イテレーションに値を 1 つずつ．GPU の共有の記録は B67 と同じ．
+            着手：Iteration 29（値 load．事前登録は journal の Iteration 29．backlog B103）．P（P2P の主構成．answer.aggregate: cross_encoder）・C（C1-RRF-CE）・S（C の生成を 10 枚へ）を
+            H の 288 問（question_limit 2）・parallel 30 で 4 ラウンド，ラウンドごとに無作為な順序で交互に実機で流す．cross-encoder の得点は両側とも表を引く（P は追加だけの ce_table/holdout_owner.jsonl）．
+            主の判定は P 対 C の組の比（全ラウンドで > 1.10 か < 1/1.10）．採点・V2 の費用は gpu4 の測定からの見積もり（記述）"}
   - {name: d0009.A4_exposure_total, values: [with_generation_delegation],
      note: "d0009 A4（中）．主構成の露出の全体．37.6% は cross-encoder の採点で質問者へ渡る文書の下限である．GPU を持たない PC が
             回答の生成を GPU 搭載 PC に委託するときに送る文書を含めた全体の露出を，保存した文書の識別子から求める（p0007 B と同じ数え方）"}

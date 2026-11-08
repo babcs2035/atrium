@@ -73,6 +73,7 @@
 
 - 現状：負荷・障害・参加は cross-encoder による選択を加える前の構成で測った．負荷の大小は再実行で逆転し（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒），生成を 10 台に分散した中央集約型は P2P 構成の約 2.4 倍だった．
 - 確かめること：主構成で負荷・障害・参加を測り直す．負荷は同じ時間帯に交互に流した条件どうしでしか比べられないので，その手順を守る．
+- 着手（負荷）：Iteration 29（事前登録は `.claude/research/journal.md` の Iteration 29．設計の判断は `.claude/research/backlog.md` の B103）．P2P の主構成（R3′ の選択の経路あり）・中央 C1-RRF-CE・準集権（C1-RRF-CE の生成を 10 枚に分ける）を，H の 288 問・parallel 30 で 4 ラウンド，ラウンドごとに無作為な順序で交互に実機で流す．cross-encoder の得点は両側とも事前に計算した表を引き（制御点に GPU が無い），採点の計算の費用は gpu4 の測定から別に見積もる．
 
 ## B. 実装の改善候補
 
@@ -161,7 +162,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
 | 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
-| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 未着手 |
+| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は着手（Iteration 29）．障害・参加は未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |
 | 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 未着手 |

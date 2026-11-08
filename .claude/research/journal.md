@@ -3,6 +3,98 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 29: 主構成で負荷を同じ時間帯に交互に測り直したときの P2P と中央集約の処理量
+
+**位置づけ**：レバー `d0009.A6_remeasure_main` の値 `load`（d0009 A6．backlog B102 (2)・要レビュー (a)）．p0007 D の負荷は cross-encoder による選択を加える前の構成で測り，再実行で大小が逆転した（P2P 0.581〜0.626 → 0.481〜0.497，中央 0.531〜0.537 → 0.522〜0.535 問/秒）．これを主構成（P2P は R3′ の選択の経路あり，中央は C1-RRF-CE）で，同じ時間帯に交互に流して測り直す．設計の判断は backlog B103．d0009 A6 に着手を書いた（運用ルール 9）．この節が事前登録である．rc-executor が，本番の実機の実行（smoke を除く）より前に commit・push する．
+
+### 調査で分かったこと
+
+- **手元の数値（同じ時間帯の交互の実行は既にある）**：Iteration 22（2026-11-07〜08）で P（P2P．`aggregate: max_score`・候補を保存）と C（C1-RRF-CE．再ランクは表を引く・生成は wafl509 の 1 枚）を H の全 2,862 問・parallel 30 で交互に 3 回ずつ流した．run_meta の始まりと終わりから求めた処理量は P 0.949・0.957・0.958，C 0.349・0.349・0.349 問/秒（C は 3 回とも壁時計 8,211 秒で同じ値なので，phase 2 で結果の行の時刻から確かめ直す）．Iteration 23 の P（N1）は 0.932・0.958 問/秒．同じ時間帯の同じ構成の揺れは 1〜3% で，p0007 D の時間帯をまたいだ揺れ（約 2 割）よりずっと小さい．ただしこれらは cross-encoder の計算を経路に含まない（P はオフラインで当てはめ，C は表を引く）．
+- **cross-encoder を経路に入れた費用（p0007 F-6．廃止前の制御点の RTX 3060）**：質問者が 1 問 15 組（3 候補 × 5 通）を直列に採点すると，GPU が空いている時の処理量は 1.014 → 0.601 問/秒（比 0.593）．1 組 約 0.126 秒．中央の C1-RRF-CE は 1 問 50 組（`ce_table` の上位 50 通）を採点するので，同じ GPU なら採点だけで 1 問 約 6 秒（推測．未測定）になり，P2P より重い．p0007 D の中央はこの再ランクを持たない構成だった．
+- **V2（主構成の選択．Iteration 28）の費用**：候補 1 件の検証 中央値 1.58 秒（p95 3.08．gpu4 の RTX 5090・並列 2），1 問 3 候補で逐次 約 4.7 秒．委託するなら委託先へ 1 問最大 15 通（E_any は質問者へ渡る集合と同じ 0.5498．Q）．質問者（wafl-ctrl5）に GPU が無く（運用ルール 8），wafl の 12 GB には生成の 8B と同時に載らない見積もり（B102 (b)）．
+- **変動の大きい環境での比較の手順**：Abedi & Brecht（2017．"Conducting Repeatable Experiments in Highly Variable Cloud Computing Environments"．ICPE 2017．https://research.spec.org/icpe_proceedings/2017/proceedings/p287.pdf）は，1 回だけの試行や同じ条件を続けて流す試行は誤った結論を導きうるとし，各ラウンドの中で全ての条件を 1 回ずつ流し，ラウンドごとに順序を無作為に並べ替える「randomized multiple interleaved trials」（時間の区間をブロックとする乱塊法）を勧めている．p0007 D の逆転（他の研究者の GPU の使用）はまさにこの交絡で，A6 の「同じ時間帯に交互に」はこの手順に当たる．
+- **再ランクの費用の公開値**：bge-reranker-v2-m3 は 100 組 約 90 ms・約 1,100 組/秒といった値が技術ブログ（localaimaster.com "Reranking & Cross-Encoders for RAG"．2026．superlinked.com の用語集も 50 組で 80〜120 ms）に出ているが，GPU・文の長さ・まとめ方の条件が書かれておらず，手元の 1 組 0.126 秒（長いメール本文・4 組ずつ・RTX 3060）と 2 桁違う．公開値は使わず，手元で測る（事実として扱わない）．RAGO（Jiang et al. ISCA 2025．arXiv:2503.14649）は RAG の提供で再ランク・書き換えの段が処理量を左右し，段ごとの資源の割り当てで処理量/チップが最大 1.5 倍変わると報告している（要旨の記述．本文は未確認）．
+
+### 仮説
+
+主構成の生成と取得の経路（cross-encoder の計算を表で除いた live の処理量）では，P2P（生成 3 回を 10 枚の GPU に分ける）は中央（生成 1 回を wafl509 の 1 枚）より高く，比は Iteration 22 と同じ 2.5〜2.8 倍になる．生成を 10 枚に分けた準集権（S）は P2P より高い（p0007 の L2 と同じ向き）．cross-encoder の計算を 1 枚の GPU の質問者に入れる見積もりでは，中央の方が 1 問の組が多い（50 対 15）ので，P2P との差はさらに開き，S の利点も採点で頭打ちになる（推測）．
+
+### 単一レバー
+
+**負荷の測定の構成**を，p0007 D の「選択を加える前の構成（test の 300 問）」から，**主構成（P2P は R3′ の選択の経路あり，中央は C1-RRF-CE，準集権は C1-RRF-CE の生成を 10 枚に分けたもの）**へ替え，同じ時間帯に無作為な順序で交互に流す．正答率は判定しない．
+
+| 記号 | 構成 | 生成 | cross-encoder |
+|---|---|---|---|
+| **P** | P2P の主構成（`scripts/d0009/a3_config.py p` の条件）＋ `answer.aggregate: cross_encoder`・`retrieval.ce_scores: table`（ノードが候補ごとに文脈の上位 5 通を質問者へ返し，質問者は表の得点の最大で R3′ を選ぶ） | 受信箱ごと 3 回．wafl500〜509（CPU の専門家は委託） | 1 問 15 組を表で引く |
+| **C** | C1-RRF-CE（`a3_config.py c` の条件．`retrieval.ce_scores: table`・`requester_llm` は wafl509） | 1 回．wafl509 | 1 問 50 組を表で引く（既存の `ce_table/holdout.jsonl`） |
+| **S** | C に `experiment.central_generation: gpu_nodes`（p0007 D の `semi` と同じ形．生成を wafl500〜509 の 10 枚に分ける．`requester_llm` は置かない） | 1 回．10 枚に分ける | C と同じ表 |
+
+- **cross-encoder を表で引く理由**：制御点の GPU は廃止され（運用ルール 8），制御点の CPU で cross-encoder を動かすことは名指しで禁じられている．質問者を GPU の PC に移すのは 1 台 1 役割（運用ルール 2）とぶつかる．表の得点は F-6 で実機の得点との差 0（300 問）で，選択・再ランクは質問と文書だけで決まる．したがって **live の処理量は「cross-encoder の計算を除いた，取得・文脈の受け渡し・選択・生成の経路」の値**で，採点の計算の費用は gpu4 の測定から別に見積もる（下の H-A6L3）．両側とも表を引くので条件はそろう．
+- **V2 は経路に載せない**（B102 (a)．載せる GPU が無い）．P の live の選択は R3′ で，V2 の費用と委託の露出は記述として足す（H-A6V）．
+- **追加だけの変更**：`retrieval.ce_scores: table` を `answer_mode: owner_answer`・`answer.aggregate: cross_encoder` でも使えるようにし（今は central_local と merge=cross_encoder だけ），候補の文脈の得点を (質問文, doc_id) の表 `ce_table/<split>_owner.jsonl`（新しいファイル．既存の `holdout.jsonl` は変えない）から引く．既定（`live`）の挙動は変えない．
+
+### 固定する構成
+
+EnronQA・`question_split: holdout`（H）・`experiment.question_limit: 2`（受信箱ごとの先頭 2 問．144 受信箱で **288 問**）・`parallel: 30`・`http_pool: per_node`・`retrieval.fusion: rrf`・質問者 1 台（wafl-ctrl5．`cluster.extra_requesters` は空）・30 台の専門家（C は wafl509 を外した 29 台）・llama3.1:8b（wafl500〜509．Ollama の設定は今のまま）・温度 0・種 12．P は `routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`owner_answer`・`owner_m: 3`・`llm.answer_prompt_format: fill_in`（UNKNOWN の除外なし）・`save_candidates: true`．各実行の前に全ノードを止め，config.yaml を条件に書き換えて `mise run deploy` からやり直す（運用ルール 7．Iteration 22 の `a3_chain.sh` の形）．実行の後は `git checkout -- config.yaml` で戻す．
+
+### 実行の順序（事前に固定．Abedi & Brecht の無作為な交互の試行）
+
+4 ラウンド × 3 条件 = **12 実行**．各ラウンドの中の順序は Python の `random.Random(12)` で `['P', 'C', 'S']` を 4 回 shuffle した結果で，結果を見る前に固定する：
+
+| ラウンド | 順序 |
+|---|---|
+| r1 | P → S → C |
+| r2 | P → C → S |
+| r3 | S → C → P |
+| r4 | S → C → P |
+
+- 実行名は `results/d0009_a6_{p,c,s}_r{1..4}/`．各ラウンドの前に wafl500〜509 の GPU の空きを最大 2 時間待つ（`a3_chain.sh` と同じ）．待っても空かなければ流し，その旨を記録する（落とさない）．
+- 失敗率 > 1% の実行は，そのラウンドの最後に 1 回だけ流し直す．流し直しても > 1% なら，そのラウンドを判定から除き記録する．それ以外の理由で流し直さず，ラウンドを足さない．
+- 所要の見込み（推測）：P 約 5 分（0.95 問/秒），C 約 14 分（0.35），S 約 5〜10 分，deploy と待ちが各 10〜15 分で，合計 4〜6 時間．
+
+### 採点の費用の測定（gpu4．運用ルール 14．実機の実行と並行してよい）
+
+- **P の表と費用**：288 問の P の候補の文脈（`results/d0009_a3_p1` に保存した `context_doc_ids`．取得は決定的なので live の実行と同じ文書になる見込みで，G-CT で確かめる）を，`CrossEncoderReranker.scores`（同じ revision・4 組ずつ・候補ごとに別の呼び出し．live と同じ）で採点し，表 `<data_dir>/enronqa/ce_table/holdout_owner.jsonl`（gpu4 と制御点の両方に置く）を作る．このとき 1 問（3 回の呼び出し）の採点の時間 t_P を測る．
+- **C の費用**：同じ 288 問の C の上位 50 通（`ce_table/holdout.jsonl` と同じ組）を同じ関数で採点し直して 1 問の時間 t_C を測る（既存の表は書き換えない．得点が表と |差| ≤ 1e−4 で一致することを確かめる）．
+- 各 3 回測って中央値を使う．始める前と終えた後に `nvidia-smi` を記録する（他の研究者のプロセスには触れない）．
+- **V2 の費用**は Iteration 28 の測定値（候補 1 件 1.58 秒・並列 2）を使い，新しく測らない．
+
+### 判定の規則（`results/d0009_a6_load/verdict.json`．`verdict_original` は書き換えない）
+
+記号：実行の処理量 **X = 成功した問の数 ÷（最後の問の終わり − 最初の問の始まり）**（結果の行の時刻から計算する．run_meta の時刻と食い違えば両方を書く）．ラウンド r の比 **q_r = X_A(r) / X_B(r)**．閾値 1.10 の根拠は，同じ時間帯の同じ構成の揺れ（Iteration 22・23 の P で 1〜3%）の 3 倍以上で，p0007 D の時間帯をまたいだ揺れ（約 2 割）よりは小さいこと．
+
+- **H-A6L1（主．P 対 C）**：有効なラウンドの全てで q_r = X_P/X_C > 1.10 なら「P が高い」，全てで < 1/1.10 なら「C が高い」，全てで [1/1.10, 1.10] なら「同じ程度」，それ以外は「決まらない」．有効なラウンドが 3 未満なら「決まらない」．
+- **H-A6L2（副．S 対 P）**：q_r = X_S/X_P で同じ規則（「S が高い」「P が高い」「同じ程度」「決まらない」）．
+- **H-A6L3（採点を経路に入れた見積もり．記述．採否に使わない）**：採点を 1 枚の GPU で直列に行う質問者・中央の容量 X_ce = 1 / t（P は t_P，C・S は t_C）を gpu4 の値で出し，F-6 の RTX 3060 の 1 組 0.126 秒と gpu4 の P の 1 組の時間の比で RTX 3060 の値に換算した見込みも併記する（推測）．採点と生成が重なって進むと仮定して，X_est = min(X_live の中央値, X_ce) を P・C・S で出す．
+- **H-A6V（V2 の費用と委託の露出．記述）**：V2 を経路に載せた場合の検証の容量（gpu4 の RTX 5090 1 枚・並列 2 で 1 問 3 件 × 1.58 秒から）と，委託先へ渡る文書（1 問最大 15 通．E_any 0.3698（H）・0.5498（Q））を，P の X_live・X_est と並べる．
+- **併記**：各実行の e2e の p50・p95，`generate_s`・`ce_s`・`rerank_s` の中央値，1 問の要求の数，質問者へ渡った文書の数（P の `ce_docs_received`），質問者の CPU 使用率，GPU の PC ごとの生成の decode の ms/トークン，前後の `nvidia-smi`・`ollama ps`（8B が GPU に 100% 載っていたか）と他の研究者のプロセスの有無．他の研究者のプロセスがあったラウンドを除いた比は感度の記述だけにする．p0007 D の値（test・選択の前の構成）とは並べるが比べない（構成と質問が違う）．
+
+### ゲート（満たさなければ判定の前に止まり，原因を記録する）
+
+- **G-T（互換）**：`mise run check` が通る（既知の不安定な試験は B78 (c) のとおり記録）．`retrieval.ce_scores: live`（既定）の挙動と，C の表の再ランクの挙動が変わらない（既存の試験）．新しい組み合わせ（owner_answer・cross_encoder・table）の試験を足す：表に無い組は黙って補わずに例外（その問は失敗）．
+- **G-CT（表の網羅）**：P の smoke（`question_limit` 1．144 問．1 回．判定に使わない）で，表に無い組による失敗が 0．
+- **G-S（選択の一致）**：P の 4 回の実行の全てで，live の R3′ の選んだ候補の番号が `results/d0009_a3_p1_R3p` の同じ問と全問一致（`ce_max` の差 ≤ 1e−6 の同点は一致とみなす）．一致しなければ，候補の受信箱か文脈が違う問の数を記録して止める（表の作り方か取得の非決定性を疑う）．
+- **G-C（中央の索引）**：C・S の上位 5 通の文書 ID が `results/d0009_a3_c1` の同じ問と一致する割合 ≥ 0.999（同点を許す．p0007 D9 と同じ）．
+- **G-F（失敗）**：上の「失敗率 > 1%」の規則．
+
+### 成功条件（このイテレーションの採用）
+
+(1) G-T・G-CT・G-S・G-C を通過し，(2) 有効なラウンドが P・C・S のそれぞれで 3 以上あり，(3) H-A6L1・H-A6L2 を上の規則で判定し，H-A6L3・H-A6V と併記の値を `verdict.json` に書く．仮説の成否は採用の条件にしない（測定のイテレーション）．採用なら値 `load` を閉じ，次は `d0009.A6_remeasure_main` の値 `failure`．
+
+### 期待効果（見込み．検証対象ではない）
+
+X_live は P 0.9〜1.0，C 0.33〜0.37，S 0.8〜1.5 問/秒で，H-A6L1 は「P が高い」（q 約 2.5〜2.8），H-A6L2 は「決まらない」か「S が高い」．P の文脈の受け渡し（1 問 15 通の本文）による P の処理量の低下は Iteration 22 の P（0.95）の 5% 未満．H-A6L3 で，RTX 3060 相当の 1 枚の GPU の採点を入れると P は約 0.6 問/秒，C・S は約 0.15〜0.2 問/秒に下がり，S の利点は採点で消える（推測）．V2 を 1 枚の RTX 5090 で載せると約 0.4 問/秒が上限になる（推測）．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけ）
+
+- `src/atrium/config.py` の `_check_ce_table`：`ce_scores: table` を，(central_local かつ merge=cross_encoder) に加えて (owner_answer かつ answer.aggregate=cross_encoder) でも許す．
+- `src/atrium/paths.py`：`ce_table_owner(split)` → `ce_table/<split>_owner.jsonl`．
+- `src/atrium/requester.py`：表の候補の採点（(質問文, doc_id) → 得点．表に無ければ例外）．`_candidate_ce_scores` は今 `CandidateScorer.scores(query, texts)` で文しか渡さないので，doc_id で引ける形を足す（例：表のときだけ `context_docs` の `doc_id` を渡す）．得点の最大の取り方・同点の扱いは live と同じ．
+- `src/atrium/experiment.py` の `build_requester`：`ce_scores: table` のとき，P の `candidate_scorer` を表にし，`CrossEncoderReranker` を読み込まない（制御点に GPU が無いので CPU で読み込ませない）．
+- 表の作成と費用の測定：`scripts/d0009/a6_owner_table.py`（gpu4．288 問．t_P・t_C の 3 回の測定と C の表との一致の確かめ）．
+- 実行：`scripts/d0009/a6_config.py`（p・c・s．`a3_config.py` を元に `question_limit` 2 と P の `aggregate: cross_encoder`・`ce_scores: table`，S の `central_generation: gpu_nodes` を書く）と `scripts/d0009/a6_chain.sh`（上の順序の 12 実行．`a3_chain.sh` と同じ GPU の待ち・記録）．S の設定が `config.py` の検査で拒否されるなど組めない場合は，S を落とし（H-A6L2 は「未測定」），P・C だけで続けて記録する．
+- 集計：`scripts/d0009/a6_verdict.py` → `results/d0009_a6_load/verdict.json`・`load.json`．results は `sanitize_results.py` を通してから commit する．既存の results（運用ルール 12 の記録を含む）は変えない．
+
 ## Iteration 28: LLM で回答の裏付けを確かめて選んだときの正答率・作り話・露出
 
 **位置づけ**：レバー `d0009.B3_owner_and_selection` の値 `answer_verification`（回答の検証）．Iteration 25 の評価で追加し（backlog B88），Iteration 26 のテーマ替えで保留し（B89），Iteration 27 の棄却で再開した（B100）．事前登録の申し送りは B88 (a)〜(f)．設計の判断は backlog B101．d0009 B3 に着手を書いた（運用ルール 9）．この節が事前登録である．rc-executor が，dev の検証の得点を計算する前（試験用の数問の smoke は除く）に commit・push する．
