@@ -23,6 +23,8 @@ ce_features.jsonl に書く（質問と，候補の文脈の上位 5 通の関�
 
 使い方:
     uv run atrium select-features --run-dir results/<run> --data-dir <データの置き場所>
+    uv run atrium select-features --run-dir results/<run> --data-dir <データの置き場所> --answer-aware
+        （回答を入れた得点 ce_qa_max・ce_ans だけを ce_answer_features.jsonl に書く．d0009 B3 Iteration 25）
     uv run atrium select-eval --run-dir results/<run> --out-dir results/<out>
     uv run atrium select-eval --run-dir results/<run> --out-dir results/<out> --apply R1 --derived-run results/<run>_R1
     uv run atrium select-eval --run-dir results/<run> --out-dir results/<out> --ignore-unknown
@@ -46,6 +48,8 @@ CANDIDATE_JUDGEMENTS = "candidate_judgements.jsonl"
 CE_FEATURES = "ce_features.jsonl"
 SELECT_EVAL = "select_eval.json"
 CE_LIVE_AGREEMENT = "ce_live_agreement.json"
+# 回答を入れた cross-encoder の得点（d0009 B3 Iteration 25．`select-features --answer-aware`）．ce_features.jsonl は書き換えない
+CE_ANSWER_FEATURES = "ce_answer_features.jsonl"
 
 # 規則 → 特徴量（R4 は順位の和で，ここに無い）
 SINGLE_FEATURE = {
@@ -474,6 +478,38 @@ def cross_encoder_features(
                     "source": c["source"],
                     "ce_max": max(values) if values else None,
                     "ce_top1": values[0] if values else None,
+                }
+            )
+    return out
+
+
+def answer_cross_encoder_features(
+    rows: Sequence[Mapping[str, Any]],
+    question_of: Mapping[str, str],
+    text_of: Mapping[str, str],
+    score: Callable[[str, Sequence[str]], list[float]],
+) -> list[dict[str, Any]]:
+    """候補ごとの，回答を入れた cross-encoder の得点（d0009 B3 Iteration 25．S1・S2 の特徴量）．
+
+    - ce_qa_max：質問と回答をつないだ文（`質問 + "\\n" + 回答`）と，文脈の上位 5 通それぞれの関連度の最大（文脈が無ければ None）
+    - ce_ans：（質問，回答）の組の関連度（回答が空文字なら None）
+    score・文の作り方は `cross_encoder_features`（R3′）と同じ．
+    """
+    out = []
+    for row in rows:
+        question = question_of[row["qid"]]
+        for index, c in enumerate((row.get("owner_answer") or {}).get("candidates") or []):
+            answer = str(c.get("answer") or "")
+            doc_ids = list(c.get("context_doc_ids") or [])
+            joined = score(f"{question}\n{answer}", [text_of[d] for d in doc_ids])
+            alone = score(question, [answer]) if answer.strip() else []
+            out.append(
+                {
+                    "qid": row["qid"],
+                    "index": index,
+                    "source": c["source"],
+                    "ce_qa_max": max(joined) if joined else None,
+                    "ce_ans": alone[0] if alone else None,
                 }
             )
     return out

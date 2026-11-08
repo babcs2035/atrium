@@ -1,0 +1,42 @@
+{
+ "verdict_original": {
+  "hypothesis": "H-B3s（回答の選択の替え方は R3′ の正答率を上げる）．実機に進むかはオフラインの G-D で決める",
+  "verdict": "rejected_gate_not_passed",
+  "live_run": false,
+  "reason": "G-D 不通過（dev で選んだ規則の増分が +0.006 に届かない）．H2 の実機も H・H2 への当てはめも行わない．",
+  "G_D": {
+   "chosen": "S3",
+   "gain": 0.0033921302578019397,
+   "min_gain": 0.006,
+   "dev_accuracy": {
+    "R3p": 0.7228629579375848,
+    "S1": 0.6841926729986432,
+    "S2": 0.4955902306648575,
+    "S3": 0.7262550881953868,
+    "S4": 0.7276119402985075
+   },
+   "passed": false
+  },
+  "G_R": {
+   "dev_old_labels_r3p_correct": 2293,
+   "dev_old_labels_expected": 2293,
+   "h_vs_a3_p1_R3p": {
+    "n": 2862,
+    "n_identical": 2862,
+    "n_identical_tie_tolerant": 2862
+   },
+   "passed": true,
+   "h_strictly_identical": true
+  },
+  "G_J2": {
+   "n_candidates": 8844,
+   "n_unparsed": 6,
+   "unparsed_rate": 0.0006784260515603799,
+   "max_unparsed_rate": 0.01,
+   "agreement_with_old_labels": 0.9574516238542492,
+   "n_compared": 8837,
+   "passed": true
+  }
+ },
+ "verdict_revised": null
+}

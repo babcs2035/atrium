@@ -117,6 +117,35 @@ async def test_judge_items_marks_repeat_limit_aborts_as_unparsed_without_retryin
     assert calls == ["a"]
 
 
+async def test_judge_items_marks_context_overflow_as_unparsed_without_retrying(
+    cfg: AtriumConfig,
+) -> None:
+    # 入力が文脈長を超えると Ollama は 400 を返す．送り直しても同じなので，判定できなかったとする
+    calls: list[str] = []
+
+    def overflow(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.host)
+        return httpx.Response(
+            400,
+            json={
+                "error": "request (17624 tokens) exceeds the available context size (16384 tokens)"
+            },
+        )
+
+    transport = HostDispatchTransport(
+        {"a": httpx.MockTransport(overflow), "b": httpx.MockTransport(overflow)}
+    )
+    out = await judge_items(
+        [JudgeItem("k", "E", "Q", "G", "A")],
+        ["http://a:11434", "http://b:11434"],
+        "m",
+        cfg,
+        transport=transport,
+    )
+    assert out == {"k": (None, "")}
+    assert calls == ["a"]
+
+
 # ── 途中からの再開（p0007 A6-S1．atrium judge --resume） ───────────────────────────────────
 
 

@@ -54,6 +54,10 @@ JUDGE_RETRIES = 2
 # qwen3:14b が 300 件中 2 件で陥った）．温度 0 ではどの Ollama でも同じく打ち切られるので，送り直さずに
 # 判定できなかった出力として扱う
 _REPEAT_ABORT = "token repeat limit reached"
+# 判定の入力（正解のメールが極端に長いなど）が Ollama の文脈長（16,384 トークン）を超えると 400 とこの文言を返す（d0009 B3 Iteration 25 の dev の
+# 1 問．入力は同じなのでどの Ollama でも同じ）．送り直しても同じなので，繰り返しの打ち切りと同じく判定できなかった出力として扱う
+_CONTEXT_OVERFLOW = "exceeds the available context size"
+_UNJUDGEABLE_ERRORS = (_REPEAT_ABORT, _CONTEXT_OVERFLOW)
 # --resume の採点で，失敗した要求がこの回数連続したらその時点で打ち切る．Ollama が止まっている間，残りの全件が
 # 要求の時間切れまで待つのを避ける（打ち切った残りは未採点として残り，再実行で採点する）
 RESUME_ABORT_AFTER_FAILURES = 6
@@ -243,9 +247,9 @@ async def judge_items(
                         failed_requests = 0
                         return result
                 except httpx.HTTPStatusError as exc:
-                    if _REPEAT_ABORT in exc.response.text:
+                    if any(m in exc.response.text for m in _UNJUDGEABLE_ERRORS):
                         failed_requests = 0
-                        logger.warning("judge output aborted by repeat limit at %s", url)
+                        logger.warning("judge input or output unjudgeable at %s (%s)", url, exc)
                         return None
                     failed_requests += resume is not None
                     if attempt == JUDGE_RETRIES:

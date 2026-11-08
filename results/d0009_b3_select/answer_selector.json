@@ -1,0 +1,69 @@
+{
+ "chosen": "S3",
+ "trained_on": "dev (2948 questions; results/d0009_b3s_dev)",
+ "model": "LogisticRegression(C=1.0, random_state=12, penalty=l2)",
+ "not_written_pattern": "\\b(not (mentioned|provided|specified|stated|included|available)|does not (mention|say|specify|provide|include|state)|no (information|mention)|cannot be determined|unable to (determine|find)|there is no)\\b",
+ "weights": {
+  "S3": {
+   "rule": "S3",
+   "features": [
+    "ce_max",
+    "ce_top1",
+    "probe_fused",
+    "top_score",
+    "bm25_max",
+    "rrf_max",
+    "avg_logprob",
+    "log_chars",
+    "agree",
+    "not_written"
+   ],
+   "coef": [
+    0.5674728530020042,
+    0.1776073475210868,
+    0.45595032744013136,
+    0.045572237019102395,
+    0.1340554971659168,
+    0.12119382152335932,
+    0.4118553799753025,
+    -0.06642074112993337,
+    0.0019286647392200175,
+    -2.98433339297331
+   ],
+   "intercept": -0.8455143762487843
+  },
+  "S4": {
+   "rule": "S4",
+   "features": [
+    "ce_max",
+    "ce_top1",
+    "probe_fused",
+    "top_score",
+    "bm25_max",
+    "rrf_max",
+    "avg_logprob",
+    "log_chars",
+    "agree",
+    "not_written",
+    "ce_qa_max",
+    "ce_ans"
+   ],
+   "coef": [
+    0.5270749952470898,
+    0.17125757701410255,
+    0.4340047239583394,
+    0.03268333998724834,
+    0.12717108881182115,
+    0.11593182749438066,
+    0.39567766417403427,
+    -0.15878233354477425,
+    -0.020171798276218685,
+    -2.893122772173958,
+    0.06186748142159093,
+    0.16935166945561245
+   ],
+   "intercept": -0.8786137091522843
+  }
+ },
+ "chosen_sha256": "b02e5f2430087960d27b0ae7dd052870a2f3aab06bb4391cc71850329923ee17"
+}

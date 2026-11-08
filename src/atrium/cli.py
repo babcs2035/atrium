@@ -41,6 +41,7 @@
     churn-live-report  EQ7b の実機の実行を集めて EQ7a と比べる（操作端末）
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     select-features           owner_answer の候補ごとの cross-encoder の得点を後から求める（EnronQA．p0007 A5．GPU のある操作端末）
+    answer-select-eval        保存した 3 候補から回答を選ぶ規則 S1〜S4 の dev の選択と Q への当てはめ（d0009 B3．操作端末）
     select-eval               owner_answer の候補の選び方の規則をオフラインに適用・評価する（EnronQA．p0007 A5．操作端末）
     ce-table                  中央の再ランクの cross-encoder の得点を事前に計算して表にする（EnronQA．d0009 A3．GPU のある端末）
     rerun-variance            同じ設定を流し直した実行の揺れを含めた差の区間と H-V1〜H-V3 の判定（d0009 A3．オフライン）
@@ -1067,8 +1068,10 @@ def cmd_select_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium.judge import question_texts
     from atrium.requester import CrossEncoderReranker
     from atrium.select_eval import (
+        CE_ANSWER_FEATURES,
         CE_FEATURES,
         CE_LIVE_AGREEMENT,
+        answer_cross_encoder_features,
         cross_encoder_features,
         live_cross_encoder_agreement,
         read_ce_features,
@@ -1088,6 +1091,16 @@ def cmd_select_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         for inbox in sorted(inboxes)
         for d in read_inbox(paths, inbox)
     }
+    if args.answer_aware:
+        # 回答を入れた得点だけを別のファイルへ書く（ce_features.jsonl は書き換えない．d0009 B3 Iteration 25）
+        answer_features = answer_cross_encoder_features(
+            rows, question_texts(paths), text_of, CrossEncoderReranker().scores
+        )
+        with (run_dir / CE_ANSWER_FEATURES).open("w", encoding="utf-8") as f:
+            for item in answer_features:
+                f.write(json.dumps(item) + "\n")
+        print(json.dumps({"run": run_dir.name, "n_candidates": len(answer_features)}))
+        return 0
     features = cross_encoder_features(
         rows, question_texts(paths), text_of, CrossEncoderReranker().scores
     )
@@ -1124,6 +1137,39 @@ def cmd_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         write_derived_run(
             run_dir, outcomes[args.apply], args.apply, Path(args.derived_run), args.ignore_unknown
         )
+    return 0
+
+
+def cmd_answer_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """回答の選択の規則 S1〜S4 を dev で選ぶ（--stage dev）か，固定した規則を Q に当てはめる（--stage apply）．d0009 B3 Iteration 25．"""
+    from atrium import answer_select_eval as ase
+    from atrium.verdict import write_verdict
+
+    out_dir = Path(args.out_dir)
+    if args.stage == "dev":
+        result = ase.evaluate_dev(
+            Path(args.dev_run),
+            Path(args.old_dev_run),
+            Path(args.h_run),
+            Path(args.h_derived),
+            out_dir,
+        )
+        rejection = ase.dev_rejection(result)
+        if rejection is not None:
+            write_verdict(out_dir, rejection)
+        print(json.dumps({k: result[k] for k in ("G_D", "G_R", "G_J2")}, indent=1)[:6000])
+        return 0
+    if not args.q_run:
+        raise SystemExit("--stage apply requires --q-run")
+    selector = Path(args.selector) if args.selector else out_dir / ase.ANSWER_SELECTOR
+    result = ase.apply_to_runs(
+        selector,
+        [Path(r) for r in args.q_run],
+        [Path(r) for r in args.extra_run],
+        out_dir,
+        args.derived_prefix,
+    )
+    print(json.dumps({"rule": result["rule"], "Q": result["Q"]}, indent=1))
     return 0
 
 
@@ -1993,6 +2039,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--data-dir", required=True, help="enronqa/ を含むデータの置き場所（本文を読む）"
     )
+    p.add_argument(
+        "--answer-aware",
+        action="store_true",
+        help="回答を入れた得点 ce_qa_max・ce_ans だけを ce_answer_features.jsonl に書く（d0009 B3 Iteration 25）",
+    )
     p.set_defaults(func=cmd_select_features)
 
     p = sub.add_parser(
@@ -2014,6 +2065,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="UNKNOWN による除外をせず全候補から選ぶ（R0′〜R6′．通常のプロンプトの候補．p0007 A6）",
     )
     p.set_defaults(func=cmd_select_eval)
+
+    p = sub.add_parser(
+        "answer-select-eval",
+        help="保存した 3 候補から回答を選ぶ規則 S1〜S4 を dev で選び，Q に当てはめる（d0009 B3 Iteration 25）",
+    )
+    p.add_argument("--stage", choices=["dev", "apply"], required=True)
+    p.add_argument(
+        "--out-dir", required=True, help="select_dev.json・answer_selector.json などの出力先"
+    )
+    p.add_argument("--dev-run", default="results/d0009_b3s_dev", help="dev（採点し直した写し）")
+    p.add_argument("--old-dev-run", default="results/p0007_a6_dev", help="G-R の旧い判定の印の dev")
+    p.add_argument("--h-run", default="results/d0009_a3_p1", help="G-R の H の候補の実行")
+    p.add_argument("--h-derived", default="results/d0009_a3_p1_R3p", help="G-R の H の R3′ の選択")
+    p.add_argument(
+        "--selector", default=None, help="固定した answer_selector.json（既定は out-dir の中）"
+    )
+    p.add_argument("--q-run", action="append", default=[], help="Q を作る実行（複数指定．H・H2）")
+    p.add_argument("--extra-run", action="append", default=[], help="記述用の実行（複数指定）")
+    p.add_argument(
+        "--derived-prefix", default="results/", help="選んだ候補の実行の置き場所の接頭辞"
+    )
+    p.set_defaults(func=cmd_answer_select_eval)
 
     p = sub.add_parser(
         "abstain-judge",
