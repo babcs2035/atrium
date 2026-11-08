@@ -3,6 +3,120 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 26: 回答の生成を各社の最新の公式モデルに替えたときの正答率・作り話・露出
+
+**位置づけ**：人間の指示によるテーマの変更（backlog B89 [human-decided]）．B88 で決めていた `answer_verification` は保留にする．新しいレバーは `llm.expert_model_gpu`（主構成 R3′ の候補の回答を作る生成モデル）で，設計の判断は B90 にある．**モデルの取得（約 17.5 GB）・GPU の PC への配布・wafl の Ollama の起動は，人間の承認（B91 [needs-human]）を得るまで行わない．** 事前登録はこの節である．承認の後，dev の事前ゲート・実機の実行・採点のいずれよりも前に commit・push する．
+
+### 事前登録の修正（2026-11-08．人間の判断 B92：Gemma 4 12B の 1 個だけ）
+
+以降の本文のうち，M3（Ministral 3 8B）・GR（Granite 4.2 8B）に関する記述は適用しない（取得しない）．対象は G4 だけで，次のとおり読み替える．閾値は変えない．
+
+- 比較は G4 対 base の 1 本なので，Holm の補正は不要である．α = 0.05 の単独の McNemar の正確検定（両側）で判定する．区間は α = 0.05 の 95% で，半幅は 2.39 ではなく 1.96·√(b + c)/n ≈ 0.009〜0.011 になる．
+- 実行の順は `d0009_m1_h2_base` → `d0009_m1_h2_g4` → `d0009_m1_h_g4`．dev300 は G4 の 1 回（`d0009_m1_dev300_g4`）．
+- G-M・G-L・G-V・G-D・G-S・G-T・G-J・G3 は G4 についてだけ確かめる．M3・GR 向けの取り込みの条件は適用しない．G4 の取り込みは「改善」・作り話の増分 ≤ +0.005・`total_s` の中央値が base の 2 倍以下を全て満たすときに限る．
+- 結論は Gemma 4 12B に限る．「各社の最新の公式モデル一般」へは一般化しない．
+
+### 調査で分かったこと
+
+- **LLM を使う役割**：主構成には LLM・モデルを使う役割が 4 つある．(1) 候補の回答の生成：`llm.expert_model_gpu` = llama3.1:8b を，wafl500〜509（RTX 3060 12 GB）の Ollama 0.35.1 で動かす．`num_ctx` 16384・並列 2・温度 0・`think: false`．CPU の専門家は生成を GPU の PC へ委託する（`node.py` の `delegate`）．(2) 正誤の判定：qwen3:8b（gpu4）．(3) 選択の cross-encoder：bge-reranker-v2-m3（gpu4 でオフライン．運用ルール 11）．(4) 埋め込み：snowflake-arctic-embed-m-v1.5．(4) を替えると索引とシャードの作り直しが要る（運用ルール 3）．(2) を替えると物差しが変わる（Iteration 25 では，判定モデルの違いで dev の水準が 5 pt 動いた）．したがって替えるのは (1) だけにする．
+- **生成が効く余地**：H の R3′ の正答率は 0.7185 で，候補のどれかが正解の割合（天井）は 0.7505 である．dev では，持ち主が候補に入っていても持ち主の候補が正解なのは 0.770 にとどまる（Iteration 25）．持ち主の特定（hit@3 は約 0.93）より生成と選択の側の取りこぼしが大きく，選択の改良（Iteration 24・25）では取れなかった．回答を作るモデル自体を替えると，天井と持ち主の候補の正答率がどちらも動く見込みがある（推測）．
+- **人間が例に挙げた名称の実在**：Qwen3.8 は実在する．Alibaba が 2026-08 に公開した系統で，Qwen3.8-27B（dense）・Qwen3.8-Flash-Next（総 125B・活性 6B の MoE）・Qwen3.8-2.4T-A95B がある（Alibaba Cloud Community のブログ "Alibaba Unveils Qwen3.8-27B…"，qwen.ai の Flash-Next のブログ，HF の `Qwen/Qwen3.8-27B`〔2026-08-05〕）．公式の重みは BF16 と FP8 だけで，公式の GGUF は無い．Ollama の library の qwen3.8:27b でも約 18 GB ある．Gemma も実在し，最新は Gemma 4 である．大きさは E2B・E4B・12B・26B A4B・31B の 5 つで，ライセンスは Apache 2.0（Google AI for Developers の Gemma 4 のモデルカード）．Google は QAT の Q4_0 の GGUF を公式に出している（`google/gemma-4-12B-it-qat-q4_0-gguf`〔2026-06-05〕）．
+- **候補の一覧（開発元の公式 org の重みだけ．HF の API で 2026-11-08 に確かめた）**．KV の見積もりは f16・16384 × 2 系列で，各モデルの公式の config.json から計算した．
+
+| 系統（開発元） | 公式の配布元（org/repo） | 公開 | パラメータ | ライセンス | 公式の量子化と大きさ | 12 GB の見積もり（重み + KV） | 判断 |
+|---|---|---|---|---|---|---|---|
+| Gemma 4 12B-it（Google） | `google/gemma-4-12B-it-qat-q4_0-gguf`（rev 29d0977） | 2026-05〜06 | 12B | Apache 2.0 | Q4_0 QAT 6.98 GB | 約 8.2 GB（40 層は窓 1,024 の局所注意，大域 8 層は KV ヘッド 1） | **採用** |
+| Ministral 3 8B Instruct 2512（Mistral AI） | `mistralai/Ministral-3-8B-Instruct-2512-GGUF`（rev 0102285） | 2025-12-02（Mistral の "Introducing Mistral 3"） | 8B | Apache 2.0 | Q4_K_M 5.20 GB | 約 9.8 GB | **採用** |
+| Granite 4.2 8B（IBM） | `ibm-granite/granite-4.2-8b-GGUF`（rev 93f3f6a） | 2026-08（IBM Research のブログ "Granite 4.2 brings native reasoning…"） | 8B | Apache 2.0 | Q4_K_M 5.35 GB | 約 10.7 GB（余裕が小さい） | **採用**（G-V で確かめる） |
+| Llama 3.1 8B（Meta．現行） | Ollama の library の llama3.1:8b | 2024-07 | 8B | Llama 3.1 | Q4_K_M 約 4.9 GB | 約 9.2 GB（実績あり） | 対照（base） |
+| Qwen3.8-27B（Alibaba） | `Qwen/Qwen3.8-27B`・`-FP8` | 2026-08 | 27B | Qwen | 公式の GGUF 無し（FP8 は約 28 GB） | 載らない | 除外（C1・C4・C5） |
+| Qwen3.5-9B（Alibaba） | `Qwen/Qwen3.5-9B` | 2026-02 | 9B | Apache 2.0 | 公式の GGUF 無し（GPTQ・FP8 は 27B 以上だけ） | − | 除外（C1・C5） |
+| gpt-oss-20b（OpenAI） | `openai/gpt-oss-20b`（MXFP4） | 2025-08 | 21B（MoE） | Apache 2.0 | MXFP4 約 13 GB | 載らない | 除外（C4．推論専用の形式） |
+| Gemma 4 26B A4B（Google） | `google/gemma-4-26B-A4B-it-qat-q4_0-gguf` | 2026-05 | 26B（MoE） | Apache 2.0 | Q4_0 QAT 14.44 GB | 載らない | 除外（C4・C6） |
+| Ministral 3 14B Instruct 2512（Mistral AI） | `mistralai/Ministral-3-14B-Instruct-2512-GGUF` | 2025-12 | 14B | Apache 2.0 | Q4_K_M 8.24 GB | 約 13.6 GB | 除外（C4） |
+| Phi-4（Microsoft） | `microsoft/phi-4-gguf` | 2025-01 | 14B | MIT | Q4_K 9.05 GB | 約 15.8 GB | 除外（C2〔古い〕・C4） |
+| Nemotron 3 Nano 4B（NVIDIA） | `nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF` | 2026-03 | 4B | NVIDIA Open Model | Q4_K_M 2.84 GB | 載る | 除外（C3） |
+| Gemma 4 E4B（Google） | `google/gemma-4-E4B-it-qat-q4_0-gguf` | 2026-05 | 実効 4B | Apache 2.0 | Q4_0 QAT 5.15 GB | 載る | 除外（C3・C6．12B が G-V で載らないときの後の候補） |
+| Llama 4・DeepSeek V4 | `meta-llama/Llama-4-Scout-17B-16E-Instruct`・`deepseek-ai/DeepSeek-V4.1-Flash` | 2025-04・2026-09 | 109B 以上 | − | − | 載らない | 除外（C4．Meta と DeepSeek には 8B 級の新しい公式モデルが無い．distill は対象外） |
+
+- **公式と判断した根拠**：配布元が開発元の HF の org（`google`・`mistralai`・`ibm-granite`）であり，モデルカードの作成者がその組織である．加えて，Gemma は Google AI for Developers のモデルの概要から HF へのリンクがある．Ministral 3 は Mistral の告知（mistral.ai/news/mistral-3．X の @MistralAI 2025-12-02）で公開されている．Granite 4.2 は IBM の公式の文書（ibm.com/granite/docs/models/granite4-2）と GitHub の `ibm-granite/granite-4.2-language-models` で公開されている．GGUF の repo のカードはどれも，同じ org の元の重み（`google/gemma-4-12B-it-qat-q4_0-unquantized`・`mistralai/Ministral-3-8B-Instruct-2512`・`ibm-granite/granite-4.2-8b`）を base_model に挙げている．
+- **判定モデルの系統の偏り**：LLM の評価器は，自分の生成した文を見分けて好む（self-preference）．自分の文を見分ける能力とその偏りの強さは線形に相関する（Panickssery, Bowman & Feng 2024．"LLM Evaluators Recognize and Favor Their Own Generations"．NeurIPS 2024．arXiv:2404.13076）．判定モデルは qwen3:8b なので，Qwen の系統の生成モデルは同じ系統の偏りを拾う恐れがある（推測）．そこで基準 C5 で除いた．
+- **Ollama の対応**：Ollama は v0.33.1（2026-08-26）の時点で Gemma 4 を library に載せている．v0.35.0 は 2026-09-28 に出ており，使う 0.35.1 はそれより後の版である（promptquorum.com の Ollama のモデルの一覧〔2026-08 更新〕，ollamaherd.com のリリースノートの要約．どちらも二次情報なので，対応は G-L で確かめる）．Gemma 4 の思考は system の `<|think|>` の有無で切り替わる（ollama.com/library/gemma4）．Granite 4.2 は思考の機能を持つ（IBM の文書）．思考を止められるかは G-L で確かめる．ollama/ollama#15260 には，gemma4 で `think: false` と構造化出力（format）を組み合わせると format が効かない不具合の報告がある．atrium の生成は format を使わないので，影響は無い見込みである．
+- **保留した `answer_verification` のための記録（B88・B89）**：文書に対する根拠づけの検証器には，Bespoke-MiniCheck-7B（InternLM2.5-7B から学習．LLM-AggreFact の平均 77.4．`bespokelabs/Bespoke-MiniCheck-7B`．CC BY-NC 4.0）と MiniCheck-Flan-T5-L（0.8B．75.0．MIT）がある（Tang, Laban & Durrett 2024．"MiniCheck"．EMNLP 2024．arXiv:2404.10774．llm-aggrefact.github.io）．入力は 1 文の主張なので，回答を質問と合わせて主張の文にする工夫が要る．Ollama は v0.12.11 から `logprobs`・`top_logprobs` を返すので，一般の LLM の Yes/No の確率も得点にできる．
+
+### 仮説
+
+生成モデルを 2024-07 の llama3.1:8b から 2025-12〜2026-08 の公式の新しいモデルに替えると，持ち主の候補の回答が正しくなる割合と，候補のどれかが正解の割合（天井）が上がる．その結果，R3′ で選んだ最終回答の正答率（Q）は，少なくとも 1 つのモデルで +0.02 以上上がる（見込み．Gemma 4 12B が最も大きいと予想する）．質問者へ渡る文書と，生成のために委託先へ送る文書はモデルによらず同じなので，露出は変わらない．作り話の割合はモデルによって増えも減りもしうる（UNKNOWN を許さない通常のプロンプトで，新しいモデルが「書かれていない」と答える割合が変わるため）．
+
+### 単一レバー
+
+**`llm.expert_model_gpu`**（主構成で候補の回答を作る生成モデル．GPU の PC の Ollama）を，現行の llama3.1:8b（base）から次の 3 つへ 1 つずつ替える．1 イテレーションで値を 3 つ流すが，モデルの間で変えるのは Ollama のモデルの識別子だけである．
+
+| 記号 | Ollama の名前（`ollama create` で登録） | 取り込む公式の GGUF（mmproj は取らない） |
+|---|---|---|
+| base | `llama3.1:8b`（既存） | − |
+| G4 | `gemma4-12b-it-qat` | `google/gemma-4-12B-it-qat-q4_0-gguf` / `gemma-4-12b-it-qat-q4_0.gguf` |
+| M3 | `ministral3-8b-instruct-2512` | `mistralai/Ministral-3-8B-Instruct-2512-GGUF` / `Ministral-3-8B-Instruct-2512-Q4_K_M.gguf` |
+| GR | `granite4.2-8b` | `ibm-granite/granite-4.2-8b-GGUF` / `granite-4.2-8b-Q4_K_M.gguf` |
+
+- Modelfile は `FROM <GGUF>` だけにする．チャットのテンプレートは GGUF に埋め込まれた公式のものを使い，PARAMETER・SYSTEM・TEMPLATE は書かない．`num_ctx`・`num_predict`・温度・`think` は atrium の要求で全モデル同じ値を渡す．
+- 取得は gpu4 の `hf download`（既定のキャッシュ．運用ルール 15）で，revision は上の表の sha に固定する．登録は Ollama 0.35.1 の container の中で行い，GGUF のキャッシュは読み取り専用で mount する（運用ルール 15 が許す取り込み）．配布は既存の経路（`artifacts/cache/ollama` → 制御点の `$DATA_DIR/ollama` → GPU の PC）を使う．GGUF の sha256 を記録する．
+
+### 固定する構成（Iteration 22 の P と同じ．生成モデル以外）
+
+`scripts/d0009/a3_config.py p` の条件を固定する：EnronQA・`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`answer_mode: owner_answer`・`owner_m: 3`・`retrieval.fusion: rrf`・UNKNOWN の除外なしの通常のプロンプト・`answer.aggregate: max_score`・`save_candidates: true`・`http_pool: per_node`・`parallel: 30`・質問者 1 台（wafl-ctrl5）・30 台の専門家・温度 0・種 12・`num_ctx` 16384・`requester_num_parallel` 2・`think: false`．判定は qwen3:8b（gpu4．Q4_K_M．温度 0）．選択は R3′（bge-reranker-v2-m3．gpu4 でのオフラインの当てはめ．運用ルール 11 の併記）．
+
+### 質問集合（運用ルール 10）
+
+- **事前ゲート**：dev の 300 問．dev の 2,948 問から種 12 で無作為に選び，問の ID の一覧を実行の前に `results/d0009_m1_dev300/qids.json` に固定する（追加だけ）．
+- **判定**：**Q = H ∪ H2**（5,669 問）．base は，H が `d0009_a3_p1`（Iteration 22．qwen3:8b で採点済み．R3′ は `d0009_a3_p1_R3p`），H2 が今回流す `d0009_m1_h2_base` である．H2 は正答率を一度も見ていない．H は R3′ の正答率を見ているが，新しい生成モデルの値は一度も見ていない．H の残りの base の 4 回（`d0009_a3_p2`・`p3`・`d0009_a1_n1_r1`・`n1_r2`）との差は記述として出す．
+
+### 実行の手順（B91 の承認の後．実機．運用ルール 8・13）
+
+1. 取得・登録・配布（承認の範囲だけ）．取得の前に gpu4 と各機の空き容量を確かめる．
+2. **G-L・G-V**（下）．deploy の後，10 台の `ollama ps` と，3 問の smoke の回答を記録する．
+3. **事前ゲート G-D**：G4・M3・GR を dev300 で 1 回ずつ流す（`d0009_m1_dev300_{g4,m3,gr}`．各 10 分程度）．
+4. 判定の実行．順は `d0009_m1_h2_base`（llama3.1:8b）→ `d0009_m1_h2_g4` → `d0009_m1_h_g4` → `d0009_m1_h2_m3` → `d0009_m1_h_m3` → `d0009_m1_h2_gr` → `d0009_m1_h_gr` とする（G-D を通過したモデルだけ．各 50〜90 分の見込み）．各回の前に，全 11 台の GPU の使用状況と `ollama ps` を記録する．GPU の PC が空くまで最大 2 時間待ち，他の研究者のプロセスには触れない（`b3s_chain.sh` の形）．失敗した問（502・timeout）だけを同じ run_id で 1 回流し直すことは許す．
+5. 選択と採点（gpu4．wafl の GPU は実験中は使わない）．各実行の全候補に `select-features`（`ce_max`）を計算し，R3′ で選んだ最終回答を `select-eval` で `results/<run>_R3p` に書き出す．**R3′ で選んだ最終回答を qwen3:8b で採点する**（主の判定の材料．1 モデルあたり 5,669 件）．候補の全件の採点（天井・持ち主の候補の正答率）は記述で，時間の許す範囲で行う．H2 の base の全候補は必ず採点する（天井の基準になる）．
+
+### 判定の規則（`results/d0009_m1_generator/verdict.json`．`verdict_original` は書き換えない）
+
+記号：各モデル X ∈ {G4, M3, GR} について，n は Q のうち両方に判定の付いた問の数，**Δ_X = acc(X の R3′) − acc(base の R3′)** とする．失敗・判定不能は不正解として数える．
+
+- **検出できる差の大きさ（先に書く）**：生成を替えると候補の文字列がほぼ全て変わる．片方だけ正解の問（b + c）を Q の 12〜20%（680〜1,130 問）と見込む．Holm の補正のもとで最も厳しい水準（α/3）の対応ありの区間の半幅は，2.39·√(b + c)/n ≈ **0.011〜0.014** になる．したがって「改善」と言えるのは，Δ がおよそ +0.012 を超えるときである．
+- **主（H-M1．正答率）**：`uv run atrium compare results/<X の R3p> results/<base の R3p>` の McNemar の正確検定（両側）．H と H2 は別々の実行なので，Q の上で 1 回の検定にまとめる．`atrium compare` が 2 つの実行の結合を受け付けなければ，同じ計算をする集計（追加だけ）で H と H2 の対応ありの表を足し合わせる．3 つの比較の p に **Holm の補正（族の α = 0.05）** をかける．補正の後の p < 0.05 で Δ_X > 0 なら「改善」，Δ_X < 0 なら「悪化」，それ以外は「差を検出できない」とする．併記として，Iteration 22 の区間の作り方 1・2（σ²_u,P = 1.63e−7 を両側に足す）の 98.3%（= 1 − 0.05/3）の区間，H と H2 に分けた Δ，b : c を出す．
+- **H-M2（作り話．記述と取り込みの条件）**：R3′ で選んだ回答のうち不正解のものを，A2 の 3 分類（正解・わからない・作り話．`abstain-judge`・`fabrication-eval`．Iteration 21 の規則とプロンプト）に分ける．作り話の割合を base と各モデルで出し，対応ありのブートストラップ区間を付ける．人手での確かめとして，各モデルで base と正誤が違う問から 20 件（種 12）を agent が見て，判定モデルの判断との一致を記録する（記述）．
+- **H-M3（露出．記述）**：`multi_requester_eval.exposure`（N = 1）で E_any を出す（分母 73,772）．生成の委託で送る文書（`docs_sent`）は，候補の上位 5 通と同じ集合になるはずである．モデルによらず同じ値になることを確かめ，違えば原因を記録する．公開情報・probe は変えないので，推定されやすさは不変として記録する．
+- **H-M4（費用．記述）**：候補 1 件あたりの `prefill_s`・`decode_s`・`total_s`・`output_tokens` の中央値と p95 を出す．H2 の実行の処理量（問/秒）は，base と比べて同じ日の実行どうしでだけ並べる．GPU の使用量は `ollama ps` から取る．
+- **判定の頑健性（記述．採否に使わない）**：base と正誤が違う問の最終回答を，`judge_reference_model`（qwen3:14b．gpu4）でも採点し，Δ の符号が変わらないかを見る（判定モデルの癖を確かめるため）．
+- **主構成への取り込み**：「改善」（Holm の補正の後で有意）であり，作り話の割合の増分 ≤ +0.005 であり，`total_s` の中央値が base の 2 倍以下であるモデルのうち，Δ が最大のものだけを，以降の d0009 の主構成の生成モデルにする．それ以外は llama3.1:8b のままにする．テストの問でモデルを選ぶことになるので，取り込んだ場合は「Q で選んだ」と明記する．
+
+### ゲート（満たさなければ判定の前に止まり，原因を記録する）
+
+- **G-M（出所）**：3 つの GGUF が上の表の org・repo・revision から `hf download` で取得されていること．sha256 と取得の日時を `results/d0009_m1_generator/models.json` に記録する．非公式の repo（第三者の org の量子化・変換）は使わない．
+- **G-L（読み込みと思考）**：Ollama 0.35.1 で 3 つのモデルが読み込めること．`think: false` の 3 問の smoke の回答に，思考の文（`<|channel>thought`・`<think>` など）や空の回答が無いこと．満たさないモデルは，設定を変えて補わずに外し，記録する．
+- **G-V（VRAM）**：preload の後，10 台の GPU の PC の全てで `ollama ps` が 100% GPU を示すこと（`num_ctx` 16384・並列 2 のまま）．CPU に一部が載ったモデルは，`num_ctx`・並列を変えずに外す（「配布できない」と記録する）．他の研究者の使用で空かない台があれば最大 2 時間待ち，それでも空かなければ交絡として記録する．
+- **G-D（dev300 の事前ゲート．実機の判定へ進むか）**：各モデルの dev300 の失敗が 1% 以下であること．加えて，R3′ の正答率が base（`d0009_b3s_dev` の同じ 300 問．qwen3:8b の印）より 0.05 以上低くないこと．0.05 以上低いモデルは「明らかな悪化（dev300）」として判定の実行を省く．dev300 の値はモデルを選ぶのには使わない．
+- **G-S（候補の受信箱）**：各モデルの実行の候補の受信箱の集合が base と一致する割合が 0.999 以上であること（融合得点の差 ≤ 1e-4 は同点として許す）．比べる相手は，H では `d0009_a3_p1`，H2 では `d0009_m1_h2_base` である．生成モデルは持ち主の特定に関わらないので一致するはずである．
+- **G-T（互換）**：`mise run check` を通ること（既知の不安定な試験は B78 (c) のとおり記録する）．設定の追加・コードの追加は既定の挙動を変えないこと．
+- **G-J（採点）**：判定不能が 1% 以下であること．
+- **G3**：各実行の失敗（流し直しの後）が 1% 以下であること．超えたら成功した問に絞り，その旨を記録する．
+
+### 成功条件（このイテレーションの採用）
+
+(1) B91 の承認の範囲で，G-M・G-L・G-V・G-T を通過したモデルについて G-D を確かめる．(2) G-D を通過したモデルについて H と H2 を実機で流し，R3′ の最終回答を採点する（判定不能 ≤ 1%）．そのうえで G-S・G3 を確かめる．(3) H-M1〜H-M4 を上の規則で `verdict.json` に書く．仮説の成否（どのモデルも「改善」にならないこと）は採用の条件にしない．ゲートで外れたモデルは，理由とともに「比較できなかった」と記録する．3 つ全てが外れた場合は，比較を行わずに終了し，次の候補（Gemma 4 E4B，または B91 の A3 のオフラインの比較）を人間の判断に残す．
+
+### 期待効果（見込み．検証対象ではない）
+
+G4 が最も大きく，Δ は +0.01〜+0.04 と見込む．M3・GR は −0.01〜+0.02 で，「差を検出できない」になりやすい．天井は 0.75 から 0.76〜0.79 に上がる．E_any は base と同じ値になる．`total_s` は G4 が base の 1.3〜1.8 倍，M3・GR は 0.9〜1.2 倍と見込む．
+
+### 実装の要点（phase 2 への引き継ぎ）
+
+- **設定**：`config.yaml` の `llm.expert_model_gpu` を実行ごとに書き換え，実行の後に元へ戻す（commit しない）．`requester_model`・`expert_model`（CPU の qwen3:0.6b）は変えない．主構成で全ての候補の生成が GPU の PC の `expert_model_gpu` で行われることを，`d0009_a3_p1` の `node_answers` の `delegated_to`・`node_id` と `render.py` で先に確かめる．CPU の専門家が自分で生成する経路が残っていれば，その割合を記録する．
+- **取り込みのスクリプト**：新しい `scripts/d0009/m1_import_models.sh` を作る．`hf download`（revision を固定）→ Ollama 0.35.1 の container（`OLLAMA_MODELS` は既存の `artifacts/cache/ollama/models`，GGUF は読み取り専用で mount）で `ollama create <名前> -f Modelfile` → `rsync` で制御点の `$DATA_DIR/ollama/` へ送る．`scripts/tasks/fetch_assets.sh` は変えない．`deploy.sh` の `send_ollama_model` が `EXPERT_MODEL_GPU` を送ることを確かめる．
+- **実行の連鎖**：新しい `scripts/d0009/m1_chain.sh`（`b3s_chain.sh` の形．回ごとに生成モデルと質問集合を設定する）と `m1_config.py`，採点の `m1_score_all.sh` を作る．dev300 は `question_split` に追加だけの値を足すか，既存の問の ID の絞り込みの仕組みを使う．既存の dev・test・H・H2 のファイルは変えない．
+- **集計**：新しい `scripts/d0009/m1_verdict.py`，または `atrium compare` に追加だけの欄を足して，Q での McNemar・Holm・区間・H-M2〜H-M4 を書く．区間は `atrium.rerun_variance` の関数を再利用する．回答は `sanitize_results.py` を通してから commit する．既存の results（運用ルール 12 の記録を含む）は変えない．
+
 ## Iteration 25: 回答の選択を改良したときの正答率・作り話・露出
 
 **位置づけ**：レバー `d0009.B3_owner_and_selection` の値 `answer_selection`（回答の選択）．d0009 B3（研究の主課題．backlog B73・B86）．持ち主の特定（`owner_identification`）は Iteration 24 で棄却し，主構成の得点は CombMAX のまま固定する．事前登録はこの節で，**dev の選択・H と H2 の採点と選択の当てはめ・H2 の実機の実行のいずれよりも前に commit・push する**（Iteration 24 の偏差の反省．B86 (e)）．設計の判断は backlog B87．

@@ -319,7 +319,8 @@ levers:
             S3 の増分 +0.0034（37 : 27．区間 −0.0017〜+0.0088．記述）が +0.006 に届かない．候補のどれかが正解の天井 0.750（R3′ との差 80 問）．主構成の選択は R3′ のまま．
             値 answer_verification は Iteration 25 の評価で追加（backlog B88 [auto-decided]）．仮称．保存した 3 候補のそれぞれについて，LLM に「質問者へ渡る同じ上位 5 通の文脈が回答を支えるか」を問い，
             その得点（Yes の確率など）で選ぶ（Speculative RAG の検証の形．B87 (b) で退けた案の再検討）．回答の文字列と既存の特徴量の組み替えでは取れなかった「文脈による裏付け」を直接見る．
-            検証の LLM（判定モデル qwen3:8b と別の系統を優先），プロンプト，得点，R3′ との組み合わせ，dev のゲート，質問集合は rc-researcher が事前登録で決める"}
+            検証の LLM（判定モデル qwen3:8b と別の系統を優先），プロンプト，得点，R3′ との組み合わせ，dev のゲート，質問集合は rc-researcher が事前登録で決める．
+            保留（人間の指示 2026-11-08．backlog B89）：Iteration 26 のテーマを「最新の LLM に替えたとき」に変えたので，answer_verification は着手せずに保留する（事前登録の申し送りは B88 (a)〜(f) に残す）"}
   - {name: d0009.A6_remeasure_main, values: [load, failure, join],
      note: "d0009 A6（中）．負荷・障害・参加を主構成（cross-encoder による選択あり）で測り直す（p0007 D・E は選択を加える前の構成）．
             負荷は再実行で大小が逆転した（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒．生成を 10 台に分散した中央は P2P の約 2.4 倍）ので，
@@ -339,6 +340,14 @@ levers:
      note: "d0009 B2（中）．cross-encoder の採点を複数の GPU に分ける．生成が速い条件では質問者の採点が律速になる（A1 と関連）．
             採点のモデルは 8B の生成モデルと同じ 12 GB の GPU に共存できなかった（journal の F-6）ので，採点を置く GPU の割り当ても合わせて設計する．
             wafl500〜509 の GPU は共有なので，他の研究者のプロセスに触れない"}
+  # ---- 人間の指示（2026-11-08．backlog B89 [human-decided]）：最新の LLM に替えたときにどうなるか ----
+  - {name: llm.expert_model_gpu, values: [gemma4-12b-it-qat, ministral3-8b-instruct-2512, granite4.2-8b],
+     note: "Iteration 26 で追加（backlog B89 [human-decided]・B90 [auto-decided]・B91 [needs-human]）．主構成 R3′ の候補の回答を作る生成モデル（GPU の PC wafl500〜509 の
+            Ollama 0.35.1．CPU の専門家は生成をそこへ委託する）だけを，現行の llama3.1:8b から各社の公式の最新モデルへ替えて，同じ質問集合で 1 つずつ比べる（1 イテレーションの中で
+            値を 3 つ流す．動かすのはモデルの識別子だけ）．値は開発元の公式 org の GGUF だけ：google/gemma-4-12B-it-qat-q4_0-gguf（Q4_0 QAT）・
+            mistralai/Ministral-3-8B-Instruct-2512-GGUF（Q4_K_M）・ibm-granite/granite-4.2-8b-GGUF（Q4_K_M）．`hf` で取得し ollama create で登録する．
+            判定モデル（qwen3:8b）・cross-encoder・埋め込み・プロンプト・m・取得の設定・num_ctx・num_parallel・temperature・think は変えない．
+            選定基準・除外した候補（Qwen3.8 は 12 GB に載らず判定モデルと同じ系統など）・多重比較の補正は journal の Iteration 26 の事前登録"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

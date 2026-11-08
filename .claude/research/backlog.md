@@ -17,6 +17,39 @@
 
 ---
 
+## B92 [human-decided 2026-11-08] B91 は A2（1 モデルに絞る）．対象は Gemma 4 12B（`gemma4-12b-it-qat`）だけ
+- 状況: Slack のスレッド返信「A2: Gemma 4 12B にしてみよ」．B91 の (i)〜(iii) を Gemma 4 12B 1 個について承認したものと扱う（取得は `google/gemma-4-12B-it-qat-q4_0-gguf` の 6.98 GB だけ．配布と wafl の Ollama の起動を含む）．Ministral 3 8B・Granite 4.2 8B は今回は取得せず，journal の事前登録から外す．
+- 事前登録の修正（実行の前に commit・push する）: 比較は G4 対 base の 1 本になるので，Holm の補正は不要（α = 0.05 の単独の検定）．実行の順は `d0009_m1_h2_base` → `h2_g4` → `h_g4`．dev300 は G4 の 1 回．M3・GR に関するゲート・取り込みの条件は適用しない．閾値は変えない．
+- 不可逆・危険な操作: 無い（既存のモデル・データは消さない）．wafl の Ollama の起動が権限の分類器に拒否された場合は，再試行せず status=blocked で人間へ戻す．
+- 要レビュー: 1 社だけの結果は「最新の公式モデル一般」へ一般化できない．結論は Gemma 4 12B に限ると記す．
+
+## B91 [needs-human 2026-11-08] Iteration 26 の実行の承認：公式モデル 3 個の取得（約 17.5 GB）と，GPU の PC 10 台への配布・Ollama の起動
+- 状況: 人間の指示（B89 の 3 回目）で，「大容量のダウンロード・wafl での Ollama の起動など，権限・容量・課金に関わる操作が要る場合は実行せず要人間判断として戻す」とされた．Iteration 26 の事前登録（journal の Iteration 26．設計は B90）は，次の操作がないと始められない．rc-researcher は取得も配布もしていない．Slack での @mention は呼び出し元（research-cycle の本体）に委ねる．
+  (i) gpu4 で `hf download`（既定の `~/.cache/huggingface/`）：`google/gemma-4-12B-it-qat-q4_0-gguf` の `gemma-4-12b-it-qat-q4_0.gguf`（6.98 GB），`mistralai/Ministral-3-8B-Instruct-2512-GGUF` の `Ministral-3-8B-Instruct-2512-Q4_K_M.gguf`（5.20 GB），`ibm-granite/granite-4.2-8b-GGUF` の `granite-4.2-8b-Q4_K_M.gguf`（5.35 GB）．合計約 17.5 GB．mmproj（画像用）は取らない．
+  (ii) Ollama 0.35.1 の container での `ollama create`（3 個）と，既存の経路（`artifacts/cache/ollama` → 制御点の `$DATA_DIR/ollama` → wafl500〜509 の `$REMOTE_DIR/ollama`）での配布．各機の追加の容量は約 17.5 GB（制御点も同じ）．既存の llama3.1:8b・データ・シャードは消さない．
+  (iii) `mise run deploy` で wafl500〜509 の Ollama を新しいモデルで起動する（Iteration 25 では，wafl の判定用の Ollama の起動が権限の分類器に拒否された）．GPU の PC は他の研究者と共有している．
+- 選択肢:
+  A1 (Recommended)：(i)〜(iii) を全て承認する．事前登録のとおり 3 モデルを比べる．実機は判定の 7 回（各 50〜90 分）と dev300 の 3 回（各 10 分程度）．採点は gpu4 で約 3 万件（R3′ の最終回答が 4 × 5,669 件，H2 の base の全候補が約 8,400 件）．
+  A2：取得を 1 モデルに絞る（例：Gemma 4 12B だけ．約 7 GB）．費用は約 1/3 になる．ただし「各社の最新モデルとの比較」は 1 社分しか取れない．
+  A3：実機を使わず，gpu4（RTX 5090 32 GB）でのオフラインの生成で比べる．運用ルール 13（新しい精度の測定は実機）の例外になるので，人間の承認が要る．12 GB に載らない公式モデル（gpt-oss-20b・Gemma 4 26B A4B・Ministral 3 14B）も候補に戻せる．wafl の権限の問題は避けられるが，実機の経路（委託・同時の要求）は通らない．
+- 再開の手順: 人間が A1〜A3 のどれかを答えたら `[human-decided]` を追記する．status を running に戻し，rc-executor が journal の Iteration 26「実行の手順」から始める．取得の前に gpu4 の空き容量と，各機の `$REMOTE_DIR` の空き容量を確かめる．
+
+## B90 [auto-decided 2026-11-08] Iteration 26 の設計：替えるのは回答の生成モデル（`llm.expert_model_gpu`）だけで，公式の最新モデル 3 個（Gemma 4 12B・Ministral 3 8B・Granite 4.2 8B）を現行の llama3.1:8b と Q = H ∪ H2 で比べる
+- 状況: B89 で，Iteration 26 のテーマは「各社が公式に公開した最新のオープンウェイト LLM に替えたときにどうなるか」になった．条件は 3 つある．比べるのは 3〜5 個．動かすのはモデルの識別子だけ．使うのは開発元が公式に公開した重み（公式の量子化を含む）だけ．LLM を使う役割は 4 つある：(1) 候補の回答の生成（`llm.expert_model_gpu`．wafl500〜509 の RTX 3060 12 GB の Ollama 0.35.1．CPU の専門家は生成をここへ委託する），(2) 正誤の判定（qwen3:8b．gpu4），(3) 選択の cross-encoder（bge-reranker-v2-m3），(4) 埋め込み（snowflake-arctic-embed-m-v1.5）．
+- 自動選択:
+  (1) 替える役割は (1) の生成だけにする．判定モデル・cross-encoder・埋め込み・プロンプト・m = 3・取得の設定・`num_ctx` 16384・並列 2・温度 0・`think: false` は全てのモデルで同じにする．
+  (2) 選定基準（事前登録）は次の 6 つ．C1 開発元の HF の公式 org が公開した GGUF（公式の量子化）であること．C2 その系統で 2026-11-08 時点の最新の instruct 版であること（推論専用の版・画像・コード専用は除く）．C3 パラメータ数が現行（8B）以上であること．C4 重みと KV キャッシュ（16384 × 2 系列．f16）の合計の見積もりが RTX 3060 の 12 GB に収まること．C5 判定モデルと同じ Qwen の系統でないこと．C6 1 社につき 1 個とすること．量子化は公式の Q4 級（Q4_K_M があればそれ，無ければ公式の Q4_0 QAT）にする．
+  (3) 選んだのは次の 3 個．Gemma 4 12B-it（Google．Q4_0 QAT 6.98 GB）・Ministral 3 8B Instruct 2512（Mistral AI．Q4_K_M 5.20 GB）・Granite 4.2 8B（IBM．Q4_K_M 5.35 GB）．
+  (4) 判定は Q = H ∪ H2（5,669 問）で行う．base の候補は，H が Iteration 22 の `d0009_a3_p1`，H2 が今回 llama3.1:8b で 1 回流すもの．各モデルは H と H2 を 1 回ずつ流す．主の検定は `atrium compare` の McNemar の正確検定で，3 つの比較に Holm の補正（族の α = 0.05）をかける．
+- 根拠: (1) 生成モデルは候補の回答そのものを決める．B3 の天井（候補のどれかが正解 0.750．持ち主の候補が正解 0.770）を動かせるのはこの役割だけである．判定モデルを同時に替えると，正答率の物差しが変わる（Iteration 25：判定モデルの違いで dev の水準が 5 pt 動いた）．(2)(3) 除外した候補とその理由は journal の Iteration 26 の候補一覧にある．Qwen3.8 は 27B が最小で公式の GGUF が無い（BF16・FP8 だけ）うえ，判定モデルと同じ系統である（自分の系統の文を好む偏り．Panickssery, Bowman & Feng 2024．arXiv:2404.13076）．gpt-oss-20b は約 13 GB（MXFP4）で 12 GB に載らない．Ministral 3 14B は KV を含めると約 13.6 GB の見積もりである．Phi-4 は 2025-01 と古いうえ，約 15.8 GB の見積もりである．Meta には 8B 級の新しい公式モデルが無い（Llama 4 は 109B 以上）．DeepSeek にも小型の公式モデルが無い（distill は対象外）．(4) 生成を替えると片方だけ正解の問が多く出る（b + c を Q の 12〜20% と見込む）．H だけでは半幅が広すぎる．
+- 不可逆・人間の判断を要する事項: モデルの取得と配布・wafl の Ollama の起動は B91 で人間の承認を待つ．どれも追加だけの操作で，削除は伴わない．
+- 要レビュー: (a) 選定基準 C3（8B 未満を除く）と C4（12 GB に載る）．これにより Gemma 4 E4B・Nemotron 3 Nano 4B・gpt-oss-20b・Gemma 4 26B A4B・Qwen3.8 が外れた．(b) 量子化の種類が base（Ollama の library の llama3.1:8b．Q4_K_M）・Gemma（QAT Q4_0）・他の 2 個（Q4_K_M）で違う．差は「モデルの世代・サイズ・量子化の組」の差として読む．(c) base の llama3.1:8b は Ollama の library の量子化で，Meta の公式の量子化ではない．現行の対照なので残した．(d) Granite 4.2 と Gemma 4 は思考（thinking）の機能を持つ．`think: false` で思考が出ないことをゲート G-L で確かめ，止められなければそのモデルを外す（別の設定で補わない）．(e) 主構成への取り込みを Q の結果で決めること．テストの問でモデルを選ぶことになるので，取り込みは「改善」が Holm の補正の後で有意なときに限る．
+
+## B89 [human-decided 2026-11-08] 人間の指示で Iteration 26 のテーマを「最新の LLM モデルを用いたときにどうなるか」に変更．`answer_verification` は保留
+- 状況: B88 で，Iteration 26 のレバーは `d0009.B3_owner_and_selection` の値 `answer_verification` と決まっていた．phase 1 の途中で，人間がコーディネーター経由で 3 回指示を出した．(1) テーマを「最新の LLM モデルを用いたときにどうなるか」に変える．例は Qwen3.8・Gemma だが，実在と最新の版は確かめる．(2) 対象は Qwen・Gemma に限らない．各社の公式の最新オープンウェイト LLM から 3〜5 個を選び，単一レバー（役割は 1 つ，動かすのはモデルの識別子だけ，判定モデルは固定）で現行モデルと比べる．比較は `atrium compare`（McNemar の正確検定）で行い，多重比較の補正を事前登録する．大容量の取得・wafl の Ollama の起動は実行せずに要人間判断とする．(3) 非公式版（コミュニティの量子化・再変換・fine-tune・merge・abliterated・distill，第三者の org）は対象外とする．公式の重みが載らなければ，非公式の量子化で載せる代替はとらない．
+- 対応: `answer_verification` の事前登録は書く前に中止した（journal・state.json には書いていなかった）．config.yml の B3 の note に「保留」を追記した．levers の末尾に `llm.expert_model_gpu`（値 3 個）を足した．設計は B90，取得と配布の承認は B91．iteration_name は「回答の生成を各社の最新の公式モデルに替えたときの正答率・作り話・露出」．
+- `answer_verification` の扱い: B88 の申し送り (a)〜(f) はそのまま残し，再開するときに使う．調査で得た検証器の候補は journal の Iteration 26 の「調査で分かったこと」の末尾に記録した．候補は，判定モデルと別の系統の Bespoke-MiniCheck-7B（InternLM2.5 系．LLM-AggreFact の平均 77.4．CC BY-NC 4.0），MiniCheck-Flan-T5-L（0.8B・MIT．75.0），一般の LLM の Yes/No の確率である．Ollama は v0.12.11 から `logprobs`・`top_logprobs` を返す．
+
 ## B88 [auto-decided 2026-11-08] Iteration 25（d0009 B3・回答の選択）は棄却（ゲート G-D 不通過）．Iteration 26 のレバーは `d0009.B3_owner_and_selection` に追加した値 `answer_verification`（LLM による回答の検証で選ぶ）
 - 状況: Iteration 25 の phase 3．dev（2,948 問．qwen3:8b で採り直した印）の正答率は R3′ 0.7229・S1 0.6842・S2 0.4956・S3 0.7263（選択）・S4 0.7276．S3 の増分 +0.0034 は G-D の +0.006 に届かず，実機・H と H2 への当てはめは行っていない（`results/d0009_b3_select/verdict.json`．commit d21fbde）．G-T・G-R・G-J2 は通過．B3 の登録済みの 2 つの値（持ち主の特定・回答の選択）はどちらも棄却で閉じた．詳細は journal の Iteration 25「実行済み」．
 - 自動選択:
