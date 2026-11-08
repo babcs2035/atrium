@@ -294,7 +294,11 @@ levers:
             ただし cluster.requester の形式を既存の設定と互換でない形に変える必要があれば [needs-human] で止める（追加だけの形を優先する）．
             負荷は同じ時間帯に交互に流した条件どうしでだけ比べる（A6 と同じ）．GPU（wafl500〜509）は共有なので使用状況を記録する．
             Iteration 23 の rc-researcher が確定（backlog B83）：追加だけのキー `cluster.extra_requesters`（既定は空）．N = 1 → 3（wafl-ctrl5・192.168.13.100・192.168.14.100）．
-            問は i mod N，parallel は合計 30 を割る．自分の受信箱は他と同じく問い合わせ先．R3′ はオフライン（gpu4）．判定は H で同等の幅 ±0.005．事前登録は journal の Iteration 23"}
+            問は i mod N，parallel は合計 30 を割る．自分の受信箱は他と同じく問い合わせ先．R3′ はオフライン（gpu4）．判定は H で同等の幅 ±0.005．事前登録は journal の Iteration 23．
+            完了：Iteration 23（2026-11-08．採用）．結果は results/d0009_a1_multi_requester/（verdict.json・multi_requester.json），実行は results/d0009_a1_{n1_r1,n1_r2,n3_r1,n3_r2,n3_hi,f_n1,f_n3}/ と
+            R3′ の当てはめ results/d0009_a1_*_R3p/，記述は journal の Iteration 23「実行済み」．判定（verdict_original）：H-A1a（R3′）決まらない（Δ −0.0024．区間 −0.0054〜+0.0005．
+            下端が ±0.005 をわずかに超える．非劣性 δ 0.02 は満たす．事後の幅 0.006 なら同等＝verdict_revised．採否に使わない），H-A1a′ 決まらない（Δ −0.0028），H-A1L 変わらない（0.96・1.01），
+            露出 E_pair 0.370 → 0.473・E_max 0.161，障害は質問者ごとに別々に当たり失敗はすぐ返る．N3 では候補の文字列の一致が 0.99 → 0.89 に下がった（要求の届き方の揺れ．backlog B84）"}
   - {name: d0009.B3_owner_and_selection, values: [owner_identification, answer_selection],
      note: "d0009 B3（高．研究の主課題）．持ち主の特定と回答の選択の改良．主構成の差の寄与は，持ち主が候補に入らない問（6.8%）−0.022，
             入っているのに持ち主以外を選ぶ問（6.6%）−0.016，持ち主を選んだ問（86.6%）+0.014．候補のいずれかが正解の割合 0.7989（中央 0.7976），

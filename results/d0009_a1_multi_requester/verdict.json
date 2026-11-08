@@ -43,5 +43,33 @@
    "G3": true
   }
  },
- "verdict_revised": null
+ "verdict_revised": {
+  "post_hoc": true,
+  "used_for_adoption": false,
+  "decided_in": "Iteration 23 phase 3 (rc-evaluator, 2026-11-08). backlog B84 (要レビュー)",
+  "reason": "事前登録の幅 ±0.005 は，Iteration 22 の P の流し直し（候補の文字列 99.3〜99.5% 一致）の揺れを基準に置いた．N = 3 では要求の届き方が変わり，候補の文字列の一致が N1 同士の 0.987 から N3 対 N1 の 0.883〜0.892 に下がった（質問者の 3 台で同じ程度）．同じ設定の組の差の最大として事前登録が併記した中央の 0.006（Iteration 22．C1−C3 0.0059）を幅に読み替えた場合の判定を，事後の見直しとして別に出す．",
+  "H_A1a": {
+   "margin": 0.006,
+   "verdict": "equivalent",
+   "non_inferior_delta_0_02": true
+  },
+  "H_A1a_prime": {
+   "margin": 0.006,
+   "verdict": "equivalent",
+   "non_inferior_delta_0_02": true
+  },
+  "candidate_answer_match": {
+   "n1_r1_vs_n1_r2": 0.9867,
+   "n1_vs_a3_p1": [
+    0.9822,
+    0.985
+   ],
+   "n3_r1_vs_n3_r2": 0.898,
+   "n3_vs_n1": [
+    0.8829,
+    0.892
+   ]
+  },
+  "note": "atrium multi-requester-eval を再実行すると verdict_revised は null に戻る（write_outputs が revised=None で書く）．再実行したらこの節を書き戻すこと"
+ }
 }

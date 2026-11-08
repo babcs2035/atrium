@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 22,
-  "iteration_name": "主構成と中央の構成を流し直したときの揺れを含めた差の区間",
+  "iteration": 23,
+  "iteration_name": "質問者を複数の PC にしたときの正答率・負荷・露出・障害",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "d0009.A3_rerun_variance=repeat_main_configs",
-  "experiment_dir": "results/d0009_a3_rerun_variance",
-  "experiment_deadline": 1794175824,
-  "updated_at": 1794031824,
-  "last_slack_ts": "1793954741.677599",
-  "iteration_thread_ts": "1793954730.081839",
+  "current_lever": "d0009.A1_multi_requester=n_requesters (N: 1 -> 3, cluster.extra_requesters)",
+  "experiment_dir": "results/d0009_a1_multi_requester",
+  "experiment_deadline": 1794155597,
+  "updated_at": 1794100041,
+  "last_slack_ts": "1794077640.192199",
+  "iteration_thread_ts": "1794078238.632709",
   "notion_toggle_created": true,
-  "last_commit": "f7e7ae2"
+  "last_commit": "3335dc0"
 }
