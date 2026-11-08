@@ -41,7 +41,8 @@
     churn-live-report  EQ7b の実機の実行を集めて EQ7a と比べる（操作端末）
     judge / judge-validate / judge-kappa  EnronQA の回答の採点と判定モデルの検証（制御点のコンテナ）
     select-features           owner_answer の候補ごとの cross-encoder の得点を後から求める（EnronQA．p0007 A5．GPU のある操作端末）
-    answer-select-eval        保存した 3 候補から回答を選ぶ規則 S1〜S4 の dev の選択と Q への当てはめ（d0009 B3．操作端末）
+    answer-select-eval        保存した 3 候補から回答を選ぶ規則 S1〜S4・V1・V2 の dev の選択と Q への当てはめ（d0009 B3．操作端末）
+    verify-features           保存した候補の回答を検証の LLM に確かめさせた得点 v を求める（d0009 B3 Iteration 28．gpu4）
     select-eval               owner_answer の候補の選び方の規則をオフラインに適用・評価する（EnronQA．p0007 A5．操作端末）
     ce-table                  中央の再ランクの cross-encoder の得点を事前に計算して表にする（EnronQA．d0009 A3．GPU のある端末）
     rerun-variance            同じ設定を流し直した実行の揺れを含めた差の区間と H-V1〜H-V3 の判定（d0009 A3．オフライン）
@@ -1117,6 +1118,25 @@ def cmd_select_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_verify_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """保存した候補の検証の得点 v を <out-dir>/verify_features.jsonl に書く（d0009 B3 Iteration 28）．"""
+    from atrium import answer_verify
+
+    paths = dataset_paths(Path(args.data_dir), "enronqa")
+    summary = answer_verify.verify_run(
+        cfg,
+        paths,
+        Path(args.run_dir),
+        Path(args.out_dir),
+        args.model,
+        args.url,
+        args.resume,
+        args.limit,
+    )
+    print(json.dumps(summary))
+    return 0
+
+
 def cmd_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """候補の選び方の規則ごとの正答率・区分・上限を select_eval.json に書く（--apply で 1 つの規則の正誤も書く）．"""
     from atrium.select_eval import CE_FEATURES, SELECT_EVAL, evaluate, write_derived_run
@@ -1146,6 +1166,15 @@ def cmd_answer_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium.verdict import write_verdict
 
     out_dir = Path(args.out_dir)
+    verify_paths = [Path(p) for p in args.verify_features]
+    if args.stage == "dev" and verify_paths:
+        if len(verify_paths) != 1:
+            raise SystemExit("--stage dev takes exactly one --verify-features")
+        result = ase.evaluate_verify_dev(
+            Path(args.dev_run), verify_paths[0], Path(args.h_run), Path(args.h_derived), out_dir
+        )
+        print(json.dumps({k: result[k] for k in ("G_R", "G_V", "G_D")}, indent=1)[:8000])
+        return 0
     if args.stage == "dev":
         result = ase.evaluate_dev(
             Path(args.dev_run),
@@ -1161,13 +1190,15 @@ def cmd_answer_select_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         return 0
     if not args.q_run:
         raise SystemExit("--stage apply requires --q-run")
-    selector = Path(args.selector) if args.selector else out_dir / ase.ANSWER_SELECTOR
+    default_selector = ase.ANSWER_VERIFIER_SELECTOR if verify_paths else ase.ANSWER_SELECTOR
+    selector = Path(args.selector) if args.selector else out_dir / default_selector
     result = ase.apply_to_runs(
         selector,
         [Path(r) for r in args.q_run],
         [Path(r) for r in args.extra_run],
         out_dir,
         args.derived_prefix,
+        verify_paths,
     )
     print(json.dumps({"rule": result["rule"], "Q": result["Q"]}, indent=1))
     return 0
@@ -2047,6 +2078,19 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_select_features)
 
     p = sub.add_parser(
+        "verify-features",
+        help="保存した候補の回答を検証の LLM（Ollama）で確かめた得点 v を verify_features.jsonl に書く（d0009 B3 Iteration 28）",
+    )
+    p.add_argument("--run-dir", required=True, help="answer.save_candidates の実行")
+    p.add_argument("--out-dir", required=True, help="verify_features.jsonl の出力先")
+    p.add_argument("--data-dir", default="artifacts", help="enronqa/ を含むデータの置き場所")
+    p.add_argument("--model", default="gemma4-12b-it-qat", help="検証の LLM の Ollama でのモデル名")
+    p.add_argument("--url", default="http://127.0.0.1:11436", help="Ollama の URL")
+    p.add_argument("--resume", action="store_true", help="得点のある候補を飛ばして続ける")
+    p.add_argument("--limit", type=int, default=None, help="先頭の N 問の候補だけ（smoke 用）")
+    p.set_defaults(func=cmd_verify_features)
+
+    p = sub.add_parser(
         "select-eval",
         help="owner_answer の候補の選び方の規則をオフラインに適用・評価する（p0007 A5）",
     )
@@ -2080,6 +2124,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--h-derived", default="results/d0009_a3_p1_R3p", help="G-R の H の R3′ の選択")
     p.add_argument(
         "--selector", default=None, help="固定した answer_selector.json（既定は out-dir の中）"
+    )
+    p.add_argument(
+        "--verify-features",
+        action="append",
+        default=[],
+        help="V1・V2（Iteration 28）：dev は verify_features.jsonl を 1 つ，apply は --q-run・--extra-run の順に 1 つずつ",
     )
     p.add_argument("--q-run", action="append", default=[], help="Q を作る実行（複数指定．H・H2）")
     p.add_argument("--extra-run", action="append", default=[], help="記述用の実行（複数指定）")

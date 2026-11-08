@@ -321,7 +321,10 @@ levers:
             その得点（Yes の確率など）で選ぶ（Speculative RAG の検証の形．B87 (b) で退けた案の再検討）．回答の文字列と既存の特徴量の組み替えでは取れなかった「文脈による裏付け」を直接見る．
             検証の LLM（判定モデル qwen3:8b と別の系統を優先），プロンプト，得点，R3′ との組み合わせ，dev のゲート，質問集合は rc-researcher が事前登録で決める．
             保留（人間の指示 2026-11-08．backlog B89）：Iteration 26 のテーマを「最新の LLM に替えたとき」に変えたので，answer_verification は着手せずに保留する（事前登録の申し送りは B88 (a)〜(f) に残す）．
-            再開（Iteration 27 の評価．backlog B100 [auto-decided]）：llm.answer_prompt_format の direct が棄却になり，Iteration 27 の事前登録の規則で次の値は answer_verification．Iteration 28 で着手する"}
+            再開（Iteration 27 の評価．backlog B100 [auto-decided]）：llm.answer_prompt_format の direct が棄却になり，Iteration 27 の事前登録の規則で次の値は answer_verification．Iteration 28 で着手する．
+            着手：Iteration 28（値 answer_verification．事前登録は journal の Iteration 28．backlog B101）．検証の LLM は gpu4 に取り込み済みの gemma4-12b-it-qat（生成とも判定とも開発元が違う．追加の取得なし）．
+            候補ごとに同じ上位 5 通の文脈・質問・回答を与えて Yes / No の 1 トークンを問い，v = logP(yes) − logP(no) を得点にする．dev で V1（v の最大）と V2（S3 の 10 特徴量 + v の回帰．S3 の 0.7263 を超えるときだけ選べる）から選び，
+            dev の増分 +0.006 の G-D を通れば，Q = H（d0009_a3_p1）∪ H2（d0009_m1_h2_base．既存の候補．実機は流さない）で比べる．新しい CLI atrium verify-features と answer-select-eval の --verify-features（追加だけ）"}
   - {name: d0009.A6_remeasure_main, values: [load, failure, join],
      note: "d0009 A6（中）．負荷・障害・参加を主構成（cross-encoder による選択あり）で測り直す（p0007 D・E は選択を加える前の構成）．
             負荷は再実行で大小が逆転した（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒．生成を 10 台に分散した中央は P2P の約 2.4 倍）ので，

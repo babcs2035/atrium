@@ -3,6 +3,121 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 28: LLM で回答の裏付けを確かめて選んだときの正答率・作り話・露出
+
+**位置づけ**：レバー `d0009.B3_owner_and_selection` の値 `answer_verification`（回答の検証）．Iteration 25 の評価で追加し（backlog B88），Iteration 26 のテーマ替えで保留し（B89），Iteration 27 の棄却で再開した（B100）．事前登録の申し送りは B88 (a)〜(f)．設計の判断は backlog B101．d0009 B3 に着手を書いた（運用ルール 9）．この節が事前登録である．rc-executor が，dev の検証の得点を計算する前（試験用の数問の smoke は除く）に commit・push する．
+
+### 調査で分かったこと
+
+- **手元の数値（選択の余地．Iteration 25）**：dev（2,948 問．qwen3:8b の印 `results/d0009_b3s_dev/candidate_judgements.jsonl`）の R3′ は 0.7229，候補のどれかが正解の割合（天井）は 0.750 で，差は 80 問（+0.027）．回答の文字列の特徴量を足したロジスティック回帰（S3）は +0.0034（37 : 27）で，効いたのはほぼ「書かれていない」型の表現（係数 −2.98）だけだった．回答を入れた cross-encoder（S1 −0.039・S2 −0.227）は，作り話にも高い得点を付けて選択を悪くした．どの特徴量も「文脈が回答を支えるか」を直接は見ていない．
+- **Iteration 27 の観察**：llama3.1:8b に理由を述べさせると，持ち主でない受信箱の候補の 33%（100/304）が答えを探し続けて上限まで達し，持ち主の候補ではほぼ起きない（1/146）．文脈に答えがあるかどうかは LLM から見分けやすい性質であることを示す（推測．採否の根拠にしない）．
+- **下書きを検証の得点で選ぶ形**：Speculative RAG（Wang et al. 2024．arXiv:2407.08223）は，文書の部分集合ごとに作った下書きを，汎用の LM が「根拠が回答を支えるか」を問う自己反省のプロンプトの Yes の確率（self-reflection score）と自己整合の得点で選ぶ．追加の学習を要さず，自己反省の得点を除くと TriviaQA で約 2.0 pt・PubHealth で約 0.8 pt 下がると報告されている（論文の除去実験．二次の要約 liner.com の review でも同じ値）．受信箱ごとに文脈を作り 1 つを選ぶ主構成は，この形に当たる．
+- **支えの判定を出力の得点にする形**：Self-RAG（Asai et al. 2024．ICLR 2024．arXiv:2310.11511）は，回答の区切りごとに「文書が回答を支えるか」（ISSUP：fully / partially / no support）の反省トークンを出し，その確率を区切りの順位づけの得点に入れる．同じ考えを，学習なしの LLM の Yes / No の確率で近似する．
+- **文書による裏付けの検証器**：LLM-AggreFact（Tang, Laban & Durrett 2024．"MiniCheck: Efficient Fact-Checking of LLMs on Grounding Documents"．EMNLP 2024．https://llm-aggrefact.github.io）は，文書と文が与えられて文が文書に支えられるかを当てる 11 のデータセットの集まりで，Bespoke-MiniCheck-7B（平均 77.4．CC BY-NC 4.0）・MiniCheck-Flan-T5-L（0.8B・MIT．75.0）など小さな専用の検証器が大きな汎用 LLM と並ぶと報告している．ただし評価は「文」が単位で，質問への回答（短い断片）を検証する形ではない．
+- **Ollama の対数確率**：Ollama は v0.12.11 から `/api/chat` で `logprobs`・`top_logprobs` を返す（Ollama の文書 "Generate a chat message"．https://docs.ollama.com/api/chat）．
+- **gpu4 での確かめ（phase 1．判定に使わない）**：判定の container（Ollama 0.35.1．127.0.0.1:11436）に取り込み済みの `gemma4-12b-it-qat` に，`think: false`・温度 0・`num_predict` 1・`top_logprobs` 5 で人工の 2 例（支えあり・支えなし）を問うと，最初のトークンはそれぞれ `Yes`（logprob −0.0098．`No` は −4.63）・`No`（−2e−6．`Yes` は上位 5 に無い）で，思考の印（`<|channel>`）は −14 未満だった．追加の取得は無い．GPU は他の研究者のプロセス（10.5 GB）と qwen3:8b（9.7 GB）と共存し，`keep_alive: 0` で外した．
+
+### 仮説
+
+保存した 3 候補のそれぞれについて，検証の LLM に「質問者へ渡る同じ上位 5 通の文脈が回答を支えるか」を問い，その Yes の得点で選ぶと，R3′ が見落とす「持ち主以外の受信箱のもっともらしい作り話」を避けられ，dev で +0.006〜+0.015（天井までの 80 問のうち純 18〜45 問），Q で +0.004〜+0.012 正答率が上がる．作り話の割合は下がり，質問者へ渡る文書は変わらないので露出（E_any）は変わらない．
+
+### 単一レバー
+
+**保存した 3 候補から最終回答を 1 つ選ぶ規則**を，R3′（`ce_max` の最大．UNKNOWN の除外なし）から，**dev だけで次の 2 つから選んだ 1 つ**へ替える．候補の回答そのもの（持ち主の特定・m = 3・生成・プロンプト fill_in）と，質問者へ渡る文書は変えない．`config.yaml` は変えない（保存した候補へのオフラインの当てはめ）．
+
+| 記号 | 中身 | 学習 |
+|---|---|---|
+| 基準 R3′ | `ce_max` の最大 | なし |
+| V1 | 検証の得点 `v` の最大．`v` の差 ≤ 1e−6 は同点とし，`ce_max` の大きい方，さらに同点なら候補の並びの先の方 | なし |
+| V2 | Iteration 25 の S3 の 10 特徴量（定義・標準化・正規表現は Iteration 25 の固定のまま）に，1 問の中で標準化した `v` を足した 11 個のロジスティック回帰（L2・C = 1.0・種 12・`class_weight` なし）．1 問の中で予測の確率が最大の候補 | dev |
+
+- **検証の LLM（B88 (a)）**：`gemma4-12b-it-qat`（`google/gemma-4-12B-it-qat-q4_0-gguf` rev 29d0977．Iteration 27 で gpu4 の判定の container に取り込み済み．追加の取得は無い）．選んだ理由：生成（llama3.1:8b．Meta）とも判定（qwen3:8b．Alibaba）とも開発元が違い，判定モデルの好みを選択が真似る恐れ（Panickssery, Bowman & Feng 2024．arXiv:2404.13076）を設計の上で避けられる．開発元の公式の重みで，運用ルール 15 を満たす．llama3.1:8b は gpu4 に無い（B100 (c)）．退けた候補：Bespoke-MiniCheck-7B（CC BY-NC，新しい取得と実行環境が要る），MiniCheck-Flan-T5-L（文の単位の検証器で，質問と短い回答の組の形に合わない．新しい実行環境が要る），qwen3:8b・qwen3:14b（判定と同じ系統）．Gemma 4 が fill_in の生成で書き写しを止めなかったこと（Iteration 26）は生成の文面の問題で，ここでは 1 トークンしか出させないので関係しない．
+- **入力（B88 (b)）**：各候補の `context_doc_ids`（R3′ の cross-encoder と同じ上位 5 通．質問者へ渡る文書）を `prompts.format_context` と同じ並べ方で文脈にする．回答は保存した候補の `answer`（`sanitize_results.py` を通した後の文字列．Iteration 25 の S1・S2 と同じ．書き写しを省略した候補の数を記録する）．
+- **検証のプロンプト（固定．user の 1 通．system は無し．文面の sha256 は phase 2 で計算して試験で固定し，この節の追記に書く）**：
+
+```text
+Emails:
+{context}
+
+Question: {question}
+Proposed answer: {answer}
+
+Is the proposed answer to the question fully supported by the emails above? Answer with Yes or No only.
+```
+
+- **呼び出し**：`/api/chat`，`think: false`・温度 0・`seed` 12・`num_predict` 1・`num_ctx` 16384・`logprobs: true`・`top_logprobs` 20．
+- **得点**：最初のトークンの `top_logprobs` から，前後の空白を除き大文字小文字を区別せずに `yes` に当たるトークンの対数確率の logsumexp を ℓ_Y，`no` に当たるものを ℓ_N とし，**v = ℓ_Y − ℓ_N**．片方が上位 20 に無いときは，上位 20 の最小の対数確率を代わりに使う（上限の値）．両方とも無い，または文脈長の超過などで得点が無い候補は v = −∞（選ばれにくい側）とし，数を記録する．文字列の解析には頼らない．
+- **候補を増やさない（B88 (c)）**：dev で比べるのは V1・V2 の 2 つだけ．プロンプト・得点の定義・検証の LLM は dev を見て変えない．
+
+### 固定する構成（Iteration 22 の P と同じ）
+
+`scripts/d0009/a3_config.py p` の条件：EnronQA・`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`answer_mode: owner_answer`・`owner_m: 3`・`retrieval.fusion: rrf`・UNKNOWN の除外なしの通常のプロンプト（`llm.answer_prompt_format: fill_in`）・`answer.aggregate: max_score`・`save_candidates: true`・`http_pool: per_node`・`parallel: 30`・質問者 1 台（wafl-ctrl5）・30 台の専門家・llama3.1:8b（wafl500〜509）・温度 0・種 12．判定モデルは qwen3:8b（gpu4．Q4_K_M・温度 0・`think: false`．Iteration 22〜27 と同じ．過去の数値と並ぶ）．
+- **運用ルール 11 の併記（B88 (f)）**：基準（R3′）も新しい規則も保存した候補へのオフラインの当てはめである．R3′ の実機の選択との一致を確かめた範囲は `p0007_f6_agree` の 300 問と Iteration 22 の G2．質問者（wafl-ctrl5）に GPU が無いので，新しい規則は実機の経路に載せない．載せる費用（候補ごとに 1 回の prefill と 1 トークンの生成）は gpu4 の測定値で記録する．
+
+### 質問集合（運用ルール 10）
+
+- **選ぶ**：dev（2,948 問．候補は `p0007_a6_dev`，印は `results/d0009_b3s_dev/candidate_judgements.jsonl`）だけ．dev は R3′・S1〜S4 の値を Iteration 25 で見ているが，検証の得点の値は一度も見ていない．
+- **判定**：**Q = H ∪ H2**（5,669 問）．H の候補は `d0009_a3_p1`（Iteration 22．候補の全件が採点済み），H2 の候補は `d0009_m1_h2_base`（Iteration 26 の base．固定する構成と同じ設定で実機で流したもの．R3′ の最終回答だけ採点済みで 0.7296 を Iteration 27 で見た．新しい規則の値は見ていない）．Iteration 25 で計画した H2 の実機の実行（`d0009_b3s_h2_base`）は，同じ設定の候補が既にあるので流さない．新しい規則が選んだ回答で未採点のものだけを qwen3:8b で採点する．
+- H の残りの 4 回（`d0009_a3_p2`・`p3`・`d0009_a1_n1_r1`・`n1_r2`）への当てはめは記述だけ（時間の許す範囲）．
+
+### 採点と計算（gpu4．運用ルール 14．実機は使わない）
+
+| 順 | 中身 | 件数 | 条件 |
+|---|---|---|---|
+| 1 | smoke：dev の先頭 20 問の候補の検証（G-V の形の確かめ．判定に使わない） | 約 60 | G-T の後 |
+| 2 | dev の候補の検証の得点 → `results/d0009_b3v_dev/verify_features.jsonl` | 8,844 | 事前登録の push の後 |
+| 3 | dev の V1・V2・R3′ の正答率 → G-D | − | 2 の後 |
+| 4 | H・H2 の候補の検証の得点（`results/d0009_a3_p1/`・`d0009_m1_h2_base/` の写しではなく，新しい `results/d0009_b3v_h/`・`d0009_b3v_h2/` に書く） | 約 17,000 | G-D・G-D′ の後 |
+| 5 | 選んだ規則の Q への当てはめ，未採点の最終回答の qwen3:8b の採点，作り話の 3 分類 | 数百〜約 3,000 | 4 の後 |
+
+- gpu4 の GPU は共有．始める前と終えた後に `nvidia-smi` と `ollama ps` を記録する（他の研究者のプロセスには触れない）．qwen3:8b と gemma4 は合わせて約 19 GB で，2026-11-08 の時点の他のプロセス（10.5 GB）と共存できる．載らなければ待つ．wafl の GPU は使わない（Iteration 25 で wafl の Ollama の起動が権限の分類器に拒否された）．
+- 所要の見込み：1 件の prefill を 0.5〜1.5 秒として，dev 1.5〜4 時間，H・H2 3〜7 時間（記述．超えても止まらない）．
+
+### 判定の規則（`results/d0009_b3_verify/verdict.json`．`verdict_original` は書き換えない）
+
+記号：**Δ = acc(new) − acc(R3′)**（同じ候補の上の 2 つの選択．qwen3:8b の判定．失敗・判定不能・候補なしは不正解．分母は質問集合の全問）．
+
+- **検出できる差の大きさ（先に書く）**：Iteration 25 で，同じ候補の上の選択の比較では，選ぶ候補が変わっても正誤が食い違う問は少なかった（dev で 64 問）．検証の得点は R3′ と違う情報を見るので，食い違いを dev で 80〜150 問，Q で 150〜300 問と見込み，**Q の対応ありの 95% の区間の半幅は 1.96·√(b + c)/n ≈ 0.0042〜0.0060**．dev の b + c は G-D の段で数えて記録する．
+- **区間**：(1) 問の対応ありのブートストラップ（10,000 回・種 12．Iteration 22 の作り方 1），(2) 分散の分解（作り方 2．σ²_u,P = 1.63e−7 を両側に足す）．
+- **H-B3v（正答率．主．Q）**：(1)(2) の両方の下端 > 0 なら「改善」，両方の上端 < 0 なら「悪化」，それ以外は「決まらない」．併記：McNemar の b : c・正確検定の p（`atrium compare` と同じ計算），H と H2 に分けた Δ，区分 (a)(b)(c) の割合・正答率（d0007 §4.1 の定義），天井（H のみ．H2 は候補の全件を採点していないので出さない）．
+- **H-B3vf（作り話．記述と取り込みの条件）**：選んだ回答を A2 の 3 分類（`atrium abstain-judge`・`fabrication-eval`．Iteration 21 の規則とプロンプト．qwen3:8b）に分け，作り話の割合を R3′ と new で出す（対応ありのブートストラップ区間）．人手での確かめは，2 つの規則で選んだ回答が違う問から 30 件（種 12）を agent が見て，判定モデルの正誤・3 分類との一致を記録する（記述）．
+- **H-B3ve（露出．記述）**：`multi_requester_eval.exposure`（N = 1）で E_any を R3′ と new で出す（分母 73,772）．同じ文書しか使わないので同じ値になることを確かめる．ただし，GPU の無い質問者が検証を GPU の PC へ委託する配備では，候補の上位 5 通（最大 15 通）が委託先へ渡る．この追加の露出は d0009 A4 の数え方の範囲として，委託先へ渡る文書の重複なしの数を記述する（判定に使わない）．公開情報・probe は変えないので，推定されやすさ（top-1 0.726）は不変として記録する．
+- **H-B3vc（費用．記述）**：候補 1 件の `prompt_eval_count`・`total_duration` の中央値と p95（gpu4・RTX 5090）．
+- **診断（記述．採否に使わない）**：dev の候補の正しさに対する `v` と `ce_max` の AUROC を，全候補・持ち主の候補・持ち主でない候補に分けて出す．
+- **主構成への取り込み**：H-B3v が「改善」で，かつ作り話の割合の増分（new − R3′）≤ +0.005 のときだけ，選んだ規則を以降の d0009 の主構成の選択にする（V2 なら `results/d0009_b3_verify/answer_verifier_selector.json` の重みを固定）．それ以外は R3′ のまま．
+
+### ゲート（満たさなければ判定の前に止まり，原因を記録する）
+
+- **G-T（互換）**：既存の `select-eval`・`select-features`・`answer-select-eval` の出力が今と同じ（新しい欄・ファイル・規則は追加だけ），`mise run check`（既知の不安定な試験は B78 (c) のとおり記録）．検証のプロンプトの文面の sha256 を試験で固定する．
+- **G-R（退行）**：新しいコードで計算し直した R3′ の選択が，`results/d0009_a3_p1_R3p` と H の全問一致，dev の R3′ の正解数が 2,131（qwen3:8b の印）と一致．S3 の dev の値 2,141 が再現すること．同点の許し方は Iteration 25 と同じ（`ce_max` の差 ≤ 1e−6）．
+- **G-V（検証の形．dev）**：dev の候補のうち，得点が無い候補（`yes`・`no` のどちらも上位 20 に無い，文脈長の超過，失敗）が ≤ 1%．最初のトークンが `yes`・`no` のどちらでもない候補の割合を記録する．満たさなければ「棄却（検証の LLM が Yes / No で答えない）」とし，プロンプトを変えて流し直さない．
+- **G-D（dev の選択．H・H2 に進むか）**：V1・V2 の dev の正答率を全て `results/d0009_b3_verify/verify_dev.json` に残す．選び方：dev の正答率（V2 は受信箱で束ねた 5 分割の交差検証の外側の予測）が最大のもの．最大との差が 0.002 以内なら V1（学習なし）を優先する．ただし **V2 を選べるのは V2 の dev の正答率が S3（0.7263．Iteration 25 の同じ交差検証の値）を上回るときだけ**（V2 の増分が S3 の特徴量だけによるなら，検証の効果とは言えない）．選んだ規則の dev の増分が R3′ より **+0.006 以上**（Iteration 25 と同じ閾値．事後に動かさない）．**満たさなければ H・H2 の検証の得点も当てはめも行わず，このイテレーションは「棄却（ゲート G-D 不通過）」とする**．dev の Δ・b : c・区間（作り方 1）は通過・不通過のどちらでも `verdict.json` に書く．
+- **G-D′（記録の固定）**：G-D を通過したら，dev の結果と選んだ規則（V2 なら重みの sha256）をこの節の末尾に「追記」として書き，H・H2 の検証の得点を計算する前に commit・push する．
+- **G-J（採点）**：新しく採点した最終回答の判定不能 ≤ 1%．
+
+### 成功条件（このイテレーションの採用）
+
+(1) G-T・G-R・G-V を通過し，G-D の結果（通過・不通過）を V1・V2 の dev の値とともに `verdict.json` に書く．(2) G-D を通過した場合は，G-D′ の commit・push の後に H・H2 の検証の得点を計算し，Q で選んだ規則を当てはめて採点し（G-J），H-B3v・H-B3vf・H-B3ve・H-B3vc を上の規則で出す．(3) G-D が不通過なら，H・H2 を計算せずに「棄却（LLM による裏付けの検証で選んでも改良が見込めない）」として記録し，値 `answer_verification` を閉じる．このとき B3 は「保存した候補と，その上の得点の組み替えの範囲では改良が見込めない」と記録し，次は levers の順の A6 へ進む（B100 (b)・B88 (b)）．仮説の成否（H-B3v が「決まらない」）は採用の条件にしない．採否は G-D と「主構成への取り込み」の条件で決める．
+
+### 期待効果（見込み．検証対象ではない）
+
+G-V は通過する（得点の無い候補 < 0.5%）．dev の `v` の AUROC は `ce_max` より高く，差は持ち主でない候補で大きい．dev では V1 か V2 が選ばれ，増分は +0.006〜+0.015．Q の Δ は +0.004〜+0.012 で「改善」か「決まらない」．(c)（持ち主が候補内で別を選ぶ）の問が 1〜2 pt 減り，作り話の割合は 0.005〜0.015 下がる．E_any は R3′ と同じ値．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既存の CLI の挙動は変えない）
+
+- **検証の得点**：新しい `src/atrium/answer_verify.py` と CLI `atrium verify-features <run_dir> --out <dir> --model gemma4-12b-it-qat --url http://127.0.0.1:11436`（`--resume` で途中から再開．同じ (qid, index) は 1 回だけ）．出力は `verify_features.jsonl`（qid・index・source・`v`・ℓ_Y・ℓ_N・最初のトークン・`prompt_eval_count`・`total_duration`・誤り）．文脈は `judge.email_lookup` と `prompts.format_context`，質問は `judge.question_texts` を再利用する．`llm.chat` に `top_logprobs` を渡せるようにする（既定は今の挙動）．並列は 2（判定の container の `OLLAMA_NUM_PARALLEL`）．
+- **選択の評価**：`atrium answer-select-eval` に省略できる `--verify-features` と規則 V1・V2 を足す（既存の S1〜S4 の挙動と出力は変えない）．V2 の交差検証・学習・重みの書き出しは S3 と同じ関数を使う．選んだ候補を `--derived-run` で `results/<run>_V*` に書き出し，`judge`・`fabrication-eval`・`multi_requester_eval.exposure` がそのまま読めるようにする．
+- **試験**：`tests/test_answer_verify.py`（プロンプトの sha256，`top_logprobs` からの `v` の計算〔大文字小文字・空白・片方が無いときの上限〕，得点の無い候補の扱い，V1 の同点の扱い）．Ollama は呼ばない（応答の JSON を固定の入力にする）．
+- **連鎖**：`scripts/d0009/b3v_score.sh`（GPU の記録 → dev の検証 → G-V・G-D → 止まるか H・H2）と集計 `scripts/d0009/b3v_verdict.py`．回答を含む派生の results は `sanitize_results.py` を通してから commit する．既存の results（運用ルール 12 の記録を含む）は変えない．
+
+### 追記（phase 2．dev の検証の得点を計算する前）
+
+- 検証のプロンプトの雛形（`atrium.answer_verify.VERIFY_PROMPT`）の sha256：`26ec41b634b6a15b2d0abbeff9e4e67c03840f305bae8f71a76577bfda182688`（`tests/test_answer_verify.py` で固定）．
+- 実装：`src/atrium/answer_verify.py`・`atrium verify-features`・`llm.chat` の `top_logprobs`・`seed`（指定しなければ要求は従来と同じ）・`answer-select-eval --verify-features`（V1・V2）・`scripts/d0009/b3v_score.sh`・`b3v_verdict.py`．
+- G-T：`mise run check` 1007 passed（pytest・ruff・mypy）．Iteration 25 の `answer-select-eval --stage dev`（S1〜S4）の select_dev.json・answer_selector.json は今のコードで再計算しても旧と同一（cmp）．
+- smoke（dev の先頭 20 問の 60 候補．判定に使わない．/tmp の使い捨て）：得点の無い候補 0，最初のトークンは Yes・No，1 件約 1 秒．
+- この commit・push の後に dev の全候補（8,844）の検証の得点を計算する．
+
 ## Iteration 27: 回答のプロンプトを穴埋めの書式から直接の指示に替えたときの正答率・作り話
 
 **位置づけ**：レバー `llm.answer_prompt_format`（既定 `fill_in` → `direct`）．Iteration 26 の評価で追加した（backlog B98 [auto-decided]）．設計の判断は backlog B99．生成モデルは llama3.1:8b に固定し，プロンプトと生成モデルを同時に動かさない．この節が事前登録である．rc-executor が，direct の実機の実行（smoke を含む）より前に commit・push する．d0009 の B3 の生成の側の項目として，d0009 に着手を書いた（運用ルール 9）．

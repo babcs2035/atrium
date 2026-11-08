@@ -17,6 +17,19 @@
 
 ---
 
+## B101 [auto-decided 2026-11-08] Iteration 28（d0009 B3・回答の検証）の設計：検証の LLM は gpu4 に取り込み済みの Gemma 4 12B，得点は Yes / No の対数確率の差，規則は V1・V2 の 2 つ，判定は既存の候補の上の Q = H ∪ H2 でオフライン
+- 状況: B100 で Iteration 28 のレバーは `d0009.B3_owner_and_selection` の値 `answer_verification` と決まり，B88 (a)〜(f) の申し送りに従って rc-researcher が事前登録を決めることになっていた．
+- 自動選択:
+  (1) (a) 検証の LLM は `gemma4-12b-it-qat`（Google の公式の QAT Q4_0．Iteration 27 で gpu4 の判定の container に取り込み済み）．生成（Meta）とも判定（Alibaba）とも開発元が違う．追加の取得は無い．
+  (2) (b) 入力は各候補の `context_doc_ids`（R3′ と同じ上位 5 通）・質問・保存した回答．プロンプトは journal の Iteration 28 に固定．得点は最初のトークンの `top_logprobs`（20）からの v = logP(yes) − logP(no)．
+  (3) (c) 規則は V1（v の最大．学習なし）と V2（S3 の 10 特徴量 + v のロジスティック回帰）の 2 つ．V2 は dev で S3（0.7263）を上回るときだけ選べる．
+  (4) (d)(e) G-D は Iteration 25 と同じ dev の増分 +0.006．Q の半幅の見込みは 0.0042〜0.0060．dev の印は `results/d0009_b3s_dev/candidate_judgements.jsonl`．
+  (5) 判定の H2 の候補は Iteration 26 の base `d0009_m1_h2_base`（固定する構成と同じ設定）を使い，Iteration 25 で計画した H2 の実機の実行は行わない．このイテレーションは全てオフライン（gpu4）で，運用ルール 13 の「既存の results の再採点・オフライン評価」に当たる．
+  (6) (f) 運用ルール 11 の併記と，検証を GPU の PC へ委託する配備の追加の露出・費用は記述として出す．
+- 根拠: (1) llama3.1:8b は gpu4 に無く（公式の GGUF が無い），wafl の Ollama は Iteration 25 で権限の分類器に拒否された．Qwen の系統は判定と同じで，判定の好みを選択が真似る恐れがある．MiniCheck 系は文の単位の検証器で，質問と短い回答の組に合わず，新しい取得と実行環境が要る．phase 1 の人工の 2 例で，Gemma 4 は `think: false` のまま `Yes`・`No` を最初のトークンに出し，`top_logprobs` が取れることを確かめた（判定に使わない）．(3) dev で探す規則を増やすほど dev の増分が楽観になる（B88 (c)）．V2 の条件は，増分が Iteration 25 で棄却した S3 の特徴量だけから来る場合を除くため．(5) 同じ設定の未判定の候補があるので，実機の約 50 分と再実行の揺れを省ける．H2 の R3′ の値（0.7296）は Iteration 27 で見たが，新しい規則の値は見ていない．
+- 不可逆・人間の判断を要する事項: 無い．取得・削除・wafl の操作は無く，`config.yaml` と既存の results は変えない（追加だけ）．gpu4 の GPU は他の研究者と共有なので，使用状況を記録する．
+- 要レビュー: (a) Gemma 4 は Iteration 26 で fill_in の生成が破綻したモデルである．ここでは 1 トークンの検証だけに使う．(b) H2 の候補を別のイテレーション（26）の実行から借りたこと．(c) G-D を通らなければ，B3 は「保存した候補と得点の組み替えの範囲では改良が見込めない」として閉じ，次は A6（B100 (b)）．
+
 ## B100 [auto-decided 2026-11-08] Iteration 27（回答のプロンプトの形）は棄却（ゲート G-L 不通過）．Iteration 28 のレバーは保留していた d0009 B3 の値 `answer_verification`（B88 の申し送り）を再開する
 - 状況: Iteration 27 の phase 3．実機の smoke（`d0009_pf_smoke`．150 問．判定は重なる 17 問）で，llama3.1:8b の direct（理由を述べてから `Answer:` の行）は上限 2,048 に達した候補が 0.216（17 問）・0.224（150 問）で，G-L の上限 5% を超えた．失敗 0・`Answer:` の行 ≥ 0.96 は満たした．事後の集計では，上限に達した候補は持ち主でない受信箱の候補 100/304 で，持ち主の候補は 1/146 だった．`results/d0009_pf_prompt/verdict.json` の `verdict_original` は `rejected_gate_GL_failed`（`verdict_revised` は持ち主・採った候補で数える読み替えで，判定は不変）．詳細は journal の Iteration 27「実行済み」．
 - 自動選択:

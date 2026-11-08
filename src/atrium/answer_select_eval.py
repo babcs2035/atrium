@@ -11,6 +11,8 @@
 | S2 | `ce_ans`（質問と回答の組の関連度） | なし |
 | S3 | 候補が正解か否かのロジスティック回帰．特徴量 10 個（下の `S3_FEATURES`） | dev |
 | S4 | S3 の特徴量に `ce_qa_max`・`ce_ans` を足した 12 個 | dev |
+| V1 | 検証の LLM の得点 `v`（`atrium verify-features`）の最大．差 ≤ 1e-6 は同点で `ce_max` の大きい方（Iteration 28） | なし |
+| V2 | S3 の 10 特徴量に 1 問の中で標準化した `v` を足した 11 個のロジスティック回帰（Iteration 28） | dev |
 
 特徴量は 1 問の 3 候補の中で標準化する（平均・母標準偏差．分母に 1e-9．特徴量の無い候補は 0）．「書かれていない」型の表現は
 標準化しない 0/1．一致は他の候補との語の集合の F1 の最大（正規化は `atrium.merge.normalize_answer`）．
@@ -26,6 +28,10 @@
 統計は既存の実装を使う：McNemar の正確検定（`atrium.analysis.mcnemar_exact`），対応ありのブートストラップ区間
 （`atrium.verdict.paired_bootstrap_ci`），分散の分解の区間（`atrium.rerun_variance.reread_test_pair`），verdict.json の書式
 （`atrium.verdict.write_verdict`）．
+
+`--verify-features`（Iteration 28）を付けると，dev の段階は S1〜S4 ではなく V1・V2（と参照の R3′・S3）を評価し（G-V・G-D・AUROC．
+verify_dev.json・answer_verifier_selector.json），apply の段階は固定した answer_verifier_selector.json を `--q-run`・`--extra-run` の順に
+並べた `--verify-features` の各ファイルとともに当てはめる．付けないときの挙動・出力は Iteration 25 のまま．
 
 使い方:
     uv run atrium answer-select-eval --stage dev --dev-run results/d0009_b3s_dev --out-dir results/d0009_b3_select
@@ -103,6 +109,10 @@ S3_FEATURES = (
     "not_written",
 )
 S4_FEATURES = (*S3_FEATURES, "ce_qa_max", "ce_ans")
+# 検証の LLM の得点（Iteration 28．欠損は選択では −inf，V2 の特徴量としては標準化後に 0）
+V_FEATURE = "v"
+V2_FEATURES = (*S3_FEATURES, V_FEATURE)
+V_RULES = ("V1", "V2")
 # 標準化しない特徴量（0/1）
 UNSTANDARDIZED = frozenset({"not_written"})
 # 「書かれていない」型の表現（事前登録で固定．dev を見て変えない）
@@ -127,7 +137,7 @@ class QuestionCandidates:
     unparsed: int
 
 
-FEATURE_NAMES = tuple(dict.fromkeys((*S4_FEATURES,)))
+FEATURE_NAMES = (*S4_FEATURES, V_FEATURE)
 
 
 def word_f1(a: str, b: str) -> float:
@@ -168,18 +178,30 @@ def read_ce_top1(path: Path) -> dict[tuple[str, int], float]:
         }
 
 
+def read_verify_scores(path: Path) -> dict[tuple[str, int], float | None]:
+    """（質問 ID，候補の番号）→ v（verify_features.jsonl．得点の無い候補は None．同じ候補は後の行が優先）．"""
+    from atrium.answer_verify import read_verify_rows
+
+    return {k: row.get("v") for k, row in read_verify_rows(path).items()}
+
+
 def load_questions(
-    run_dir: Path, need_labels: bool = True, need_answer_features: bool = True
+    run_dir: Path,
+    need_labels: bool = True,
+    need_answer_features: bool = True,
+    verify_features: Path | None = None,
 ) -> list[QuestionCandidates]:
     """実行の全問の候補の特徴量（と，need_labels なら候補の正誤）を読む．失敗した問は候補なしにする．
 
     need_answer_features が False なら ce_answer_features.jsonl を読まず，ce_qa_max・ce_ans は欠損にする（R3′ だけを使う G-R 用）．
+    verify_features があれば検証の得点 v を読む（無ければ v は欠損）．
     """
     rows = read_results(run_dir / "results.jsonl")
     ce_max = read_ce_features(run_dir / CE_FEATURES)
     ce_top1 = read_ce_top1(run_dir / CE_FEATURES)
     answer = read_answer_features(run_dir / CE_ANSWER_FEATURES) if need_answer_features else {}
     judged = read_candidate_judgements(run_dir / CANDIDATE_JUDGEMENTS) if need_labels else {}
+    verify = read_verify_scores(verify_features) if verify_features is not None else {}
     out = []
     for row in rows:
         cands = (
@@ -202,6 +224,7 @@ def load_questions(
                 "agree": agree[i],
                 "not_written": float(bool(NOT_WRITTEN.search(answers[i]))),
                 **answer.get(key, {"ce_qa_max": None, "ce_ans": None}),
+                V_FEATURE: verify.get(key),
             }
             for j, name in enumerate(FEATURE_NAMES):
                 v = values[name]
@@ -277,7 +300,7 @@ def fit_selector(rule: str, questions: Sequence[QuestionCandidates]) -> LinearSe
     """候補の行（正解か否か）にロジスティック回帰（L2．C = LR_C．種 LR_SEED．class_weight なし）を当てはめる．"""
     from sklearn.linear_model import LogisticRegression
 
-    names = S3_FEATURES if rule == "S3" else S4_FEATURES
+    names = {"S3": S3_FEATURES, "S4": S4_FEATURES, "V2": V2_FEATURES}[rule]
     usable = [q for q in questions if q.sources]
     x = np.concatenate([standardize_question(q.raw, names) for q in usable])
     y = np.asarray([float(c) for q in usable for c in q.correct])
@@ -293,18 +316,31 @@ def rule_scores(rule: str, q: QuestionCandidates, selector: LinearSelector | Non
     if rule in ("S1", "S2"):
         col = FEATURE_NAMES.index("ce_qa_max" if rule == "S1" else "ce_ans")
         return [float(v) if np.isfinite(v) else float("-inf") for v in q.raw[:, col]]
-    if rule == "R3p":
-        col = FEATURE_NAMES.index("ce_max")
+    if rule in ("R3p", "V1"):
+        col = FEATURE_NAMES.index("ce_max" if rule == "R3p" else V_FEATURE)
         return [float(v) if np.isfinite(v) else float("-inf") for v in q.raw[:, col]]
     if selector is None:
         raise ValueError(f"{rule} needs a fitted selector")
     return selector.probabilities(q)
 
 
+def choose_by_verification(q: QuestionCandidates) -> int:
+    """V1：v が最大（最大との差 ≤ TIE_TOLERANCE は同点）の候補のうち，ce_max が大きい方（それも同点なら先）．
+
+    v が欠損の候補は −inf（選ばれにくい側）．全候補が欠損なら全員が同点になり ce_max で決まる．
+    """
+    v = rule_scores("V1", q, None)
+    best = max(v)
+    tied = [i for i, s in enumerate(v) if s >= best - TIE_TOLERANCE]
+    return tied[choose_index([rule_scores("R3p", q, None)[i] for i in tied])]
+
+
 def choose_for(
     rule: str, questions: Sequence[QuestionCandidates], selector: LinearSelector | None
 ) -> list[int | None]:
     """全問に規則を当てはめて選んだ候補の番号（候補の無い問は None）．"""
+    if rule == "V1":
+        return [choose_by_verification(q) if q.sources else None for q in questions]
     return [choose_index(rule_scores(rule, q, selector)) if q.sources else None for q in questions]
 
 
@@ -505,7 +541,7 @@ def load_selector(path: Path) -> tuple[str, LinearSelector | None]:
     """固定した answer_selector.json から，選んだ規則と（学習ありなら）重みを読む．"""
     doc = json.loads(path.read_text(encoding="utf-8"))
     rule = doc["chosen"]
-    if rule not in LEARNED_RULES:
+    if rule not in (*LEARNED_RULES, "V2"):
         return rule, None
     w = doc["weights"][rule]
     return rule, LinearSelector(rule, tuple(w["features"]), tuple(w["coef"]), float(w["intercept"]))
@@ -562,16 +598,23 @@ def apply_to_runs(
     extra_runs: Sequence[Path],
     out_dir: Path,
     derived_prefix: str,
+    verify_paths: Sequence[Path] = (),
 ) -> dict[str, Any]:
     """固定した規則を Q（q_runs の合併）と記述用の実行（extra_runs）に当てはめ，R3′ との差などを出す．
+
+    verify_paths（Iteration 28 の V1・V2）は [*q_runs, *extra_runs] と同じ順の verify_features.jsonl（V の規則では必須）．
 
     基準 R3′ は既存の `select_eval.apply_rule`（R3・UNKNOWN の除外なし）の選択（results/<run>_R3p と同じ）．選んだ候補は
     `<derived_prefix><run 名>_S` に書く．
     """
     rule, selector = load_selector(selector_path)
+    all_runs = [*q_runs, *extra_runs]
+    if rule in V_RULES and len(verify_paths) != len(all_runs):
+        raise ValueError(f"{rule} needs one verify_features.jsonl per run ({len(all_runs)} runs)")
+    verify_of = dict(zip((r.name for r in all_runs), verify_paths, strict=False))
 
     def evaluate_run(run_dir: Path) -> dict[str, Any]:
-        questions = load_questions(run_dir)
+        questions = load_questions(run_dir, verify_features=verify_of.get(run_dir.name))
         chosen = choose_for(rule, questions, selector)
         new = outcomes_of(questions, chosen)
         rows = read_results(run_dir / "results.jsonl")
@@ -587,7 +630,7 @@ def apply_to_runs(
             "judged": judged,
         }
 
-    per_run = {run.name: evaluate_run(run) for run in [*q_runs, *extra_runs]}
+    per_run = {run.name: evaluate_run(run) for run in all_runs}
     result: dict[str, Any] = {"rule": rule, "selector": str(selector_path), "runs": {}}
     q_new = [o for r in q_runs for o in per_run[r.name]["new"]]
     q_base = [o for r in q_runs for o in per_run[r.name]["base"]]
@@ -638,3 +681,183 @@ def dev_rejection(result: Mapping[str, Any]) -> dict[str, Any] | None:
         "G_R": result["G_R"],
         "G_J2": result["G_J2"],
     }
+
+
+# ── 検証の得点で選ぶ V1・V2（Iteration 28） ─────────────────────────────────────────
+
+ANSWER_VERIFIER_SELECTOR = "answer_verifier_selector.json"
+VERIFY_DEV = "verify_dev.json"
+# G-R：dev の R3′ の正解数（qwen3:8b の印）と S3 の交差検証の正解数（Iteration 25 の select_dev.json）
+G_R_DEV_R3P_CORRECT = 2131
+G_R_DEV_S3_CORRECT = 2141
+# G-V：得点の無い候補の割合の上限
+G_V_MAX_NO_SCORE = 0.01
+# V2 を選べる条件の参照（Iteration 25 の S3 の dev の正答率．同じ交差検証を今のコードで計算し直した値と併せて記録する）
+S3_DEV_ACCURACY_REFERENCE = 0.7263
+RULES_V = ("R3p", "S3", "V1", "V2")
+
+
+def select_verification_rule(accuracy: Mapping[str, float]) -> dict[str, Any]:
+    """G-D の選び方．V2 は dev の正答率が S3 を上回るときだけ候補になる．最大との差が 0.002 以内なら V1（学習なし）を優先する．"""
+    eligible = ["V1"] + (["V2"] if accuracy["V2"] > accuracy["S3"] else [])
+    best = max(accuracy[r] for r in eligible)
+    near = [r for r in eligible if accuracy[r] >= best - SELECT_TIE_TOLERANCE]
+    chosen = "V1" if "V1" in near else max(near, key=lambda r: accuracy[r])
+    return {
+        "chosen": chosen,
+        "eligible": eligible,
+        "best_dev_accuracy": best,
+        "within_tolerance": near,
+        "v2_exceeds_s3": accuracy["V2"] > accuracy["S3"],
+    }
+
+
+def auroc_by_owner(questions: Sequence[QuestionCandidates], feature: str) -> dict[str, Any]:
+    """候補の正しさに対する特徴量の AUROC（記述）．全候補・持ち主の候補・持ち主でない候補．欠損は最小より小さい値に置く．"""
+    from sklearn.metrics import roc_auc_score
+
+    col = FEATURE_NAMES.index(feature)
+    rows = [
+        (q.raw[i, col], q.correct[i], q.sources[i] == q.bank)
+        for q in questions
+        for i in range(len(q.sources))
+    ]
+    finite = [r[0] for r in rows if np.isfinite(r[0])]
+    floor = min(finite) - 1.0 if finite else -1.0
+    out: dict[str, Any] = {}
+    for name, keep in (
+        ("all", lambda owner: True),
+        ("owner", lambda owner: owner),
+        ("non_owner", lambda owner: not owner),
+    ):
+        sub = [(v if np.isfinite(v) else floor, c) for v, c, owner in rows if keep(owner)]
+        labels = [c for _, c in sub]
+        out[name] = {
+            "n": len(sub),
+            "positive_rate": sum(labels) / len(sub) if sub else 0.0,
+            "auroc": float(roc_auc_score(labels, [v for v, _ in sub]))
+            if 0 < sum(labels) < len(sub)
+            else None,
+        }
+    return out
+
+
+def verification_gate(verify_path: Path, questions: Sequence[QuestionCandidates]) -> dict[str, Any]:
+    """G-V：dev の候補のうち得点が無い（yes・no が上位に無い・文脈長の超過・失敗・ファイルに無い）割合 ≤ 1%．最初のトークンの内訳も記録する．"""
+    from atrium.answer_verify import read_verify_rows
+
+    rows = read_verify_rows(verify_path)
+    keys = [(q.qid, i) for q in questions for i in range(len(q.sources))]
+    n = len(keys)
+    no_score = sum(rows.get(k, {}).get("v") is None for k in keys)
+    other = sum(bool(rows.get(k, {}).get("first_token_other")) for k in keys)
+    errors: dict[str, int] = {}
+    for k in keys:
+        err = rows.get(k, {"error": "missing"}).get("error")
+        if err:
+            errors[str(err)] = errors.get(str(err), 0) + 1
+    gate: dict[str, Any] = {
+        "n_candidates": n,
+        "n_no_score": no_score,
+        "no_score_rate": no_score / max(1, n),
+        "max_no_score_rate": G_V_MAX_NO_SCORE,
+        "n_first_token_not_yes_no": other,
+        "first_token_not_yes_no_rate": other / max(1, n),
+        "n_answer_empty": sum(bool(rows.get(k, {}).get("answer_empty")) for k in keys),
+        "errors": errors,
+    }
+    gate["passed"] = bool(gate["no_score_rate"] <= G_V_MAX_NO_SCORE)
+    return gate
+
+
+def evaluate_verify_dev(
+    dev_run: Path,
+    verify_path: Path,
+    h_run: Path,
+    h_derived: Path,
+    out_dir: Path,
+) -> dict[str, Any]:
+    """dev で V1・V2（参照に R3′・S3）を評価し，G-R・G-V・G-D・AUROC を verify_dev.json に，V2 の重みを answer_verifier_selector.json に書く．"""
+    from atrium.answer_verify import prompt_sha256
+
+    dev = load_questions(dev_run, need_answer_features=False, verify_features=verify_path)
+    base = existing_r3p_outcomes(dev_run, dev)
+    outcomes: dict[str, list[QuestionOutcome]] = {"R3p": base}
+    outcomes["S3"] = outcomes_of(dev, cross_validated_choices("S3", dev))
+    outcomes["V1"] = outcomes_of(dev, choose_for("V1", dev, None))
+    outcomes["V2"] = outcomes_of(dev, cross_validated_choices("V2", dev))
+    accuracy = {r: accuracy_of(outcomes[r]) for r in RULES_V}
+    # G-R
+    recomputed = outcomes_of(dev, baseline_choices(dev))
+    h = load_questions(h_run, need_answer_features=False)
+    h_agreement = tie_tolerant_agreement(
+        h, baseline_choices(h), read_derived_choices(h_derived / "results.jsonl")
+    )
+    g_r = {
+        "dev_r3p_correct": accuracy["R3p"]["correct"],
+        "dev_r3p_recomputed_correct": accuracy_of(recomputed)["correct"],
+        "dev_r3p_expected": G_R_DEV_R3P_CORRECT,
+        "dev_s3_correct": accuracy["S3"]["correct"],
+        "dev_s3_expected": G_R_DEV_S3_CORRECT,
+        "h_vs_a3_p1_R3p": h_agreement,
+        "h_strictly_identical": h_agreement["n_identical"] == h_agreement["n"],
+    }
+    g_r["passed"] = bool(
+        g_r["dev_r3p_correct"] == G_R_DEV_R3P_CORRECT
+        and g_r["dev_r3p_recomputed_correct"] == G_R_DEV_R3P_CORRECT
+        and g_r["dev_s3_correct"] == G_R_DEV_S3_CORRECT
+        and h_agreement["n_identical_tie_tolerant"] == h_agreement["n"]
+    )
+    g_v = verification_gate(verify_path, dev)
+    # G-D
+    selection = select_verification_rule({r: accuracy[r]["accuracy"] for r in RULES_V})
+    chosen = selection["chosen"]
+    gain = accuracy[chosen]["accuracy"] - accuracy["R3p"]["accuracy"]
+    paired = {
+        r: paired_report([o.correct for o in outcomes[r]], [o.correct for o in base])
+        for r in ("S3", "V1", "V2")
+    }
+    g_d = {
+        "dev_accuracy": accuracy,
+        "selection": selection,
+        "gain_over_r3p": gain,
+        "min_gain": G_D_MIN_GAIN,
+        "passed": bool(gain >= G_D_MIN_GAIN),
+        "s3_dev_accuracy_reference": S3_DEV_ACCURACY_REFERENCE,
+        "paired_vs_r3p": paired,
+        "n_dev": len(dev),
+        "cross_validation": f"GroupKFold({CV_FOLDS}) by the gold inbox (S3, V2)",
+        "segments": {r: segment_table(outcomes[r]) for r in RULES_V},
+        "ceilings": candidate_ceilings(
+            read_results(dev_run / "results.jsonl"),
+            read_candidate_judgements(dev_run / CANDIDATE_JUDGEMENTS),
+            base,
+        ),
+        "n_chosen_differs_from_r3p": {
+            r: sum(a.chosen_index != b.chosen_index for a, b in zip(outcomes[r], base, strict=True))
+            for r in ("S3", "V1", "V2")
+        },
+    }
+    diagnostics = {f: auroc_by_owner(dev, f) for f in ("v", "ce_max")}
+    # V2 の重み（全 dev で学習し直す．選ばれたときだけ固定する）
+    v2 = fit_selector("V2", dev)
+    selector_doc: dict[str, Any] = {
+        "chosen": chosen,
+        "trained_on": f"dev ({len(dev)} questions; {dev_run})",
+        "model": f"LogisticRegression(C={LR_C}, random_state={LR_SEED}, penalty=l2)",
+        "not_written_pattern": NOT_WRITTEN_PATTERN,
+        "verify_prompt_sha256": prompt_sha256(),
+        "weights": {"V2": v2.to_json()},
+    }
+    if chosen == "V2":
+        payload = json.dumps(selector_doc["weights"]["V2"], sort_keys=True).encode()
+        selector_doc["chosen_sha256"] = hashlib.sha256(payload).hexdigest()
+    result = {"G_R": g_r, "G_V": g_v, "G_D": g_d, "auroc_dev": diagnostics, "selector": chosen}
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / VERIFY_DEV).write_text(
+        json.dumps(result, indent=1, ensure_ascii=False), encoding="utf-8"
+    )
+    (out_dir / ANSWER_VERIFIER_SELECTOR).write_text(
+        json.dumps(selector_doc, indent=1, ensure_ascii=False), encoding="utf-8"
+    )
+    return result
