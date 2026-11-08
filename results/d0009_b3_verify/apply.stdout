@@ -1,0 +1,74 @@
+2026-11-09 02:31:06,905 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-11-09 02:31:06,905 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-11-09 02:31:06,905 INFO faiss.loader: Loading faiss.
+2026-11-09 02:31:06,916 INFO faiss.loader: Successfully loaded faiss.
+{
+ "rule": "V2",
+ "Q": {
+  "n": 5669,
+  "acc_new": 0.7313459163873699,
+  "acc_base": 0.7237608043746693,
+  "delta": 0.007585112012700653,
+  "bootstrap_ci95": [
+   0.0038807549832421944,
+   0.011289469042159111
+  ],
+  "analytic_ci95": [
+   0.0037088337648656386,
+   0.011461390260535668
+  ],
+  "se_q": 0.0018891395005078493,
+  "se_total": 0.0019735369397047135,
+  "df": 570.9601923715928,
+  "t": 1.9641275366322732,
+  "b_only_new": 79,
+  "c_only_base": 36,
+  "mcnemar_p": 7.516458966444587e-05,
+  "verdict": "improved",
+  "segments": {
+   "R3p": {
+    "a_owner_out": {
+     "n": 382,
+     "correct": 85,
+     "accuracy": 0.22251308900523561,
+     "share": 0.0673840183453872
+    },
+    "b_owner_chosen": {
+     "n": 4933,
+     "correct": 3846,
+     "accuracy": 0.7796472734644233,
+     "share": 0.8701711060151702
+    },
+    "c_owner_in_not_chosen": {
+     "n": 354,
+     "correct": 172,
+     "accuracy": 0.4858757062146893,
+     "share": 0.06244487563944258
+    }
+   },
+   "V2": {
+    "a_owner_out": {
+     "n": 382,
+     "correct": 89,
+     "accuracy": 0.23298429319371727,
+     "share": 0.0673840183453872
+    },
+    "b_owner_chosen": {
+     "n": 4917,
+     "correct": 3872,
+     "accuracy": 0.7874720357941835,
+     "share": 0.8673487387546305
+    },
+    "c_owner_in_not_chosen": {
+     "n": 370,
+     "correct": 185,
+     "accuracy": 0.5,
+     "share": 0.06526724289998236
+    }
+   }
+  },
+  "n_chosen_changed": 475,
+  "any_candidate_correct": 0.7535720585641207
+ }
+}

@@ -614,7 +614,11 @@ def apply_to_runs(
     verify_of = dict(zip((r.name for r in all_runs), verify_paths, strict=False))
 
     def evaluate_run(run_dir: Path) -> dict[str, Any]:
-        questions = load_questions(run_dir, verify_features=verify_of.get(run_dir.name))
+        questions = load_questions(
+            run_dir,
+            need_answer_features=rule not in V_RULES,
+            verify_features=verify_of.get(run_dir.name),
+        )
         chosen = choose_for(rule, questions, selector)
         new = outcomes_of(questions, chosen)
         rows = read_results(run_dir / "results.jsonl")

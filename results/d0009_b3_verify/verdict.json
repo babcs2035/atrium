@@ -1,0 +1,69 @@
+{
+ "verdict_original": {
+  "hypothesis": "H-B3v（検証の LLM の得点で選ぶと R3′ より正答率が上がる）",
+  "verdict": "improved",
+  "rule": "V2",
+  "adopted_into_main_configuration": true,
+  "fabrication_delta": -0.0008819897689186806,
+  "max_fabrication_increase": 0.005,
+  "Q": {
+   "n": 5669,
+   "acc_new": 0.7313459163873699,
+   "acc_base": 0.7237608043746693,
+   "delta": 0.007585112012700653,
+   "bootstrap_ci95": [
+    0.0038807549832421944,
+    0.011289469042159111
+   ],
+   "analytic_ci95": [
+    0.0037088337648656386,
+    0.011461390260535668
+   ],
+   "b_only_new": 79,
+   "c_only_base": 36,
+   "mcnemar_p": 7.516458966444587e-05
+  },
+  "dev": {
+   "G_R": {
+    "dev_r3p_correct": 2131,
+    "dev_r3p_recomputed_correct": 2131,
+    "dev_r3p_expected": 2131,
+    "dev_s3_correct": 2141,
+    "dev_s3_expected": 2141,
+    "h_vs_a3_p1_R3p": {
+     "n": 2862,
+     "n_identical": 2862,
+     "n_identical_tie_tolerant": 2862
+    },
+    "h_strictly_identical": true,
+    "passed": true
+   },
+   "G_V": {
+    "n_candidates": 8844,
+    "n_no_score": 0,
+    "no_score_rate": 0.0,
+    "max_no_score_rate": 0.01,
+    "n_first_token_not_yes_no": 0,
+    "first_token_not_yes_no_rate": 0.0,
+    "n_answer_empty": 0,
+    "errors": {},
+    "passed": true
+   },
+   "G_D": {
+    "chosen": "V2",
+    "eligible": [
+     "V1",
+     "V2"
+    ],
+    "best_dev_accuracy": 0.730325644504749,
+    "within_tolerance": [
+     "V2"
+    ],
+    "v2_exceeds_s3": true,
+    "gain": 0.007462686567164201,
+    "passed": true
+   }
+  }
+ },
+ "verdict_revised": null
+}

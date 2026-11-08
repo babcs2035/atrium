@@ -302,3 +302,37 @@ def test_load_questions_reads_v_and_keeps_it_missing_without_a_score(tmp_path: P
 
     v = q.raw[:, FEATURE_NAMES.index("v")]
     assert v[0] == 3.5 and np.isnan(v[1])
+
+
+def test_apply_v1_works_on_a_run_without_ce_answer_features(tmp_path: Path) -> None:
+    """H・H2 の実行には ce_answer_features.jsonl が無い（V1・V2 は回答を入れた cross-encoder の得点を使わない）．"""
+    from atrium.answer_select_eval import apply_to_runs
+    from tests.test_answer_select_eval import make_run
+
+    run = tmp_path / "run"
+    make_run(run)
+    (run / "ce_answer_features.jsonl").unlink()
+    verify = tmp_path / "verify_features.jsonl"
+    # q0 は ce_max の最高が 2 番目（正解），v の最高は先頭．q1 は v が全て同じなので ce_max の同点 → 先頭
+    scores = {
+        ("q0", 0): 5.0,
+        ("q0", 1): 1.0,
+        ("q0", 2): 0.0,
+        ("q1", 0): 2.0,
+        ("q1", 1): 2.0,
+        ("q1", 2): 0.0,
+    }
+    verify.write_text(
+        "".join(json.dumps({"qid": q, "index": i, "v": v}) + "\n" for (q, i), v in scores.items())
+    )
+    selector = tmp_path / "answer_verifier_selector.json"
+    selector.write_text(json.dumps({"chosen": "V1"}), encoding="utf-8")
+
+    result = apply_to_runs(selector, [run], [], tmp_path / "out", f"{tmp_path}/", [verify])
+
+    derived = [
+        json.loads(line)
+        for line in (tmp_path / "run_V1" / "results.jsonl").read_text().splitlines()
+    ]
+    assert [d["chosen_index"] for d in derived] == [0, 0]
+    assert result["Q"]["acc_new"] == 0.5

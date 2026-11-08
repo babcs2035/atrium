@@ -1,0 +1,156 @@
+{
+ "fabrication": {
+  "per_rule": {
+   "R3p": {
+    "n": 5669,
+    "n_judged": 5667.0,
+    "correct": 4103.0,
+    "dk_lexical": 0.0,
+    "dk_model": 156.0,
+    "fabricated": 1408.0,
+    "unparsed": 0.0,
+    "unjudged": 2.0,
+    "fabricated_share_of_all": 0.24836831892750044,
+    "fabricated_share_of_judged": 0.24845597317804835,
+    "fabricated_upper_incl_unparsed": 0.24836831892750044
+   },
+   "V2": {
+    "n": 5669,
+    "n_judged": 5668.0,
+    "correct": 4146.0,
+    "dk_lexical": 0.0,
+    "dk_model": 119.0,
+    "fabricated": 1403.0,
+    "unparsed": 0.0,
+    "unjudged": 1.0,
+    "fabricated_share_of_all": 0.24748632915858176,
+    "fabricated_share_of_judged": 0.24752999294283698,
+    "fabricated_upper_incl_unparsed": 0.24748632915858176
+   }
+  },
+  "increase_v2_minus_r3p": -0.0008819897689186806,
+  "bootstrap_ci95": [
+   -0.0052919386135120835,
+   0.0035279590756747223
+  ],
+  "bootstrap": {
+   "samples": 10000,
+   "seed": 12,
+   "paired": true
+  },
+  "limit": 0.005,
+  "increase_within_limit": true
+ },
+ "exposure": {
+  "per_run": {
+   "H": {
+    "total_docs": 73772,
+    "n_requesters": 1,
+    "docs_per_requester": {
+     "requester": 27282
+    },
+    "E_any": 0.3698151060022773,
+    "E_pair": 0.3698151060022773,
+    "E_max": 0.3698151060022773
+   },
+   "H2": {
+    "total_docs": 73772,
+    "n_requesters": 1,
+    "docs_per_requester": {
+     "requester": 27253
+    },
+    "E_any": 0.36942200292794014,
+    "E_pair": 0.36942200292794014,
+    "E_max": 0.36942200292794014
+   }
+  },
+  "Q_E_any_same_for_R3p_and_V2": {
+   "total_docs": 73772,
+   "n_requesters": 1,
+   "docs_per_requester": {
+    "requester": 40557
+   },
+   "E_any": 0.5497614270997127,
+   "E_pair": 0.5497614270997127,
+   "E_max": 0.5497614270997127
+  },
+  "delegated_verification": {
+   "docs_per_question_median": 15.0,
+   "docs_per_question_max": 15,
+   "unique_docs_sent": 40557,
+   "share_of_all_docs": 0.5497614270997127,
+   "note": "検証を質問者の GPU の無い PC から GPU の PC へ委託する配備での追加の露出（E_any と同じ数え方で，全候補の文脈の文書．判定に使わない）"
+  }
+ },
+ "cost": {
+  "dev": {
+   "n": 8844,
+   "prompt_eval_count": {
+    "median": 3059.0,
+    "p95": 5391.4000000000015
+   },
+   "total_duration_s": {
+    "median": 1.595836656,
+    "p95": 3.0856822283
+   }
+  },
+  "H": {
+   "n": 8586,
+   "prompt_eval_count": {
+    "median": 3049.0,
+    "p95": 5529.75
+   },
+   "total_duration_s": {
+    "median": 1.5731462865,
+    "p95": 3.0680692655
+   }
+  },
+  "H2": {
+   "n": 8421,
+   "prompt_eval_count": {
+    "median": 3036.0,
+    "p95": 5509.0
+   },
+   "total_duration_s": {
+    "median": 1.575681102,
+    "p95": 3.06845462
+   }
+  },
+  "all": {
+   "prompt_eval_count": {
+    "median": 3048.0,
+    "p95": 5477.5,
+    "n": 25851
+   },
+   "total_duration_s": {
+    "median": 1.581915071,
+    "p95": 3.0763441635,
+    "n": 25851
+   }
+  }
+ },
+ "ceilings": {
+  "H": {
+   "any_candidate_correct": 0.750524109014675,
+   "owner_candidate_given_owner_in": {
+    "n": 2669,
+    "accuracy": 0.7684526039715249
+   },
+   "owner_candidate_in_segment_c": {
+    "n": 185,
+    "accuracy": 0.654054054054054
+   }
+  },
+  "H2": {
+   "any_candidate_correct": 0.7566797292483078,
+   "owner_candidate_given_owner_in": {
+    "n": 2618,
+    "accuracy": 0.7727272727272727
+   },
+   "owner_candidate_in_segment_c": {
+    "n": 169,
+    "accuracy": 0.6331360946745562
+   }
+  }
+ }
+}

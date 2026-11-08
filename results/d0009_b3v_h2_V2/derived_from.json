@@ -1,0 +1,5 @@
+{
+ "run": "results/d0009_b3v_h2",
+ "select_rule": "V2",
+ "ignore_unknown": true
+}
