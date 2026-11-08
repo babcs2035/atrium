@@ -17,6 +17,18 @@
 
 ---
 
+## B99 [auto-decided 2026-11-08] Iteration 27 の設計：診断で direct は G4 の書き写しを止めたので着手．direct の文面は理由を残す形，判定モデルは qwen3:8b，dev のゲートは実機の dev の実行で行う
+- 状況: B98 (2) の診断を phase 1 で行った．gpu4 の判定の container に G4 を取り込み（`scripts/d0009/pf_import_g4.sh`），dev の 40 問を 3 つの形で生成した（`scripts/d0009/pf_diag.py`．`results/d0009_pf_diag/`）．fill_in は 92%（36/39）が上限 2,048 まで `Emails:` を書き写した．direct（理由なし）と direct_cot（理由を述べてから `Answer:` の行）はどちらも上限 0/40・書き写し 0/40 だった．direct_cot の `Answer:` の行は 40/40．
+- 自動選択:
+  (1) B98 (2) の分岐は「止まる」なので，`llm.answer_prompt_format`（`fill_in` → `direct`）に着手する．
+  (2) `direct` の文面は direct_cot（理由を述べてから `Answer:` の行に 1 文．sha256 7a59a3ac…）にした．選び方の規則（上限 ≤ 5%・`Answer:` の行 ≥ 95% を満たす形のうち理由を残す方を優先）は診断の前に決めていたが，文書に書いたのは診断の後である．診断は正誤を採点していない．
+  (3) 判定モデルは主構成の qwen3:8b にした（B98 (c) の推奨．過去の数値と並ぶ）．J1 は使わない．
+  (4) B98 では「dev のオフラインのゲート」と書いたが，llama3.1:8b は gpu4 に無い．運用ルール 15 で取得は `hf` CLI に限られ，Meta は llama3.1:8b の公式の GGUF を出していない．そこで dev のゲートは，実機で dev を direct で流す `d0009_pf_dev_direct` と，既存の `p0007_a6_dev`（fill_in．qwen3:8b の印 `d0009_b3s_dev`）の比較にした．その前に実機の smoke（30 問）で llama の direct の形を確かめる（G-L）．
+  (5) 主の判定は Q = H ∪ H2 での非劣性（δ = 0.02．区間の作り方 1・2 の両方）とした．このレバーの目的は，モデルを替える比較で共通に使えるプロンプトを用意することで，正答率を上げることではないからである．G-D は dev の Δ ≥ −0.010．
+- 根拠: (2) 理由を残すと，fill_in から変わる要素は穴埋めの書式だけになり，回答の取り出しの規則（最後の `Answer:` の行）も同じになる．理由なしの形は書式と CoT の 2 つを同時に変える．CoT の利得は抽出型の問では小さいという報告（Sprague et al. 2024．arXiv:2409.12183）はあるが，llama の主構成で確かめた値は無い．(4) Ollama の library の重みを制御点から gpu4 へ写す案は，運用ルール 15（取得は `hf` CLI だけ・別の場所へ複製しない）に反するので取らなかった．実機の dev の実行は運用ルール 13（新しい精度の測定は実機）にも合う．(5) Iteration 22 の d0009 A3 で決めた δ = 0.02 と区間の作り方を使う．
+- 不可逆・人間の判断を要する事項: 無い．設定キーは追加だけで，既定は今の挙動．gpu4 の判定の container は作り直したが，volume（qwen3:8b・qwen3:14b-q8_0）は残っている．診断の途中で `docker run --rm alpine` の image を取得した（volume の中身を見るため．削除していない．約 8 MB）．
+- 要レビュー: (a) direct を取り込むと，以降の d0009 の主構成の正答率は過去の値（fill_in）と並べられなくなる（B98 (b)）．取り込みの条件は journal の Iteration 27 の「主構成への取り込み」で決めた．取り込みの前に人間の確認を求める規則にはしていない．却下するなら，取り込みの条件に「人間の承認」を足す．(b) G-D は別の日の base との比較で，再実行の変動を含む（Iteration 23 で候補の文字列の一致は 0.99）．(c) 以降の主の判定モデルを J1 にするかは，B93 (b) のとおり人間の判断に残っている．(d) G4 の GGUF の revision（29d0977）と sha256（93567e57…a538b）は journal の Iteration 27 に記録した（B98 (e) の欠けを補った．`models.json` への記録は再挑戦のときに行う）．
+
 ## B98 [auto-decided 2026-11-08] Iteration 26（生成モデルの替え）は棄却で閉じた．Iteration 27 のレバーは新しい `llm.answer_prompt_format`（値 `direct`．生成モデルは llama3.1:8b に固定）．先に原因の確かめ
 - 状況: Iteration 26 の phase 3．B97（A1）のとおり，G4（`gemma4-12b-it-qat`）は主構成のプロンプトで破綻したとして閉じた（dev300 の最初の 48 問で失敗 12.5%，候補の 81% が上限 2,048 トークンまで `Emails:` 欄を書き写した．base の約 1/15 の速さ）．H-M1〜H-M4・κ は未取得で，原因は未検証．`results/d0009_m1_generator/verdict.json` の `verdict_original` は `rejected_aborted_generation_runaway`（`decided_by` に人間の判断と明記）．Iteration 26 の事前登録に G-D は無いので，journal では「規則の外の中止」と書いた．
 - 自動選択:

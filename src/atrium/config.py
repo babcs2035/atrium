@@ -261,6 +261,9 @@ class LlmConfig(_Strict):
     # 2 件分の KV キャッシュまでが 12 GB の GPU に収まる
     requester_num_parallel: int = Field(default=2, ge=1)
     timeout_s: float = 600.0
+    # EnronQA の回答のプロンプトの user の文面（Iteration 27）．fill_in：原論文の穴埋めの書式（既定．従来の挙動）／
+    # direct：理由を述べてから "Answer:" の行に 1 文で答えさせる直接の指示（Gemma 4 が穴埋めの書式で書き写しを続けたため）
+    answer_prompt_format: Literal["fill_in", "direct"] = "fill_in"
 
 
 class LocalAnswerConfig(_Strict):

@@ -104,6 +104,7 @@
   - 候補のどれかが正解の割合（選択の天井）は dev で 0.750 で，R3′ との差は 80 問（2.7%）しかない．回帰で効いた特徴量はほぼ「書かれていない」型の表現だけで，取り戻したのは純 10 問．
   - dev の R3′ の正答率は，旧い判定モデルの印では 0.7778 で，判定モデルを替えると水準が約 5 pt 動く．質問集合の間で正答率を比べるときは同じ判定モデルの値だけを並べる．
   - 追加だけの CLI `atrium answer-select-eval` と `atrium select-features --answer-aware` は残してある．次は，LLM に文脈が回答を支えるかを問う検証で選ぶ案（値 `answer_verification`．`.claude/research/backlog.md` の B88）．
+- 着手（回答のプロンプトの形．生成の側）：Iteration 27（事前登録は `.claude/research/journal.md` の Iteration 27．設計の判断は `.claude/research/backlog.md` の B98・B99）．レバーは `llm.answer_prompt_format`（`fill_in` → `direct`）．Iteration 26 で生成モデルを Gemma 4 12B に替えたところ，主構成の穴埋めの書式のプロンプトでメール本文の書き写しが止まらなかったので，候補の回答を作るプロンプトを直接の指示（理由を述べてから `Answer:` の行に 1 文で答える）に替える．生成モデルは llama3.1:8b に固定する．実機の smoke と dev のゲートを通れば，H ∪ H2 で正答率の非劣性（δ = 0.02）・作り話・露出を比べる．
 
 ## C. 手続き上の注意
 
@@ -147,7 +148,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 1 | A2 | レバー `d0009.A2_fabrication` | 完了（Iteration 21．採用．`results/d0009_a2_fabrication/`） |
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
-| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は未着手（Iteration 25 の評価で追加．backlog B88） |
+| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は未着手（Iteration 25 の評価で追加．backlog B88）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は着手（Iteration 27．backlog B99） |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |

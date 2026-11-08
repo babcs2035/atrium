@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping, Sequence
+from typing import Literal
 
 from atrium.config import DatasetName
 from atrium.store import RetrievedDoc
@@ -60,6 +61,15 @@ USER_PROMPT_TEMPLATES: dict[DatasetName, str] = {
     ),
 }
 
+# Iteration 27（llm.answer_prompt_format=direct）：穴埋めの書式ではなく直接の指示で答えさせる．system の文面・文脈の並べ方・
+# 回答の取り出し（extract_free_answer）は fill_in と同じ．文面は固定（sha256 は tests/test_prompts.py が確かめる）
+ENRON_DIRECT_TEMPLATE = (
+    "Given emails and a question about one of those emails, write the answer to that question "
+    "in a single sentence.\n\nEmails:\n{context}\n\nQuestion: {question}\n\n"
+    "First explain your reasoning step by step in a few sentences. Then write the answer as a "
+    'single sentence on a last line that starts with "Answer:".'
+)
+
 # p0007 I2（aggregate=abstain）：答えがメールに無いときは UNKNOWN と答えさせる．元の文面に 1 文だけ足し，ほかは変えない
 UNKNOWN_TOKEN = "UNKNOWN"
 ENRON_ABSTAIN_SENTENCE = (
@@ -103,11 +113,20 @@ def build_messages(
     docs: Sequence[RetrievedDoc],
     options: Mapping[str, str],
     allow_unknown: bool = False,
+    answer_format: Literal["fill_in", "direct"] = "fill_in",
 ) -> list[dict[str, str]]:
-    """Ollama の chat API に渡す messages を作る．allow_unknown は EnronQA だけで，答えが無ければ UNKNOWN と答えさせる．"""
+    """Ollama の chat API に渡す messages を作る．allow_unknown は EnronQA だけで，答えが無ければ UNKNOWN と答えさせる．
+
+    answer_format="direct"（Iteration 27）は EnronQA だけで，allow_unknown との組は定義しない．
+    """
     if allow_unknown and dataset != "enronqa":
         raise ValueError("allow_unknown is only defined for the enronqa prompt")
-    template = ENRON_ABSTAIN_TEMPLATE if allow_unknown else USER_PROMPT_TEMPLATES[dataset]
+    if answer_format == "direct" and (dataset != "enronqa" or allow_unknown):
+        raise ValueError("answer_format=direct is only defined for the plain enronqa prompt")
+    if answer_format == "direct":
+        template = ENRON_DIRECT_TEMPLATE
+    else:
+        template = ENRON_ABSTAIN_TEMPLATE if allow_unknown else USER_PROMPT_TEMPLATES[dataset]
     user = template.format(
         context=format_context(docs), question=question, options=format_options(options)
     )

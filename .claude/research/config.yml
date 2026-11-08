@@ -362,7 +362,10 @@ levers:
             direct でも G4 の書き写しが止まらなければ，このレバーは着手せずに閉じ，次は B3 の answer_verification（B88）にする．
             止まるなら，llama3.1:8b の fill_in 対 direct を dev のオフラインのゲートと Q = H ∪ H2 で比べる（base の H2 の候補は results/d0009_m1_h2_base を使える）．
             その後のイテレーションで，direct の形のまま生成モデルを替える（llm.expert_model_gpu の再挑戦）．判定モデルは主構成の qwen3:8b を推奨（J1 にするかは B93 (b) で人間の判断に残っている）．
-            G-L の smoke は主構成の実際のプロンプトで行う（Iteration 26 の学び）"}
+            G-L の smoke は主構成の実際のプロンプトで行う（Iteration 26 の学び）．
+            着手：Iteration 27（事前登録は journal の Iteration 27．backlog B99）．phase 1 の診断（gpu4・G4・dev 40 問）で fill_in は 92% が上限まで書き写し，direct は 0%．
+            direct の文面は理由を述べてから `Answer:` の行に 1 文で答える形（sha256 7a59a3ac…）．判定モデルは qwen3:8b．llama は gpu4 に無いので，dev のゲートは実機の dev の実行で行う
+            （smoke 30 問の G-L → dev の Δ ≥ −0.010 の G-D → Q = H ∪ H2 で非劣性 δ = 0.02）"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

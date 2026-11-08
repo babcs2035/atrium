@@ -3,6 +3,118 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 27: 回答のプロンプトを穴埋めの書式から直接の指示に替えたときの正答率・作り話
+
+**位置づけ**：レバー `llm.answer_prompt_format`（既定 `fill_in` → `direct`）．Iteration 26 の評価で追加した（backlog B98 [auto-decided]）．設計の判断は backlog B99．生成モデルは llama3.1:8b に固定し，プロンプトと生成モデルを同時に動かさない．この節が事前登録である．rc-executor が，direct の実機の実行（smoke を含む）より前に commit・push する．d0009 の B3 の生成の側の項目として，d0009 に着手を書いた（運用ルール 9）．
+
+### 調査で分かったこと
+
+- **診断（phase 1．判定には使わない）**：gpu4 で G4（`gemma4-12b-it-qat`．`google/gemma-4-12B-it-qat-q4_0-gguf` rev 29d0977．sha256 93567e57…a538b．Iteration 26 の配布物と同じ層）を判定の container（Ollama 0.35.1）に取り込み，Iteration 26 の dev300 の途中までの実行の先頭 40 問について，base の dev（`p0007_a6_dev`）の 1 番目の候補の文脈 5 通で，3 つの形のプロンプトから生成した．設定は config.yaml の `llm` と同じ（`num_predict` 2048・`num_ctx` 16384・温度 0・`think: false`）．結果は `results/d0009_pf_diag/summary_gemma4-12b-it-qat.json`（スクリプトは `scripts/d0009/pf_import_g4.sh`・`pf_diag.py`）．
+
+| 形（G4．40 問） | 失敗 | 上限 2,048 に達した割合 | `Answer:` の行がある割合 | 出力が `Emails:` の書き写しで始まる割合 | 出力のトークン数の中央値 |
+|---|---|---|---|---|---|
+| fill_in（主構成の今のプロンプト） | 1（HTTP 500） | 0.923（36/39） | 0.077 | 1.000 | 2,048 |
+| direct（理由なし．答えの 1 文だけ） | 0 | 0.000 | 0.000 | 0.000 | 26 |
+| direct_cot（理由を述べてから `Answer:` の行） | 0 | 0.000 | 1.000 | 0.000 | 110 |
+
+  - gpu4 でも Iteration 26 の破綻（実機の dev300 の 48 問で 81% が上限）が再現した．HTTP 500 は 1 分 11 秒の生成の途中の中断で，実機の 502 と同じものと読む（推測）．
+  - **direct の形にすると，G4 の書き写しは 40 問の全てで止まった**．したがって B98 (2) の分岐は「止まる」で，このレバーに着手する．G4 の書き写しの主因は穴埋めの書式（欄の一覧を示し，最後の文の続きを書かせる形）と読める．Gemma 4 の文脈の長さや局所注意が主因である見込みは小さい（同じ文脈で direct は止まるため）．
+  - llama3.1:8b は gpu4 に無い．運用ルール 15 で取得は `hf` CLI に限られ，Meta は llama3.1:8b の公式の GGUF を出していない（現行の重みは Ollama の library の量子化．B90 (c)）．このため llama の direct の確かめは，実機の smoke（下の G-L）で行う．
+  - 参考（既存の実機の結果．llama3.1:8b・fill_in）：候補の出力のトークン数の中央値は 33（dev・H・H2 とも），上限に達した候補は dev 34/8,844（0.38%）・H 21/8,586・H2 30/8,421．
+- **プロンプトの書式の影響は大きく，モデルによって違う**：Sclar et al.（2024．"Quantifying Language Models' Sensitivity to Spurious Features in Prompt Design"．ICLR 2024．arXiv:2310.11324）は，意味を変えない書式の違いだけで，LLaMA-2-13B の few-shot の正答率が最大 76 pt 動き，書式の良し悪しはモデルの間で揃わないと報告している．He et al.（2024．"Does Prompt Formatting Have Any Impact on LLM Performance?"．arXiv:2411.10541）も，同じ内容を平文・Markdown・JSON・YAML で書き分けると GPT 系で最大 40% 程度の差が出て，大きいモデルほど揺れが小さいと報告している．今回の主構成の穴埋めの書式は，EnronQA の原論文の付録 B.5（DSPy の書式）と Llama に合わせたもので，別のモデルで同じ挙動になる保証は無い．
+- **DSPy 自体も chat のモデル向けの書式に移っている**：DSPy の既定の ChatAdapter は，入力と出力の欄を `[[ ## field ## ]]` の区切りで chat の messages に組み立てる（DSPy の文書 "ChatAdapter"．https://dspy.ai/current/api/adapters/ChatAdapter）．主構成のプロンプトは，それ以前の「Follow the following format.」の後に欄を並べ，最後の欄の途中で終える補完の書式である．
+- **Gemma 4 の chat の書式**：Gemma 4 は `<|turn>`・`<turn|>` の制御トークンで発話を区切り，system の役割を持つ（Google AI for Developers "Gemma 4 Prompt Formatting"．https://ai.google.dev/gemma/docs/core/prompt-formatting-gemma4）．取り込んだ G4 の Modelfile の停止の語は `<turn|>` で，公式の書式どおりである．したがって G4 の書き写しは，chat のテンプレートの誤りではなく，user の文面（穴埋めの書式）の読み方の違いによると読む（推測）．
+- **理由を述べさせることの効果**：Sprague et al.（2024．"To CoT or not to CoT? Chain-of-thought helps mainly on math and symbolic reasoning"．arXiv:2409.12183）のメタ分析では，CoT の利得は数学・記号の推論に集中し，常識・知識・文章の分類などでは 1% 未満が多い．EnronQA の回答は抽出型に近いので，理由を省いても正答率は大きくは変わらない見込みである（推測）．ただし，今回は理由を残す形（direct_cot）を選び，変える要素を「穴埋めの書式」だけに絞る（下の「単一レバー」）．
+
+### 仮説
+
+主構成のプロンプトを穴埋めの書式から直接の指示（理由を述べてから `Answer:` の行に 1 文で答える）に替えても，llama3.1:8b の R3′ の最終回答の正答率（Q．qwen3:8b の判定）は非劣性の幅 δ = 0.02 の内にとどまる（見込みは Δ = −0.01〜+0.01）．作り話の割合は ±0.005 の内で，露出は変わらない．これが成り立てば，direct の形はモデルを替える比較（llm.expert_model_gpu の再挑戦）の共通のプロンプトとして使える．
+
+### 単一レバー
+
+**`llm.answer_prompt_format`** を **`fill_in`（今の挙動）から `direct` へ**替える．EnronQA の回答のプロンプトの user の文面だけを替え，system の文面（`You answer questions about emails.`）・文脈 5 通の並べ方（`prompts.format_context`）・質問・回答の取り出し（`prompts.extract_free_answer`：最後の `Answer:` の行．無ければ全体）は変えない．
+
+- **direct の文面（固定．sha256 7a59a3ac559ecb5676868443491061c547bae44b5bcabb1394590667fd08222b）**：診断の `direct_cot` と同じ文字列である．`{context}`・`{question}` は fill_in と同じ値で埋める．
+
+```text
+Given emails and a question about one of those emails, write the answer to that question in a single sentence.
+
+Emails:
+{context}
+
+Question: {question}
+
+First explain your reasoning step by step in a few sentences. Then write the answer as a single sentence on a last line that starts with "Answer:".
+```
+
+- **direct_cot を選んだ理由**：3 つの形の選び方は，診断の前に「上限に達する割合 ≤ 5% と `Answer:` の行 ≥ 95% を満たす形のうち，理由を残す direct_cot を優先し，満たさなければ理由なしの direct」と決めていた（記録は診断の後のこの節）．診断は正誤を採点しておらず，正答率を見て選んではいない．理由を残すと，fill_in から変わる要素は「欄の一覧を示して最後の文の続きを書かせる書式」だけになる（理由の有無と回答の取り出しの規則は同じ）．理由なしの形は，書式と CoT の 2 つを同時に変えることになる．
+- **UNKNOWN を許す形**：`allow_unknown`（A5 の候補）と `direct` の組は定義しない（主構成は UNKNOWN の除外なしの通常のプロンプト）．組を指定したら ValueError で止める．
+- **固定する構成（Iteration 22 の P と同じ）**：`scripts/d0009/a3_config.py p` の条件．EnronQA・`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`answer_mode: owner_answer`・`owner_m: 3`・`retrieval.fusion: rrf`・UNKNOWN の除外なし・`answer.aggregate: max_score`・`save_candidates: true`・`http_pool: per_node`・`parallel: 30`・質問者 1 台（wafl-ctrl5）・30 台の専門家・`llm.expert_model_gpu: llama3.1:8b`（wafl500〜509）・温度 0・種 12・`num_ctx` 16384・`num_predict` 2048・`think: false`．選択は R3′（`ce_max` の最大．gpu4 でのオフラインの当てはめ．運用ルール 11 の併記：実機の選択との一致を確かめた範囲は `p0007_f6_agree` の 300 問と Iteration 22 の G2）．R3′ は回答の文字列を見ないので，候補の受信箱と文脈が同じなら選ぶ受信箱は fill_in と direct で同じになる．比べているのは「同じ受信箱の回答の文面」の違いである．
+- **判定モデル**：主構成の qwen3:8b（gpu4 の判定の container．Q4_K_M・温度 0・`think: false`．Iteration 22〜25 と同じ）．過去の数値と並ぶ．J1（Qwen3 14B Q8_0）は使わない．以降の主の判定モデルを J1 にするかは，B93 (b) のとおり人間の判断に残る（このイテレーションでは決めない）．
+
+### 質問集合（運用ルール 10）
+
+- **ゲート（dev）**：dev（2,948 問）．base は `p0007_a6_dev` の候補（fill_in）と，その qwen3:8b の印 `results/d0009_b3s_dev/candidate_judgements.jsonl`（R3′ 0.7229．2,131 問）．direct は今回実機で流す `d0009_pf_dev_direct`．dev は Iteration 25 で R3′ の正答率を見ているが，direct の値は一度も見ていない．
+- **判定**：**Q = H ∪ H2**（5,669 問）．base の H は `d0009_a3_p1`（Iteration 22．R3′ の印は `d0009_a3_p1_R3p`），base の H2 は `d0009_m1_h2_base`（Iteration 26．未採点．正答率を一度も見ていない）．direct は `d0009_pf_h_direct`・`d0009_pf_h2_direct`．H は fill_in の R3′ の正答率を見ているが，direct の値は見ていない．
+- base の H の残りの 4 回（`d0009_a3_p2`・`p3`・`d0009_a1_n1_r1`・`n1_r2`）との差は記述だけに使う．
+
+### 実行（実機．運用ルール 8・13）
+
+| 順 | run_id | 構成 | 問 | 条件 |
+|---|---|---|---|---|
+| 1 | `d0009_pf_smoke` | 固定する構成＋`answer_prompt_format: direct` | dev の先頭 30 問（`d0009_m1_dev300_g4_partial` の先頭 30 問と同じ qid を優先．同じにできなければ dev の受信箱ごとの先頭．どちらにしたかを記録） | G-T の後 |
+| 2 | `d0009_pf_dev_direct` | 同上 | dev（2,948 問） | G-L 通過 |
+| 3 | `d0009_pf_h2_direct` | 同上（`question_split: holdout2`） | H2（2,807 問） | G-D 通過 |
+| 4 | `d0009_pf_h_direct` | 同上（H の質問集合） | H（2,862 問） | G-D 通過 |
+
+- 前に全 11 台の GPU の使用状況と `ollama ps` を記録し，GPU の PC が空くまで最大 2 時間待つ（他の研究者のプロセスには触れない）．失敗した問（502・timeout）だけを同じ run_id で 1 回流し直すことは許す．`config.yaml` は実行の後に元へ戻す（commit しない）．所要の見込みは 1 回 50〜60 分（direct は出力のトークンが fill_in より増える見込み．G4 の診断では 26 → 110．llama で同じ割合とは限らない）．
+- **採点（gpu4．運用ルール 14）**：各実行の候補に `select-features`（`ce_max`）を計算し，R3′ の最終回答を `results/<run>_R3p` に書き出す．最終回答を qwen3:8b で採点する（`judge --resume`）．件数は dev 2,948・H 2,862・H2 2,807（direct）と，base の H2 の 2,807（`d0009_m1_h2_base_R3p`．採点の後に `sanitize_results.py` を通して commit する．B98 (d)）．作り話の 3 分類は Q の両側の不正解の最終回答（各 約 1,600 件の見込み）．wafl の GPU は実験の実行中は使わない．使うなら nvidia-smi で空きを確かめて記録する（Iteration 25 では wafl の Ollama の起動が権限の分類器に拒否された）．
+
+### 判定の規則（`results/d0009_pf_prompt/verdict.json`．`verdict_original` は書き換えない）
+
+記号：**Δ = acc(direct の R3′) − acc(fill_in の R3′)**（qwen3:8b の判定．失敗・判定不能は不正解として数える．分母は質問集合の全問）．
+
+- **検出できる差の大きさ（先に書く）**：同じ受信箱の回答の文面が変わるので，片方だけ正解の問（b + c）を Q の 8〜15%（450〜850 問）と見込む．対応ありの 95% の区間の半幅は 1.96·√(b + c)/n ≈ **0.007〜0.010** になる．dev（2,948 問）では 0.010〜0.014．
+- **主（H-PF1．正答率．Q）**：区間は (1) 問の対応ありのブートストラップ（10,000 回・種 12．Iteration 22 の作り方 1），(2) 分散の分解（作り方 2．σ²_u,P = 1.63e−7 を両側に足す）．結論は次の順に 1 つ決める．
+  - 「改善」：(1)(2) の両方の下端 > 0．
+  - 「悪化」：(1)(2) の両方の上端 < 0．下端 > −0.02 なら「悪化（非劣性の幅の内）」と付記する．
+  - 「非劣性」：上の 2 つに当たらず，(1)(2) の両方の下端 > −0.02（δ = 0.02．d0009 A3 の値）．
+  - 「決まらない」：それ以外．
+  - 併記：McNemar の b : c と正確検定の p（`atrium compare`），H と H2 に分けた Δ，区分 (a)(b)(c) の正答率，候補のどれかが正解の割合（天井．時間の許す範囲で候補の全件を採点した場合だけ），base の H の残り 4 回との Δ（記述）．
+- **H-PF2（作り話．記述と取り込みの条件）**：最終回答を A2 の 3 分類（`atrium abstain-judge`・`fabrication-eval`．Iteration 21 の規則とプロンプト．qwen3:8b）に分け，作り話の割合を fill_in と direct で出す（対応ありのブートストラップ区間．10,000 回・種 12）．人手での確かめは，2 つの形で正誤が食い違う問から 30 件（種 12）を agent が見て，判定モデルの正誤・3 分類との一致を記録する（記述）．
+- **H-PF3（露出．記述）**：`multi_requester_eval.exposure`（N = 1）で E_any を出す（分母 73,772）．プロンプトは送る文書を変えないので，同じ値になることを確かめる（違えば原因を記録する）．
+- **H-PF4（費用と形．記述）**：候補 1 件あたりの `output_tokens`・`decode_s`・`total_s` の中央値と p95，上限に達した候補の割合，`Answer:` の行が無い候補の割合，実行の処理量（問/秒）を fill_in（同じ質問集合の base）と並べる．base は別の日の実行なので，処理量の比は記述にとどめる．
+- **主構成への取り込み**：H-PF1 が「改善」か「非劣性」，H-PF2 の作り話の割合の増分（direct − fill_in）≤ +0.005，`total_s` の中央値が base の 2 倍以下，の全てを満たすときだけ，以降の d0009 の主構成のプロンプトを direct にする（config のコードの既定は fill_in のまま．d0009 の実行の設定で `direct` を指定する）．このとき次のイテレーションは，direct のまま生成モデルを替える（`llm.expert_model_gpu` の再挑戦）．base はこのイテレーションの llama の direct の実行である．満たさなければ fill_in のままにし，次は B3 の `answer_verification`（B88）にする．
+
+### ゲート（満たさなければ判定の前に止まり，原因を記録する）
+
+- **G-T（互換）**：`answer_prompt_format` の既定（`fill_in`）で `prompts.build_messages` の messages が今とバイト単位で同じであること（試験で固定）．direct の文面の sha256 が上の値であること（試験で固定）．`mise run check` を通ること（既知の不安定な試験は B78 (c) のとおり記録）．
+- **G-L（llama の direct の形．smoke の候補で数える）**：`d0009_pf_smoke` の候補（約 90 件）で，失敗 ≤ 1 問，上限 2,048 に達した割合 ≤ 5%，`Answer:` の行がある割合 ≥ 95%．満たさなければ dev の実行に進まず，「棄却（llama で direct の形が回答にならない）」とする．smoke の正誤は採点しない．
+- **G-S（候補の受信箱）**：direct の各実行の候補の受信箱の集合が，同じ質問集合の base（dev は `p0007_a6_dev`，H は `d0009_a3_p1`，H2 は `d0009_m1_h2_base`）と一致する割合 ≥ 0.99（融合得点の差 ≤ 1e-4 は同点として許す）．R3′ で選んだ受信箱の一致の割合も記録する．満たさなければ原因（シャード・取得の揺れ）を記録して止まる．
+- **G-D（dev．H・H2 に進むか）**：dev の **Δ_dev ≥ −0.010**（点の値．同じ qwen3:8b の判定の上で比べる）．根拠：Q の半幅は 0.007〜0.010 なので，真の Δ が −0.010 なら Q の下端は −0.02 付近になり，非劣性を示せる見込みが小さい．dev は別の日の base との比較で，再実行の変動を含む．**満たさなければ H・H2 の実機を流さず，このイテレーションは「棄却（ゲート G-D 不通過）」とする**．dev の Δ・b : c・区間（作り方 1）は通過・不通過のどちらでも `verdict.json` に書く．
+- **G-D′（記録の固定）**：G-D を通過したら，dev の結果をこの節の末尾に「追記」として書き，H・H2 の実行の前に commit・push する．
+- **G-J（採点）**：各実行の最終回答の判定不能 ≤ 1%．
+- **G3**：各実行の失敗（流し直しの後）≤ 1%．超えたら成功した問に絞り，その旨を記録する．
+- **G-F（形．dev の候補）**：`d0009_pf_dev_direct` の候補で，上限に達した割合 ≤ 1%（base の dev は 0.38%）．超えたら記述し，判定に「上限に達する回答が多い」と付ける（止まらない）．
+
+### 成功条件（このイテレーションの採用）
+
+(1) G-T・G-L・G-S・G3・G-J を通過し，G-D の結果（通過・不通過）を dev の値とともに `verdict.json` に書く．(2) G-D を通過した場合は，G-D′ の commit・push の後に H2・H を実機で流して採点し，H-PF1〜H-PF4 を上の規則で出す．(3) G-D が不通過なら，H・H2 を流さずに「棄却」として記録し，値 `direct` を閉じる．仮説の成否（「非劣性」にならないこと）は採用の条件にしない．採否は「主構成への取り込み」の条件で決める．
+
+### 期待効果（見込み．検証対象ではない）
+
+G-L は通過する（候補の `Answer:` の行 ≥ 98%）．dev の Δ は −0.01〜+0.01 で G-D を通る．Q の Δ は −0.01〜+0.01 で，H-PF1 は「非劣性」．作り話の割合の差は ±0.005．E_any は base と同じ値．出力のトークン数の中央値は 33 から 80〜120 に増え，`total_s` の中央値は base の 1.2〜1.6 倍．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
+
+- **設定**：`src/atrium/config.py` の `LlmConfig` に `answer_prompt_format: Literal["fill_in", "direct"] = "fill_in"` を足す．`docs/d0002_configuration.md` に追記する．
+- **プロンプト**：`src/atrium/prompts.py` に direct の文面（上の固定の文字列．`ENRON_DIRECT_TEMPLATE` など）を足し，`build_messages` に引数 `answer_format`（既定 `"fill_in"`）を足す．`direct` は EnronQA だけで，他のデータセットか `allow_unknown=True` との組は ValueError．
+- **呼び出し**：`src/atrium/node.py` の `generate`（自分の生成と `/v1/generate` の委託の受け側の両方）で `cfg.llm.answer_prompt_format` を渡す．委託の要求の形（`GenerateRequest`）は変えない（委託先のノードも同じ config.yaml を読むため）．requester の `build_messages` の呼び出し（snippet_return 等）は今回の主構成では使わないので，既定のままでよい（渡すかは実装者が判断し，既定の挙動を変えない）．
+- **試験**：`tests/test_prompts.py` に，既定で messages が今と同じこと，direct の文面の sha256，`allow_unknown` と direct の組の ValueError，direct の出力からの回答の取り出し（`Answer:` の行あり・なし）を足す．
+- **実行の設定**：`scripts/d0009/a3_config.py` の形で `scripts/d0009/pf_config.py`（P の条件＋`llm.answer_prompt_format: direct`＋question_split）と，連鎖 `scripts/d0009/pf_chain.sh`（smoke → G-L の確かめ → dev → 採点 → G-D → H2・H）を作る．G-L の数え方は `scripts/d0009/pf_diag.py` の集計（上限・`Answer:` の行）と同じにする．
+- **集計**：`scripts/d0009/pf_verdict.py` で G-D・H-PF1〜H-PF4・G-S を `results/d0009_pf_prompt/verdict.json` に書く．区間は `atrium.rerun_variance` の関数，McNemar は `atrium compare` を再利用する．回答は `sanitize_results.py` を通してから commit する．既存の results（運用ルール 12 の記録を含む）は変えない．
+- **gpu4 の判定の container**：phase 1 で `scripts/d0009/pf_import_g4.sh` により，G4 の GGUF も読み取り専用で mount して作り直した（volume の qwen3:8b・qwen3:14b-q8_0 は残っている．G4 は volume に取り込み済みで，`ollama stop` で VRAM から外した）．採点は従来どおり qwen3:8b を使う．
+
 ## Iteration 26: 回答の生成を各社の最新の公式モデルに替えたときの正答率・作り話・露出
 
 **位置づけ**：人間の指示でテーマを変えた（backlog B89・B92・B93・B95）．B88 で決めていた `answer_verification` は保留にしている．変える役割は 2 つある．(1) 回答の生成：`llm.expert_model_gpu` を base の llama3.1:8b から Gemma 4 12B へ替える．これがこのイテレーションのレバーである．(2) 採点の判定モデル：人間の指示で，回答の系統と開発元が違う公式モデル J1（Qwen3 14B）に替える．採点は保存した回答へのオフライン処理で，生成の実行（実機）はやり直さない．J1 の取得・登録・採点は B95 で承認された．この節が事前登録である．rc-executor が，J1 による採点の結果が出る前に commit・push する．

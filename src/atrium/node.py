@@ -555,7 +555,9 @@ def create_app(
         logprobs: bool = False,
     ) -> tuple[str, LlmUsage, float | None, int]:
         """（生成文，計測値，対数確率の平均，そのトークン数）を返す．対数確率は logprobs=True のときだけ（それ以外は None と 0）．"""
-        messages = prompts.build_messages(dataset, question, context, options, allow_unknown)
+        messages = prompts.build_messages(
+            dataset, question, context, options, allow_unknown, cfg.llm.answer_prompt_format
+        )
         try:
             result = await llm.chat(client, ollama_url, model, messages, cfg.llm, logprobs)
         except httpx.HTTPError as exc:

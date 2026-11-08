@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 26,
-  "iteration_name": "回答の生成を各社の最新の公式モデルに替えたときの正答率・作り話・露出",
-  "phase": "evaluate",
+  "iteration": 27,
+  "iteration_name": "回答のプロンプトを穴埋めの書式から直接の指示に替えたときの正答率・作り話",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "llm.expert_model_gpu: llama3.1:8b -> gemma4-12b-it-qat（生成モデル．採点は gpu4 のオフライン処理で，判定モデルは回答と別系統の公式モデル J1 qwen3:14b-q8_0（Qwen3-14B）の 1 つ．主判定は J1 での α = 0.05 の単独の McNemar．qwen3:8b は参考．J1 の取得・登録・採点は B95 で承認済み）",
+  "current_lever": "llm.answer_prompt_format: fill_in -> direct（EnronQA の回答のプロンプトの user の文面を穴埋めの書式から直接の指示〔理由を述べてから Answer: の行に 1 文．sha256 7a59a3ac…〕へ．生成は llama3.1:8b に固定，判定は qwen3:8b．実機の smoke 30 問の G-L → dev の G-D（Δ ≥ −0.010）→ Q = H ∪ H2 で非劣性 δ = 0.02．事前登録は journal の Iteration 27．backlog B99）",
   "experiment_dir": null,
   "experiment_deadline": null,
-  "updated_at": 1794104827,
+  "updated_at": 1794125329,
   "last_slack_ts": "1794116758.477809",
-  "iteration_thread_ts": "1794116747.722739",
+  "iteration_thread_ts": "1794125368.905279",
   "notion_toggle_created": true,
-  "last_commit": "afdea50"
+  "last_commit": "9a35f08"
 }

@@ -93,6 +93,7 @@ deploy は `atrium check-data` で今の `config.yaml` と照合し，違えば�
 | `requester_model` | `llama3.1:8b` | 断片返却型で質問者が使う Ollama のモデル（RAGRoute の既定と同じ系列） |
 | `expert_model` | `qwen3:0.6b` | 宿る型で各専門家が使うモデル．E0 の実測で見直す |
 | `expert_model_gpu` | `llama3.1:8b` | GPU を持つ専門家が宿る型で使うモデル（p0004）．省略すると `expert_model` と同じ |
+| `answer_prompt_format` | `fill_in`（既定）/ `direct` | EnronQA の回答のプロンプトの user の文面（Iteration 27）．`fill_in`：原論文の穴埋めの書式（従来の挙動）／`direct`：メールと質問の後に，理由を述べてから `Answer:` の行に 1 文で答えさせる直接の指示（system の文面・文脈の並べ方・回答の取り出しは同じ）．`direct` は EnronQA の通常のプロンプトだけで，`answer.aggregate: abstain`（UNKNOWN を許す形）との組は `ValueError`．各ノードが自分の config.yaml を読むので，委託の受け側も同じ値で生成する |
 | `num_predict` | 2048 | 生成の上限トークン数 |
 | `num_ctx` | 16384 | 文脈長．15 断片 × 約 250 トークンに質問と指示を足しても収まる長さ |
 | `think` | `false` | qwen3 系の思考モード |

@@ -1,0 +1,35 @@
+{
+ "model": "gemma4-12b-it-qat",
+ "n_questions": 40,
+ "num_predict": 2048,
+ "fill_in": {
+  "n": 39,
+  "errors": 1,
+  "hit_cap_rate": 0.9230769230769231,
+  "answer_line_rate": 0.07692307692307693,
+  "copy_start_rate": 1.0,
+  "median_output_tokens": 2048,
+  "median_answer_chars": 7082,
+  "median_total_s": 25.95363974
+ },
+ "direct": {
+  "n": 40,
+  "errors": 0,
+  "hit_cap_rate": 0.0,
+  "answer_line_rate": 0.0,
+  "copy_start_rate": 0.0,
+  "median_output_tokens": 26.0,
+  "median_answer_chars": 125.0,
+  "median_total_s": 1.303075315
+ },
+ "direct_cot": {
+  "n": 40,
+  "errors": 0,
+  "hit_cap_rate": 0.0,
+  "answer_line_rate": 1.0,
+  "copy_start_rate": 0.0,
+  "median_output_tokens": 110.0,
+  "median_answer_chars": 112.5,
+  "median_total_s": 1.530579673
+ }
+}
