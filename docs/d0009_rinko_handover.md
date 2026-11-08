@@ -105,6 +105,11 @@
   - dev の R3′ の正答率は，旧い判定モデルの印では 0.7778 で，判定モデルを替えると水準が約 5 pt 動く．質問集合の間で正答率を比べるときは同じ判定モデルの値だけを並べる．
   - 追加だけの CLI `atrium answer-select-eval` と `atrium select-features --answer-aware` は残してある．次は，LLM に文脈が回答を支えるかを問う検証で選ぶ案（値 `answer_verification`．`.claude/research/backlog.md` の B88）．
 - 着手（回答のプロンプトの形．生成の側）：Iteration 27（事前登録は `.claude/research/journal.md` の Iteration 27．設計の判断は `.claude/research/backlog.md` の B98・B99）．レバーは `llm.answer_prompt_format`（`fill_in` → `direct`）．Iteration 26 で生成モデルを Gemma 4 12B に替えたところ，主構成の穴埋めの書式のプロンプトでメール本文の書き写しが止まらなかったので，候補の回答を作るプロンプトを直接の指示（理由を述べてから `Answer:` の行に 1 文で答える）に替える．生成モデルは llama3.1:8b に固定する．実機の smoke と dev のゲートを通れば，H ∪ H2 で正答率の非劣性（δ = 0.02）・作り話・露出を比べる．
+- 完了（回答のプロンプトの形）：Iteration 27（2026-11-08．棄却．実機の smoke のゲートで止め，dev・H・H2 は流していない）．結果は `results/d0009_pf_prompt/verdict.json`，smoke は `results/d0009_pf_smoke/`（`gl.json`），記述は `.claude/research/journal.md` の Iteration 27．判定：
+  - llama3.1:8b に直接の指示を与えると，上限 2,048 トークンに達した候補が 0.216（判定に使った 17 問の 51 件）・0.224（150 問の 450 件）で，ゲートの上限 5% を超えた．失敗は 0，`Answer:` の行は 0.96 以上．同じ 150 問の穴埋めの書式の候補は上限 0/450．
+  - 上限に達した候補はほぼ全て持ち主でない受信箱の候補だった（100/304．持ち主の候補は 1/146）．答えが文脈に無いと，メールを 1 通ずつ引用して探し続け，打ち切られる．主構成のプロンプトは穴埋めの書式のまま．
+  - 生成モデルの替え（Gemma 4 12B は穴埋めの書式で書き写しが止まらない）に使える共通のプロンプトは得られていない．理由なしの直接の指示は試しておらず，人間の判断に残す（`.claude/research/backlog.md` の B100 (a)）．追加だけの設定キー `llm.answer_prompt_format`（既定 `fill_in`）は残してある．
+- 着手の予定（回答の検証）：Iteration 28 で値 `answer_verification` を再開する（`.claude/research/backlog.md` の B100．事前登録の申し送りは B88）．
 
 ## C. 手続き上の注意
 
@@ -148,7 +153,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 1 | A2 | レバー `d0009.A2_fabrication` | 完了（Iteration 21．採用．`results/d0009_a2_fabrication/`） |
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
-| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は未着手（Iteration 25 の評価で追加．backlog B88）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は着手（Iteration 27．backlog B99） |
+| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は未着手（Iteration 25 の評価で追加．backlog B88．Iteration 28 で再開の予定．B100）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 未着手 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |

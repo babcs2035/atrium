@@ -1,0 +1,51 @@
+{
+  "iteration": 27,
+  "lever": "llm.answer_prompt_format: fill_in -> direct（理由を述べてから Answer: の行に 1 文．sha256 7a59a3ac559ecb5676868443491061c547bae44b5bcabb1394590667fd08222b）．生成は llama3.1:8b に固定",
+  "preregistration": "journal の Iteration 27（commit e4f0f15．direct の実機の実行より前に push 済み）",
+  "verdict_original": {
+    "hypothesis": "H-PF1（direct にしても R3′ の最終回答の正答率は Q = H ∪ H2 で非劣性 δ = 0.02 の内にとどまる）",
+    "verdict": "rejected_gate_GL_failed",
+    "verdict_ja": "棄却（llama で direct の形が回答にならない．ゲート G-L 不通過）",
+    "decided_by": "事前登録の規則（ゲート G-L：満たさなければ dev の実行に進まず棄却）",
+    "live_run": "d0009_pf_smoke だけ（dev の受信箱ごとの先頭 1 問．150 問）．d0009_pf_dev_direct・d0009_pf_h2_direct・d0009_pf_h_direct は流していない",
+    "gates": {
+      "G_T": "通過（既定の messages はバイト単位で同じ．direct の文面の sha256 一致．mise run check 985 件通過．tests/test_failure_run.py の不安定な 1 件は B78 (c) のとおり 2 回目に通過）",
+      "G_L": {
+        "passes": false,
+        "judged_set": "Iteration 26 の dev300 の先頭 30 問の qid のうち smoke に含まれる 17 問（事前登録の 30 問は question_limit の仕様で指定できないための代替）",
+        "thresholds": {"failed_le": 1, "hit_cap_rate_le": 0.05, "answer_line_rate_ge": 0.95},
+        "judged_17": {"failed": 0, "hit_cap": 11, "n_generations": 51, "hit_cap_rate": 0.2157, "hit_cap_rate_wilson95_candidate_level": [0.125, 0.346], "answer_line_rate": 1.0, "median_output_tokens": 146},
+        "all_150": {"failed": 0, "hit_cap": 101, "n_generations": 450, "hit_cap_rate": 0.2244, "hit_cap_rate_wilson95_candidate_level": [0.188, 0.265], "answer_line_rate": 0.96, "median_output_tokens": 156},
+        "failed_criterion": "上限 2,048 に達した割合 ≤ 5%（失敗と Answer: の行は満たす）",
+        "source": "results/d0009_pf_smoke/gl.json"
+      },
+      "G_S": null,
+      "G_D": null,
+      "G_J": null,
+      "G3": "smoke の失敗 0/150",
+      "G_F": null
+    },
+    "H_PF1": null,
+    "H_PF2": null,
+    "H_PF3": null,
+    "H_PF4_smoke_descriptive": {
+      "all_candidates_total_s_median_direct": 62.7,
+      "same_150_qids_base_fill_in_total_s_median": 10.2,
+      "same_150_qids_base_fill_in_hit_cap": "0/450（出力トークン数の中央値 30）",
+      "note": "base は p0007_a6_dev（別の日）の同じ 150 問の候補．比は記述にとどめる"
+    },
+    "adoption": "取り込みの条件を満たさない．主構成のプロンプトは fill_in のまま．値 direct を閉じる",
+    "next_lever_by_rule": "事前登録の「主構成への取り込み」の規則により，次は d0009 B3 の answer_verification（backlog B88）",
+    "base_scoring_done": {
+      "d0009_m1_h2_base_R3p": "H2 の base の R3′ を qwen3:8b で採点（2,807 問．正答率 0.7296）．B98 (d) のため．判定には使っていない",
+      "d0009_pf_base_dev_R3p": "dev の base の R3′（0.7229．Iteration 25 と一致）"
+    }
+  },
+  "verdict_revised": {
+    "status": "事後の読み替え（採否に使わない）",
+    "observation": "上限に達した候補はほぼ全て持ち主でない受信箱の候補だった．持ち主の受信箱の候補 1/146（0.7%），持ち主でない受信箱の候補 100/304（32.9%）．top_score の順位では 1 位 5/150・2 位 45/150・3 位 51/150．max_score で採った候補で上限に達したものは 5/150（3.3%）",
+    "reading": "G-L を持ち主の候補か，採った候補だけで数えていれば，上限の割合は 5% 以下になる．ただし R3′ の選択は回答の文字列を見ず，持ち主でない候補を選ぶ問（主構成で約 13%）では打ち切られた長い出力が最終回答になりうるうえ，全候補の生成の時間（total_s の中央値 約 6 倍）は取り込みの条件（2 倍以下）にも当たらない見込みが大きい．読み替えでも判定は変わらない",
+    "verdict": "rejected（不変）"
+  },
+  "limits": "smoke の 150 問（判定は 17 問）だけの記述．正誤は採点していない．llama3.1:8b の direct の形の正答率・作り話は測っていない．候補単位の Wilson 区間は同じ問の候補の相関を無視した参考値（問単位でも 150 問中 80 問に上限の候補がある）"
+}

@@ -320,7 +320,8 @@ levers:
             値 answer_verification は Iteration 25 の評価で追加（backlog B88 [auto-decided]）．仮称．保存した 3 候補のそれぞれについて，LLM に「質問者へ渡る同じ上位 5 通の文脈が回答を支えるか」を問い，
             その得点（Yes の確率など）で選ぶ（Speculative RAG の検証の形．B87 (b) で退けた案の再検討）．回答の文字列と既存の特徴量の組み替えでは取れなかった「文脈による裏付け」を直接見る．
             検証の LLM（判定モデル qwen3:8b と別の系統を優先），プロンプト，得点，R3′ との組み合わせ，dev のゲート，質問集合は rc-researcher が事前登録で決める．
-            保留（人間の指示 2026-11-08．backlog B89）：Iteration 26 のテーマを「最新の LLM に替えたとき」に変えたので，answer_verification は着手せずに保留する（事前登録の申し送りは B88 (a)〜(f) に残す）"}
+            保留（人間の指示 2026-11-08．backlog B89）：Iteration 26 のテーマを「最新の LLM に替えたとき」に変えたので，answer_verification は着手せずに保留する（事前登録の申し送りは B88 (a)〜(f) に残す）．
+            再開（Iteration 27 の評価．backlog B100 [auto-decided]）：llm.answer_prompt_format の direct が棄却になり，Iteration 27 の事前登録の規則で次の値は answer_verification．Iteration 28 で着手する"}
   - {name: d0009.A6_remeasure_main, values: [load, failure, join],
      note: "d0009 A6（中）．負荷・障害・参加を主構成（cross-encoder による選択あり）で測り直す（p0007 D・E は選択を加える前の構成）．
             負荷は再実行で大小が逆転した（P2P 0.481〜0.497，中央 0.522〜0.535 問/秒．生成を 10 台に分散した中央は P2P の約 2.4 倍）ので，
@@ -365,7 +366,11 @@ levers:
             G-L の smoke は主構成の実際のプロンプトで行う（Iteration 26 の学び）．
             着手：Iteration 27（事前登録は journal の Iteration 27．backlog B99）．phase 1 の診断（gpu4・G4・dev 40 問）で fill_in は 92% が上限まで書き写し，direct は 0%．
             direct の文面は理由を述べてから `Answer:` の行に 1 文で答える形（sha256 7a59a3ac…）．判定モデルは qwen3:8b．llama は gpu4 に無いので，dev のゲートは実機の dev の実行で行う
-            （smoke 30 問の G-L → dev の Δ ≥ −0.010 の G-D → Q = H ∪ H2 で非劣性 δ = 0.02）"}
+            （smoke 30 問の G-L → dev の Δ ≥ −0.010 の G-D → Q = H ∪ H2 で非劣性 δ = 0.02）．
+            完了：Iteration 27（2026-11-08．棄却〔ゲート G-L 不通過．dev・H・H2 の実機は流していない〕）．結果は results/d0009_pf_prompt/verdict.json，smoke は results/d0009_pf_smoke（gl.json），
+            記述は journal の Iteration 27「実行済み」．llama3.1:8b の direct は上限 2,048 に達した候補が 0.216（判定の 17 問）・0.224（150 問）で上限 5% を超えた．
+            上限の候補はほぼ持ち主でない受信箱（100/304．持ち主は 1/146）で，答えが文脈に無いと理由の段で探し続ける．主構成のプロンプトは fill_in のまま．
+            理由なしの direct（書式と CoT を同時に変える）は試しておらず，生成モデルの替えの再挑戦とともに人間の判断に残す（backlog B100 (a)）．次は B3 の answer_verification（B100）"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．
