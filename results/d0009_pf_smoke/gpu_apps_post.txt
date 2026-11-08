@@ -1,0 +1,31 @@
+# 1794126821 2026-11-08T17:33:41
+== wafl500
+17.08 W, 0 %, 6928 MiB
+pid=193067  6846 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl501
+22.62 W, 0 %, 6857 MiB
+pid=297514  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl502
+17.28 W, 0 %, 6888 MiB
+pid=305307  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl503
+14.09 W, 0 %, 6888 MiB
+pid=307744  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl504
+12.28 W, 0 %, 6857 MiB
+pid=289885  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl505
+14.28 W, 0 %, 6857 MiB
+pid=293834  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl506
+12.84 W, 0 %, 6857 MiB
+pid=290169  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl507
+16.63 W, 0 %, 6857 MiB
+pid=288450  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl508
+15.92 W, 0 %, 6857 MiB
+pid=756321  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4
+== wafl509
+17.35 W, 0 %, 6857 MiB
+pid=754599  6848 MiB /usr/lib/ollama/llama-server --model /ollama/models/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4

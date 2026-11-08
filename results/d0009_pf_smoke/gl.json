@@ -1,0 +1,32 @@
+{
+ "num_predict": 2048,
+ "first_30_qids_in_smoke": 17,
+ "first_30": {
+  "n_questions": 17,
+  "failed": 0,
+  "n_generations_counted": 51,
+  "hit_cap": 11,
+  "hit_cap_rate": 0.21568627450980393,
+  "n_chosen_raw": 17,
+  "answer_line": 17,
+  "answer_line_rate": 1.0,
+  "median_output_tokens": 146
+ },
+ "all": {
+  "n_questions": 150,
+  "failed": 0,
+  "n_generations_counted": 450,
+  "hit_cap": 101,
+  "hit_cap_rate": 0.22444444444444445,
+  "n_chosen_raw": 150,
+  "answer_line": 144,
+  "answer_line_rate": 0.96,
+  "median_output_tokens": 156
+ },
+ "G_L": {
+  "failed_le": 1,
+  "hit_cap_le": 0.05,
+  "answer_line_ge": 0.95,
+  "passes": false
+ }
+}

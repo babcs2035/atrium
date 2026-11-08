@@ -115,6 +115,23 @@ G-L は通過する（候補の `Answer:` の行 ≥ 98%）．dev の Δ は −
 - **集計**：`scripts/d0009/pf_verdict.py` で G-D・H-PF1〜H-PF4・G-S を `results/d0009_pf_prompt/verdict.json` に書く．区間は `atrium.rerun_variance` の関数，McNemar は `atrium compare` を再利用する．回答は `sanitize_results.py` を通してから commit する．既存の results（運用ルール 12 の記録を含む）は変えない．
 - **gpu4 の判定の container**：phase 1 で `scripts/d0009/pf_import_g4.sh` により，G4 の GGUF も読み取り専用で mount して作り直した（volume の qwen3:8b・qwen3:14b-q8_0 は残っている．G4 は volume に取り込み済みで，`ollama stop` で VRAM から外した）．採点は従来どおり qwen3:8b を使う．
 
+### 追記（phase 2．2026-11-08．実装・smoke の結果．判定ではなく記録）
+
+- **事前登録の commit**：`e4f0f15`（実装・試験・診断・実行のスクリプトを含む．direct の実機の実行より前に push 済み）．phase 1 の記述にあった `pf_config.py`・`pf_chain.sh` は未作成だったので，phase 2 で作ってから同じ commit に入れた．`pf_verdict.py`・`pf_gl.py`・`pf_score.sh` はその後に書いた（smoke の G-L の数えは `pf_gl.py`）．
+- **G-T**：通過．`mise run check` 985 件が通過（`tests/test_failure_run.py` の不安定な 1 件は，1 回目に失敗し，直前の commit でも失敗し，2 回目は通過．B78 (c) のとおり）．既定の messages は事前の `build_messages` の出力と sha256 が一致（試験で固定），direct の文面の sha256 は 7a59a3ac…8222b．
+- **smoke の条件の違い（記録）**：`question_limit` は受信箱ごとの先頭の数なので，30 問だけを指定できない．dev の受信箱ごとの先頭 1 問（150 問）を流した．Iteration 26 の dev300 の先頭 30 問の qid のうち 17 問が含まれる．G-L の判定は事前登録の「30 問」に最も近い，この 17 問の値とし，150 問の値を併記する．`Answer:` の行は，候補の回答が取り出し後の文字列で保存されるため，採った 1 つの候補の生の出力（`answer`）で数えた．
+- **G-L（`d0009_pf_smoke`．gpu のノードは wafl500〜509．実行の前に全 10 台の使用メモリは 74 MiB 以下．交絡なし）**：
+
+| 集合 | 失敗 | 上限 2,048 に達した割合 | `Answer:` の行がある割合 | 出力トークン数の中央値 |
+|---|---|---|---|---|
+| 17 問（先頭 30 問の qid と重なる分．判定） | 0 | 0.216（11/51 候補） | 1.000（17/17） | 146 |
+| 150 問（全問） | 0 | 0.224（101/450 候補） | 0.960（144/150） | 156 |
+
+  - **G-L は不通過**（上限に達した割合 ≤ 5% を満たさない．失敗と `Answer:` の行は満たす）．事前登録の規則により **dev 以降（`d0009_pf_dev_direct`・H2・H）は流さず，「棄却（llama で direct の形が回答にならない）」とする**．
+  - 上限に達した候補は 150 問の 80 問（53%）に 1〜2 件あり，3 候補が全て達した問はない．全候補の `total_s` の中央値は 62.7 秒（p95 205.8 秒．同時 30 問の待ちを含む値．別の日の base の dev は中央値 14.6 秒・p95 253.4 秒で，比は記述にとどめる）．採った候補の出力の 150 問中 5 問は 3,000 文字を超え，メールの本文を 1 通ずつ引用して「まだ見つからない」と読み進める途中で打ち切られていた（`answer` は sanitize 後に残る先頭と末尾で確認した）．参考：base の fill_in は上限に達した候補が dev で 0.38%．
+  - G4 の診断（direct_cot で上限 0/40）は，llama3.1:8b に当てはまらなかった．llama は理由を述べさせると，文脈の 5 通を順に読み直す形に入りやすい（推測．確かめるなら理由なしの `direct` を試す必要があるが，書式と CoT の 2 つを同時に変えることになる）．
+- **base の H2（`d0009_m1_h2_base`）の採点**：B98 (d) のため，R3′ の最終回答を `scripts/d0009/pf_score.sh` で qwen3:8b により採点した（`results/d0009_m1_h2_base_R3p`．2,807 問．失敗 0．qwen3:8b の正答 2,048・不正解 758・判定が付かなかった 1 件．判定不能 0．正答率は失敗・未判定を不正解として 0.7296．`sanitize_results.py` を通した）．base の dev の R3′ の派生 `results/d0009_pf_base_dev_R3p`（`atrium select-eval --apply R3 --ignore-unknown`．正答率 0.7229 = 2,131/2,948 で Iteration 25 の値と一致）も作った．
+
 ## Iteration 26: 回答の生成を各社の最新の公式モデルに替えたときの正答率・作り話・露出
 
 **位置づけ**：人間の指示でテーマを変えた（backlog B89・B92・B93・B95）．B88 で決めていた `answer_verification` は保留にしている．変える役割は 2 つある．(1) 回答の生成：`llm.expert_model_gpu` を base の llama3.1:8b から Gemma 4 12B へ替える．これがこのイテレーションのレバーである．(2) 採点の判定モデル：人間の指示で，回答の系統と開発元が違う公式モデル J1（Qwen3 14B）に替える．採点は保存した回答へのオフライン処理で，生成の実行（実機）はやり直さない．J1 の取得・登録・採点は B95 で承認された．この節が事前登録である．rc-executor が，J1 による採点の結果が出る前に commit・push する．
