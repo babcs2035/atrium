@@ -24,15 +24,24 @@
         --ollama-url http://ollama:11434 [--n-devices 3] [--delays 0,10,100]
 
 出力：`<out>/join.json`・`verdict.json`（`verdict_original`）・`sim_vs_live.json`・`run_meta.json`．
+
+**主構成での測り直し（d0009 A6 参加．Iteration 31．docs/d0003 §7.3）**：config が `routing: bm25_probe` なら P2P のルーターは `Bm25ProbeRouter`
+（`Bm25Stats` はノードの公開情報 `bm25_len_total` などから質問者が組み立てる．`device_summary.assemble_bm25_stats`），
+`answer_mode: owner_answer` なら「答えられた」は `is_owner_answered`（選んだ候補の文脈に正解のメール．R3′ の表は `--owner-table`），
+`question_split` が test 以外なら質問はその分割の各受信箱の先頭 `--max-tries-per-inbox` 問（ファイルの順）．
+`--central-mode c1_rrf_ce` なら中央は C1-RRF-CE（RRF の上位 `retrieval.k_ret` 通を cross-encoder の表 `--central-table` で並べ替えた上位 5 通 → 生成．
+生成は `central_generation: gpu_nodes` の経路）で，索引への追加は別のスレッドで行う．`--delays ""` は通知の遅れの感度を流さない．
+最後に，質問者が組み立てた `Bm25Stats` とオフラインの `summary/bm25_stats.npz` の差（G-A）を `sim_vs_live.json` に書く．
 """
 
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import logging
 import random
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -46,6 +55,7 @@ from atrium.device_summary import (
     BODY_CENTROIDS,
     DeviceSummary,
     assemble_artifact,
+    assemble_bm25_stats,
     published_bytes,
 )
 from atrium.dynamics import (
@@ -55,7 +65,14 @@ from atrium.dynamics import (
     judge_join,
     summarize_times,
 )
-from atrium.live_common import is_hit, load_test_questions, write_json
+from atrium.failure_run import FAILURE_OTHER, classify_failure
+from atrium.live_common import (
+    is_hit,
+    is_owner_answered,
+    load_split_questions,
+    load_test_questions,
+    write_json,
+)
 from atrium.manifest import NodeAssignment, Placement
 from atrium.node import DocEmbedder
 from atrium.protocol import (
@@ -69,12 +86,14 @@ from atrium.requester import (
     RETRIEVE_TIMEOUT_S,
     CachedQueryEmbedder,
     Requester,
+    TableCandidateScorer,
+    TableReranker,
     discover_shards,
 )
 from atrium.routing import RoutingQuery, SourceProfile, build_source_profiles
 from atrium.routing.advert import tokenize
 from atrium.routing.central import CentralIndex
-from atrium.routing.summary import SummaryProbeRouter
+from atrium.routing.summary import Bm25ProbeRouter, SummaryProbeRouter
 from atrium.verdict import write_verdict
 
 logger = logging.getLogger(__name__)
@@ -90,6 +109,21 @@ SUMMARY_CONCURRENCY = 30
 # 公開情報の作成の要求の打ち切り（秒）．デバイスの CPU で全メールの本文を埋め込むので数分かかる（実機の煙試験で 120 秒を超えた）
 SUMMARY_TIMEOUT_S = 3600.0
 CENTRAL_TOP_K = 5
+# 試行の記録に残す質問者の時間の内訳（質問者の `timings` のキー）
+TRY_TIMING_KEYS = ("route_s", "generate_s", "ce_s", "retrieve_s", "rerank_s")
+# 中央の測定の方式：索引の上位 5 通に正解（p0007 E2．既定）／C1-RRF-CE（再ランクと生成まで通す．d0009 A6 参加）
+CENTRAL_MODE_RETRIEVAL = "retrieval_top"
+CENTRAL_MODE_C1_RRF_CE = "c1_rrf_ce"
+# 参加の前の確かめで同時に流す質問の数の上限（owner_answer は 1 問が 27 回の要求になるので絞る．従来は全問を同時）
+PRE_JOIN_PARALLEL_OWNER = 8
+# 表に無い組の KeyError は，メッセージが（質問，文書 ID）の組の表記で始まる（他の KeyError と分けるため）
+TABLE_MISS_PREFIX = "KeyError: ("
+FAILURE_TABLE_MISS = "table_miss"
+# G-A（公開情報の組み立て）の許容：長さの平均の相対差
+STATS_REL_TOLERANCE = 1e-6
+# 候補の一致を調べる質問の数：test は先頭 300 問（従来），それ以外は受信箱ごとの先頭 AGREEMENT_PER_INBOX 問
+AGREEMENT_TEST_QUESTIONS = 300
+AGREEMENT_PER_INBOX = 2
 
 
 @dataclass(frozen=True)
@@ -106,6 +140,10 @@ class JoinParams:
     # 動作確認用（本番は None）．最初のメンバーを先頭から数台だけにする／公開情報に使うメールを受信箱ごとに先頭から数通だけにする
     initial_devices: int | None = None
     summary_max_docs: int | None = None
+    # 中央の測定の方式（CENTRAL_MODE_*）と，cross-encoder の表（None なら data ディレクトリの既定の表）
+    central_mode: str = CENTRAL_MODE_RETRIEVAL
+    owner_table: Path | None = None
+    central_table: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -186,6 +224,12 @@ class JoinContext:
     encoder_name: str
     state: MemberState = field(default_factory=MemberState)
     admit_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    # 「答えられた」の判定（既定は top_doc_ids．owner_answer は選んだ候補の文脈）
+    answered: Callable[[Mapping[str, Any], str], bool] = is_hit
+    # 受信箱の質問の並び：既定は質問 ID の順（test）．False ならファイルの順（H など．先頭の問から試す）
+    sort_questions_by_qid: bool = True
+    # 中央の測定が c1_rrf_ce のときの，中央の質問者（再ランクと生成まで通す）
+    central_requester: Requester | None = None
 
     @property
     def url_of_host(self) -> dict[str, str]:
@@ -197,8 +241,13 @@ class JoinContext:
         return next(n for n in self.full_placement.nodes if n.host == host)
 
     def questions_of(self, inbox: str) -> list[Question]:
-        """受信箱の質問（質問 ID の順）．"""
-        return sorted((q for q in self.questions if q.bank == inbox), key=lambda q: q.qid)
+        """受信箱の質問（既定は質問 ID の順．sort_questions_by_qid が False ならファイルの順）．"""
+        inbox_questions = [q for q in self.questions if q.bank == inbox]
+        return (
+            sorted(inbox_questions, key=lambda q: q.qid)
+            if self.sort_questions_by_qid
+            else inbox_questions
+        )
 
 
 # ── 公開情報の取得と，メンバー表の更新 ────────────────────────────────────────
@@ -218,6 +267,7 @@ def summary_from_response(response: SummaryResponse) -> DeviceSummary:
         tokenize_s=response.tokenize_s,
         embed_s=response.embed_s,
         kmeans_s=response.kmeans_s,
+        bm25_len_total=response.bm25_len_total,
     )
 
 
@@ -258,7 +308,10 @@ async def fetch_summary(
 def make_router_and_sources(
     ctx: JoinContext, state: MemberState
 ) -> tuple[Placement, list[SourceProfile], SummaryProbeRouter]:
-    """今のメンバー（state）から，配置・データ源・hybrid_probe のルーター（公開情報から組み立てた要約）を作る．"""
+    """今のメンバー（state）から，配置・データ源・ルーター（公開情報から組み立てた要約）を作る．
+
+    ルーターは既定が hybrid_probe．config が routing=bm25_probe なら Bm25ProbeRouter（`Bm25Stats` も公開情報から組み立てる．m は answer.owner_m）．
+    """
     cfg = ctx.cfg
     member_inboxes = {sid for n in state.nodes for sid in n.shard_ids}
     sources = build_source_profiles(
@@ -268,14 +321,33 @@ def make_router_and_sources(
     url_of_shard = ctx.full_placement.url_of_shard()
     device_of_source = {s.source: url_of_shard[s.shard_ids[0]] for s in sources}
     artifact = assemble_artifact(names, device_of_source, state.summaries, TERM_SIZE)
-    router = SummaryProbeRouter(
-        "hybrid",
-        cfg.routing.top_m["enronqa"],
-        cfg.routing.hybrid_probe_d["enronqa"],
-        artifact,
-        ctx.encoder_name,
-        cfg.routing.summary_weight,
-    )
+    router: SummaryProbeRouter
+    if cfg.experiment.routing == "bm25_probe":
+        if cfg.routing.owner_score != "fused_max":
+            raise ValueError("join-run supports only routing.owner_score=fused_max")
+        stats = assemble_bm25_stats(artifact, device_of_source, state.summaries)
+        router = Bm25ProbeRouter(
+            cfg.answer.owner_m
+            if cfg.experiment.answer_mode == "owner_answer"
+            else cfg.routing.top_m["enronqa"],
+            cfg.routing.bm25_probe_d["enronqa"],
+            dataclasses.replace(artifact, bm25=stats),
+            ctx.encoder_name,
+            cfg.routing.summary_weight,
+            cfg.routing.bm25_weight,
+            cfg.routing.owner_score,
+            cfg.routing.owner_score_agg,
+            cfg.routing.owner_score_k,
+        )
+    else:
+        router = SummaryProbeRouter(
+            "hybrid",
+            cfg.routing.top_m["enronqa"],
+            cfg.routing.hybrid_probe_d["enronqa"],
+            artifact,
+            ctx.encoder_name,
+            cfg.routing.summary_weight,
+        )
     placement = Placement(
         dataset=ctx.full_placement.dataset,
         nodes=list(state.nodes),
@@ -350,17 +422,50 @@ async def set_available(ctx: JoinContext, hosts: Sequence[str], up: bool) -> Non
     await asyncio.gather(*(one(h) for h in hosts))
 
 
+def failure_kind_of(error: str | None) -> str | None:
+    """質問者の結果の `error` を失敗の形（table_miss・http・other．失敗していなければ None）に分ける．
+
+    表に無い組の KeyError は `KeyError: ('<質問>', '<文書 ID>')` の形で，委託先が見つからない KeyError など他の KeyError と区別する
+    （`classify_failure` は KeyError を全て table_miss とするので，ここで先に分ける）．
+    """
+    if error is None:
+        return None
+    if error.startswith("KeyError"):
+        return FAILURE_TABLE_MISS if error.startswith(TABLE_MISS_PREFIX) else FAILURE_OTHER
+    return classify_failure(error)[0]
+
+
+def try_row(
+    record: Mapping[str, Any], answered: bool, qid: str, finished_s: float
+) -> dict[str, Any]:
+    """1 回の試行の記録（質問の本文は残さない）．finished_s は参加の時刻からその試行が終わった時刻までの秒数．"""
+    timings = record.get("timings", {})
+    return {
+        "qid": qid,
+        "answered": answered,
+        "finished_s": finished_s,
+        "e2e_s": timings.get("e2e_s"),
+        "failure_kind": failure_kind_of(record.get("error")),
+        "timings": {k: timings[k] for k in TRY_TIMING_KEYS if k in timings},
+    }
+
+
 async def first_answer_p2p(
     ctx: JoinContext, inbox: str, origin: float, max_tries: int
 ) -> dict[str, Any]:
-    """受信箱の質問を順に流し，正解のメールが上位 5 通に入った最初の質問までの時間（origin = perf_counter の参加の時刻から）．"""
-    tries = 0
+    """受信箱の質問を順に流し，「答えられた」最初の質問が終わるまでの時間（origin = perf_counter の参加の時刻から）．
+
+    「答えられた」は ctx.answered（既定は正解のメールが上位 5 通．owner_answer は選んだ候補の文脈に正解）．
+    """
+    rows: list[dict[str, Any]] = []
     for question in ctx.questions_of(inbox)[:max_tries]:
-        tries += 1
         record = await ctx.requester.process(question)
-        if is_hit(record, ctx.gold_doc_of[question.qid]):
-            return {"inbox": inbox, "answer_s": time.perf_counter() - origin, "tries": tries}
-    return {"inbox": inbox, "answer_s": None, "tries": tries}
+        ok = ctx.answered(record, ctx.gold_doc_of[question.qid])
+        finished_s = time.perf_counter() - origin
+        rows.append(try_row(record, ok, question.qid, finished_s))
+        if ok:
+            return {"inbox": inbox, "answer_s": finished_s, "tries": len(rows), "rows": rows}
+    return {"inbox": inbox, "answer_s": None, "tries": len(rows), "rows": rows}
 
 
 async def measure_p2p_join(ctx: JoinContext, params: JoinParams) -> dict[str, Any]:
@@ -412,7 +517,10 @@ async def measure_central_join(
     """加わる受信箱の全メールを持ち主のデバイスから取り出し，中央が埋め込んで索引に足し，その受信箱の質問に答えられるまでを測る．
 
     デバイスごとに（取り出し → 埋め込み → 追加 → 質問）を並行して流す．中央の埋め込みと索引への追加は同時に 1 つだけ行う．
+    central_mode が c1_rrf_ce なら，質問は中央の質問者（再ランクと生成まで通す）で流し，「答えられた」は `is_hit`（上位 5 通に正解・失敗なし），
+    索引への追加（BM25 の作り直し）は別のスレッドで行う（他のデバイスの質問を止めないため．検索は追加前の索引で答える）．
     """
+    full_path = params.central_mode == CENTRAL_MODE_C1_RRF_CE
     origin = time.perf_counter()
     central_lock = asyncio.Lock()
     k = ctx.cfg.data.require_enronqa().k_context
@@ -442,20 +550,36 @@ async def measure_central_join(
             begin = time.perf_counter()
             emb = await asyncio.to_thread(embedder.encode_texts, [d.content for d in docs])
             embed_s = time.perf_counter() - begin
-            add_s = central.append(
-                [d.doc_id for d in docs], [d.title for d in docs], [d.content for d in docs], emb
+            ids, titles, contents = (
+                [d.doc_id for d in docs],
+                [d.title for d in docs],
+                [d.content for d in docs],
             )
+            if full_path:
+                add_s = await asyncio.to_thread(central.append, ids, titles, contents, emb)
+            else:
+                add_s = central.append(ids, titles, contents, emb)
+            bm25_s = central.bm25_s
         indexed_s = time.perf_counter() - origin
         answers: list[dict[str, Any]] = []
         for inbox in inboxes:
             tries = 0
             answered: float | None = None
+            rows: list[dict[str, Any]] = []
             for question in ctx.questions_of(inbox)[: params.max_tries_per_inbox]:
                 tries += 1
-                if hit(question):
+                if full_path:
+                    if ctx.central_requester is None:
+                        raise RuntimeError("central_mode=c1_rrf_ce requires a central requester")
+                    record = await ctx.central_requester.process(question)
+                    ok = is_hit(record, ctx.gold_doc_of[question.qid])
+                    rows.append(try_row(record, ok, question.qid, time.perf_counter() - origin))
+                else:
+                    ok = hit(question)
+                if ok:
                     answered = time.perf_counter() - origin
                     break
-            answers.append({"inbox": inbox, "answer_s": answered, "tries": tries})
+            answers.append({"inbox": inbox, "answer_s": answered, "tries": tries, "rows": rows})
         return {
             "host": host,
             "n_mails": len(docs),
@@ -463,6 +587,7 @@ async def measure_central_join(
             "transfer_s": transfer_s,
             "embed_s": embed_s,
             "add_s": add_s,
+            "bm25_s": bm25_s,
             "indexed_s": indexed_s,
             "answers": answers,
         }
@@ -501,7 +626,7 @@ async def measure_delay(
         record = await ctx.requester.process(question)
         if question.bank not in joiner_set:
             continue
-        ok = is_hit(record, ctx.gold_doc_of[question.qid])
+        ok = ctx.answered(record, ctx.gold_doc_of[question.qid])
         if position < delay_questions:
             joiner_before += 1
             hits_before += ok
@@ -527,12 +652,18 @@ async def measure_delay(
     }
 
 
-async def pre_join_hit_rate(ctx: JoinContext) -> dict[str, Any]:
-    """参加の前に，加わる受信箱の質問へ答えられるか（メンバーに入っていないので答えられない見込み）．"""
+async def pre_join_hit_rate(ctx: JoinContext, parallel: int | None = None) -> dict[str, Any]:
+    """参加の前に，加わる受信箱の質問へ答えられるか（メンバーに入っていないので答えられない見込み）．parallel は同時に流す質問の数（None なら全問）．"""
     joiner_set = set(ctx.plan.joiner_inboxes)
     asked = [q for q in ctx.questions if q.bank in joiner_set]
-    records = await asyncio.gather(*(ctx.requester.process(q) for q in asked))
-    hits = [is_hit(r, ctx.gold_doc_of[q.qid]) for q, r in zip(asked, records, strict=True)]
+    semaphore = asyncio.Semaphore(parallel or max(1, len(asked)))
+
+    async def one(question: Question) -> dict[str, Any]:
+        async with semaphore:
+            return await ctx.requester.process(question)
+
+    records = await asyncio.gather(*(one(q) for q in asked))
+    hits = [ctx.answered(r, ctx.gold_doc_of[q.qid]) for q, r in zip(asked, records, strict=True)]
     return {"n_questions": len(asked), "hit_rate": float(np.mean(hits)) if hits else None}
 
 
@@ -567,6 +698,65 @@ def candidate_agreement(
     return same / len(questions) if questions else 0.0
 
 
+def agreement_questions(ctx: JoinContext) -> list[Question]:
+    """候補の一致を調べる質問：test は先頭 AGREEMENT_TEST_QUESTIONS 問（従来），それ以外は各受信箱の先頭 AGREEMENT_PER_INBOX 問．"""
+    if ctx.cfg.experiment.question_split == "test":
+        return ctx.questions[:AGREEMENT_TEST_QUESTIONS]
+    taken: dict[str, int] = {}
+    chosen: list[Question] = []
+    for question in ctx.questions:
+        if taken.get(question.bank, 0) < AGREEMENT_PER_INBOX:
+            taken[question.bank] = taken.get(question.bank, 0) + 1
+            chosen.append(question)
+    return chosen
+
+
+def compare_bm25_stats(
+    live: SummaryProbeRouter, offline: SummaryProbeRouter
+) -> dict[str, Any] | None:
+    """質問者が公開情報から組み立てた `Bm25Stats` と，オフラインの `summary/bm25_stats.npz` の差（G-A．どちらかに無ければ None）．
+
+    published_df は語で対応づける（語彙の並びは違いうる）．片方にだけある語の数と，共通の語の差の最大も残す．
+    """
+    live_artifact, offline_artifact = live.artifact, offline.artifact
+    if live_artifact.bm25 is None or offline_artifact.bm25 is None:
+        return None
+    a, b = live_artifact.bm25, offline_artifact.bm25
+    only_live = [t for t in live_artifact.vocab if t not in offline_artifact.vocab]
+    only_offline = [t for t in offline_artifact.vocab if t not in live_artifact.vocab]
+    common = [t for t in live_artifact.vocab if t in offline_artifact.vocab]
+    diffs = np.asarray(
+        [
+            abs(
+                float(a.published_df[live_artifact.vocab[t]])
+                - float(b.published_df[offline_artifact.vocab[t]])
+            )
+            for t in common
+        ]
+    )
+    rel = abs(a.avg_doc_len - b.avg_doc_len) / b.avg_doc_len if b.avg_doc_len else None
+    return {
+        "n_docs_live": a.n_docs,
+        "n_docs_offline": b.n_docs,
+        "avg_doc_len_live": a.avg_doc_len,
+        "avg_doc_len_offline": b.avg_doc_len,
+        "avg_doc_len_rel_diff": rel,
+        "n_terms_only_live": len(only_live),
+        "n_terms_only_offline": len(only_offline),
+        "n_terms_common": len(common),
+        "n_terms_df_mismatch": int((diffs > 0).sum()),
+        "max_abs_df_diff": float(diffs.max()) if len(diffs) else 0.0,
+        "g_a_stats_match": bool(
+            a.n_docs == b.n_docs
+            and rel is not None
+            and rel <= STATS_REL_TOLERANCE
+            and not only_live
+            and not only_offline
+            and not int((diffs > 0).sum())
+        ),
+    }
+
+
 async def run_join(
     ctx: JoinContext,
     central: CentralIndex,
@@ -580,7 +770,10 @@ async def run_join(
     try:
         setup = await collect_initial_members(ctx, params)
         initial = make_router_and_sources(ctx, ctx.state)
-        pre = await pre_join_hit_rate(ctx)
+        pre = await pre_join_hit_rate(
+            ctx,
+            PRE_JOIN_PARALLEL_OWNER if ctx.cfg.experiment.answer_mode == "owner_answer" else None,
+        )
         p2p = await measure_p2p_join(ctx, params)
         final = make_router_and_sources(ctx, ctx.state)
         central_result = await measure_central_join(ctx, central, embedder, params)
@@ -589,9 +782,12 @@ async def run_join(
         )
         delays = [await measure_delay(ctx, d, stream, initial, final) for d in params.delays]
         agreement = (
-            candidate_agreement(ctx, final[2], offline_router, final[1], ctx.questions[:300])
+            candidate_agreement(ctx, final[2], offline_router, final[1], agreement_questions(ctx))
             if offline_router is not None
             else None
+        )
+        stats_check = (
+            compare_bm25_stats(final[2], offline_router) if offline_router is not None else None
         )
     finally:
         # 測定の後は全てのノードを有効にして終える
@@ -628,6 +824,7 @@ async def run_join(
         {
             "pre_join": {"predicted_hit_rate": 0.0, "live_hit_rate": pre["hit_rate"]},
             "candidate_agreement_with_offline_summary": agreement,
+            "bm25_stats_vs_offline": stats_check,
             "delay_zero_vs_main": _delay_zero_vs_main(delays, p2p),
             "causes": (
                 "候補の不一致は，デバイスの CPU と GPU の埋め込みの丸め（重心が僅かに違う）と，"
@@ -674,20 +871,39 @@ async def run_join_command(
     paths = dataset_paths(data_dir, "enronqa")
     placement = read_placement(placement_path)
     e = cfg.data.require_enronqa()
-    questions, gold = load_test_questions(paths)
+    split = cfg.experiment.question_split
+    owner = cfg.experiment.answer_mode == "owner_answer"
+    if split == "test":
+        questions, gold = load_test_questions(paths)
+    else:
+        # test 以外（H など）は各受信箱の先頭 max_tries_per_inbox 問をファイルの順で使う（質問 ID の順に並べ替えない）
+        questions, gold = load_split_questions(paths, split, params.max_tries_per_inbox)
     plan = plan_join(placement, e.sources, params.n_devices, params.seed, params.initial_devices)
     out_dir.mkdir(parents=True, exist_ok=True)
     async with build_http_client(cfg.experiment.http_pool, placement) as client:
+        embedder = (
+            CachedQueryEmbedder(paths.query_ids, {e.encoder: paths.query_embeddings(e.encoder)})
+            if split == "test"
+            else make_split_query_embedder(cfg, data_dir)
+        )
+        candidate_scorer: TableCandidateScorer | None = None
+        if owner and cfg.answer.aggregate == "cross_encoder":
+            if cfg.retrieval.ce_scores != "table":
+                raise ValueError(
+                    "join-run needs retrieval.ce_scores=table (no GPU on the requester)"
+                )
+            candidate_scorer = TableCandidateScorer(
+                params.owner_table or paths.ce_table_owner(split)
+            )
         requester = Requester(
             cfg=cfg,
             placement=plan.initial_placement,
             sources=[],
             router=AllRouter(),
-            embedder=CachedQueryEmbedder(
-                paths.query_ids, {e.encoder: paths.query_embeddings(e.encoder)}
-            ),
+            embedder=embedder,
             client=client,
             ollama_url=ollama_url,
+            candidate_scorer=candidate_scorer,
         )
         ctx = JoinContext(
             cfg=cfg,
@@ -699,19 +915,47 @@ async def run_join_command(
             gold_doc_of={q.qid: gold[q.qid]["path"] for q in questions},
             source_order=list(e.sources),
             encoder_name=e.encoder,
+            answered=is_owner_answered if owner else is_hit,
+            sort_questions_by_qid=split == "test",
         )
         central = CentralIndex.from_corpus(cfg, paths, sources=plan.initial_inboxes)
-        embedder = ArcticEncoder(e.encoder, e.embed_batch_size)
+        if params.central_mode == CENTRAL_MODE_C1_RRF_CE:
+            ctx.central_requester = Requester(
+                cfg=central_config(cfg),
+                placement=placement,
+                sources=[],
+                router=AllRouter(),
+                embedder=embedder,
+                client=client,
+                ollama_url=ollama_url,
+                central_index=central,
+                reranker=TableReranker(params.central_table or paths.ce_table(split)),
+            )
+        text_encoder = ArcticEncoder(e.encoder, e.embed_batch_size)
         summary_dir = paths.root / SUMMARY_DIRNAME
-        offline = None
+        offline: SummaryProbeRouter | None = None
         if summary_dir.exists():
-            offline = SummaryProbeRouter(
-                "hybrid",
-                cfg.routing.top_m["enronqa"],
-                cfg.routing.hybrid_probe_d["enronqa"],
-                load_summary(summary_dir),
-                e.encoder,
-                cfg.routing.summary_weight,
+            offline = (
+                Bm25ProbeRouter(
+                    cfg.answer.owner_m if owner else cfg.routing.top_m["enronqa"],
+                    cfg.routing.bm25_probe_d["enronqa"],
+                    load_summary(summary_dir),
+                    e.encoder,
+                    cfg.routing.summary_weight,
+                    cfg.routing.bm25_weight,
+                    cfg.routing.owner_score,
+                    cfg.routing.owner_score_agg,
+                    cfg.routing.owner_score_k,
+                )
+                if cfg.experiment.routing == "bm25_probe"
+                else SummaryProbeRouter(
+                    "hybrid",
+                    cfg.routing.top_m["enronqa"],
+                    cfg.routing.hybrid_probe_d["enronqa"],
+                    load_summary(summary_dir),
+                    e.encoder,
+                    cfg.routing.summary_weight,
+                )
             )
         write_json(
             out_dir / RUN_META,
@@ -720,15 +964,47 @@ async def run_join_command(
                 "kind": "join_run",
                 "git_head": read_image_git_head(),
                 "routing": cfg.experiment.routing,
+                "question_split": split,
+                "central_mode": params.central_mode,
+                "owner_table": str(params.owner_table) if params.owner_table else None,
+                "central_table": str(params.central_table) if params.central_table else None,
                 "joiner_hosts": plan.joiner_hosts,
                 "joiner_inboxes": plan.joiner_inboxes,
                 "central_index": {"n_docs": central.n_docs, "load_s": central.load.total_s},
                 "config": cfg.model_dump(mode="json"),
             },
         )
-        return await run_join(ctx, central, embedder, params, out_dir, offline)
+        return await run_join(ctx, central, text_encoder, params, out_dir, offline)
 
 
 def parse_delays(text: str) -> tuple[int, ...]:
-    """ "0,10,100" を通知の遅れ（問）の組にする．"""
-    return tuple(int(t) for t in text.split(","))
+    """ "0,10,100" を通知の遅れ（問）の組にする（空の文字列は感度を流さない）．"""
+    return tuple(int(t) for t in text.split(",") if t.strip())
+
+
+def make_split_query_embedder(cfg: AtriumConfig, data_dir: Path) -> CachedQueryEmbedder:
+    """test 以外の分割（holdout など）のクエリ埋め込み（`atrium start` と同じ読み方）を引く埋め込み器．"""
+    from atrium.experiment import _make_embedder
+
+    embedder = _make_embedder(cfg, data_dir, [])
+    if not isinstance(embedder, CachedQueryEmbedder):
+        raise TypeError("join-run needs cached query embeddings")
+    return embedder
+
+
+def central_config(cfg: AtriumConfig) -> AtriumConfig:
+    """主構成の config から，中央 C1-RRF-CE の質問者の config を作る（索引は質問者が持ち，RRF の上位を cross-encoder の表で並べ替え，生成は GPU の PC へ送る）．"""
+    return cfg.model_copy(
+        update={
+            "experiment": cfg.experiment.model_copy(
+                update={
+                    "routing": "central_local",
+                    "answer_mode": "snippet_return",
+                    "central_generation": "gpu_nodes",
+                }
+            ),
+            "retrieval": cfg.retrieval.model_copy(
+                update={"merge": "cross_encoder", "ce_scores": "table"}
+            ),
+        }
+    )

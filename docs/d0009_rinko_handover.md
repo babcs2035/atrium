@@ -84,6 +84,7 @@
   - 止めた間に答えられた割合は，availability で 0.70・0.66・0.43・0.47（k = 1・3・6・10．平常は約 0.9）．失敗は全て，止めた台か，止めた GPU の PC に生成を委託する台を選んだ問の HTTP 502 で，p0007 E1 より平常からの下がりが大きい．container では止めたノードを外す仕組みが無く，k ≥ 3 で止めた間に聞いた問のうち再開の前に答えた問は 0（登録の値 0.33〜0.64 は，再開まで待って締め切り 30 秒以内に終わった問を含む）．
   - 中央の再起動は 13.5〜13.7 秒で，その 12.2 秒は RRF の BM25 の作り直し（p0007 の `fusion: none` では 1.44 秒）．
   - 制約：live の選択は R3′ で V2 は経路に無い．「答えられた」は根拠が届いたかで正誤ではない．中央の再起動後の割合は C1-RRF-CE の上位 5 通から取り，中央の生成が締め切り内に終わることを仮定した．
+- 着手（参加）：Iteration 31（事前登録は `.claude/research/journal.md` の Iteration 31．設計の判断は `.claude/research/backlog.md` の B107）．p0007 E2 と同じ 3 台（15 受信箱）を途中で加え，P2P の主構成（`bm25_probe`・`owner_answer`・R3′ の選択の経路あり）と中央 C1-RRF-CE（RRF の索引・cross-encoder の表・生成まで）で，加わる受信箱ごとの H の先頭 5 問のうち答えられた最初の問が終わるまでの時間と転送量を 3 ラウンド測る．`atrium join-run` に主構成のルーター（公開情報から BM25 の統計を組み立てる）・質問集合・「答えられた」の判定・中央の C1-RRF-CE の経路を足す（追加だけ）．
 
 ## B. 実装の改善候補
 
@@ -172,7 +173,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
 | 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
-| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は完了（Iteration 30．採用．45 秒の仮定で全 8 条件 P2P が上だが止めた間の割合に依らない．検出と同時の再起動では availability k ≤ 3 以外は中央が上．`results/d0009_a6_failure/`）．参加は未着手（Iteration 31 の予定） |
+| 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は完了（Iteration 30．採用．45 秒の仮定で全 8 条件 P2P が上だが止めた間の割合に依らない．検出と同時の再起動では availability k ≤ 3 以外は中央が上．`results/d0009_a6_failure/`）．参加は着手（Iteration 31．事前登録は journal の Iteration 31） |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 未着手 |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |
 | 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 未着手 |

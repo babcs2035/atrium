@@ -171,6 +171,11 @@ class SummaryProbeRouter:
         self._encoder = encoder
         self._weight = weight
 
+    @property
+    def artifact(self) -> SummaryArtifact:
+        """このルーターが使う要約の成果物（公開情報の組み立ての確かめに読む）．"""
+        return self._artifact
+
     def _device_index(self, names: Sequence[str], device_of_source: Mapping[str, str]) -> list[int]:
         """データ源ごとのデバイスの番号（names の中で最初に現れた順．要約のデバイスの並びと同じでなければならない）．"""
         order: dict[str, int] = {}

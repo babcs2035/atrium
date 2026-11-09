@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Collection, Sequence
 from pathlib import Path
 
@@ -93,3 +94,37 @@ def test_rrf_index_rebuilds_bm25_on_append_and_finds_the_mail_by_its_words(
     assert index.bm25_s > 0.0
     found = index.search_ids(_unit(5, 1)[0], 3, "zebra quagga")
     assert "new/1." in [index.doc_ids[i] for i in found]
+
+
+def test_searches_during_an_rrf_append_never_see_a_half_published_index(
+    cfg: AtriumConfig, tmp_path: Path
+) -> None:
+    """別のスレッドの追加（BM25 の作り直し）の最中の検索は，追加前か追加後の索引のどちらかで答える（行列と BM25 の行数が食い違わない）．"""
+    write_corpus(tmp_path)
+    rrf = central_cfg(cfg)
+    rrf = rrf.model_copy(update={"retrieval": rrf.retrieval.model_copy(update={"fusion": "rrf"})})
+    index = CentralIndex.from_corpus(rrf, dataset_paths(tmp_path, "enronqa"))
+    n_before = index.n_docs
+    done = threading.Event()
+    errors: list[Exception] = []
+
+    def search_until_done() -> None:
+        while not done.is_set():
+            try:
+                found = index.search_ids(_unit(6, 1)[0], 3, "mail topic")
+                assert all(i < index.n_docs for i in found)
+            except Exception as exc:  # noqa: BLE001 (テストが失敗を集めて確かめるため)
+                errors.append(exc)
+                return
+
+    searcher = threading.Thread(target=search_until_done)
+    searcher.start()
+    n = 300
+    for step in range(5):
+        index.append(
+            [f"y{step}/{i}." for i in range(n)], ["t"] * n, ["body words"] * n, _unit(step, n)
+        )
+    done.set()
+    searcher.join()
+    assert errors == []
+    assert index.n_docs == n_before + 5 * n

@@ -362,6 +362,19 @@ bash scripts/tasks/live_run.sh join_run p0007_e2_smoke --n-devices 1 --delays 0,
 - 本番の所要（p0007 E2）：約 1 時間 36 分．最初のメンバー 27 台の公開情報の作成を含む準備が約 1 時間（デバイスの p50 1,085 秒），加わる 3 台は同時に作り，
   i5-8350U のノードで 1,281〜1,499 秒（1 通 0.49〜0.52 秒），GPU の PC の CPU で 313 秒（1 通 0.15 秒）．中央は 3 台を順に転送・埋め込みして 132 秒．
 - 失敗時：途中で止まっても `atrium join-run` と `join_run.sh` が全ノードを有効にし直す．直らなければ `curl -X POST http://<host>:8100/v1/admin/availability -d '{"up": true}' -H 'content-type: application/json'`．
+- 主構成での測り直し（`routing: bm25_probe`・`answer_mode: owner_answer`．d0009 A6 参加）：config は `scripts/d0009/a6j_config.py`（P の条件 ＋ `cluster.node_admin: true`），
+  流し方は `scripts/d0009/a6j_chain.sh`（表の確かめ → deploy → smoke → 3 ラウンド）．引数の違いは次のとおり．
+  `--delays=`（空．通知の遅れの感度を流さない．`live_run.sh` は引数を 1 つの文字列に展開するので空の値は `=` で結ぶ）・`--max-tries-per-inbox 5`・
+  `--central-mode c1_rrf_ce`・`--owner-table /data/enronqa/ce_table/holdout_owner_join.jsonl`・`--central-table /data/enronqa/ce_table/holdout_join.jsonl`．
+  - P2P：ルーターは `Bm25ProbeRouter`．`Bm25Stats` は公開情報から質問者が組み立てる（`device_summary.assemble_bm25_stats`．各デバイスの公開情報の `bm25_len_total`
+    〔本文の `tokenize` の語数（フィルタ前．最小 1）の合計〕・`n_docs`・語ごとの文書頻度の合計．`atrium build-summary` と同じ定義）．質問は `question_split` の
+    各受信箱の先頭 `--max-tries-per-inbox` 問（ファイルの順．test は従来どおり質問 ID の順）．「答えられた」は選んだ候補の文脈に正解のメール（`owner_answer`．正誤は採点しない）．
+    試行ごとの記録（`answers[].rows[]`：qid・answered・finished_s・e2e_s・failure_kind・時間の内訳）を残す．表に無い組の失敗は `failure_kind: table_miss`．
+  - 中央（`--central-mode c1_rrf_ce`）：RRF の上位 `retrieval.k_ret` 通を cross-encoder の表で並べ替えた上位 5 通 → 生成（`central_generation: gpu_nodes`．GPU の PC の `/v1/generate`）．
+    「答えられた」は上位 5 通に正解かつ失敗なし．索引への追加（BM25 の作り直し）は別のスレッドで行い（`bm25_s` に残る），その間の検索は追加前の索引で答える
+    （`CentralIndex` は行列と BM25 を一緒に公開する）．表は `scripts/d0009/a6j_tables.py`（gpu4）で作り足す（既存の表は書き換えず，`holdout_owner_join.jsonl`・`holdout_join.jsonl` を新しく置く）．
+  - `sim_vs_live.json` の `bm25_stats_vs_offline`（G-A）：質問者が組み立てた `Bm25Stats` と `summary/bm25_stats.npz` の差（`n_docs`・`avg_doc_len` の相対差・語ごとの文書頻度の不一致の数）．
+  - 集計：`scripts/d0009/a6j_verdict.py` → `results/d0009_a6_join/{verdict,join_summary}.json`．
 
 ## 8. 負荷・エネルギーの測定（p0007 D．`results/p0007_d_live/`）
 

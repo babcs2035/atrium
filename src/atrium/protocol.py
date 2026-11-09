@@ -281,6 +281,8 @@ class SummaryResponse(_Model):
     dfs: list[int]
     total_terms: int
     n_docs: int
+    # bm25_probe の長さの平均の元（本文の tokenize の語数〔フィルタ前．最小 1〕の合計）．古いノードの応答には無い
+    bm25_len_total: int | None = None
     inboxes: list[InboxCenters]
     tokenize_s: float
     embed_s: float

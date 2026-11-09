@@ -292,6 +292,9 @@ def cmd_join_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         seed=DEFAULT_SEED,
         initial_devices=args.initial_devices,
         summary_max_docs=args.summary_max_docs,
+        central_mode=args.central_mode,
+        owner_table=Path(args.owner_table) if args.owner_table else None,
+        central_table=Path(args.central_table) if args.central_table else None,
     )
 
     async def main() -> dict[str, Any]:
@@ -1549,6 +1552,22 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
         help="動作確認用：公開情報に使うメールを受信箱ごとに先頭から数通だけにする（本番は省略．付けると要約はオフラインと等価でない）",
+    )
+    p.add_argument(
+        "--central-mode",
+        choices=["retrieval_top", "c1_rrf_ce"],
+        default="retrieval_top",
+        help="中央の測定：retrieval_top（索引の上位 5 通に正解．既定）／c1_rrf_ce（再ランクと生成まで．d0009 A6 参加）",
+    )
+    p.add_argument(
+        "--owner-table",
+        default=None,
+        help="owner_answer の候補の採点の表（既定は <data>/enronqa/ce_table/<split>_owner.jsonl）",
+    )
+    p.add_argument(
+        "--central-table",
+        default=None,
+        help="c1_rrf_ce の再ランクの表（既定は <data>/enronqa/ce_table/<split>.jsonl）",
     )
     p.set_defaults(func=cmd_join_run)
 

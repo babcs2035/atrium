@@ -3,6 +3,90 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 31: 主構成で PC を途中で加えたときの P2P と中央集約の答えられるまでの時間と転送量の測り直し
+
+**位置づけ**：レバー `d0009.A6_remeasure_main` の値 `join`（d0009 A6 の最後の値．backlog B106 (3)・申し送り (a)〜(e)）．p0007 E2（`results/p0007_e2_join`）は `hybrid_probe`・`retrieval_only`・`fusion: none`・test の質問で，「正解のメールが上位 5 通に入った最初の質問が終わった時刻」を答えられるまでの時間とした．これを P2P の主構成（`bm25_probe` D = 24・`owner_answer`・m 3・`fusion: rrf`・R3′ の選択の経路あり）と中央 C1-RRF-CE（RRF の索引・cross-encoder の再ランク・生成あり）と H の質問で測り直す．設計の判断は backlog B107．d0009 A6 に着手を書いた（運用ルール 9）．この節が事前登録である．**rc-executor が，本番の実機の実行（smoke を除く）より前に，実装とこの事前登録を commit・push する**．
+
+### 調査で分かったこと
+
+- **`atrium join-run` は今のままでは主構成を扱えない（コードの確認．`src/atrium/join_run.py`）**：(i) ルーターは `SummaryProbeRouter("hybrid", ...)` に固定で，`bm25_probe` の `Bm25ProbeRouter` は要約の成果物に `Bm25Stats`（公開した文書頻度の合計・文書の数・長さの平均）を要する（`routing/summary.py`）が，`assemble_artifact`（`device_summary.py`）はそれを作らない．(ii) 公開した文書頻度の合計（`published_df`）と文書の数はデバイスの公開情報（`DeviceSummary.dfs`・`n_docs`）から組み立てられるが，長さの平均に要る「本文の `tokenize` の語数（フィルタ前．最小 1）の合計」は公開情報に無い（`total_terms` は CORI 用のフィルタ後の語数）．`build-summary` は `frontier_methods.bm25_index` でこれを全メールから求めている．(iii) 質問は `load_test_questions`（test 固定），クエリ埋め込みは test の `queries/` 固定で，H（`queries/holdout/`）を読めない．(iv) 「答えられた」は `is_hit`（`top_doc_ids`）で，`owner_answer` の行には無い（Iteration 30 と同じ問題．`live_common.is_owner_answered` は既にある）．(v) Requester を直接組み立てており，`TableCandidateScorer`（R3′ の表）を渡していない．(vi) 中央は索引の検索（上位 5 通）だけで，C1-RRF-CE の上位 50 通の cross-encoder の再ランクと生成を含まない．(vii) 中央の `central.append` はイベントループの上で同期に呼ばれ，`fusion: rrf` では BM25 の作り直し（Iteration 30 で 73,772 通に 12.2 秒）の間，他のデバイスの取り出しと質問が止まる．(viii) 通知の遅れの感度（`delays`）は約 600 問の流れを 3 回順に流すので，生成を含む主構成では 1 回あたり数時間かかる．以上から，追加だけの実装が要る（下の「実装の要点」）．
+- **P2P の公開情報は主構成でもほぼ同じ**：`bm25_probe` の 1 段目は `hybrid_probe` と同じ要約で，追加の公開は文書の数と語数の合計の 2 個の整数だけ（`published_df` は既存の公開語の文書頻度の合計）．p0007 E2 の P2P の時間の 99.6% はデバイスの CPU での本文の埋め込みで，主構成でも変わらない見込み（推測）．ノードの BM25 の索引（RRF 用と本文の probe 用）はノードの起動時に作られ，p0007 E2 と同じく「ノードは起動したまま availability で外す」ので測定の窓に入らない．その時間は記述としてノードのログ（`store.py` の `bm25 build %.2f s`）から加わるホストの分を拾う．
+- **中央の cross-encoder の表（申し送り (c)）**：`ce_table/holdout.jsonl` は H の全 2,862 問 × 全 150 受信箱の索引の上位 50 通（143,100 組）を持つ（gpu4 の `artifacts/enronqa/ce_table/` で数えた）．加わった後の中央の索引は同じ 150 受信箱になるが，加わる受信箱のメールは制御点の CPU で埋め込み直す（fp32．コーパスの埋め込みと丸めが違う）ので，上位 50 通の境の近くで表に無い文書が入りうる．そこで，gpu4 で同じ手順（最初の 135 受信箱の索引に CPU で埋め込んだ 15 受信箱を足す）を再現し，上位 100 通を表に作り足す（下の「表の作り足し」）．
+- **R3′ の表（`ce_table/holdout_owner.jsonl`）**：Iteration 30 で 288 問 × 全 150 受信箱の上位 5 通（216,000 組）にした．加わる 15 受信箱の H の問は各 20 問あり，288 問に入っているのは各先頭 2 問（30 問）だけ．
+- **生成の委託**：加わる 3 台のうち `192.168.15.106` は GPU の PC で，CPU の `192.168.14.102`・`14.103` の生成の委託先（placement の `delegate_of`）．参加の前（離脱中）は 15.106 の `/v1/generate` も 503 になるので，参加の前の確かめでは 14.102・14.103 の 10 受信箱を選んだ問も失敗する．t0 で 15.106 を有効にした後は影響しない．
+- **p0007 E2 の値（構成・質問が違うので比べない）**：P2P の答えられるまでの時間 p50 1,282.7 秒（ホスト別に 13.103 が 1,500 秒，13.105 が 1,283 秒，15.106 が 314 秒．`device` は 3 台とも cpu），中央 p50 80.9 秒（同じく 131.8・80.9・36.0 秒．CPU の埋め込み 35.8〜50.9 秒，`add_s` 0.0〜0.03 秒），転送量 P2P 8,256,336 B 対 中央 15,629,811 B，`tries` は 1〜2，候補の一致 0.977．E2 は不成立（P2P が 15.9 倍遅い．転送量は P2P が小さい）．
+- **索引への追加が検索に見えるまでの時間の慣行**：Elasticsearch は書き込んだ文書を既定で約 1 秒ごとの refresh で検索に見えるようにし，これを near real-time search と呼ぶ（Elastic Docs "Near real-time search"．https://www.elastic.co/docs/manage-data/data-store/near-real-time-search ）．Lucene の索引は書き込み後に変えない segment の集まりで，新しい文書は新しい segment として足され，後で併合される（Apache Solr Reference Guide "Index Segments and Merging"．https://solr.apache.org/guide/solr/latest/configuration-guide/index-segments-merging.html ）．今回の中央の BM25 は追加のたびに全体を作り直す実装で，segment 方式の実装なら追加の費用はこれより小さくなりうる（推測．測らない）．中央の時間を引用するときは「全体の作り直し」の実装の値であることを併記する（Iteration 30 の学びと同じ）．
+- **時刻の基準（申し送り (b)．Iteration 30 の学び）**：答えられるまでの時間は，参加の時刻 t0 から「答えられた最初の質問が**終わった**時刻」で数える（p0007 E2 の `first_answer_p2p` と同じ．問を聞いた時刻ではない）．締め切りは置かない（打ち切りは下の試行の数だけ）．
+
+### 仮説
+
+主構成でも P2P の答えられるまでの時間はデバイスの CPU での公開情報の作成（本文の埋め込み）で決まり，p50 は約 1,300 秒（p0007 E2 と同じ程度）．中央は CPU の埋め込みに加えて BM25 の作り直し（約 12 秒 × 追加の回数．直列）と cross-encoder・生成の時間が足され，p50 は p0007 E2 の 80.9 秒より長い 100〜150 秒になる（推測）．したがって E2（P2P が速いか，1.25 倍以内で転送量が小さい）は主構成でも不成立．転送量は P2P が小さい（約 8.3 MB 対 約 15.6 MB）．
+
+### 単一レバー
+
+**参加の測定の構成**を，p0007 E2 の「`hybrid_probe`・`retrieval_only`・`fusion: none`・test の質問・答えられた＝正解が上位 5 通・中央は索引の上位 5 通」から，**P2P は主構成（`bm25_probe`・`owner_answer`・R3′ の選択の経路），中央は C1-RRF-CE（RRF の上位 50 通 → cross-encoder の表 → 上位 5 通 → 生成），質問は H** へ替える．加わるホスト（種 12 の 3 台：192.168.13.103・13.105・15.106．15 受信箱），「ノードは起動したまま availability で外し t0 で有効にする」，参加の通知の遅れ L_join = 0，判定の式（p0007 E2 の `judge_join`）は同じにする．
+
+- **質問（試行の列）**：加わる各受信箱の H の問を，ファイルの順（`question_limit` と同じ読み方）で先頭から最大 5 問（`--max-tries-per-inbox 5`）．先頭 2 問は Iteration 29・30 の 288 問と同じ．15 受信箱 × 5 = 75 問．P2P と中央で同じ列を使う．
+- **「答えられた」（P2P．主）**：試行の 1 問が `error` なしで終わり，`owner_answer.candidates[chosen_index].context_doc_ids` に正解のメールがある（`is_owner_answered`．Iteration 30 と同じ．正誤の採点はしない）．
+- **「答えられた」（中央．主）**：試行の 1 問が，加わった後の中央の索引（RRF）の上位 50 通を cross-encoder の表で並べ替えた上位 5 通に正解のメールを含み，生成が `error` なしで返る（`is_hit`）．生成は P2P の deploy のまま GPU の PC の `/v1/generate` へ送る（`experiment.central_generation: gpu_nodes` の経路．Iteration 29 の S と同じ．中央の測定は P2P の測定の後に流すので，P2P の生成と時間が重ならない）．C1-RRF-CE の本来の生成（wafl509 の 1 枚）と同じ機種（RTX 3060）・同じモデルで，1 問ずつの待ち時間は同じとみなす（仮定として明記）．
+- **答えられるまでの時間**：受信箱ごとに，t0 から「答えられた」最初の試行が終わった時刻まで．5 問の全てで答えられなければ打ち切り（∞．`durations_or_censored`）．
+- **cross-encoder の計算**：両側とも表を引く（制御点に GPU が無い．運用ルール 8）．計算の費用は Iteration 29 の gpu4 の測定（`results/d0009_a6_load/table/cost.json`：1 問あたり P 0.20 秒・C 0.67 秒の中央値）を記述として足した見積もりも併記する．
+- **中央の埋め込み（申し送り (d)）**：p0007 E2 と同じく制御点の CPU（`ArcticEncoder`．運用ルール 8 は CPU の処理を禁じない）．GPU の PC で埋め込む場合は測らず，主張できない範囲に書く．
+- **機種（申し送り (e)）**：結果はホスト（13.103・13.105 は CPU の PC，15.106 は GPU の PC だが公開情報の作成は CPU）ごとに分けて出す．
+- **V2 は経路に無い**（運用ルール 11）．live の選択は R3′．
+
+### 固定する構成
+
+EnronQA・`question_split: holdout`・`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`owner_answer`・`owner_m: 3`・`answer.aggregate: cross_encoder`・`retrieval.ce_scores: table`・`answer.save_candidates: true`・`retrieval.fusion: rrf`・`llm.answer_prompt_format: fill_in`・llama3.1:8b（wafl500〜509）・温度 0・種 12・質問者 1 台（wafl-ctrl5）・30 台の専門家・`cluster.node_admin: true`（join-run に必要．deploy の前に書き，後で `git checkout -- config.yaml` で戻す）．config は `scripts/d0009/a6_config.py p` の P と同じにし，違いは `node_admin` だけにする（`question_limit` は join-run が使わないので P のままでよい）．join-run の引数は `--n-devices 3 --delays "" --max-tries-per-inbox 5 --central-mode c1_rrf_ce`（新しい引数の名前は実装で決めてよいが，意味は変えない）．
+
+### 実行の順序（事前に固定）
+
+- deploy 1 回 → smoke（判定に使わない．`d0009_a6_join_smoke`：`--n-devices 1 --summary-max-docs 200 --max-tries-per-inbox 2`．経路・表・`table_miss` = 0・30 台の再開を確かめる．`--summary-max-docs` を付けると要約がオフラインと等価でないので，smoke では G-A を判定しない）→ 本番 3 ラウンド `results/d0009_a6_join_r{1,2,3}/`（各ラウンドは join-run を 1 回．中の順序は join-run の固定の順：最初のメンバーの公開情報の収集 → 参加の前の確かめ → P2P の参加 → 中央の参加）．
+- 各ラウンドの前後に `nvidia-smi`・`ollama ps` と他の研究者のプロセスを記録し（B67 と同じ），各ラウンドの後に 30 台の `/v1/profile` が 200 で availability が up であることを確かめる（G-R）．GPU の空きは各ラウンドの前に最大 2 時間待ち，空かなければ流して記録する．
+- 所要の見込み（推測）：1 ラウンド 約 55〜60 分（最初の 27 台の公開情報 約 25 分・P2P 約 25 分・中央 約 3 分・参加の前の確かめ 数分），3 ラウンドと smoke・deploy で 約 3.5 時間．表の作り足し（gpu4）は 約 15〜20 分．
+
+### 表の作り足し（gpu4．運用ルール 14．実機の前に．既存の表は書き換えない）
+
+- **R3′ の表**：75 問のうち 288 問に無い 45 問（各受信箱の 3〜5 問目）について，全 150 受信箱の上位 5 通（ノードの `/v1/answer` と同じ取り方．`fusion: rrf`・`k_context` 5）を `CrossEncoderReranker.scores` で採点し（最大 45 × 750 = 33,750 組），`holdout_owner.jsonl` の全組と合わせた上位集合を新しいファイル `ce_table/holdout_owner_join.jsonl` に書く（`scripts/d0009/a6f_owner_table_all.py` の関数を質問の一覧で呼べるようにして使う）．
+- **中央の表**：最初の 135 受信箱の `CentralIndex.from_corpus` に，加わる 15 受信箱のメールを CPU の `ArcticEncoder` で埋め込んで `append` した索引を gpu4 の CPU で作り，75 問の上位 100 通のうち `holdout.jsonl` に無い組を採点して，`holdout.jsonl` の全組と合わせた上位集合を `ce_table/holdout_join.jsonl` に書く．
+- 両方を gpu4 と制御点の data ディレクトリに置き，sha256 の一致を記録する．join-run は新しい引数でこの 2 つのファイルを読む（既定は従来の表）．
+
+### 判定の規則（`results/d0009_a6_join/verdict.json`．`verdict_original` は書き換えない）
+
+- **H-A6J1（主．E2 の判定）**：各ラウンドで p0007 E2 と同じ `judge_join`（P2P の受信箱ごとの答えられるまでの時間の中央値が中央より短い，または中央の 1.25 倍以内で P2P の転送量が小さい）を出す．有効なラウンドの全てで成り立てば「E2 成立」，全てで成り立たなければ「E2 不成立」，それ以外は「決まらない」．
+- **H-A6J2（併記．時間の比）**：ラウンドごとの p50 の比 R = P2P / 中央と，その範囲．
+- **H-A6J3（記述）**：時間の内訳（P2P：有効化・公開情報の作成〔語・埋め込み・k-means〕・メンバー表への掲載・最初の答えまで．中央：取り出し・CPU の埋め込み・索引への追加〔うち BM25 の作り直し〕・検索と表の再ランク・生成），ホストごと（機種ごと）の値，転送量（P2P の公開情報の応答の大きさと公開する大きさ，中央の取り出しの大きさと露出したメールの数），試行の数の分布と 1 問目で答えられた割合，打ち切りの受信箱の数，cross-encoder の計算の見積もりを足した時間，ノードの BM25 の索引の作成の時間（ログから）．p0007 E2 の値は並べるが比べない．
+- 受信箱は 15 だが，時間はほぼデバイス（3 台）の単位で決まるので，独立な単位は 3 であることを併記する．
+
+### ゲート（満たさなければ判定の前に止まり，原因を記録する）
+
+- **G-T（互換）**：`mise run check` が通る．join-run の既定（`hybrid_probe`・test・`retrieval_only`・`delays` あり）の挙動を変えない（既存の `tests/test_join_run.py`・`tests/test_device_summary.py` が変更なしで通る）．新しく，公開情報から組み立てた `Bm25Stats` が `build-summary` と同じ式になること（同じ入力の小さな例で `published_df`・`n_docs`・`avg_doc_len` が一致），`bm25_probe` のときのルーターの組み立て，主構成の「答えられた」の判定，`--delays ""` の試験を足す．
+- **G-TB（表）**：オフラインで，R3′ の表について Iteration 30 と同じ確かめ（既存の組が全て新しい表にあり |差| ≤ 1e−6，P の 864 候補の `context_doc_ids` がオフラインの検索と一致），中央の表について再現した索引の 75 問の上位 50 通が全て新しい表にあること．本番で「表に無い組」による失敗が P2P・中央とも 0（1 件でもあれば止めて表を直す）．
+- **G-A（公開情報の組み立て）**：各ラウンドの最後（全 30 台が載った後）に，質問者が組み立てた `Bm25Stats` の `n_docs` が `summary/bm25_stats.npz` と一致し，`avg_doc_len` の相対差 ≤ 1e−6，`published_df` が語ごとに一致する（語の並びの違いは語で対応づける）．加えて，最終のルーターの候補と `summary/` のオフラインの `Bm25ProbeRouter` の候補（288 問）の一致の割合 ≥ 0.90（p0007 E2 は 0.977．CPU と GPU の埋め込みの丸めの分は許す）．
+- **G-J（計画）**：加わるホストが 192.168.13.103・13.105・15.106，受信箱が p0007 E2 と同じ 15 個．
+- **G-R（再開）**：各ラウンドの後に 30 台の node が全て有効．
+- 有効なラウンドは，G-A・G-J・G-R を満たし，表に無い組が 0 で，join-run が失敗せずに終わったもの．
+
+### 成功条件（このイテレーションの採用）
+
+(1) G-T・G-TB を通過し，(2) 有効なラウンドが 2 以上あり，(3) H-A6J1 を上の規則で判定し，H-A6J2・H-A6J3 の値を `verdict.json` と `join_summary.json` に書く．仮説の成否は採用の条件にしない（測定のイテレーション）．採用なら値 `join` を閉じ，d0009 A6 を完了にする．
+
+### 期待効果（見込み．検証対象ではない）
+
+P2P p50 約 1,300 秒（13.103 約 1,500 秒・13.105 約 1,290 秒・15.106 約 320 秒）．中央 p50 100〜150 秒（3 台の追加が直列で，それぞれに CPU の埋め込み 36〜51 秒と BM25 の作り直し 約 12 秒が掛かる）．H-A6J1 は 3 ラウンドとも「不成立」，R は 8〜13 倍．転送量は P2P 約 8.3 MB 対 中央 約 15.6 MB．1 問目で答えられる割合は約 0.9（Iteration 30 の平常 0.89〜0.92 から）．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
+
+- `src/atrium/protocol.py`・`device_summary.py`・`node.py`：`SummaryResponse` と `DeviceSummary` に任意の `bm25_len_total`（本文が空でないメールの `max(MIN_DOC_LENGTH, len(tokenize(body)))` の合計．`frontier_methods.bm25_index` と同じ数え方）を足し，ノードが埋める．`device_summary` に，公開情報から `Bm25Stats`（語ごとの文書頻度の合計・文書の数の合計・長さの平均）を組み立てる関数を足す．
+- `src/atrium/join_run.py`：`cfg.experiment.routing == "bm25_probe"` のとき `Bm25ProbeRouter`（m は `answer.owner_m`）を組み立てる．質問とクエリ埋め込みを `question_split` で読む（`load_split_questions`・`queries/<split>/`）．split が test 以外なら試行の列はファイルの順．`owner_answer` なら `is_owner_answered` で判定し，`TableCandidateScorer`（`--owner-table`）を渡す．試行ごとに e2e・失敗の形（HTTP・表に無い組）を行に残す．中央は `--central-mode c1_rrf_ce` のとき，`central_local`・`merge: cross_encoder`・`ce_scores: table`（`--central-table`）・`central_generation: gpu_nodes` の 2 つ目の Requester を，参加で育つ `CentralIndex` で組み立て，`_central_answer` の全経路（生成まで）で判定する．このモードでは `central.append` を `asyncio.to_thread` で呼ぶ（BM25 の作り直しの間に他のデバイスを止めないため）．`--delays ""` で通知の遅れの感度を飛ばす．最後に G-A の値（組み立てた `Bm25Stats` とオフラインとの差・候補の一致）を `sim_vs_live.json` に書く．
+- 表：`scripts/d0009/a6j_tables.py`（gpu4．G-TB の確かめを含む）．
+- 実行：`scripts/d0009/a6j_config.py`（`a6_config.py p` ＋ `cluster.node_admin: true`）と `scripts/d0009/a6j_chain.sh`（smoke → 3 ラウンド．各ラウンドの前後の記録・G-R・表の sha256 の一致）．
+- 集計：`scripts/d0009/a6j_verdict.py` → `results/d0009_a6_join/verdict.json`・`join_summary.json`．質問文を含むログは commit しない（`.gitignore`）．既存の results（運用ルール 12 の記録・`p0007_e2_join`）は変えない．`docs/d0003_experiment_workflow.md` §7.3 に主構成の使い方を足す．
+
+### 主張できない範囲（事前に書く）
+
+正答率（採点しない），V2 の選ぶ候補での値，中央の埋め込みを GPU で行う場合の時間，segment 方式など BM25 を作り直さない中央の実装での時間，ノードを新しく起動する場合（索引の読み込みと BM25 の作成を含む）の P2P の時間，通知の遅れ L_join > 0，加わるデバイスの数を変えた場合，負荷のある中での参加，中央の生成を wafl509 の 1 枚に置いた場合の実測（GPU の PC の `/v1/generate` で代えた）．
+
 ## Iteration 30: 主構成で PC を止めたときの P2P と中央集約の回答できる割合の測り直し
 
 **位置づけ**：レバー `d0009.A6_remeasure_main` の値 `failure`（d0009 A6．backlog B104 (2)・申し送り (a)〜(e)）．p0007 E1（`results/p0007_e1_failure`）は `hybrid_probe`・`retrieval_only`・`fusion: none`・test の質問で，「5 秒までに正解のメールが上位 5 通に入る」を答えられたとした．これを主構成（`bm25_probe` D = 24・`owner_answer`・m 3・`fusion: rrf`・R3′ の選択の経路あり）と H の質問で測り直す．設計の判断は backlog B105．d0009 A6 に着手を書いた（運用ルール 9）．この節が事前登録である．rc-executor が，本番の実機の実行（smoke を除く）より前に commit・push する．

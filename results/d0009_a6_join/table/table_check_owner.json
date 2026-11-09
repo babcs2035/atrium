@@ -1,0 +1,14 @@
+{
+ "n_wanted_questions": 75,
+ "n_new_questions_scored": 45,
+ "n_pairs_existing": 216000,
+ "n_pairs_new_partial": 33750,
+ "n_pairs_merged": 249750,
+ "n_p_candidates_compared": 864,
+ "n_p_candidates_mismatched": 0,
+ "mismatched_examples": [],
+ "n_needed_pairs": 56250,
+ "n_needed_pairs_missing": 0,
+ "tolerance": 1e-06,
+ "G_TB_owner_passed": true
+}

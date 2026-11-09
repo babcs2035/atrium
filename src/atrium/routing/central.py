@@ -17,6 +17,7 @@ p0007 I5〜I7（新しいメール・新しい受信箱の追従）のため，�
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass, replace
@@ -91,17 +92,24 @@ class CentralIndex:
         self.load = load
         self._fusion_depth = fusion_depth
         self._bm25: Bm25Index | None = None
+        # 直近の BM25 の（作り直しの）秒数．fusion=none では 0
+        self.bm25_s = 0.0
+        # 検索が（行列の行数，BM25）の組を同じ時点のものとして読むための錠（追加の BM25 の作り直しの間は取らない）
+        self._publish_lock = threading.Lock()
         if fusion_depth is not None:
             self._rebuild_bm25()
             self.load = replace(load, bm25_s=self.bm25_s, total_s=load.total_s + self.bm25_s)
 
-    def _rebuild_bm25(self) -> None:
-        """全文書から BM25 の索引を作り直し，かかった秒数を bm25_s に残す．"""
+    def _build_bm25(self) -> tuple[Bm25Index, float]:
+        """今の全文書から BM25 の索引を作る．（索引，かかった秒数）を返す（検索に公開はしない）．"""
         from atrium.routing.advert import tokenize
 
         start = time.perf_counter()
-        self._bm25 = Bm25Index(tokenize(text) for text in self._contents)
-        self.bm25_s = time.perf_counter() - start
+        return Bm25Index(tokenize(text) for text in self._contents), time.perf_counter() - start
+
+    def _rebuild_bm25(self) -> None:
+        """全文書から BM25 の索引を作り直し，かかった秒数を bm25_s に残す．"""
+        self._bm25, self.bm25_s = self._build_bm25()
 
     @property
     def emb(self) -> F32Array:
@@ -201,12 +209,18 @@ class CentralIndex:
             grown[: self._n] = self._buffer[: self._n]
             self._buffer = grown
         self._buffer[self._n : needed] = emb
-        self._n = needed
         self.doc_ids += list(doc_ids)
         self._titles += list(titles)
         self._contents += list(contents)
+        # 別のスレッドの検索（asyncio.to_thread）が行列と BM25 の行数が食い違った状態を読まないよう，BM25 を作ってから一緒に公開する
+        # （作り直しの間の検索は追加前の索引で答える）
         if self._fusion_depth is not None:
-            self._rebuild_bm25()
+            bm25, self.bm25_s = self._build_bm25()
+            with self._publish_lock:
+                self._bm25 = bm25
+                self._n = needed
+        else:
+            self._n = needed
         return time.perf_counter() - start
 
     def truncate(self, n_docs: int) -> None:
@@ -225,15 +239,17 @@ class CentralIndex:
 
         密ベクトルのみなら質問の埋め込みとの内積の順．BM25 の索引があれば query_text が必須で，RRF で選んだ k 行を内積の降順に並べる．
         """
-        dense = self.emb @ np.asarray(embedding, dtype=np.float32)
-        if self._bm25 is None:
+        with self._publish_lock:
+            emb, bm25 = self.emb, self._bm25
+        dense = emb @ np.asarray(embedding, dtype=np.float32)
+        if bm25 is None:
             return [int(i) for i in top_k_indices(dense[None, :], k)[0]]
         from atrium.routing.advert import tokenize
 
         if query_text is None or self._fusion_depth is None:
             raise ValueError("fusion=rrf requires the query text")
         dense64 = dense.astype(np.float64)
-        picked = rrf_top_k(dense64, self._bm25.scores(tokenize(query_text)), k, self._fusion_depth)
+        picked = rrf_top_k(dense64, bm25.scores(tokenize(query_text)), k, self._fusion_depth)
         return sorted(picked, key=lambda i: (-dense64[i], i))
 
     def search(

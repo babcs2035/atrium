@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pytest
 
@@ -16,6 +18,7 @@ from atrium.device_summary import (
     CORI_DF_SCALE,
     DeviceSummary,
     assemble_artifact,
+    assemble_bm25_stats,
     body_of,
     filter_terms,
     published_bytes,
@@ -136,3 +139,60 @@ def test_published_size_counts_term_pairs_and_float32_centers() -> None:
     summary = _summaries()["dev-b"]
     centers = sum(c.shape[0] * c.shape[1] * 4 for c in summary.centers.values())
     assert published_bytes(summary) == len(summary.terms) * 8 + centers
+
+
+def test_assembled_bm25_stats_equal_the_build_summary_definition() -> None:
+    """公開情報から組み立てた Bm25Stats は，オフライン（`atrium build-summary`）の定義と同じ値になる．"""
+    summaries = _summaries()
+    names = ["alice", "bob", "carol", "dave"]
+    artifact = assemble_artifact(names, DEVICE_OF_SOURCE, summaries, TERM_SIZE)
+    stats = assemble_bm25_stats(artifact, DEVICE_OF_SOURCE, summaries)
+
+    order = {d: i for i, d in enumerate(dict.fromkeys(DEVICE_OF_SOURCE[n] for n in names))}
+    bodies = {n: [b for b in (body_of(c) for c in INBOXES[n]) if b.strip()] for n in names}
+    data = FrontierData(
+        dataset="enronqa",
+        placement="test",
+        names=names,
+        device_of_source=np.asarray([order[DEVICE_OF_SOURCE[n]] for n in names]),
+        m=2,
+        target_hit=0.0,
+        second={},
+        relevant={},
+        q_emb={},
+        q_tokens={},
+        subsets={},
+        seed=SEED,
+        summary_emb=[np.zeros((len(bodies[n]), 8), np.float32) for n in names],
+        summary_tokens=[[tokenize(b) for b in bodies[n]] for n in names],
+    )
+    frontier_methods.cori_weights(data, TERM_SIZE)
+    offline_index = frontier_methods.bm25_index(data)
+    offline_vocab = frontier_methods.term_index(data)["vocab"]
+    offline_df = np.asarray(data.cache[f"published_df_{TERM_SIZE}"].sum(axis=0)).ravel()
+    assert stats.n_docs == offline_index["n_docs"]
+    assert stats.avg_doc_len == pytest.approx(offline_index["avg_doc_len"], rel=1e-12)
+    assert set(artifact.vocab) == {t for t, j in offline_vocab.items() if offline_df[j] > 0}
+    for term, j_live in artifact.vocab.items():
+        assert stats.published_df[j_live] == offline_df[offline_vocab[term]]
+
+
+def test_bm25_length_counts_tokens_before_filtering_with_a_minimum_of_one() -> None:
+    """長さはフィルタ前の語数（短い語・機能語も数える）．本文が空のメールは数えない．"""
+    summary = _summaries()["dev-a"]
+    expected = sum(
+        max(1, len(tokenize(body_of(c))))
+        for inbox in ("alice", "bob")
+        for c in INBOXES[inbox]
+        if body_of(c).strip()
+    )
+    assert summary.bm25_len_total == expected
+    assert summary.bm25_len_total > summary.total_terms
+
+
+def test_bm25_stats_need_the_length_from_every_device() -> None:
+    summaries = _summaries()
+    summaries["dev-b"] = dataclasses.replace(summaries["dev-b"], bm25_len_total=None)
+    artifact = assemble_artifact(["alice", "carol"], DEVICE_OF_SOURCE, summaries, TERM_SIZE)
+    with pytest.raises(ValueError, match="bm25_len_total"):
+        assemble_bm25_stats(artifact, DEVICE_OF_SOURCE, summaries)

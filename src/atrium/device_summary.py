@@ -22,8 +22,9 @@ import numpy as np
 
 from atrium.arrays import F32Array
 from atrium.data_enronqa import HEADER_SEPARATOR, MIN_TERM_LENGTH, kmeans_centroids
+from atrium.hybrid import MIN_DOC_LENGTH
 from atrium.routing.advert import tokenize
-from atrium.routing.summary import SummaryArtifact
+from atrium.routing.summary import Bm25Stats, SummaryArtifact
 
 # frontier_methods の CORI の定数と同じ（tests/test_device_summary.py が一致を確かめる）
 CORI_DF_BASE = 50.0
@@ -48,6 +49,8 @@ class DeviceSummary:
     tokenize_s: float
     embed_s: float
     kmeans_s: float
+    # bm25_probe の長さの平均の元：本文の tokenize の語数（フィルタ前．最小 MIN_DOC_LENGTH）の合計（`frontier_methods.bm25_index` と同じ数え方）
+    bm25_len_total: int | None = None
 
 
 def filter_terms(tokens: Sequence[str]) -> list[str]:
@@ -81,13 +84,16 @@ def summarize_device(
     start = time.perf_counter()
     df: Counter[str] = Counter()
     total_terms = 0
+    bm25_len_total = 0
     n_docs = 0
     bodies_of: dict[str, list[str]] = {}
     for inbox, contents in inboxes.items():
         bodies = [b for b in (body_of(c) for c in contents) if b.strip()]
         bodies_of[inbox] = bodies
         for body in bodies:
-            terms = filter_terms(tokenize(body))
+            tokens = tokenize(body)
+            bm25_len_total += max(MIN_DOC_LENGTH, len(tokens))
+            terms = filter_terms(tokens)
             total_terms += len(terms)
             df.update(set(terms))
             n_docs += 1
@@ -118,6 +124,7 @@ def summarize_device(
         tokenize_s=tokenize_s,
         embed_s=embed_s,
         kmeans_s=kmeans_s,
+        bm25_len_total=bm25_len_total,
     )
 
 
@@ -180,4 +187,30 @@ def published_bytes(summary: DeviceSummary) -> int:
 
     return len(summary.terms) * TERM_ENTRY_BYTES + sum(
         c.shape[0] * c.shape[1] * FLOAT32_BYTES for c in summary.centers.values()
+    )
+
+
+def assemble_bm25_stats(
+    artifact: SummaryArtifact,
+    device_of_source: Mapping[str, str],
+    summaries: Mapping[str, DeviceSummary],
+) -> Bm25Stats:
+    """メンバーの公開情報から bm25_probe の IDF の元を組み立てる（`atrium build-summary` の `Bm25Stats` と同じ定義）．
+
+    published_df は `artifact`（`assemble_artifact` の結果）の語彙の番号ごとの，全デバイスが公開した文書頻度の合計，
+    n_docs は全メール（本文が空でないもの）の数，avg_doc_len は `bm25_len_total` の合計 / n_docs．
+    全てのデバイスの `bm25_len_total` が必要（古いノードの応答には無いので ValueError）．
+    """
+    devices = sorted({device_of_source[n] for n in artifact.names})
+    chosen = [summaries[d] for d in devices]
+    if any(s.bm25_len_total is None for s in chosen):
+        raise ValueError("a device summary lacks bm25_len_total; redeploy the node image")
+    n_docs = sum(s.n_docs for s in chosen)
+    len_total = sum(s.bm25_len_total or 0 for s in chosen)
+    published = np.zeros(len(artifact.vocab), dtype=np.float64)
+    for s in chosen:
+        for term, count in zip(s.terms, s.dfs, strict=True):
+            published[artifact.vocab[term]] += count
+    return Bm25Stats(
+        published_df=published, n_docs=n_docs, avg_doc_len=len_total / n_docs if n_docs else 0.0
     )

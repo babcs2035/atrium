@@ -271,6 +271,7 @@ def register_admin_docs_api(
             dfs=summary.dfs,
             total_terms=summary.total_terms,
             n_docs=summary.n_docs,
+            bm25_len_total=summary.bm25_len_total,
             inboxes=[
                 InboxCenters(inbox=inbox, centers=[[float(x) for x in row] for row in centers])
                 for inbox, centers in summary.centers.items()
