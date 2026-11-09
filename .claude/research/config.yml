@@ -465,7 +465,11 @@ levers:
             完了（fp16）：Iteration 38（2026-11-10．採用）．結果は results/d0009_b2_scoring_cost_fp16/（verdict.json・fp16_summary.json・fp16_agreement.json・gat.json・analysis_report.md），
             実行は results/d0009_b2_fp16_{f32pass,f16pass,smoke,r<round>_<dtype>}/，記述は journal の Iteration 38「実行済み」．wafl502 の 3 ラウンドで無効な実行 0．
             X_req 0.681 → 2.278〜2.282 問/秒（S = 3.347〜3.353），GPU メモリの最大 7.5 → 4.3 GB．得点の表との |差| の最大 2.44e−3，R3′・V2 の選択の食い違い 0・Δc 0．
-            fp16 は後の反復で採点に使ってよい（CrossEncoderReranker の既定は fp32 のまま）．次は値 max_length_1024（backlog B126．dtype は fp16 を土台にする）"}
+            fp16 は後の反復で採点に使ってよい（CrossEncoderReranker の既定は fp32 のまま）．次は値 max_length_1024（backlog B126．dtype は fp16 を土台にする）．
+            着手：Iteration 39（値 max_length_1024．事前登録は journal の Iteration 39．backlog B127）．`atrium score-server --max-length 1024`（CrossEncoder の max_length．longest_first で文書の末尾を落とす）．
+            dtype は両側 fp16，対照は同じ日の fp16・最大長 8,192（G-F16 は Iteration 38 の fp16 の 1 周との |差| ≤ 1e−3）．H の 4,320 組のうち 1,024 を超える組は 333（7.7%．178 問）．
+            wafl502 の 1 枚で 1 周のダンプから R3′・V2 の選択の一致と正誤の変化（H-L1．H-F1 と同じ閾値），慣らし 60 秒・区間 600 秒の 3 ラウンド（種 39）の組の比 S = X_req(1,024)/X_req(8,192)（H-L2．全て ≥ 1.08 で速くなる，全て < 1.03 で速くならない）．
+            見込みは Iteration 38 の 1 周の要求の時間の当てはめ（R² 0.996）から S ≈ 1.147．採用は H-L2 が速くなる かつ H-L1 が一致する．切ることが効いているかを G-TR で確かめる"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

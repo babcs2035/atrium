@@ -650,7 +650,7 @@ def cmd_score_server(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """cross-encoder の採点の server を起動する（d0009 B2．GPU の PC のコンテナ内）．"""
     from atrium import score_server
 
-    score_server.main(args.host, args.port, args.dtype)
+    score_server.main(args.host, args.port, args.dtype, args.max_length)
     return 0
 
 
@@ -1824,6 +1824,12 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["float32", "float16"],
         default="float32",
         help="採点のモデルの dtype（float16 は Sigmoid を fp32 以上で計算する．d0009 B2 の採点の費用）",
+    )
+    p.add_argument(
+        "--max-length",
+        type=int,
+        default=None,
+        help="1 組（質問 + 文書）を切るトークン数（既定は tokenizer の上限 8192．d0009 B2 の採点の費用）",
     )
     p.set_defaults(func=cmd_score_server)
 

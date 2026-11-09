@@ -317,27 +317,37 @@ class CrossEncoderReranker:
     # RAGRoute と同じ 4 組ずつの推論（12 GB の GPU で長い断片を扱うため）
     BATCH = 4
 
-    def __init__(self, dtype: Literal["float32", "float16"] = "float32") -> None:
-        """モデルを読み込む．dtype が float16 のときだけ重みと計算を fp16 にする（d0009 B2 の採点の費用．既定は今までと同じ fp32）．"""
+    def __init__(
+        self, dtype: Literal["float32", "float16"] = "float32", max_length: int | None = None
+    ) -> None:
+        """モデルを読み込む．dtype が float16 のときだけ重みと計算を fp16 にする（d0009 B2 の採点の費用．既定は今までと同じ fp32）．
+
+        max_length は 1 組（質問 + 文書）を切るトークン数．None のときは CrossEncoder に渡さず，tokenizer の上限（8,192）で切る今までと同じ挙動．
+        """
         import torch
         from sentence_transformers import CrossEncoder
 
         self.dtype = dtype
+        # None のときは max_length を渡さない（CrossEncoder の既定のまま．ビット単位で今までと同じ）
+        length_kwargs: dict[str, Any] = {} if max_length is None else {"max_length": max_length}
         # float32 は automodel_args が空（CrossEncoder の既定と同じ）で，今までの読み込みと同じ
         self._model = CrossEncoder(
             self.MODEL,
             device="cuda" if torch.cuda.is_available() else "cpu",
             revision=pinned_revision(self.MODEL),
             automodel_args={"torch_dtype": torch.float16} if dtype == "float16" else {},
+            **length_kwargs,
         )
         self._lock = threading.Lock()
 
     def describe(self) -> dict[str, str | int]:
-        """読み込んだモデルの dtype・attention の実装・tokenizer の最大長（server の /healthz が返す．両 dtype で同じ条件かの確認用）．"""
+        """読み込んだモデルの dtype・attention の実装・tokenizer の最大長・実際に効いている最大長（server の /healthz が返す．両 dtype で同じ条件かの確認用）．"""
         return {
             "dtype": self.dtype,
             "attn_implementation": str(self._model.model.config._attn_implementation),
             "tokenizer_max_length": int(self._model.tokenizer.model_max_length),
+            # 実際に 1 組を切るトークン数（CrossEncoder の max_length が None なら tokenizer の上限で切られる）
+            "max_length": int(self._model.max_length or self._model.tokenizer.model_max_length),
         }
 
     def scores(self, query: str, texts: Sequence[str]) -> list[float]:

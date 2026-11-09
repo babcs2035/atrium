@@ -1,7 +1,7 @@
 """cross-encoder の採点の server（`atrium score-server`．d0009 B2）．1 つの GPU の PC に 1 つ置き，質問者の採点の要求を受ける．
 
 - `POST /v1/score`：`{query, texts}` → `{scores, duration_s}`．中身は `CrossEncoderReranker.scores`（同じモデル・revision・batch 4・lock）を呼ぶだけ．
-- `GET /healthz`：モデルの名前・revision・dtype・attention の実装・tokenizer の最大長を返す（起動の確認と条件の記録用．モデルの読み込みが済んでから待ち受ける）．
+- `GET /healthz`：モデルの名前・revision・dtype・attention の実装・tokenizer の最大長・実際に効いている最大長を返す（起動の確認と条件の記録用．モデルの読み込みが済んでから待ち受ける）．
 使い方: scripts/remote/score_server.sh が GPU の PC のコンテナで `atrium score-server --port 8200` を起動する．
 """
 
@@ -39,11 +39,16 @@ def create_score_app(
     return app
 
 
-def main(host: str, port: int, dtype: Literal["float32", "float16"] = "float32") -> None:
-    """モデルを dtype で読み込んでから採点の server を起動する．"""
+def main(
+    host: str,
+    port: int,
+    dtype: Literal["float32", "float16"] = "float32",
+    max_length: int | None = None,
+) -> None:
+    """モデルを dtype・max_length（None は今までと同じ tokenizer の上限）で読み込んでから採点の server を起動する．"""
     import uvicorn
 
-    scorer = CrossEncoderReranker(dtype)
+    scorer = CrossEncoderReranker(dtype, max_length)
     app = create_score_app(
         scorer,
         CrossEncoderReranker.MODEL,

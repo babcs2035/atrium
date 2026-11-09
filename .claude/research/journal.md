@@ -3,6 +3,105 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 39: cross-encoder の入力を 1,024 トークンで切ったときの速さと選ぶ候補の一致
+
+**位置づけ**：レバー `d0009.B2_scoring_cost` の値 `max_length_1024`（backlog B126 (3)．levers の値の順）．設計の判断は backlog B127．d0009 B2 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，実機の実行（G-ENV0 以降）より前に，実装とこの節を同じ commit に入れて push する**．wafl500・501・509 は使わない（B120・B122・B123）．土台の dtype は Iteration 38 で採用した fp16（Sigmoid は fp32）にする（B126 (a)）．
+
+### 調査で分かったこと
+
+**(1) 今の採点の経路（コードの確認．事実）**
+- `CrossEncoderReranker`（`src/atrium/requester.py`）は `CrossEncoder(...)` に `max_length` を渡していない．sentence-transformers 3.4.1 の `CrossEncoder` は `max_length=None` のとき `tokenizer(*texts, padding=True, truncation="longest_first", max_length=None)` を呼び（`.venv` の `cross_encoder/CrossEncoder.py` の 152・171 行），transformers はこのとき tokenizer の `model_max_length`（bge-reranker-v2-m3 は 8,192）で切る．つまり今の最大長は 8,192 で，Iteration 38 の G-AT の「最大長 8,192」と合う．
+- `max_length=1024` を `CrossEncoder` に渡すと，同じ呼び出しで 1 組（質問＋文書＋特殊トークン）が 1,024 トークンに切られる．`longest_first` は長い側から削るので，質問（H の 288 問で最大 79 トークン・中央値 30）は残り，文書の末尾が落ちる（transformers の切り方の定義から．事実）．
+- batch 4 の中は最も長い組に合わせて詰める（`padding=True`）．1 候補 5 通の呼び出しは 4 通＋1 通の 2 batch になる．
+
+**(2) H の 288 問の入力の長さ（phase 1 に CPU で数えた．事実．gpu4 の CPU・bge-reranker-v2-m3 の固定 revision の tokenizer・`atrium.score_bench.load_inputs` と同じ入力．GPU は使っていない）**
+- 4,320 組の長さ（質問＋文書＋特殊トークン）：最小 214・中央値 443・p90 958・p95 1,133・p99 1,440・最大 19,349．
+- 1,024 を超える組は **333 組（7.7%）**．2,048 超 14 組，4,096 超 6 組，8,192 超 4 組（この 4 組は今も 8,192 で切られている）．
+- 1,024 を超える組を含む候補は 250/864，問は 178/288．このうち，Iteration 38 の同じ日の fp32 の 1 周（`results/d0009_b2_fp16_f32pass/scores.jsonl`）で**候補の最大の得点を取った文書が 1,024 を超える問は 83 問**，R3′ が選んだ候補の最大の文書が超える問は 5 問．`ce_top1`（候補の 1 位の文書の得点）の文書が超える候補は 37/864．83 問の上位 2 候補の `ce_max` の差は中央値 0.559・p10 0.070 で，0.05 未満は 7 問，0.01 未満は 1 問（288 問全体では 0.05 未満 37 問・0.01 未満 17 問）．→ 選択が変わりうる問は多くて 83 問前後で，差の小さい問は数問にとどまる見込み（推測．切った後の得点の動きは測っていない）．
+- **速さの見込み（Iteration 38 の記録からの当てはめ．事実と推測を分ける）**：server は lock で直列なので，1 周（`--one-pass`．30 問の同時）の要求を終わった時刻で並べた間隔は要求ごとの GPU の時間に当たる．これを batch ごとの「詰めた長さ × 通数」の和（線形）とその 2 乗の和で回帰すると，fp16 の 1 周（`d0009_b2_fp16_f16pass`．863 個の間隔）で R² = 0.996，fp32 で R² = 1.000（事実）．この式で 288 問の全要求の時間を出すと，fp16 は最大長 8,192 で 125.9 秒 → 1,024 で 109.8 秒（**比 1.147**），fp32 は 433.3 → 361.3 秒（1.199）（当てはめの外挿で推測）．詰めた長さの合計は 0.896 倍にしかならず，短縮の大半は 2,048 を超える少数の組（2 乗の項）と，長い 1 通に合わせて詰めていた同じ batch の他の 3 通から来る（推測）．
+
+**(3) 外部の情報（tavily．出典付き．事実と推測を分ける）**
+- bge-reranker-v2-m3 の作者（BAAI の Shitao Xiao）は Hugging Face の議論 #9 "Document length for v2-m3?"（https://huggingface.co/BAAI/bge-reranker-v2-m3/discussions/9 ）で「最大長は 8,192 だが 1,024 で fine-tune したので `max_length=1024` を推奨する」と答えている（事実）．モデルカード（https://huggingface.co/BAAI/bge-reranker-v2-m3 ）の例の関数も `max_length=1024` を既定にしている．→ 1,024 は学習の条件に合わせる値で，切っても品質が下がるとは限らない（1,024 を超える部分は学習で見ていない長さ．推測）．
+- Pinecone の bge-reranker-v2-m3 の文書（https://docs.pinecone.io/models/bge-reranker-v2-m3 ）は「短い質問と中くらいの長さ（1〜2 段落）の文に向く」とする（事実．定量の値は無い）．
+- 長い文書の再ランクでは，先頭だけを使う切り方（FirstP）が情報を落とすことが知られ，文書を段落に分けて最大の得点を取る MaxP などが提案されている（Dai & Callan, SIGIR 2019 "Deeper Text Understanding for IR with Contextual Neural Language Modeling"．Padaki, Dai & Callan, ECIR 2020 "Rethinking Query Expansion for BERT Reranking"（https://www.cs.cmu.edu/~zhuyund/papers/ECIR_2020.pdf ）の MaxP の記述．Discover Computing 2023 "An in-depth analysis of passage-level label transfer for contextual document ranking"（https://link.springer.com/article/10.1007/s10791-023-09430-5 ）の「切ることは望ましくない情報の損失を招く」）．→ 今回は先頭 1,024 だけを見る形で，落とした末尾に正解の手がかりがある問では得点が下がりうる（推測）．段落に分ける形は別のレバーで，今回は扱わない．
+- 調査の 2 回目・4 回目の `tvly search`（Pinecone の文書の上限・FirstP の別の検索）は権限の判定で拒否された（B119 (d) と同じ）．Pinecone の上限のトークン数は確かめていない．
+
+### 仮説
+
+bge-reranker-v2-m3（fp16）の 1 組の最大長を 8,192 から 1,024 にすると，RTX 3060 1 枚の採点の処理量は 1.08 倍以上になり（当てはめの見込み 1.147 より控えめに置く），得点の変化は選択を変えるほど大きくない（R3′ と V2 で選ぶ候補が同点を除いて 288 問のうち 2 問以下しか変わらず，正誤の純の変化は −1 問以上）．
+
+### 単一レバー
+
+**cross-encoder の 1 組の最大長（`CrossEncoder` の `max_length`）** を **8,192（今．tokenizer の上限で切る）から 1,024 へ**替える．
+- 値の定義（事前に固定）：`CrossEncoder(..., max_length=1024)`．切り方は今と同じ `longest_first`（文書の末尾を落とす）．
+- 変えないもの：dtype は両側とも fp16（Iteration 38 の定義のまま．Sigmoid は logits を fp32 に直してから），モデル・revision・`batch_size` 4・attention の実装（sdpa の見込み．両側で記録する）・文の作り（題 + 改行 + 本文）・候補ごとに 5 通ずつ 1 回の呼び出し・lock．
+- 対照は**同じ日の fp16・最大長 8,192**（Iteration 38 の値そのもの）．fp32 の表との比較は fp16 と合わせた累積の効果として記述する．
+
+### 固定する構成
+
+- 採点の入力・負荷の形は Iteration 38 のまま：H の 288 問（`holdout`・`question_limit: 2`）の 3 候補 × 上位 5 通（`results/d0009_a3_p1/results.jsonl`．計 4,320 組），閉じた系・同時の問 C = 30，`atrium score-bench`（制御点 wafl-ctrl5 の CPU）→ `atrium score-server`．
+- GPU は **wafl502 の 1 枚**．生成・取得・probe は流さず，30 台の専門家は deploy しない．wafl502 の自分たちの Ollama の llama3.1:8b は各実行の前に `keep_alive: 0` で降ろす．他の研究者のプロセスに触れない．gpu4 の GPU は使わない（運用ルール 14）．
+- config.yaml の実験の経路（`atrium run`）は変えない（CLI の引数で最大長を渡す．B122 (7) と同じ扱い）．
+
+### 実行の手順と順序（事前に固定）
+
+1. **G-ENV0**：wafl502 で他の研究者の GPU のプロセスが 0（あれば最大 2 時間待つ），SW Thermal Slowdown・HW Slowdown が Not Active，温度 ≤ 60 °C．SW Thermal Slowdown の累計を記録する．
+2. **G-F16（新しいコードの対照の経路の退行の確かめ．同じ日の対照）**：fp16・最大長 8,192（引数なし）の server で 288 問を 1 周（`--one-pass --dump-scores`）．全 4,320 組で Iteration 38 の fp16 の 1 周（`results/d0009_b2_fp16_f16pass/scores.jsonl`）との |差| ≤ 1e−3，R3′ と V2 の選択が 288 問で一致（同点の扱いは Iteration 38 と同じ）．不通過なら本番を流さない．
+3. **最大長 1,024 の 1 周（H-L1 の材料）**：fp16・`--max-length 1024` の server で 288 問を 1 周してダンプする．**G-AT**：両側の `/healthz` で dtype（float16）と attention の実装が同じで，実際に効いている最大長が 8,192 と 1,024 であること．**G-TR**（切ることが効いているかの確かめ）：1,024 以下の組（3,987 組）の G-F16 との |差| の中央値 ≤ 1e−4，かつ 1,024 を超える組（333 組）のうち G-F16 との |差| > 1e−3 の組が 1 以上．不通過なら本番を流さず原因を記録する．
+4. **smoke**：最大長 1,024・慣らし 10 秒・区間 30 秒で失敗の要求 0 件．
+5. **本番（H-L2 の材料）**：3 ラウンド．各ラウンドで 8,192 と 1,024 を 1 回ずつ，順は種 39 の無作為で決める．最大長を替えるたびに server を起動し直す．各実行は**慣らし 60 秒 + 測る区間 600 秒**．各実行の前に温度 ≤ 60 °C・SW Thermal Slowdown が Not Active まで待つ（最大 15 分．冷ます時間を記録）．
+
+### 測るもの
+
+- **主（速さ）**：X_req＝測る区間に終わった採点の要求の数 ÷ 3 ÷ 600（問/秒に当たる）．同じラウンドの比 S_r = X_req(1,024) / X_req(8,192)．`x_period_qps` は判定に使わない（Iteration 38 の学び．B126 (d)）．
+- 記述（速さ）：区間に終わった問の数で数えた X，server の `duration_s` の p50・p95，1 周の要求の終わった時刻の間隔（GPU の上の要求ごとの時間）の和と，1,024 を超える組を含む要求（250 個）とそれ以外に分けた和，問の待ち時間 p50・p95，GPU の使用率，**GPU メモリの最大**（生成の llama3.1:8b 約 6.7 GB と 12 GB の GPU に共存できるかの見込みの材料．共存は測らない），温度の最大，SW Thermal Slowdown の累計の差，制御点の CPU．(2) の当てはめの見込み 1.147 との比．
+- **主（一致．対照は同じ日の fp16・8,192＝G-F16 のダンプ）**：(a) 4,320 組の |差| の中央値・p99・最大を，1,024 以下の組と超える組に分けて，(b) 非有限の組の数，(c) R3′ の選んだ候補の食い違い n_R3（対照の上位 2 候補の差 < 2e−3 の問は同点として数えず，別に数を記録），(d) V2 の選んだ候補の食い違い n_V2（`ce_max`・`ce_top1` だけを差し替え，他の特徴量と重みは `answer_verifier_selector.json` のまま．V2 の得点の上位 2 候補の差 < 1e−6 は同点として別に数える），(e) 選択が変わった問の正誤の純の変化 Δc_R3・Δc_V2（問の数．`results/d0009_a3_p1/candidate_judgements.jsonl` の印．新しい判定は行わない）．
+- 記述（一致）：fp32 の表（`artifacts/enronqa/ce_table/holdout_owner.jsonl`）に対する同じ (a)〜(e)（fp16 と合わせた累積の効果），問ごとの 15 組の順位の Spearman，候補ごとの上位 1 通の一致の割合，選択が変わった問の文書の長さ．
+
+### ゲートと有効な実行
+
+- **有効な実行**：失敗の要求 0 件，区間の SW Thermal Slowdown の累計の差 0 秒・温度の最大 < 83 °C・他の研究者の GPU のプロセス 0．**安全の打ち切り**：実行中に 83 °C 以上か SW Thermal Slowdown が Active になったら止めて無効にし，60 °C 以下に戻るまで次を流さない．
+- **有効なラウンド**：同じラウンドの 8,192 と 1,024 の両方が有効．無効の実行は同じラウンドの最後に 1 回だけ流し直してよい．
+- **機を替える規則**：wafl502 で 2 回無効になったら，残りの本番の全てのラウンドを wafl503 で最初から流し直す（G-ENV0 も wafl503 で取り直す．G-F16・1,024 の 1 周は wafl502 のものを使う）．wafl503 でも 2 回無効なら判定不能．wafl500・501・509 では補わない．
+
+### 判定の規則
+
+- **H-L1（一致．主．対照は同じ日の fp16・8,192）**：
+  - 「一致する」：非有限 0，n_R3 ≤ 2 かつ n_V2 ≤ 2，かつ Δc_R3 ≥ −1 かつ Δc_V2 ≥ −1．
+  - 「一致しない」：非有限が 1 以上，または n_R3 ≥ 6，または n_V2 ≥ 6，または Δc_R3 ≤ −3，または Δc_V2 ≤ −3．
+  - それ以外は「決まらない」．
+- **H-L2（速さ．主）**：有効なラウンドの全てで S_r ≥ 1.08 なら「速くなる」，全てで S_r < 1.03 なら「速くならない」，それ以外は「決まらない」．
+
+**閾値の根拠とノイズの目安**：一致の閾値は Iteration 38 の H-F1 と同じ（1 問 = 1/288 ≈ 0.0035．Iteration 23 の同等の幅 ±0.005 に収まるのは純 1 問まで．−3 問 ≈ −0.010 は d0009 A3 の流し直しの幅の最大 0.006 を超える）．速さは，Iteration 38 の同じ条件の S のラウンドの間の揺れが 0.2%（3.347〜3.353），fp16 の X_req の揺れが 0.2%（2.278〜2.282）で，区間 600 秒に約 4,100 要求が終わるので 1 要求の刻みは約 0.025%．1.03 はその揺れの 10 倍以上の差として，1.08 は当てはめの見込み 1.147 の効果（+14.7%）の約半分として置いた（見込みの外挿が過大でも検出できるように控えめにする）．
+
+### 成功条件（事前登録）
+
+(1) G-ENV0・G-F16・G-AT・G-TR・smoke を通過し，(2) 有効なラウンドが 2 以上あり，(3) H-L1・H-L2 を判定し，`results/d0009_b2_scoring_cost_maxlen1024/{verdict.json,maxlen_summary.json,analysis_report.md}` に書く．
+- **採用**：(1)〜(3) を満たし，H-L2 が「速くなる」かつ H-L1 が「一致する」．値 `max_length_1024` を閉じる（後の反復で採点に fp16・最大長 1,024 を使ってよい根拠とする．既定の挙動は変えない）．
+- **棄却**：(1)〜(3) を満たし，H-L2 が「速くならない」か H-L1 が「一致しない」．値を閉じる．
+- それ以外の組み合わせは「決まらない」で，採用でも棄却でもない記述として値を閉じる（ラウンドを足さない）．
+- (1) か (2) を満たさなければ判定不能で，値を閉じずに原因を backlog に残す．G-F16 か G-TR が不通過なら本番を流さない．
+
+### 期待効果（見込み．検証対象ではない）
+
+S ≈ 1.10〜1.20（X_req(8,192) ≈ 2.28，X_req(1,024) ≈ 2.5〜2.7 問/秒）．GPU メモリの最大は 4.3 GB から下がる見込み（最長の batch が 8,192 × 4 → 1,024 × 4 になるため．推測）．得点が動くのは 333 組だけで，選択の食い違いは 0〜3 問（推測．速さの効果が fp16 の 3.35 倍より 1 桁小さい代わりに，fp16 より選択を変えやすい）．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
+
+- `src/atrium/requester.py`：`CrossEncoderReranker.__init__` に省略可能な引数 `max_length: int | None = None`．None のときは今と同じく `CrossEncoder` に渡さない（ビット単位で今と同じ），値があるときだけ `max_length=` を渡す．`describe()` に実際に効いている最大長（`self._model.max_length`．None なら tokenizer の `model_max_length`）を `max_length` として足す（既存の `tokenizer_max_length` は残す）．
+- `src/atrium/score_server.py`・`src/atrium/cli.py`：`atrium score-server --max-length N`（既定なし＝今の挙動）．`scripts/remote/score_server.sh` に最大長を渡す引数か環境変数（既定は空）を足す．image の atrium-full を publish し直す（運用ルール 7）．
+- phase 1 の長さの数え（上の (2)）は，追加だけの `scripts/d0009/b2l_token_lengths.py`（CPU・tokenizer だけ）で `results/d0009_b2_scoring_cost_maxlen1024/token_lengths.json` に出し直して記録に残す（組ごとの長さ．集計で 1,024 以下・超えるの分けに使う）．
+- chain：`scripts/d0009/b2c_chain.sh` を元に，dtype の代わりに最大長を振る `scripts/d0009/b2l_chain.sh`（G-ENV0 → Ollama を降ろす → fp16・8,192 の server → G-F16 → fp16・1,024 の server → 1 周・G-AT → smoke → 本番 3 ラウンド〔種 39〕→ server の停止 → 後の nvidia-smi）．実行名は `results/d0009_b2_ml1024_{l8kpass,l1kpass,smoke,r<round>_{l8k,l1k}}/`．熱の待ち・打ち切り・記録は Iteration 38 のまま．
+- 集計：`scripts/d0009/b2l_verdict.py` → `results/d0009_b2_scoring_cost_maxlen1024/`．`b2c_verdict.py` の一致・速さの関数を再利用し，対照を G-F16 のダンプに替え，長さで分けた |差| を足す．判定の規則（H-L1・H-L2）と G-TR は単体の試験で境界（2・3・5・6 問，1.03・1.08）を確かめる．
+- B118・提案 X1〜X4 は混ぜない．
+
+### 主張できない範囲（事前に書く）
+
+- fp32 での最大長 1,024 の速さ（当てはめの見込み 1.199 だけ），512 など他の最大長，段落に分けて最大を取る形（MaxP），大きい batch・TEI・長さで並べ替えた batch の値．
+- 生成と同じ GPU に共存させた場合の可否と速さ（メモリの最大は記述するが共存は測らない），複数の GPU の値．
+- H の 288 問以外の質問集合での選択の一致，正答率の変化の検定（288 問の候補の上の記述で，McNemar は行わない）．長いメールの多い質問集合では効果も食い違いも大きくなりうる．
+- RTX 3060（wafl502 か 503）以外の GPU の値，熱の減速の起きる状態の値．
+
 ## Iteration 38: cross-encoder の採点を半精度にしたときの速さと選ぶ候補の一致
 
 **位置づけ**：レバー `d0009.B2_scoring_cost` の値 `fp16`（backlog B124 (3)．Iteration 37 の評価で levers の末尾に足した）．設計の判断は backlog B125．d0009 B2 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，実機の実行（G-ENV0 以降）より前に，実装とこの節を同じ commit に入れて push する**．wafl500・501・509 は使わない（B120・B122・B123）．

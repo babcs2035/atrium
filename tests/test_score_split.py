@@ -253,3 +253,51 @@ def test_float16_reranker_loads_fp16_and_applies_sigmoid_itself(
     assert reranker.scores("q", ["a", "b", "c"]) == [0.5, 0.5, 0.5]
     assert isinstance(fake.predict_kwargs["activation_fct"], torch.nn.Identity)
     assert reranker.scores("q", []) == []
+
+
+class _LengthFakeCrossEncoder(_FakeCrossEncoder):
+    """max_length と tokenizer の上限だけを持つ CrossEncoder の差し替え（describe の確認用）．"""
+
+    def __init__(self, model: str, **kwargs: object) -> None:
+        super().__init__(model, **kwargs)
+        self.max_length = kwargs.get("max_length")
+
+        class _Tokenizer:
+            model_max_length = 8192
+
+        class _Model:
+            class config:  # noqa: N801 (transformers の config の属性の形に合わせた差し替え)
+                _attn_implementation = "sdpa"
+
+        self.tokenizer = _Tokenizer()
+        self.model = _Model()
+
+
+def test_max_length_is_not_passed_to_cross_encoder_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """max_length を省略したときは CrossEncoder に渡さず（今までと同じ），describe は tokenizer の上限 8,192 を返す．"""
+    import sentence_transformers
+
+    monkeypatch.setattr(sentence_transformers, "CrossEncoder", _LengthFakeCrossEncoder)
+    reranker = CrossEncoderReranker("float16")
+    fake = _FakeCrossEncoder.last
+    assert fake is not None
+    assert "max_length" not in fake.kwargs
+    assert reranker.describe()["max_length"] == 8192
+
+
+def test_max_length_is_passed_to_cross_encoder_and_reported(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """max_length=1024 は CrossEncoder に渡り，describe が実際に効いている 1,024 を返す（tokenizer の上限は残す）．"""
+    import sentence_transformers
+
+    monkeypatch.setattr(sentence_transformers, "CrossEncoder", _LengthFakeCrossEncoder)
+    reranker = CrossEncoderReranker("float16", max_length=1024)
+    fake = _FakeCrossEncoder.last
+    assert fake is not None
+    assert fake.kwargs["max_length"] == 1024
+    described = reranker.describe()
+    assert described["max_length"] == 1024
+    assert described["tokenizer_max_length"] == 8192
