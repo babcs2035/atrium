@@ -1,0 +1,1 @@
+{"n_nodes": 30, "n_ok": 30, "shards_per_node_ok": "5/5", "source": "docker compose logs: loaded shard ... fusion=rrf, body_bm25_probe=True"}

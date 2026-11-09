@@ -1,0 +1,25 @@
+{
+ "verdict_original": {
+  "hypothesis": "H-A5B1（P2P の追加の費用）・H-A5B2（中央の追加の費用）・H-A5B3（P2P 対 中央 T0）",
+  "n_valid_rounds": 3,
+  "established": true,
+  "judgements": {
+   "H-A5B1": "BM25 を含めても P2P は 1 秒未満で追従する",
+   "H-A5B2": "BM25 の作り直しで中央の即時の追従（T0）が失われる",
+   "H-A5B3": "P2P が中央 T0 より速い"
+  },
+  "valid_rounds": [
+   "d0009_a5b_r1",
+   "d0009_a5b_r2",
+   "d0009_a5b_r3"
+  ],
+  "thresholds": {
+   "p2p_p50_limit_s": 1.0,
+   "central_bm25_low_s": 5.0,
+   "central_t0_kept_s": 1.0,
+   "alpha": 0.05,
+   "min_compared": 100
+  }
+ },
+ "verdict_revised": null
+}

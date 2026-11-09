@@ -381,7 +381,11 @@ levers:
             1 イテレーションに値を 1 つずつ．
             着手：Iteration 33（値 bm25_index_add．事前登録は journal の Iteration 33．backlog B111）．freshness-run を bm25_probe D = 24・fusion: rrf・H の質問・retrieval_only にし，
             H の正解のメールの 10%（種 12）を間隔 0.5 秒で届けて，ノードの受信箱の BM25 と中央の全体の BM25 の作り直しの費用と答えられるまでの時間（T 0・60・600・∞．中央は追加だけの --central-coalesce）を実機で 3 ラウンド．
-            GPU は使わない．主の判定は H-A5B1（P2P の node_bm25_s・direct の p50 < 1 秒）・H-A5B2（中央の bm25_s・T0 の p50 ≥ 5 秒）・H-A5B3（P2P 対 中央 T0 の符号検定）"}
+            GPU は使わない．主の判定は H-A5B1（P2P の node_bm25_s・direct の p50 < 1 秒）・H-A5B2（中央の bm25_s・T0 の p50 ≥ 5 秒）・H-A5B3（P2P 対 中央 T0 の符号検定）．
+            完了（bm25_index_add）：Iteration 33（2026-11-09．採用）．結果は results/d0009_a5_bm25_add/（verdict.json・bm25_add.json・analysis_report.md），実行は results/d0009_a5b_r{1,2,3}/，
+            記述は journal の Iteration 33「実行済み」．有効なラウンド 3．ノードの node_bm25_s p50 0.089〜0.093 秒，P2P direct p50 0.467〜0.474 秒（H-A5B1 1 秒未満で追従する），
+            中央の全体の BM25 の作り直し 11.7〜11.9 秒・T0（まとめ足し）p50 31.3〜31.4 秒（H-A5B2 即時の追従は失われる．埋め込みも制御点の CPU），232/232 で P2P が短い（H-A5B3）．
+            segment 方式の中央は測っていない．次は central_outage_sweep（Iteration 34．backlog B112）"}
   - {name: d0009.B1_drop_failed_peers, values: [health_check_exclusion],
      note: "d0009 B1（中）．停止した PC を問い合わせ先から外す仕組み．10 台を強制停止すると回答できる割合が 0.747 → 0.028 に下がった．
             生存確認で 2.01 秒で検出できるので，検出した PC を質問者が問い合わせ先から外す．既定は今の挙動（追加だけの設定キー）．

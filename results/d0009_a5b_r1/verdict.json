@@ -1,0 +1,66 @@
+{
+ "verdict_original": {
+  "hypothesis": "P2P の答えられるまでの時間の p50 < 1 秒，かつ中央の T >= 60 秒より有意に短い（対にした片側の符号検定）",
+  "p2p": {
+   "n": 232,
+   "n_censored": 0,
+   "p50": 0.46657037595286965,
+   "p95": 1.2325037219561636,
+   "max": 6.2100722880568355
+  },
+  "p50_limit_s": 1.0,
+  "p50_below_limit": true,
+  "alpha": 0.05,
+  "comparisons": {
+   "60": {
+    "n_less": 232,
+    "n_greater": 0,
+    "n_tied": 0,
+    "p": 1.448908652612274e-70,
+    "central": {
+     "n": 232,
+     "n_censored": 0,
+     "p50": 69.71910593193024,
+     "p95": 94.97462924197316,
+     "max": 97.47359935799614
+    },
+    "significantly_shorter": true
+   },
+   "600": {
+    "n_less": 232,
+    "n_greater": 0,
+    "n_tied": 0,
+    "p": 1.448908652612274e-70,
+    "central": {
+     "n": 232,
+     "n_censored": 0,
+     "p50": 602.0496194409207,
+     "p95": 665.1729701380245,
+     "max": 670.3933824650012
+    },
+    "significantly_shorter": true
+   },
+   "inf": {
+    "n_less": 232,
+    "n_greater": 0,
+    "n_tied": 0,
+    "p": 1.448908652612274e-70,
+    "central": {
+     "n": 232,
+     "n_censored": 232,
+     "p50": null,
+     "p95": null,
+     "max": null
+    },
+    "significantly_shorter": true
+   }
+  },
+  "holds": true,
+  "eligibility": {
+   "n_arrivals": 282,
+   "n_compared": 232,
+   "rule": "P2P（direct）で答えられ，かつ中央の有限の T のどれかで答えられたメールだけを比べる"
+  }
+ },
+ "verdict_revised": null
+}
