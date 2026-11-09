@@ -1,0 +1,20 @@
+{
+ "n_short_pairs": 3987,
+ "n_long_pairs": 333,
+ "short_abs_diff": {
+  "n": 3987,
+  "median": 0.0,
+  "p99": 0.0,
+  "max": 0.0011693731037275557,
+  "n_nonfinite": 0
+ },
+ "long_abs_diff": {
+  "n": 333,
+  "median": 0.002397164495606563,
+  "p99": 0.2991700191471084,
+  "max": 0.8465157977480178,
+  "n_nonfinite": 0
+ },
+ "n_long_pairs_moved_over_1e-3": 204,
+ "pass": true
+}

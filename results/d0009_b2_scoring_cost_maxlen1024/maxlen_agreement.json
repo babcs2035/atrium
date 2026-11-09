@@ -1,0 +1,95 @@
+{
+ "n_pairs": 4320,
+ "n_questions": 288,
+ "n_questions_with_labels": 288,
+ "n_nonfinite": 0,
+ "abs_diff_vs_l8k_same_day": {
+  "all": {
+   "n": 4320,
+   "median": 0.0,
+   "p99": 0.04620363073709363,
+   "max": 0.8465157977480178,
+   "n_nonfinite": 0
+  },
+  "len_le_1024": {
+   "n": 3987,
+   "median": 0.0,
+   "p99": 0.0,
+   "max": 0.0011693731037275557,
+   "n_nonfinite": 0
+  },
+  "len_gt_1024": {
+   "n": 333,
+   "median": 0.002397164495606563,
+   "p99": 0.2991700191471084,
+   "max": 0.8465157977480178,
+   "n_nonfinite": 0
+  }
+ },
+ "abs_diff_vs_table": {
+  "len_le_1024": {
+   "n": 3987,
+   "median": 1.562515983732915e-05,
+   "p99": 0.0008326163695344801,
+   "max": 0.0024406452472670592,
+   "n_nonfinite": 0
+  },
+  "len_gt_1024": {
+   "n": 333,
+   "median": 0.00230718416935638,
+   "p99": 0.29906334855500216,
+   "max": 0.846501136632638,
+   "n_nonfinite": 0
+  }
+ },
+ "R3p_vs_l8k_same_day": {
+  "n_mismatch": 1,
+  "n_mismatch_tie": 1,
+  "delta_correct": -1,
+  "delta_correct_excluding_ties": -1,
+  "mismatch_qids": [
+   "enronqa/holdout/3294-0"
+  ],
+  "tie_qids": [
+   "enronqa/holdout/4030-0"
+  ]
+ },
+ "V2_vs_l8k_same_day": {
+  "n_mismatch": 0,
+  "n_mismatch_tie": 0,
+  "delta_correct": 0,
+  "delta_correct_excluding_ties": 0,
+  "mismatch_qids": [],
+  "tie_qids": []
+ },
+ "R3p_vs_table": {
+  "n_mismatch": 1,
+  "n_mismatch_tie": 1,
+  "delta_correct": -1,
+  "delta_correct_excluding_ties": -1,
+  "mismatch_qids": [
+   "enronqa/holdout/3294-0"
+  ],
+  "tie_qids": [
+   "enronqa/holdout/4030-0"
+  ]
+ },
+ "V2_vs_table": {
+  "n_mismatch": 0,
+  "n_mismatch_tie": 0,
+  "delta_correct": 0,
+  "delta_correct_excluding_ties": 0,
+  "mismatch_qids": [],
+  "tie_qids": []
+ },
+ "spearman_per_question_vs_table": {
+  "n": 288,
+  "median": 1.0,
+  "min": 0.8714285714285712
+ },
+ "top1_agreement_vs_table": 0.9814814814814815,
+ "changed_questions_max_pair_length": {
+  "enronqa/holdout/3294-0": 1364
+ },
+ "H_L1": "agree"
+}

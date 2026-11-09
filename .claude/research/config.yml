@@ -469,7 +469,18 @@ levers:
             着手：Iteration 39（値 max_length_1024．事前登録は journal の Iteration 39．backlog B127）．`atrium score-server --max-length 1024`（CrossEncoder の max_length．longest_first で文書の末尾を落とす）．
             dtype は両側 fp16，対照は同じ日の fp16・最大長 8,192（G-F16 は Iteration 38 の fp16 の 1 周との |差| ≤ 1e−3）．H の 4,320 組のうち 1,024 を超える組は 333（7.7%．178 問）．
             wafl502 の 1 枚で 1 周のダンプから R3′・V2 の選択の一致と正誤の変化（H-L1．H-F1 と同じ閾値），慣らし 60 秒・区間 600 秒の 3 ラウンド（種 39）の組の比 S = X_req(1,024)/X_req(8,192)（H-L2．全て ≥ 1.08 で速くなる，全て < 1.03 で速くならない）．
-            見込みは Iteration 38 の 1 周の要求の時間の当てはめ（R² 0.996）から S ≈ 1.147．採用は H-L2 が速くなる かつ H-L1 が一致する．切ることが効いているかを G-TR で確かめる"}
+            見込みは Iteration 38 の 1 周の要求の時間の当てはめ（R² 0.996）から S ≈ 1.147．採用は H-L2 が速くなる かつ H-L1 が一致する．切ることが効いているかを G-TR で確かめる．
+            完了（max_length_1024）：Iteration 39（2026-11-10．採用）．結果は results/d0009_b2_scoring_cost_maxlen1024/（verdict.json・maxlen_summary.json・maxlen_agreement.json・gat.json・gtr.json・token_lengths.json・analysis_report.md），
+            実行は results/d0009_b2_ml1024_{l8kpass,l1kpass,smoke,r<round>_{l8k,l1k}}/，記述は journal の Iteration 39「実行済み」．wafl502 の 3 ラウンドで無効な実行 0．
+            X_req 2.276〜2.278 → 2.626〜2.632 問/秒（S = 1.156・1.156・1.152．見込み 1.147），GPU メモリの最大 4.2 → 2.0 GB．R3′ の食い違い 1 問（Δc −1．許容の境目）・V2 0 問．
+            fp16・最大長 1,024 は後の反復で採点に使ってよい（既定は変えない．H の 288 問の上の結果）．このレバーの値は全て閉じた．次は d0009.B2_colocated_scoring（backlog B128）"}
+  # ---- Iteration 39 の評価で追加（2026-11-10．backlog B128 [auto-decided]）：d0009 の levers を B1（保留）以外使い切ったため ----
+  - {name: d0009.B2_colocated_scoring, values: [colocate_with_generator],
+     note: "仮称．d0009 B2 の続き：採点（fp16・最大長 1,024．Iteration 38・39 で採用）を生成の llama3.1:8b と同じ 12 GB の GPU に載せる．
+            F-6 では採点（fp32・切らない）7.0〜7.8 GB と生成約 6.7 GB で共存できなかったが，Iteration 39 で採点の GPU メモリの最大は 2.0 GB になった．
+            既定は今の挙動（採点は生成と別の GPU か表）．1 枚の GPU（wafl502 を推奨．wafl500・501・509 は使わない）の上で，生成だけ・採点だけ・両方を同時に流し，
+            OOM の有無と GPU メモリの最大，生成の速さ（トークン/秒）の低下，採点の処理量 X_req の低下を測る．主構成の全体の実機や全 10 台の配置は扱わない（生成を伴う持続の負荷で wafl500 が関わるため．B120）．
+            生成の負荷の形（Ollama の num_parallel・同時の要求の数・入力）・判定の規則・閾値は rc-researcher が事前登録で決める．追加だけの CLI か script で既定の挙動は変えない"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

@@ -1,0 +1,14 @@
+{
+ "H_L1": "agree",
+ "H_L2": "faster",
+ "success_condition_1_gates_passed": true,
+ "success_condition_2_enough_valid_rounds": true,
+ "mechanical_outcome": "adopt",
+ "note": "mechanical application of the pre-registered rules; adoption is decided by rc-evaluator",
+ "adoption": {
+  "decision": "adopted",
+  "decided_by": "rc-evaluator (Iteration 39 phase 3, 2026-11-10)",
+  "reason": "success conditions (1)-(3) met; H_L2 faster (S_r = 1.156, 1.156, 1.152 >= 1.08 in all 3 valid rounds) and H_L1 agree (non-finite 0, n_R3 = 1 with delta_c_R3 = -1, n_V2 = 0 with delta_c_V2 = 0)",
+  "scope": "fp16 with max_length 1024 may be used for scoring in later iterations on the H question set; CrossEncoderReranker default stays float32 with no max_length; selection agreement is not established for question sets with more long emails"
+ }
+}
