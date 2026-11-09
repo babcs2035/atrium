@@ -194,6 +194,36 @@ def integrate_rates(
     return total
 
 
+def first_time_integral_exceeds(
+    rates: Sequence[float],
+    start: float,
+    bin_s: float,
+    target: float,
+    t_min: float,
+    t_max: float,
+) -> float | None:
+    """階段関数の [0, t] の積分が target を超える最小の t（t_min ≤ t ≤ t_max）．t_min で既に超えていれば t_min，t_max までに超えなければ None．
+
+    積分は区間ごとに線形なので，超える区間の中の解を割合で割って厳密に解く（積分が target に等しいだけの点は「超えない」）．
+    rates は integrate_rates と同じ階段関数（区間は時刻の昇順，割合は 0 以上）．t_min ≥ 0．
+    """
+    if t_min < 0 or t_max < t_min:
+        raise ValueError("need 0 <= t_min <= t_max")
+    acc = integrate_rates(rates, start, bin_s, 0.0, t_min)
+    if acc > target:
+        return t_min
+    for i, rate in enumerate(rates):
+        lo = max(t_min, start + i * bin_s)
+        hi = min(t_max, start + (i + 1) * bin_s)
+        if hi <= lo:
+            continue
+        gain = rate * (hi - lo)
+        if gain > 0 and acc + gain > target:
+            return lo + (target - acc) / rate
+        acc += gain
+    return None
+
+
 def central_rate_integral(restart_s: float, rate_after: float, window_s: float) -> float:
     """中央の答えられた割合の時間積分（窓 [0, window_s]．障害の発生を 0 とする）．再起動が終わる restart_s までは 0，その後は rate_after．"""
     return rate_after * max(0.0, window_s - restart_s)

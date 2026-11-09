@@ -385,7 +385,10 @@ levers:
             完了（bm25_index_add）：Iteration 33（2026-11-09．採用）．結果は results/d0009_a5_bm25_add/（verdict.json・bm25_add.json・analysis_report.md），実行は results/d0009_a5b_r{1,2,3}/，
             記述は journal の Iteration 33「実行済み」．有効なラウンド 3．ノードの node_bm25_s p50 0.089〜0.093 秒，P2P direct p50 0.467〜0.474 秒（H-A5B1 1 秒未満で追従する），
             中央の全体の BM25 の作り直し 11.7〜11.9 秒・T0（まとめ足し）p50 31.3〜31.4 秒（H-A5B2 即時の追従は失われる．埋め込みも制御点の CPU），232/232 で P2P が短い（H-A5B3）．
-            segment 方式の中央は測っていない．次は central_outage_sweep（Iteration 34．backlog B112）"}
+            segment 方式の中央は測っていない．次は central_outage_sweep（Iteration 34．backlog B112）．
+            着手：Iteration 34（値 central_outage_sweep．事前登録は journal の Iteration 34．backlog B114）．Iteration 30 の P2P の時系列（P2P の停止は実測の 45 秒のまま）で，
+            中央の停止 S を 0〜45 秒の格子で振り，I_P(S) = ∫_0^{S＋R＋30} と I_C = c × 30 の大小が入れ替わる境目 S* を条件・ラウンドごとに求める．S > 45 は I_P の単調性で決まる．
+            既存の結果の再集計（運用ルール 13）で実機・GPU は使わない．scripts/d0009/a5s_verdict.py → results/d0009_a5_outage_sweep/"}
   - {name: d0009.B1_drop_failed_peers, values: [health_check_exclusion],
      note: "d0009 B1（中）．停止した PC を問い合わせ先から外す仕組み．10 台を強制停止すると回答できる割合が 0.747 → 0.028 に下がった．
             生存確認で 2.01 秒で検出できるので，検出した PC を質問者が問い合わせ先から外す．既定は今の挙動（追加だけの設定キー）．

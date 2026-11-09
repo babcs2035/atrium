@@ -16,6 +16,7 @@ from atrium.dynamics import (
     durations_or_censored,
     eligible_indices,
     fill_forward,
+    first_time_integral_exceeds,
     integrate_rates,
     judge_failure,
     judge_freshness,
@@ -134,6 +135,26 @@ def test_step_integral_is_rate_times_overlap_with_the_window() -> None:
     assert integrate_rates(rates, 0.0, 2.0, 0.0, 6.0) == pytest.approx(3.0)
     assert integrate_rates(rates, 0.0, 2.0, 1.0, 3.0) == pytest.approx(1.5)
     assert integrate_rates(rates, 0.0, 2.0, 5.0, 100.0) == pytest.approx(0.0)  # 区間の外は 0
+
+
+def test_first_time_integral_exceeds_solves_inside_an_interval() -> None:
+    rates = [1.0, 0.5, 0.0]  # 積分は t = 2 で 2.0，t = 4 で 3.0
+    assert first_time_integral_exceeds(rates, 0.0, 2.0, 2.5, 0.0, 6.0) == pytest.approx(3.0)
+
+
+def test_first_time_integral_exceeds_returns_the_boundary_when_target_is_met_there() -> None:
+    rates = [1.0, 1.0]
+    assert first_time_integral_exceeds(rates, 0.0, 2.0, 2.0, 0.0, 4.0) == pytest.approx(2.0)
+
+
+def test_first_time_integral_exceeds_returns_t_min_when_it_already_exceeds() -> None:
+    rates = [1.0, 1.0]
+    assert first_time_integral_exceeds(rates, 0.0, 2.0, 1.0, 2.0, 4.0) == 2.0
+
+
+def test_first_time_integral_exceeds_returns_none_when_it_never_exceeds_in_range() -> None:
+    rates = [1.0, 0.0, 5.0]  # t_max = 4 までの積分は 2.0 で，target と等しいだけでは超えない
+    assert first_time_integral_exceeds(rates, 0.0, 2.0, 2.0, 0.0, 4.0) is None
 
 
 def test_central_integral_is_zero_until_the_restart_finishes() -> None:

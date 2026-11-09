@@ -310,6 +310,8 @@ bash scripts/tasks/live_run.sh freshness_run d0009_a5b_r1 --intervals 0,60,600,i
 bash scripts/tasks/live_run.sh failure_run p0007_e1_failure --ks 1,3,6,10 --modes availability,container
 # 小さな確認（availability だけ．k = 1・3）
 bash scripts/tasks/live_run.sh failure_run p0007_e1_smoke --ks 1,3 --modes availability --down-s 15 --baseline-s 5 --post-s 10
+# 中央の停止時間 S を振った再集計（d0009 A5．実機は使わない．results/d0009_a6_failure_r{1,2,3} を読み，results/d0009_a5_outage_sweep へ書く）
+uv run python scripts/d0009/a5s_verdict.py
 ```
 
 - 止めるノードは `host` の一覧から種 12 で k 台を選ぶ（`choose_names`）．質問は `--stream-parallel` 本（既定 4）で流し続け，`--answer-deadline-s`（既定 5 秒）までに
