@@ -169,7 +169,8 @@ run_one() {
   bash $D/ollama_ps_snapshot.sh > "results/$run/ollama_ps_end.txt" 2>&1 < /dev/null
   bash $D/gpu_apps_snapshot.sh > "results/$run/gpu_apps_post.txt" 2>&1 < /dev/null
   uv run python $D/b1_gpu_gate.py post --out "results/$run/gpu_gate_post.json" --pre "results/$run/gpu_gate_pre.json" --since "$since_s" --until "$until_s" >> "$LOG" 2>&1
-  echo "[$(date +%T)] $run live_run=$rc G-GPU-post rc=$? (window $since_s-$until_s)" >> "$LOG"
+  local post_rc=$?
+  echo "[$(date +%T)] $run live_run=$rc G-GPU-post rc=$post_rc (window $since_s-$until_s)" >> "$LOG"
   if ! ensure_all_nodes_up "$run"; then
     echo "[$(date +%T)] $run G-R FAILED (some nodes still not serving; see results/$run/g_r_not_serving_after.txt)" >> "$LOG"; exit 1
   fi

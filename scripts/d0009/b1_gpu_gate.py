@@ -105,7 +105,7 @@ def per_minute_speeds(host: str, since: int, until: int) -> dict[str, float]:
     """host の Ollama の log の eval 行から，分ごとの生成の速さ（トークン数 ÷ 秒数．その分に生成が無ければ含めない）を出す．"""
     log = ssh_out(
         host,
-        f"docker logs -t atrium-ollama-1 --since {since} --until {until} 2>&1 | grep 'eval time'",
+        f"docker logs -t atrium-ollama-1 --since {since} --until {until} 2>&1 | grep 'eval time' || true",
     )
     tokens: dict[str, int] = defaultdict(int)
     millis: dict[str, float] = defaultdict(float)
