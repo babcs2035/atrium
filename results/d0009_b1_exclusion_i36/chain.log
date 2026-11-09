@@ -1,0 +1,86 @@
+[23:46:12] table sha256 da0a7a55c29abd773935b791137b7e5cab2776f5737c9bce2a7949921b1e6fa2
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"gate": "G-V", "routing": "bm25_probe", "probe_d": 24, "n_questions": 288, "n_mismatched": 0, "mismatched_examples": [], "passed": true}
+[23:46:17] G-V ok
+[23:48:55] deployed (on, fail_threshold=1)
+[2026-11-09_23:48:55] BEGIN d0009_b1_exclusion_i36_smoke (D=30)
+[23:48:57] max other-process GPU memory on wafl500-509: 0 MiB
+[23:49:59] max other-process GPU memory on wafl500-509: 0 MiB
+[23:51:02] max other-process GPU memory on wafl500-509: 0 MiB
+[23:51:02] d0009_b1_exclusion_i36_smoke confound=none
+Traceback (most recent call last):
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 218, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 184, in main
+    rows = list(pool.map(check_pre, HOSTS))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 127, in check_pre
+    util = sample_utilization(host)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 65, in sample_utilization
+    return [int(line) for line in ssh_out(host, command).split()]
+                                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 53, in ssh_out
+    done = subprocess.run(
+           ^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/subprocess.py", line 573, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ssh', '-n', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', 'wafl509', 'for i in $(seq 3); do nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits; if [ $i -lt 3 ]; then sleep 5; fi; done']' returned non-zero exit status 255.
+[23:51:15] d0009_b1_exclusion_i36_smoke G-GPU-pre not met (rc=1, waited 0s)
+{"phase": "pre", "pass": true, "failed": []}
+[23:56:28] d0009_b1_exclusion_i36_smoke G-GPU-pre ok
+{"phase": "post", "pass": true, "failed": []}
+[00:00:17] d0009_b1_exclusion_i36_smoke live_run=0 G-GPU-post rc=0 (window 1794236194-1794236400)
+[00:00:20] d0009_b1_exclusion_i36_smoke G-R ok (all nodes serving)
+[00:00:20] d0009_b1_exclusion_i36_smoke table_miss=0
+[00:00:20] d0009_b1_exclusion_i36_smoke G-FP(i)/G-B ok
+[00:00:20] smoke failure_kind=other count=0
+[00:00:20] smoke deadline pre_stop=0 all=0
+[00:00:20] smoke false_positive_drops=3 (fail_threshold=1)
+[00:00:20] raising fail_threshold to 2 once; redeploy and rerun smoke as smoke_ft2
+[00:02:47] deployed (on, fail_threshold=2)
+[2026-11-10_00:02:47] BEGIN d0009_b1_exclusion_i36_smoke_ft2 (D=30)
+[00:02:49] max other-process GPU memory on wafl500-509: 0 MiB
+[00:03:52] max other-process GPU memory on wafl500-509: 0 MiB
+[00:04:54] max other-process GPU memory on wafl500-509: 0 MiB
+[00:04:54] d0009_b1_exclusion_i36_smoke_ft2 confound=none
+{"phase": "pre", "pass": true, "failed": []}
+[00:05:07] d0009_b1_exclusion_i36_smoke_ft2 G-GPU-pre ok
+{"phase": "post", "pass": true, "failed": []}
+[00:08:56] d0009_b1_exclusion_i36_smoke_ft2 live_run=0 G-GPU-post rc=0 (window 1794236713-1794236919)
+[00:08:58] d0009_b1_exclusion_i36_smoke_ft2 G-R ok (all nodes serving)
+[00:08:58] d0009_b1_exclusion_i36_smoke_ft2 table_miss=0
+[00:08:58] d0009_b1_exclusion_i36_smoke_ft2 G-FP(i)/G-B ok
+[00:08:58] smoke_ft2 false_positive_drops=0
+[00:11:30] deployed (null, fail_threshold=2)
+[2026-11-10_00:11:30] BEGIN d0009_b1_exclusion_i36_d0_null (D=30)
+[00:11:33] max other-process GPU memory on wafl500-509: 0 MiB
+[00:12:35] max other-process GPU memory on wafl500-509: 0 MiB
+[00:13:37] max other-process GPU memory on wafl500-509: 0 MiB
+[00:13:37] d0009_b1_exclusion_i36_d0_null confound=none
+{"phase": "pre", "pass": true, "failed": []}
+[00:13:50] d0009_b1_exclusion_i36_d0_null G-GPU-pre ok
+{"phase": "post", "pass": false, "failed": ["wafl500"]}
+[00:31:53] d0009_b1_exclusion_i36_d0_null live_run=0 G-GPU-post rc=1 (window 1794237237-1794238296)
+[00:31:55] d0009_b1_exclusion_i36_d0_null G-R ok (all nodes serving)
+[00:31:55] d0009_b1_exclusion_i36_d0_null table_miss=0
+[00:31:55] d0009_b1_exclusion_i36_d0_null G-FP(i)/G-B NOT met
+[00:31:55] G-ENV FAILED (see results/d0009_b1_exclusion_i36/g_env.json); not running the rounds
+[00:32:26] manual final stop after G-ENV FAILED (chain exited with exit 1 before its final stop)

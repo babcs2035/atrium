@@ -1,0 +1,167 @@
+{
+ "phase": "pre",
+ "checked_at": 1794236707.5239506,
+ "pass": true,
+ "hosts": [
+  {
+   "host": "wafl500",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 3506864716,
+   "tokens_per_s": 64.56608313387626,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl501",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 5828569882,
+   "tokens_per_s": 64.84141461677457,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl502",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 0,
+   "tokens_per_s": 65.16389228001331,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl503",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 0,
+   "tokens_per_s": 65.07371631926792,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl504",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 0,
+   "tokens_per_s": 64.24393421822661,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl505",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 0,
+   "tokens_per_s": 63.81108727611905,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl506",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 0,
+   "tokens_per_s": 64.08199290992825,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl507",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 0,
+   "tokens_per_s": 62.69841230965766,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl508",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 0,
+   "tokens_per_s": 65.30409002576961,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  },
+  {
+   "host": "wafl509",
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "sw_thermal_active": false,
+   "hw_slowdown_active": false,
+   "sw_thermal_counter_us": 33052862,
+   "tokens_per_s": 65.72569381685535,
+   "a_idle": true,
+   "b_clocks": true,
+   "c_speed": true,
+   "ok": true
+  }
+ ]
+}

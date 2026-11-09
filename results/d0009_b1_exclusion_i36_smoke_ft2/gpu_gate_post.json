@@ -1,0 +1,198 @@
+{
+ "phase": "post",
+ "checked_at": 1794236936.8794703,
+ "pass": true,
+ "hosts": [
+  {
+   "host": "wafl500",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 56.01810919942945,
+    "2026-11-09T15:07": 55.794670183586184
+   },
+   "min_tokens_per_s": 55.794670183586184,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 3548396903,
+   "sw_thermal_counter_delta_us": 41532187,
+   "ok": true
+  },
+  {
+   "host": "wafl501",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 59.61002724244233,
+    "2026-11-09T15:07": 59.641370532018186
+   },
+   "min_tokens_per_s": 59.61002724244233,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 5828569882,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl502",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 59.077281180027576,
+    "2026-11-09T15:07": 59.314760847033234
+   },
+   "min_tokens_per_s": 59.077281180027576,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl503",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 58.96984939808448,
+    "2026-11-09T15:07": 59.134988429367866
+   },
+   "min_tokens_per_s": 58.96984939808448,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl504",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 58.25967294937013,
+    "2026-11-09T15:07": 58.31184180888192
+   },
+   "min_tokens_per_s": 58.25967294937013,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl505",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 57.91867819287085,
+    "2026-11-09T15:07": 58.25189124957814
+   },
+   "min_tokens_per_s": 57.91867819287085,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl506",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 58.42357552282199,
+    "2026-11-09T15:07": 58.23522146617761
+   },
+   "min_tokens_per_s": 58.23522146617761,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl507",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 57.045683838829675,
+    "2026-11-09T15:07": 58.07193549821782
+   },
+   "min_tokens_per_s": 57.045683838829675,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl508",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 58.706162413319326,
+    "2026-11-09T15:07": 58.99294830903685,
+    "2026-11-09T15:08": 61.35277847623837
+   },
+   "min_tokens_per_s": 58.706162413319326,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl509",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T15:06": 60.14366347740796,
+    "2026-11-09T15:07": 60.369292006044304
+   },
+   "min_tokens_per_s": 60.14366347740796,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 33052862,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  }
+ ]
+}

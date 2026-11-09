@@ -1,0 +1,18 @@
+{
+  "iteration": 36,
+  "lever": "d0009.B1_drop_failed_peers",
+  "value": "health_check_exclusion",
+  "verdict": "inconclusive",
+  "adopted": false,
+  "value_closed": false,
+  "gates": {
+    "G_V": true,
+    "G_ENV": false,
+    "rounds_run": 0
+  },
+  "reason": "G-ENV failed (D0 without the mechanism: pre-stop answered rate 0.656 < 0.86, returned rate 0.718 < 0.95, availability deadline total 55 > 4, G-GPU-post failed on wafl500 with a minimum of 10.1 tokens/s). Per the pre-registration, the main rounds r1-r3 were not run and H-B1a/H-B1b were not judged.",
+  "fail_threshold_used": 2,
+  "fail_threshold_note": "smoke with fail_threshold 1 had 3 false-positive drops; raised once to 2 as pre-registered (smoke_ft2: 0)",
+  "wafl500_sw_thermal_delta_s": {"smoke": 7.1, "smoke_ft2": 41.5, "d0_null": 933.8},
+  "notes": "Descriptive only: D0 reproduced the Iteration 35 deadline pattern without the mechanism while wafl500 slowed down. See journal Iteration 36 and backlog B120/B121."
+}

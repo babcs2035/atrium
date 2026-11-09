@@ -1,0 +1,121 @@
+[23:28:41] table sha256 da0a7a55c29abd773935b791137b7e5cab2776f5737c9bce2a7949921b1e6fa2
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"gate": "G-V", "routing": "bm25_probe", "probe_d": 24, "n_questions": 288, "n_mismatched": 0, "mismatched_examples": [], "passed": true}
+[23:28:46] G-V ok
+[23:31:26] deployed (on, fail_threshold=1)
+[2026-11-09_23:31:26] BEGIN d0009_b1_exclusion_i36_smoke (D=30)
+[23:31:29] max other-process GPU memory on wafl500-509: 0 MiB
+[23:32:31] max other-process GPU memory on wafl500-509: 0 MiB
+[23:33:33] max other-process GPU memory on wafl500-509: 0 MiB
+[23:33:33] d0009_b1_exclusion_i36_smoke confound=none
+Traceback (most recent call last):
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 216, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 182, in main
+    rows = list(pool.map(check_pre, HOSTS))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 127, in check_pre
+    speed = generation_speed(host)
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 94, in generation_speed
+    out = ssh_out(
+          ^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 53, in ssh_out
+    done = subprocess.run(
+           ^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/subprocess.py", line 573, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ssh', '-n', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', 'wafl500', 'curl -s --max-time 120 http://localhost:11434/api/generate -d \'{"model": "llama3.1:8b", "prompt": "Explain in detail how a bicycle works, covering the frame, wheels, drivetrain, and brakes.", "stream": false, "options": {"temperature": 0, "num_predict": 128, "num_ctx": 16384}}\'']' returned non-zero exit status 7.
+[23:33:44] d0009_b1_exclusion_i36_smoke G-GPU-pre not met (rc=1, waited 0s)
+Traceback (most recent call last):
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 216, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 182, in main
+    rows = list(pool.map(check_pre, HOSTS))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 127, in check_pre
+    speed = generation_speed(host)
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 94, in generation_speed
+    out = ssh_out(
+          ^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 53, in ssh_out
+    done = subprocess.run(
+           ^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/subprocess.py", line 573, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ssh', '-n', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', 'wafl500', 'curl -s --max-time 120 http://localhost:11434/api/generate -d \'{"model": "llama3.1:8b", "prompt": "Explain in detail how a bicycle works, covering the frame, wheels, drivetrain, and brakes.", "stream": false, "options": {"temperature": 0, "num_predict": 128, "num_ctx": 16384}}\'']' returned non-zero exit status 7.
+[23:38:55] d0009_b1_exclusion_i36_smoke G-GPU-pre not met (rc=1, waited 300s)
+{"phase": "pre", "pass": true, "failed": []}
+[23:44:08] d0009_b1_exclusion_i36_smoke G-GPU-pre ok
+Traceback (most recent call last):
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 218, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 188, in main
+    rows = list(
+           ^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 189, in <lambda>
+    pool.map(lambda h: check_post(h, args.since, args.until, pre_by_host), HOSTS)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 147, in check_post
+    speeds = per_minute_speeds(host, since, until)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 106, in per_minute_speeds
+    log = ssh_out(
+          ^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/scripts/d0009/b1_gpu_gate.py", line 53, in ssh_out
+    done = subprocess.run(
+           ^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/.local/share/uv/python/cpython-3.12.9-linux-x86_64-gnu/lib/python3.12/subprocess.py", line 573, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ssh', '-n', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', 'wafl500', "docker logs -t atrium-ollama-1 --since 1794235454 --until 1794235473 2>&1 | grep 'eval time'"]' returned non-zero exit status 1.
+[23:44:39] d0009_b1_exclusion_i36_smoke live_run=1 G-GPU-post rc=0 (window 1794235454-1794235473)
+[23:44:41] d0009_b1_exclusion_i36_smoke G-R ok (all nodes serving)
+[23:44:41] d0009_b1_exclusion_i36_smoke FAILED (no failure.json; inspect results/d0009_b1_exclusion_i36/chain.log.d0009_b1_exclusion_i36_smoke.live and results/d0009_b1_exclusion_i36_smoke/start.log)

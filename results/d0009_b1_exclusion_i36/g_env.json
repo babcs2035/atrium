@@ -1,0 +1,9 @@
+{
+ "G_GPU_post": false,
+ "pre_stop_hit_rate": 0.656441717791411,
+ "G_FP_i": false,
+ "baseline_returned_rate": 0.7177914110429447,
+ "G_B": false,
+ "availability_deadline_total": 55,
+ "passed": false
+}

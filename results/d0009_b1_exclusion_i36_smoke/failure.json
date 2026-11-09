@@ -1,0 +1,3152 @@
+{
+ "params": {
+  "ks": [
+   1
+  ],
+  "modes": [
+   "availability",
+   "container"
+  ],
+  "baseline_s": 10.0,
+  "down_s": 15.0,
+  "post_s": 10.0,
+  "stream_parallel": 8,
+  "answer_deadline_s": 30.0,
+  "bin_s": 5.0,
+  "poll_interval_s": 0.2,
+  "seed": 12,
+  "unreachable_request_timeout_s": 120.0,
+  "note": "止まったノードへの要求は，ホストが応答しなければ RETRIEVE_TIMEOUT_S まで待つ．質問は answer_deadline_s で打ち切り，答えられなかったものとして数える．検出は生存の確認の打ち切り（LIVENESS_TIMEOUT_S）が上限",
+  "liveness_timeout_s": 2.0,
+  "answered_definition": "answer_mode=owner_answer：answer_deadline_s 以内に error なしで終わり，選んだ候補の context_doc_ids に正解のメール（正誤は採点しない）．中央の割合は索引の上位 5 通の正解の割合（cross-encoder・生成を含まない）"
+ },
+ "window_s": 38.319825854036026,
+ "central": {
+  "restart": {
+   "kill_s": 0.02610137697774917,
+   "restart_to_ready_s": 13.294998135999776,
+   "restart_to_answer_s": 13.319825854036026,
+   "index_load": {
+    "n_docs": 73772,
+    "n_inboxes": 150,
+    "read_docs_s": 0.7332101982319728,
+    "read_emb_s": 0.1867218849947676,
+    "total_s": 12.789485096931458,
+    "bm25_s": 11.843929528957233
+   },
+   "index_bytes": 395846478
+  },
+  "hit_rate_after_restart": 0.92,
+  "outage_s": 28.319825854036026,
+  "integral": 9.200000000000001,
+  "redundancy": {
+   "assumption": "切り替えの操作は 0 秒と仮定（測れない）．検出は P2P の生存の確認の測定の中央値",
+   "hot_standby_switch_s": 1.0032497359788977,
+   "cold_standby_switch_s": 13.319825854036026,
+   "integral_hot_standby": 34.33125002861256,
+   "integral_cold_standby": 23.0,
+   "replication": {
+    "index_bytes_per_copy": 395846478,
+    "copies": 2,
+    "extra_storage_bytes": 395846478,
+    "extra_transfer_per_new_mail": "1 回（転送を 2 台へ）"
+   }
+  }
+ },
+ "p2p": [
+  {
+   "mode": "availability",
+   "hosts": [
+    "192.168.15.106"
+   ],
+   "k": 1,
+   "stop": {
+    "requested_to_acked_s": 0.005075288936495781,
+    "per_host": {
+     "192.168.15.106": {
+      "rtt_s": 0.004913971992209554
+     }
+    }
+   },
+   "start": {
+    "requested_at_s": 15.001018484006636,
+    "requested_to_acked_s": 0.004283181973733008,
+    "acked_at_s": 15.005301665980369,
+    "per_host": {
+     "192.168.15.106": {
+      "rtt_s": 0.004212606931105256
+     }
+    }
+   },
+   "detection_s": {
+    "192.168.15.106": 0.004791905055753887
+   },
+   "detection_s_p50": 0.004791905055753887,
+   "ready_s": {
+    "192.168.15.106": 0.04418534098658711
+   },
+   "ready_s_max": 0.04418534098658711,
+   "first_failed_request_s": null,
+   "first_failed_request_e2e_s": null,
+   "n_questions": 57,
+   "n_errors": 3,
+   "n_timeouts": 0,
+   "baseline_hit_rate": 0.9375,
+   "fault_hit_rate": 0.7894736842105263,
+   "fault_gold_down_share": 0.0,
+   "questions": [
+    {
+     "t_s": -10.004925303976052,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.077658056048676,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/61276-0",
+     "selected_sources": [
+      "heard-m",
+      "shackleton-s",
+      "taylor-m"
+     ]
+    },
+    {
+     "t_s": -10.005403480958194,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": true,
+     "e2e_s": 4.447042103041895,
+     "returned": true,
+     "owner_hit": false,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/5159-0",
+     "selected_sources": [
+      "germany-c",
+      "nemec-g",
+      "sanders-r"
+     ]
+    },
+    {
+     "t_s": -10.003697148989886,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.277331969933584,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/10883-0",
+     "selected_sources": [
+      "jones-t",
+      "ring-r",
+      "taylor-m"
+     ]
+    },
+    {
+     "t_s": -10.004969512927346,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.321344058960676,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/17712-0",
+     "selected_sources": [
+      "farmer-d",
+      "germany-c",
+      "love-p"
+     ]
+    },
+    {
+     "t_s": -10.004899856983684,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.662337671034038,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/21274-0",
+     "selected_sources": [
+      "hyatt-k",
+      "lokay-m",
+      "ward-k"
+     ]
+    },
+    {
+     "t_s": -10.003640215960331,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.778344831080176,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/4833-0",
+     "selected_sources": [
+      "forney-j",
+      "presto-k",
+      "sager-e"
+     ]
+    },
+    {
+     "t_s": -10.005344138946384,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.787155148107558,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/46764-0",
+     "selected_sources": [
+      "nemec-g",
+      "sanders-r",
+      "watson-k"
+     ]
+    },
+    {
+     "t_s": -10.003665075986646,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.014943570946343,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/7012-0",
+     "selected_sources": [
+      "kaminski-v",
+      "ruscitti-k",
+      "scott-s"
+     ]
+    },
+    {
+     "t_s": -5.927193599985912,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.2573239610064775,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/46801-0",
+     "selected_sources": [
+      "mcconnell-m",
+      "nemec-g",
+      "schwieger-j"
+     ]
+    },
+    {
+     "t_s": 0.33037094899918884,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 0.07233658409677446,
+     "returned": false,
+     "owner_hit": false,
+     "failure_kind": "http",
+     "error_type": "HTTPStatusError",
+     "http_status": 502,
+     "n_visible": 29,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/8890-0",
+     "selected_sources": [
+      "haedicke-m",
+      "shankman-j",
+      "ybarbo-p"
+     ]
+    },
+    {
+     "t_s": -5.558166143950075,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.713762779021636,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/12373-0",
+     "selected_sources": [
+      "salisbury-h",
+      "semperger-c",
+      "williams-w3"
+     ]
+    },
+    {
+     "t_s": -2.225253134034574,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.087996026035398,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/5882-0",
+     "selected_sources": [
+      "dean-c",
+      "scholtes-d",
+      "williams-w3"
+     ]
+    },
+    {
+     "t_s": -2.7261895269621164,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.785836660070345,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/22272-0",
+     "selected_sources": [
+      "campbell-l",
+      "horton-s",
+      "nemec-g"
+     ]
+    },
+    {
+     "t_s": -2.6835707569262013,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.061715372023173,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/43809-0",
+     "selected_sources": [
+      "cash-m",
+      "kitchen-l",
+      "lay-k"
+     ]
+    },
+    {
+     "t_s": -0.9886405089637265,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": true,
+     "e2e_s": 4.7470143070677295,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/29311-0",
+     "selected_sources": [
+      "blair-l",
+      "richey-c",
+      "schoolcraft-d"
+     ]
+    },
+    {
+     "t_s": -2.342379426001571,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.6571247359970585,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/322-0",
+     "selected_sources": [
+      "brawner-s",
+      "ring-a",
+      "ring-r"
+     ]
+    },
+    {
+     "t_s": 4.314993817009963,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 0.10606369201559573,
+     "returned": false,
+     "owner_hit": false,
+     "failure_kind": "http",
+     "error_type": "HTTPStatusError",
+     "http_status": 502,
+     "n_visible": 29,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/14043-0",
+     "selected_sources": [
+      "giron-d",
+      "keiser-k",
+      "mclaughlin-e"
+     ]
+    },
+    {
+     "t_s": -1.218014745041728,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.665514492080547,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/2649-0",
+     "selected_sources": [
+      "beck-s",
+      "cash-m",
+      "schwieger-j"
+     ]
+    },
+    {
+     "t_s": 1.8628277269890532,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.5169959019403905,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/13421-0",
+     "selected_sources": [
+      "nemec-g",
+      "sanders-r",
+      "zipper-a"
+     ]
+    },
+    {
+     "t_s": 7.379928593989462,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 0.10148793004918844,
+     "returned": false,
+     "owner_hit": false,
+     "failure_kind": "http",
+     "error_type": "HTTPStatusError",
+     "http_status": 502,
+     "n_visible": 29,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/50010-0",
+     "selected_sources": [
+      "beck-s",
+      "kitchen-l",
+      "whalley-l"
+     ]
+    },
+    {
+     "t_s": 0.4029200499644503,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.422139044036157,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/37848-0",
+     "selected_sources": [
+      "kean-s",
+      "ring-r",
+      "steffes-j"
+     ]
+    },
+    {
+     "t_s": 1.1557076600147411,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.065405044006184,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/13376-0",
+     "selected_sources": [
+      "skilling-j",
+      "smith-m",
+      "zipper-a"
+     ]
+    },
+    {
+     "t_s": 2.0598768569761887,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.806236635078676,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/5000-0",
+     "selected_sources": [
+      "horton-s",
+      "mccarty-d",
+      "watson-k"
+     ]
+    },
+    {
+     "t_s": 2.378481109975837,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.041642926051281,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/6899-0",
+     "selected_sources": [
+      "keavey-p",
+      "parks-j",
+      "quigley-d"
+     ]
+    },
+    {
+     "t_s": 3.758582575013861,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.640481719980016,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/4654-0",
+     "selected_sources": [
+      "benson-r",
+      "dorland-c",
+      "lavorato-j"
+     ]
+    },
+    {
+     "t_s": 8.221194189041853,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.957852306077257,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/225-0",
+     "selected_sources": [
+      "kaminski-v",
+      "kean-s",
+      "maggi-m"
+     ]
+    },
+    {
+     "t_s": 4.421223954996094,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 10.23839944601059,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/26048-0",
+     "selected_sources": [
+      "salisbury-h",
+      "stokley-c",
+      "williams-w3"
+     ]
+    },
+    {
+     "t_s": 7.825249669025652,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.472218274022453,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/1591-0",
+     "selected_sources": [
+      "king-j",
+      "schwieger-j",
+      "thomas-p"
+     ]
+    },
+    {
+     "t_s": 11.4203889190685,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.976407728972845,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/34723-0",
+     "selected_sources": [
+      "haedicke-m",
+      "shackleton-s",
+      "taylor-m"
+     ]
+    },
+    {
+     "t_s": 6.447751500061713,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 11.587826637085527,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/33115-0",
+     "selected_sources": [
+      "cash-m",
+      "mclaughlin-e",
+      "williams-w3"
+     ]
+    },
+    {
+     "t_s": 9.866206760983914,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.614267055992968,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/24257-0",
+     "selected_sources": [
+      "hyvl-d",
+      "jones-t",
+      "mann-k"
+     ]
+    },
+    {
+     "t_s": 14.17911703104619,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.23371080996003,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/375-0",
+     "selected_sources": [
+      "forney-j",
+      "geaccone-t",
+      "sanchez-m"
+     ]
+    },
+    {
+     "t_s": 14.659811091027223,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.755729597993195,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/48500-0",
+     "selected_sources": [
+      "dasovich-j",
+      "sanders-r",
+      "shapiro-r"
+     ]
+    },
+    {
+     "t_s": 18.035695636062883,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.037302233977243,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/8028-0",
+     "selected_sources": [
+      "blair-l",
+      "davis-d",
+      "sanders-r"
+     ]
+    },
+    {
+     "t_s": 20.41302928305231,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.954019562923349,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/32306-0",
+     "selected_sources": [
+      "mcconnell-m",
+      "shankman-j",
+      "whalley-l"
+     ]
+    },
+    {
+     "t_s": 7.481495479005389,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 19.632144827977754,
+     "returned": true,
+     "owner_hit": false,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/14726-0",
+     "selected_sources": [
+      "haedicke-m",
+      "hodge-j",
+      "weldon-c"
+     ]
+    },
+    {
+     "t_s": 24.073156077996828,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.642478590947576,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/16153-0",
+     "selected_sources": [
+      "giron-d",
+      "kaminski-v",
+      "kean-s"
+     ]
+    },
+    {
+     "t_s": 25.36731769097969,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.572141266078688,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/22745-0",
+     "selected_sources": [
+      "buy-r",
+      "jones-t",
+      "sager-e"
+     ]
+    },
+    {
+     "t_s": 13.39932950004004,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 16.010934913996607,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/22791-0",
+     "selected_sources": [
+      "buy-r",
+      "derrick-j",
+      "haedicke-m"
+     ]
+    },
+    {
+     "t_s": 27.113818517071195,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.5805563390022144,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/17393-0",
+     "selected_sources": [
+      "baughman-d",
+      "giron-d",
+      "white-s"
+     ]
+    },
+    {
+     "t_s": 28.939714255044237,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.941887379041873,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/50181-0",
+     "selected_sources": [
+      "beck-s",
+      "kitchen-l",
+      "taylor-m"
+     ]
+    },
+    {
+     "t_s": 16.297724689007737,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 14.80991631699726,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/31384-0",
+     "selected_sources": [
+      "allen-p",
+      "lokay-m",
+      "watson-k"
+     ]
+    },
+    {
+     "t_s": 17.397037571994588,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 15.168797349906527,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/16973-0",
+     "selected_sources": [
+      "mims-thurston-p",
+      "perlingiere-d",
+      "staab-t"
+     ]
+    },
+    {
+     "t_s": 28.715854885987937,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.0552622800460085,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/16181-0",
+     "selected_sources": [
+      "giron-d",
+      "keiser-k",
+      "love-p"
+     ]
+    },
+    {
+     "t_s": 18.480675338068977,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 16.607319548958912,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/2159-0",
+     "selected_sources": [
+      "mims-thurston-p",
+      "motley-m",
+      "scott-s"
+     ]
+    },
+    {
+     "t_s": 22.41578031203244,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 14.194469389040023,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/3294-0",
+     "selected_sources": [
+      "blair-l",
+      "rodrique-r",
+      "tycholiz-b"
+     ]
+    },
+    {
+     "t_s": 30.694621374015696,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.693808718002401,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/2885-0",
+     "selected_sources": [
+      "farmer-d",
+      "gay-r",
+      "germany-c"
+     ]
+    },
+    {
+     "t_s": 30.881812697974965,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.588549511972815,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/3016-0",
+     "selected_sources": [
+      "carson-m",
+      "tholt-j",
+      "zufferli-j"
+     ]
+    },
+    {
+     "t_s": 29.410505003063008,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.893711121985689,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/3471-0",
+     "selected_sources": [
+      "cuilla-m",
+      "hyatt-k",
+      "smith-m"
+     ]
+    },
+    {
+     "t_s": 31.107951089041308,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.706696392968297,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/25401-0",
+     "selected_sources": [
+      "mcconnell-m",
+      "neal-s",
+      "shankman-j"
+     ]
+    },
+    {
+     "t_s": 32.56606635497883,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.171941094915383,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/8230-0",
+     "selected_sources": [
+      "schwieger-j",
+      "ward-k",
+      "weldon-c"
+     ]
+    },
+    {
+     "t_s": 35.08810533606447,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": true,
+     "e2e_s": 6.210391587927006,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/16547-0",
+     "selected_sources": [
+      "germany-c",
+      "nemec-g",
+      "perlingiere-d"
+     ]
+    },
+    {
+     "t_s": 37.47044753096998,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.494203621055931,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/4331-0",
+     "selected_sources": [
+      "may-l",
+      "mckay-j",
+      "wolfe-j"
+     ]
+    },
+    {
+     "t_s": 32.77138056606054,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.500976952025667,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/6063-0",
+     "selected_sources": [
+      "dasovich-j",
+      "smith-m",
+      "tholt-j"
+     ]
+    },
+    {
+     "t_s": 36.61048799904529,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.985356746939942,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/7610-0",
+     "selected_sources": [
+      "smith-m",
+      "stepenovitch-j",
+      "tycholiz-b"
+     ]
+    },
+    {
+     "t_s": 37.38855357898865,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.872154615004547,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/1908-0",
+     "selected_sources": [
+      "farmer-d",
+      "staab-t",
+      "wolfe-j"
+     ]
+    },
+    {
+     "t_s": 38.30435861402657,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.429707800038159,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/10365-0",
+     "selected_sources": [
+      "nemec-g",
+      "tycholiz-b",
+      "whitt-m"
+     ]
+    }
+   ],
+   "bin_s": 5.0,
+   "bin_start_s": -10.0,
+   "rates": [
+    1.0,
+    1.0,
+    0.7777777777777778,
+    0.6666666666666666,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "window_s": 38.319825854036026,
+   "integral": 35.54204807625825,
+   "integral_relative": 0.9893447348225821,
+   "owner": {
+    "deadline_s": 30.0,
+    "baseline": {
+     "n": 16,
+     "n_hit": 15,
+     "n_returned": 16,
+     "n_owner_hit": 15,
+     "n_hit_within_half_deadline": 15,
+     "failure_kinds": {},
+     "http_statuses": [],
+     "rates": {
+      "hit": 0.9375,
+      "returned": 1.0,
+      "owner_hit": 0.9375,
+      "hit_within_half_deadline": 0.9375
+     }
+    },
+    "fault": {
+     "n": 19,
+     "n_hit": 15,
+     "n_returned": 16,
+     "n_owner_hit": 15,
+     "n_hit_within_half_deadline": 14,
+     "failure_kinds": {
+      "http": 3
+     },
+     "http_statuses": [
+      502
+     ],
+     "rates": {
+      "hit": 0.7894736842105263,
+      "returned": 0.8421052631578947,
+      "owner_hit": 0.7894736842105263,
+      "hit_within_half_deadline": 0.7368421052631579
+     }
+    }
+   },
+   "peer_health": {
+    "events": [
+     {
+      "host": "192.168.15.106",
+      "kind": "drop",
+      "t_s": 0.11861244798637927
+     },
+     {
+      "host": "192.168.13.104",
+      "kind": "drop",
+      "t_s": 9.951656009070575
+     },
+     {
+      "host": "192.168.13.104",
+      "kind": "restore",
+      "t_s": 10.957384402980097
+     },
+     {
+      "host": "192.168.15.106",
+      "kind": "restore",
+      "t_s": 15.177080622059293
+     }
+    ],
+    "false_positive_drops": 1,
+    "dropped_at_s": {
+     "192.168.15.106": 0.11861244798637927
+    },
+    "restored_after_start_ack_s": {
+     "192.168.15.106": 0.17177895607892424
+    }
+   },
+   "central_integral": 9.200000000000001,
+   "central_integral_relative": 0.2609615199737854
+  },
+  {
+   "mode": "container",
+   "hosts": [
+    "192.168.15.106"
+   ],
+   "k": 1,
+   "stop": {
+    "requested_to_acked_s": 5.482024812023155,
+    "per_host": {
+     "192.168.15.106": {
+      "rc": 0,
+      "begin": 1794236311.7307699,
+      "end": 1794236317.1237752
+     }
+    }
+   },
+   "start": {
+    "requested_at_s": 15.00213979894761,
+    "requested_to_acked_s": 0.604455254971981,
+    "acked_at_s": 15.606595053919591,
+    "per_host": {
+     "192.168.15.106": {
+      "rc": 0,
+      "begin": 1794236332.247171,
+      "end": 1794236332.6527896
+     }
+    }
+   },
+   "detection_s": {
+    "192.168.15.106": 2.0017075669020414
+   },
+   "detection_s_p50": 2.0017075669020414,
+   "ready_s": {
+    "192.168.15.106": 1.7037002679426223
+   },
+   "ready_s_max": 1.7037002679426223,
+   "first_failed_request_s": null,
+   "first_failed_request_e2e_s": null,
+   "n_questions": 84,
+   "n_errors": 4,
+   "n_timeouts": 0,
+   "baseline_hit_rate": 0.896551724137931,
+   "fault_hit_rate": 0.8461538461538461,
+   "fault_gold_down_share": 0.07692307692307693,
+   "questions": [
+    {
+     "t_s": -15.482941967085935,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.6821208440233022,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/61276-0",
+     "selected_sources": [
+      "heard-m",
+      "shackleton-s",
+      "taylor-m"
+     ]
+    },
+    {
+     "t_s": -15.483465863042511,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.827765402966179,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/46764-0",
+     "selected_sources": [
+      "nemec-g",
+      "sanders-r",
+      "watson-k"
+     ]
+    },
+    {
+     "t_s": -15.482834980008192,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.059810093953274,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/7012-0",
+     "selected_sources": [
+      "kaminski-v",
+      "ruscitti-k",
+      "scott-s"
+     ]
+    },
+    {
+     "t_s": -15.482865995028988,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.1391239629592746,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/10883-0",
+     "selected_sources": [
+      "jones-t",
+      "ring-r",
+      "taylor-m"
+     ]
+    },
+    {
+     "t_s": -15.483446026104502,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.4204540150240064,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/17712-0",
+     "selected_sources": [
+      "farmer-d",
+      "germany-c",
+      "love-p"
+     ]
+    },
+    {
+     "t_s": -15.48230048804544,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.5817682740744203,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/4833-0",
+     "selected_sources": [
+      "forney-j",
+      "presto-k",
+      "sager-e"
+     ]
+    },
+    {
+     "t_s": -12.655534595018253,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.36269452504348,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/12373-0",
+     "selected_sources": [
+      "salisbury-h",
+      "semperger-c",
+      "williams-w3"
+     ]
+    },
+    {
+     "t_s": -15.48351187701337,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": true,
+     "e2e_s": 5.46193379489705,
+     "returned": true,
+     "owner_hit": false,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/5159-0",
+     "selected_sources": [
+      "germany-c",
+      "nemec-g",
+      "sanders-r"
+     ]
+    },
+    {
+     "t_s": -12.34369852207601,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.4121956441085786,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/43809-0",
+     "selected_sources": [
+      "cash-m",
+      "kitchen-l",
+      "lay-k"
+     ]
+    },
+    {
+     "t_s": -15.482885393081233,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.904910676996224,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/21274-0",
+     "selected_sources": [
+      "hyatt-k",
+      "lokay-m",
+      "ward-k"
+     ]
+    },
+    {
+     "t_s": -13.80064737109933,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.380145650007762,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/46801-0",
+     "selected_sources": [
+      "mcconnell-m",
+      "nemec-g",
+      "schwieger-j"
+     ]
+    },
+    {
+     "t_s": -12.062945448094979,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.782303465064615,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/322-0",
+     "selected_sources": [
+      "brawner-s",
+      "ring-a",
+      "ring-r"
+     ]
+    },
+    {
+     "t_s": -11.900458660093136,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.929075477994047,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/5882-0",
+     "selected_sources": [
+      "dean-c",
+      "scholtes-d",
+      "williams-w3"
+     ]
+    },
+    {
+     "t_s": -12.422866543056443,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.678478732937947,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/22272-0",
+     "selected_sources": [
+      "campbell-l",
+      "horton-s",
+      "nemec-g"
+     ]
+    },
+    {
+     "t_s": -10.02141691709403,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": true,
+     "e2e_s": 1.5743645200273022,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/29311-0",
+     "selected_sources": [
+      "blair-l",
+      "richey-c",
+      "schoolcraft-d"
+     ]
+    },
+    {
+     "t_s": -11.292601831024513,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.194483032915741,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/2649-0",
+     "selected_sources": [
+      "beck-s",
+      "cash-m",
+      "schwieger-j"
+     ]
+    },
+    {
+     "t_s": -9.931448849034496,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.2938776469090953,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/8890-0",
+     "selected_sources": [
+      "haedicke-m",
+      "shankman-j",
+      "ybarbo-p"
+     ]
+    },
+    {
+     "t_s": -9.577913848101161,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.079758103005588,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/37848-0",
+     "selected_sources": [
+      "kean-s",
+      "ring-r",
+      "steffes-j"
+     ]
+    },
+    {
+     "t_s": -9.28057930606883,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.1394543159985915,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/13421-0",
+     "selected_sources": [
+      "nemec-g",
+      "sanders-r",
+      "zipper-a"
+     ]
+    },
+    {
+     "t_s": -9.42031192407012,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.4175058560213074,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/13376-0",
+     "selected_sources": [
+      "skilling-j",
+      "smith-m",
+      "zipper-a"
+     ]
+    },
+    {
+     "t_s": -8.971147953998297,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.768515623989515,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/5000-0",
+     "selected_sources": [
+      "horton-s",
+      "mccarty-d",
+      "watson-k"
+     ]
+    },
+    {
+     "t_s": -6.2025278030196205,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.4640691119711846,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/1591-0",
+     "selected_sources": [
+      "king-j",
+      "schwieger-j",
+      "thomas-p"
+     ]
+    },
+    {
+     "t_s": -8.744114176020958,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.238553863950074,
+     "returned": true,
+     "owner_hit": false,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/6899-0",
+     "selected_sources": [
+      "arnold-j",
+      "parks-j",
+      "quigley-d"
+     ]
+    },
+    {
+     "t_s": -7.637371628079563,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.5278053970541805,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/26048-0",
+     "selected_sources": [
+      "salisbury-h",
+      "stokley-c",
+      "williams-w3"
+     ]
+    },
+    {
+     "t_s": -8.446810392080806,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.543703828938305,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/4654-0",
+     "selected_sources": [
+      "benson-r",
+      "dorland-c",
+      "lavorato-j"
+     ]
+    },
+    {
+     "t_s": -4.738240143051371,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.251001753960736,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/225-0",
+     "selected_sources": [
+      "kaminski-v",
+      "kean-s",
+      "maggi-m"
+     ]
+    },
+    {
+     "t_s": -4.5053312190575525,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.757759144064039,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/24257-0",
+     "selected_sources": [
+      "hyvl-d",
+      "jones-t",
+      "mann-k"
+     ]
+    },
+    {
+     "t_s": -8.098017928074114,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.668712620972656,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/14043-0",
+     "selected_sources": [
+      "giron-d",
+      "keiser-k",
+      "mclaughlin-e"
+     ]
+    },
+    {
+     "t_s": -7.4980880580842495,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.428312533069402,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/33115-0",
+     "selected_sources": [
+      "cash-m",
+      "mclaughlin-e",
+      "williams-w3"
+     ]
+    },
+    {
+     "t_s": -4.109327501035295,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.226870762067847,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/34723-0",
+     "selected_sources": [
+      "haedicke-m",
+      "shackleton-s",
+      "taylor-m"
+     ]
+    },
+    {
+     "t_s": -7.140915790107101,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.828285753028467,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/50010-0",
+     "selected_sources": [
+      "beck-s",
+      "sager-e",
+      "whalley-l"
+     ]
+    },
+    {
+     "t_s": -0.31253043410833925,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 0.0776329159270972,
+     "returned": false,
+     "owner_hit": false,
+     "failure_kind": "http",
+     "error_type": "HTTPStatusError",
+     "http_status": 502,
+     "n_visible": 29,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/2159-0",
+     "selected_sources": [
+      "mims-thurston-p",
+      "motley-m",
+      "scott-s"
+     ]
+    },
+    {
+     "t_s": -0.23483146901708096,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 0.06621921493206173,
+     "returned": false,
+     "owner_hit": false,
+     "failure_kind": "http",
+     "error_type": "HTTPStatusError",
+     "http_status": 502,
+     "n_visible": 29,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/32306-0",
+     "selected_sources": [
+      "mcconnell-m",
+      "shankman-j",
+      "whalley-l"
+     ]
+    },
+    {
+     "t_s": -3.4869963210076094,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.5163590860320255,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/375-0",
+     "selected_sources": [
+      "forney-j",
+      "geaccone-t",
+      "sanchez-m"
+     ]
+    },
+    {
+     "t_s": -2.7474667640635744,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.687246454996057,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/48500-0",
+     "selected_sources": [
+      "dasovich-j",
+      "sanders-r",
+      "shapiro-r"
+     ]
+    },
+    {
+     "t_s": 0.9399857189273462,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.7380711829755455,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/22745-0",
+     "selected_sources": [
+      "buy-r",
+      "jones-t",
+      "sager-e"
+     ]
+    },
+    {
+     "t_s": -7.002727179089561,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 11.493345570983365,
+     "returned": true,
+     "owner_hit": false,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/14726-0",
+     "selected_sources": [
+      "haedicke-m",
+      "hodge-j",
+      "weldon-c"
+     ]
+    },
+    {
+     "t_s": -3.902872334001586,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.806098536006175,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/22791-0",
+     "selected_sources": [
+      "buy-r",
+      "derrick-j",
+      "haedicke-m"
+     ]
+    },
+    {
+     "t_s": -2.429074884043075,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.804922832059674,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/31384-0",
+     "selected_sources": [
+      "fossum-d",
+      "lokay-m",
+      "watson-k"
+     ]
+    },
+    {
+     "t_s": 5.903467009891756,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 0.7488490799441934,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/50181-0",
+     "selected_sources": [
+      "beck-s",
+      "kitchen-l",
+      "taylor-m"
+     ]
+    },
+    {
+     "t_s": -2.0696909700054675,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.147890391992405,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/16973-0",
+     "selected_sources": [
+      "jones-t",
+      "mims-thurston-p",
+      "staab-t"
+     ]
+    },
+    {
+     "t_s": -1.882367522106506,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 10.819486114894971,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/8028-0",
+     "selected_sources": [
+      "campbell-l",
+      "davis-d",
+      "sanders-r"
+     ]
+    },
+    {
+     "t_s": 7.07840979390312,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.8126801879843697,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/3016-0",
+     "selected_sources": [
+      "carson-m",
+      "tholt-j",
+      "zufferli-j"
+     ]
+    },
+    {
+     "t_s": 8.937195981969126,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.5671406229957938,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/25401-0",
+     "selected_sources": [
+      "mcconnell-m",
+      "neal-s",
+      "shankman-j"
+     ]
+    },
+    {
+     "t_s": -0.16855166503228247,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 13.23913604801055,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/3294-0",
+     "selected_sources": [
+      "rodrique-r",
+      "taylor-m",
+      "tycholiz-b"
+     ]
+    },
+    {
+     "t_s": 6.376085932948627,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.406801250996068,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/3471-0",
+     "selected_sources": [
+      "cuilla-m",
+      "hyatt-k",
+      "smith-m"
+     ]
+    },
+    {
+     "t_s": 4.490846887929365,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 11.326055199024267,
+     "returned": false,
+     "owner_hit": false,
+     "failure_kind": "http",
+     "error_type": "HTTPStatusError",
+     "http_status": 502,
+     "n_visible": 29,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/16181-0",
+     "selected_sources": [
+      "giron-d",
+      "keiser-k",
+      "love-p"
+     ]
+    },
+    {
+     "t_s": 13.07080603193026,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": true,
+     "e2e_s": 3.2008832399733365,
+     "returned": false,
+     "owner_hit": false,
+     "failure_kind": "http",
+     "error_type": "HTTPStatusError",
+     "http_status": 502,
+     "n_visible": 29,
+     "delegate_down": true,
+     "qid": "enronqa/holdout/16547-0",
+     "selected_sources": [
+      "germany-c",
+      "hodge-j",
+      "nemec-g"
+     ]
+    },
+    {
+     "t_s": 9.891188561916351,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.34519185393583,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/8230-0",
+     "selected_sources": [
+      "schwieger-j",
+      "ward-k",
+      "weldon-c"
+     ]
+    },
+    {
+     "t_s": 15.817209163913503,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.8048633569851518,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/1908-0",
+     "selected_sources": [
+      "farmer-d",
+      "staab-t",
+      "wolfe-j"
+     ]
+    },
+    {
+     "t_s": 16.271863286965527,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.0254382770508528,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/4331-0",
+     "selected_sources": [
+      "may-l",
+      "mckay-j",
+      "wolfe-j"
+     ]
+    },
+    {
+     "t_s": 17.236452266923152,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 1.4409749750047922,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/10365-0",
+     "selected_sources": [
+      "nemec-g",
+      "tycholiz-b",
+      "whitt-m"
+     ]
+    },
+    {
+     "t_s": 10.504540417925455,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.283808171981946,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/6063-0",
+     "selected_sources": [
+      "dasovich-j",
+      "smith-m",
+      "tholt-j"
+     ]
+    },
+    {
+     "t_s": 14.78312177490443,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.338731080992147,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/7610-0",
+     "selected_sources": [
+      "smith-m",
+      "stepenovitch-j",
+      "tycholiz-b"
+     ]
+    },
+    {
+     "t_s": 6.652426827000454,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 13.627349287038669,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/2885-0",
+     "selected_sources": [
+      "farmer-d",
+      "gay-r",
+      "germany-c"
+     ]
+    },
+    {
+     "t_s": 0.02950405899900943,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 21.021312277996913,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/16153-0",
+     "selected_sources": [
+      "giron-d",
+      "kaminski-v",
+      "kean-s"
+     ]
+    },
+    {
+     "t_s": 17.622287376900204,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.194214432965964,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/13022-0",
+     "selected_sources": [
+      "jones-t",
+      "lokey-t",
+      "mcconnell-m"
+     ]
+    },
+    {
+     "t_s": 18.297500964952633,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.867446131072938,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/7838-0",
+     "selected_sources": [
+      "bass-e",
+      "mims-thurston-p",
+      "stepenovitch-j"
+     ]
+    },
+    {
+     "t_s": 20.122094227932394,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.4768891819985583,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/40003-0",
+     "selected_sources": [
+      "farmer-d",
+      "germany-c",
+      "sanders-r"
+     ]
+    },
+    {
+     "t_s": 18.677499867975712,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 5.546621995978057,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/776-0",
+     "selected_sources": [
+      "kitchen-l",
+      "swerzbin-m",
+      "white-s"
+     ]
+    },
+    {
+     "t_s": 18.788449354935437,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.506959975929931,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/4030-0",
+     "selected_sources": [
+      "donoho-l",
+      "lokay-m",
+      "watson-k"
+     ]
+    },
+    {
+     "t_s": 20.279836920904927,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 7.289047105005011,
+     "returned": true,
+     "owner_hit": false,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/9842-0",
+     "selected_sources": [
+      "bass-e",
+      "blair-l",
+      "scott-s"
+     ]
+    },
+    {
+     "t_s": 21.051026567001827,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.875469540013,
+     "returned": true,
+     "owner_hit": false,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/7848-0",
+     "selected_sources": [
+      "jones-t",
+      "mims-thurston-p",
+      "stepenovitch-j"
+     ]
+    },
+    {
+     "t_s": 3.6781800169264898,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 24.580846247030422,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 29,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/17393-0",
+     "selected_sources": [
+      "baughman-d",
+      "giron-d",
+      "white-s"
+     ]
+    },
+    {
+     "t_s": 21.816774785984308,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.768476740922779,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/36663-0",
+     "selected_sources": [
+      "campbell-l",
+      "rogers-b",
+      "thomas-p"
+     ]
+    },
+    {
+     "t_s": 24.224182186997496,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.888800381915644,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/105-0",
+     "selected_sources": [
+      "gang-l",
+      "meyers-a",
+      "salisbury-h"
+     ]
+    },
+    {
+     "t_s": 25.29548099299427,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.507399450987577,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/10641-0",
+     "selected_sources": [
+      "lavorato-j",
+      "mcconnell-m",
+      "whalley-l"
+     ]
+    },
+    {
+     "t_s": 23.165044997935183,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.4945799150737,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/7602-0",
+     "selected_sources": [
+      "shackleton-s",
+      "smith-m",
+      "steffes-j"
+     ]
+    },
+    {
+     "t_s": 28.58550678892061,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.680646291933954,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/2496-0",
+     "selected_sources": [
+      "arora-h",
+      "beck-s",
+      "kitchen-l"
+     ]
+    },
+    {
+     "t_s": 23.599082352942787,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.972238132031634,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/18977-0",
+     "selected_sources": [
+      "baughman-d",
+      "campbell-l",
+      "mann-k"
+     ]
+    },
+    {
+     "t_s": 31.659852975979447,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.516070249956101,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/25381-0",
+     "selected_sources": [
+      "mcconnell-m",
+      "nemec-g",
+      "shankman-j"
+     ]
+    },
+    {
+     "t_s": 27.92659988498781,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.314894190058112,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/23221-0",
+     "selected_sources": [
+      "hyatt-k",
+      "kaminski-v",
+      "lokay-m"
+     ]
+    },
+    {
+     "t_s": 27.569074147962965,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.209135686978698,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/11748-0",
+     "selected_sources": [
+      "dasovich-j",
+      "mims-thurston-p",
+      "thomas-p"
+     ]
+    },
+    {
+     "t_s": 33.26630766096059,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.6306925350800157,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/134-0",
+     "selected_sources": [
+      "brawner-s",
+      "pereira-s",
+      "scott-s"
+     ]
+    },
+    {
+     "t_s": 33.571522750891745,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 3.8167531120125204,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 28,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/5709-0",
+     "selected_sources": [
+      "farmer-d",
+      "martin-t",
+      "nemec-g"
+     ]
+    },
+    {
+     "t_s": 28.259113855892792,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.855138953891583,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/21777-0",
+     "selected_sources": [
+      "kitchen-l",
+      "lavorato-j",
+      "presto-k"
+     ]
+    },
+    {
+     "t_s": 34.17616969696246,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 4.781485596089624,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 28,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/32257-0",
+     "selected_sources": [
+      "beck-s",
+      "shackleton-s",
+      "shankman-j"
+     ]
+    },
+    {
+     "t_s": 29.11318433098495,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 10.38529955490958,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/23220-0",
+     "selected_sources": [
+      "hyatt-k",
+      "hyvl-d",
+      "rodrique-r"
+     ]
+    },
+    {
+     "t_s": 38.114455403992906,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 2.4374624480260536,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/33818-0",
+     "selected_sources": [
+      "jones-t",
+      "sager-e",
+      "shackleton-s"
+     ]
+    },
+    {
+     "t_s": 29.803076724987477,
+     "hit": false,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 13.620212272042409,
+     "returned": true,
+     "owner_hit": false,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/2749-0",
+     "selected_sources": [
+      "lokey-t",
+      "mcconnell-m",
+      "watson-k"
+     ]
+    },
+    {
+     "t_s": 37.388378192903474,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 6.225501895998605,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/10099-0",
+     "selected_sources": [
+      "hyvl-d",
+      "neal-s",
+      "quigley-d"
+     ]
+    },
+    {
+     "t_s": 36.24166326492559,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 8.714425956015475,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/20312-0",
+     "selected_sources": [
+      "derrick-j",
+      "haedicke-m",
+      "sanders-r"
+     ]
+    },
+    {
+     "t_s": 36.77845581294969,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 9.974941411986947,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/28063-0",
+     "selected_sources": [
+      "lokay-m",
+      "watson-k",
+      "ybarbo-p"
+     ]
+    },
+    {
+     "t_s": 36.89706316497177,
+     "hit": true,
+     "timed_out": false,
+     "gold_down": false,
+     "e2e_s": 11.901820817030966,
+     "returned": true,
+     "owner_hit": true,
+     "failure_kind": null,
+     "error_type": null,
+     "http_status": null,
+     "n_visible": 30,
+     "delegate_down": false,
+     "qid": "enronqa/holdout/51752-0",
+     "selected_sources": [
+      "kean-s",
+      "shapiro-r",
+      "steffes-j"
+     ]
+    }
+   ],
+   "bin_s": 5.0,
+   "bin_start_s": -10.0,
+   "rates": [
+    0.8461538461538461,
+    0.8333333333333334,
+    0.75,
+    1.0,
+    0.6666666666666666,
+    1.0,
+    0.5714285714285714,
+    0.8571428571428571,
+    1.0,
+    1.0
+   ],
+   "window_s": 38.319825854036026,
+   "integral": 32.5460163302265,
+   "integral_relative": 0.9473249185699957,
+   "owner": {
+    "deadline_s": 30.0,
+    "baseline": {
+     "n": 29,
+     "n_hit": 26,
+     "n_returned": 29,
+     "n_owner_hit": 26,
+     "n_hit_within_half_deadline": 26,
+     "failure_kinds": {},
+     "http_statuses": [],
+     "rates": {
+      "hit": 0.896551724137931,
+      "returned": 1.0,
+      "owner_hit": 0.896551724137931,
+      "hit_within_half_deadline": 0.896551724137931
+     }
+    },
+    "fault": {
+     "n": 13,
+     "n_hit": 11,
+     "n_returned": 11,
+     "n_owner_hit": 11,
+     "n_hit_within_half_deadline": 9,
+     "failure_kinds": {
+      "http": 2
+     },
+     "http_statuses": [
+      502
+     ],
+     "rates": {
+      "hit": 0.8461538461538461,
+      "returned": 0.8461538461538461,
+      "owner_hit": 0.8461538461538461,
+      "hit_within_half_deadline": 0.6923076923076923
+     }
+    }
+   },
+   "peer_health": {
+    "events": [
+     {
+      "host": "192.168.15.106",
+      "kind": "drop",
+      "t_s": -4.846087402082048
+     },
+     {
+      "host": "192.168.15.106",
+      "kind": "restore",
+      "t_s": 17.222612135927193
+     },
+     {
+      "host": "192.168.14.109",
+      "kind": "drop",
+      "t_s": 33.321922157891095
+     },
+     {
+      "host": "192.168.15.101",
+      "kind": "drop",
+      "t_s": 33.32221050292719
+     },
+     {
+      "host": "192.168.15.101",
+      "kind": "restore",
+      "t_s": 34.320117453928106
+     },
+     {
+      "host": "192.168.14.109",
+      "kind": "restore",
+      "t_s": 34.3219442339614
+     }
+    ],
+    "false_positive_drops": 2,
+    "dropped_at_s": {
+     "192.168.15.106": -4.846087402082048
+    },
+    "restored_after_start_ack_s": {
+     "192.168.15.106": 1.6160170820076019
+    }
+   },
+   "central_integral": 9.200000000000001,
+   "central_integral_relative": 0.2609615199737854
+  }
+ ]
+}

@@ -1,3 +1,132 @@
+## Iteration 33: 新しいメールを BM25 の索引へ加える費用の測定
+
+**位置づけ**：レバー `d0009.A5_extend_measurements` の値 `bm25_index_add`（backlog B110 (4)・申し送り (a)〜(c)）．p0007 C（`results/p0007_c_freshness`・`p0007_c_freshness_quiet`）は `hybrid_probe`・`fusion: none`・`retrieval_only`・test の質問で，新しいメールが答えに使えるまでの時間を測った．BM25 を含む主構成の取得の部分（`bm25_probe` D = 24・`fusion: rrf`）では，P2P のノードも中央も索引に BM25 が加わるので，その追加の費用と，答えられるまでの時間への影響を実機で測る（運用ルール 13）．設計の判断は backlog B111．d0009 A5 に着手を書いた（運用ルール 9）．この節が事前登録である．**rc-executor は，本番の実機の実行（smoke を除く）より前に，実装とこの事前登録の節を同じ commit に入れて push する**（Iteration 32 の偏差 (iii) の再発防止）．
+
+### 調査で分かったこと
+
+- **p0007 C の結果（`results/p0007_c_freshness*/freshness.json`）**：届けたメールは test の正解のメールの 10%（種 12）の 289 通，届く間隔 0.5 秒．quiet（`--poll-timeout-s 2`．`verdict_revised` の根拠）で P2P（direct）の答えられるまでの p50 は 0.44 秒（比べた 213 通では 0.39 秒），ノードの CPU の埋め込みは p50 0.39 秒，索引への追加は p50 0.05 ms，`node_bm25_s` は `fusion: none` なので 0．中央は T0 の p50 0.04 秒（289 回の転送の追加の合計 0.03 秒．埋め込みの合計 6.3 秒で，当時の制御点に GPU があった見込み．Iteration 31 の学び），T60 47.2 秒，T600 557.7 秒，T∞ は全て打ち切り．つまり p0007 C の中央の T0 が速いのは，BM25 が無く追加が行列への書き込みだけだったからである．
+- **今のコードの追加の挙動（コードの確認）**：
+  - P2P：`node.py` の `/v1/admin/docs/add` は CPU で本文を埋め込み，`store.FaissShardStore.add` で faiss に足した後，`fusion: rrf` か `body_bm25_probe` なら `_build_bm25` で**その受信箱の BM25 を全文書から作り直す**（RRF 用の `content` の索引と，`bm25_probe` 用の本文だけの `keep_counts` の索引の 2 つ．所要は応答の `bm25_s`）．受信箱は平均約 490 通（73,772 / 150）．
+  - 中央：`routing/central.py` の `CentralIndex.append` は `fusion: rrf` なら**全 73,772 通の BM25 を作り直す**（Iteration 30 で 12.2 秒，Iteration 31 で 11.2〜12.1 秒／回．制御点の CPU）．`freshness_run.measure_central` は転送ごとに `append` を呼び，T0 は 1 通ごとに 1 回の転送なので，間隔 0.5 秒で 289 通が届くと作り直し（約 12 秒）が積み上がり，最後のメールは約 289 × 12 ≈ 3,500 秒待つ（計算）．これは「1 通ごとに作り直す」測定の道具の作りが測る量を決めてしまう形（p0007 C の quiet の見直しと同じ種類の問題）なので，T0 では**転送の始まりの時点で届いていて未転送のメールをまとめて足す**（coalesce）形を主にする（下の単一レバー）．T60・T600 では作り直し（約 12 秒）が間隔より短いので，まとめ方を変えても結果は同じになる見込み．
+  - P2P の公開情報：`bm25_probe` の IDF は各デバイスが公開した文書頻度（上位 64,000 語）・`n_docs`・`bm25_len_total` から質問者が組み立てる（`routing/summary.py` の `Bm25Stats`，Iteration 31 の `assemble_bm25_stats`）．新しいメールでこれらは変わるが，`freshness-run` は公開情報を作り直さない（routed は「参考」．オフラインの要約は届く前のメールも含めて作られている）．差分は届いたメールの語の集合だけで決まり，計算は語の分割だけで埋め込みを要らない．
+- **`freshness-run` で足りないもの（コードの確認）**：(i) 質問は `load_test_questions` で test に固定（運用ルール 10 で A5 の判定は新しい質問で行う）．`live_common.load_split_questions` と join-run の `queries/<split>/` の読み方（Iteration 31）が既にあるので流用できる．(ii) 中央の転送ごとの BM25 の作り直しの秒数（`central.bm25_s`）を `flushes` に残していない（`add_s` に含まれるだけ）．(iii) T0 のまとめ足しが無い．
+- **既存の文献（Iteration 31 で引いたもの．再確認はしていない）**：Elasticsearch は書き込んだ文書を既定で約 1 秒ごとの refresh で検索に見えるようにする（near real-time search．Elastic Docs "Near real-time search"．https://www.elastic.co/docs/manage-data/data-store/near-real-time-search ）．Lucene の索引は変えない segment の集まりで，新しい文書は新しい segment として足し，後で併合する（Apache Solr Reference Guide "Index Segments and Merging"．https://solr.apache.org/guide/solr/latest/configuration-guide/index-segments-merging.html ）．したがって今回の中央の値は「全体を作り直す」実装の値で，segment 方式の中央なら追加の費用は小さくなりうる（推測．今回は測らない）．
+- **Web 検索**：tavily-search（`tvly search`）は今回の環境で実行の許可が得られず（auto mode の分類器が拒否），新しい文献は調べていない．上の文献は Iteration 31 の journal の再掲である．
+
+### 仮説
+
+BM25 を含む主構成でも，P2P の追加は 1 受信箱（平均約 490 通）の BM25 の作り直しで済むので，ノードの `node_bm25_s` の p50 は 0.05〜0.5 秒，P2P（direct）の答えられるまでの p50 は 0.5〜1.0 秒で，p0007 C の「1 秒未満」を保つ．中央は 1 回の追加ごとに全 73,772 通の BM25 を作り直す（約 12 秒）ので，T0（まとめ足し）の答えられるまでの p50 は 12〜25 秒（作り直しの 1〜2 回分）になり，p0007 C の 0.04 秒から 2 桁以上延びる．T60・T600 の p50 は p0007 C より約 12 秒長い（約 55〜60 秒・約 565〜575 秒）．したがって BM25 を含む構成では，P2P は中央の T0 より有意に速く，「新しさ」の軸の P2P の利点は p0007 C より大きくなる（推測）．
+
+### 単一レバー
+
+**新しいメールへの追従の測定（`atrium freshness-run`）の構成**を，p0007 C の「`routing: hybrid_probe`・`retrieval.fusion: none`・test の質問」から，**BM25 を含む主構成の取得の部分「`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`retrieval.fusion: rrf`（ノードは RRF 用と probe 用の 2 つの BM25．中央は C1-RRF の全体の BM25）・H の質問（`question_split: holdout`）」**へ替える．ほかの測定の手順（10% の種 12・届く間隔 0.5 秒・`ask_delay_s` 1 秒・`--poll-timeout-s 2`・T ∈ {0, 60, 600, ∞}・`retrieval_only`）は p0007 C の quiet と同じにする．
+
+- **届けるメール**：H の質問の正解のメール（重複なし）から `plan_arrivals` と同じ規則（10%・種 12・各メールの質問は ID の最小）で選ぶ．数は約 280 通の見込み（H は 2,862 問）．
+- **T0 のまとめ足し（追加だけの引数 `--central-coalesce`．既定は off ＝今の挙動）**：転送を始める時点（予定の時刻を過ぎて前の転送が終わった時点）で，届いていて未転送のメールを全て 1 回の転送・埋め込み・`append` でまとめて足す．足すものが無い転送の予定は飛ばす．本番は全ての T で on にする（T ≥ 60 では作り直しが間隔より短いので，off と同じ結果になる見込み）．1 通ごとに作り直す場合（off）の T0 は実測せず，測った作り直しの秒数からの計算（i 番目のメールの待ち ≈ Σ 作り直し − 届いた時刻）を記述として出す．
+- **`answer_mode: retrieval_only` の理由**：索引への追加の費用と「答えられる（正解のメールが上位 k 通に入る）」状態は回答の生成に依らない．Iteration 31 で索引に載った後に答えるまでは両側とも 15 秒以内で，時間の差は全て索引の側にあった．生成を含めると GPU の PC（wafl500〜509）を使い，測る量に関係の無い揺れが入る．正答率は判定しない（運用ルール 11 の対象外）．`bm25_probe` と `retrieval_only` の組み合わせは `results/p0007_a4_sel300` に前例がある．
+
+### 固定する構成
+
+EnronQA・`question_split: holdout`・`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`retrieval.fusion: rrf`（`fusion_depth` 50）・`k_context` 5・`answer_mode: retrieval_only`・`query_embedding.enronqa: cached`・`http_pool: per_node`（主構成の実行と同じ値．`scripts/d0009/a6_config.py p` の P から `answer_mode` と `node_admin` だけを変える．違いは run_meta に残す）・質問者 1 台（wafl-ctrl5）・30 台の専門家（placement は `artifacts/enronqa/placement.json`）・`cluster.node_admin: true`（deploy の前に書き，後で `git checkout -- config.yaml` で戻す）．ノードの追加の埋め込みは `EMBED_DEVICE = cpu`（GPU の PC のノードも CPU）．中央の埋め込みは制御点の CPU（`ArcticEncoder`．制御点に GPU は無い．運用ルール 8）．BM25 の作り直しは両側とも CPU の処理で，GPU の有無に依らない．
+
+**GPU の使用**：無い．ノードの追加の埋め込み・中央の埋め込み・BM25 は全て CPU で，`retrieval_only` なので Ollama も使わない（運用ルール 14 の GPU の処理は発生しない．gpu4 の GPU も使わない）．
+
+### 手順（3 ラウンド）
+
+deploy 1 回 → smoke（判定に使わない．`d0009_a5b_smoke`：`--intervals 0,5,inf --n-arrivals 20 --poll-timeout-s 2 --central-coalesce`．経路・G-C・G-B を確かめる）→ 本番 `results/d0009_a5b_r{1,2,3}/`（各ラウンドは `freshness-run --intervals 0,60,600,inf --arrival-gap-s 0.5 --poll-timeout-s 2 --central-coalesce` を 1 回．中の順は freshness-run の固定の順：P2P → 中央 T0 → T60 → T600 → T∞）→ `mise run stop`・`config.yaml` を戻す．ラウンドの間に deploy し直さない（`store.hide` が同じ ID の全ての行を外すので再実行できる．ノードのメモリに足した行が 1 ラウンドあたり約 280 通〔全体の 0.4%〕増え，BM25 の作り直しの対象に含まれることを併記する）．所要の見込み（推測）：1 ラウンド 約 20〜25 分（中央の索引の読み込みと BM25 の作成 約 15 秒・P2P 約 3 分・T0 約 4 分・T60 約 4 分・T600 約 11 分），smoke・deploy を含めて 約 1.5〜2 時間．
+
+### ゲート（本番の前に固定）
+
+- **G-T（互換）**：`mise run check`（pytest・ruff・mypy）が通る．`freshness-run` の既定（test・まとめ足しなし）の挙動を変えない（既存の freshness の試験が変更なしで通る）．新しい試験：(i) `question_split: holdout` の質問とクエリ埋め込みを読む，(ii) `--central-coalesce` で届いていて未転送のメールがまとめて 1 回で足され，足すもののない予定が飛ばされる，(iii) `flushes[]` に `bm25_s` が入る．
+- **G-C（構成）**：各ラウンドの `run_meta.json` で `routing: bm25_probe`・`retrieval_fusion: rrf`・`question_split: holdout`，ノードの起動のログで全 30 台が `fusion=rrf, body_bm25_probe=True`．
+- **G-P（外し方）**：`preparation.pre_arrival_hit_rate` = 0（届く前のメールに答えられない）．
+- **G-B（BM25 の作り直しが起きた）**：P2P の全ての行で `node_bm25_s` > 0，中央の有限の T の全ての転送で `bm25_s` > 0，各 T の後に中央の `n_docs` が元の数に戻る（`truncate`）．
+- **G-N（比べる数）**：`eligibility.n_compared` ≥ 100．
+- **有効なラウンド**：G-C・G-P・G-B・G-N を全て満たすラウンド．有効なラウンドが 2 未満なら測定は成立しない．
+
+### 判定の規則（`results/d0009_a5_bm25_add/verdict.json`．`verdict_original` は書き換えない．集計は `scripts/d0009/a5b_verdict.py`）
+
+- **H-A5B1（主．P2P の追加の費用）**：全ての有効なラウンドで，P2P の `node_bm25_s` の p50 < 1.0 秒，かつ P2P（direct）の答えられるまでの p50 < 1.0 秒（p0007 C の閾値．比べたメールで）なら「BM25 を含めても P2P は 1 秒未満で追従する」．どちらかが 1 つの有効なラウンドでも満たさなければ「満たさない」．
+- **H-A5B2（主．中央の追加の費用）**：全ての有効なラウンドで，中央の転送ごとの `bm25_s` の p50 ≥ 5 秒，かつ中央 T0 の答えられるまでの p50 ≥ 5 秒なら「BM25 の作り直しで中央の即時の追従（T0）が失われる」．全ての有効なラウンドで T0 の p50 < 1 秒なら「失われない」．それ以外は「決まらない」．
+- **H-A5B3（主．比較）**：比べたメールで，P2P（direct）と中央 T0 の時間の対にした片側の符号検定（`dynamics.sign_test_less`）．全ての有効なラウンドで P2P が短い側に p < 0.05 なら「P2P が中央 T0 より速い」，全ての有効なラウンドで中央 T0 が短い側に p < 0.05 なら「中央 T0 が速い」，それ以外は「決まらない」．
+- **記述（判定に使わない）**：(i) freshness-run が書く `judge_freshness`（T ≥ 60 との比較．p0007 C と同じ規則）．(ii) 時間の内訳（P2P：埋め込み・faiss への追加・BM25 の作り直し・HTTP の往復．中央：取り出し・CPU の埋め込み・`append` のうち BM25）を受信箱の文書の数・ホスト（機種）ごとに．(iii) T0 のまとめ足しの回数と 1 回あたりの通数．(iv) 1 通ごとに作り直す場合の T0 の待ちの計算（測った `bm25_s` から）と，中央が T0 を保てる届く速さの上限（≈ 1 / 作り直しの秒数）．(v) p0007 C の quiet の値との並び（質問集合と制御点の機器が違うので比べない）．(vi) routed の時間（公開情報を作り直さないので参考）．(vii) P2P の公開情報の差分の大きさ：届いたメールごとの本文の異なり語のうち公開の語彙に入る数と `n_docs`・`bm25_len_total` の増分（オフラインの数え上げ．時間は測らない）．
+- **ノイズの目安**：p0007 C は 1 回ずつ．Iteration 31 の同じ系の 3 ラウンドの揺れは P2P 3.5%・中央 0.2%，中央の BM25 の作り直しは 11.2〜12.1 秒（範囲 8%）．閾値（1 秒・5 秒）は見込みの値（0.05〜0.5 秒・約 12 秒）から 2 倍以上離した．
+
+### 成功条件（事前登録）
+
+測定のイテレーションで，仮説の成否を採否に使わない．(1) G-T を通過し，(2) 有効なラウンドが 3 のうち 2 以上，(3) H-A5B1〜H-A5B3 の判定と記述 (i)〜(vii)（(vii) は数えられた範囲）が `results/d0009_a5_bm25_add/{verdict.json,bm25_add.json,analysis_report.md}` に出れば採用とし，値 `bm25_index_add` を閉じる．有効なラウンドが 2 未満なら「測定は成立しない」として棄却（原因を記録）．
+
+### 主張できる範囲・できない範囲（予定）
+
+- できる：主構成の取得（`bm25_probe`・RRF）で，ノードが 1 受信箱の BM25 を作り直す費用と，中央が全体の BM25 を作り直す費用（制御点の CPU），それぞれの答えられるまでの時間（H の正解のメールの 10%・間隔 0.5 秒）．
+- できない：segment 方式・差分の追加の BM25 の中央，中央の埋め込みを GPU で行う場合（BM25 の部分は GPU に依らないが，T0 の総時間は変わる），生成・選択（V2）を含む答え，公開情報の配り直しの時間と，それをしないことの routed への影響，届く速さを変えた場合．
+
+### 実装の要点（rc-executor へ）
+
+- `src/atrium/freshness_run.py`（追加だけ．既定の挙動は変えない）：
+  - 質問とクエリ埋め込みを `cfg.experiment.question_split` で読む（`load_split_questions(paths, split, None)`．クエリ埋め込みは join-run の `queries/<split>/` の読み方に合わせる．test なら今と同じ）．`run_meta.json` に `question_split` を足す．
+  - `FreshnessParams.central_coalesce: bool = False` と CLI の `--central-coalesce`（`cli.py`）．`measure_central` で on のとき，転送の事象の処理の時点で「予定の転送の時刻 ≤ 今」かつ未転送のメールを全て 1 回で `flush_to_central` に渡し，空なら飛ばす．答えられた時刻は今と同じく転送の後の `central_hit` で取る．
+  - `flush_to_central` の戻り値に `bm25_s`（`central.bm25_s`．`fusion: none` なら 0）を足す．
+- 新しい集計 `scripts/d0009/a5b_verdict.py`（3 ラウンドの `freshness.json` を読み，ゲート・H-A5B1〜B3・記述を `results/d0009_a5_bm25_add/` に書く）と，記述 (vii) の数え上げ（制御点の data の受信箱から CPU で．`atrium.hybrid.tokenize` と公開の語彙）．閾値（1.0 秒・5 秒・0.05・n_compared 100）はスクリプトの定数にし，本番の前の commit に入れる．
+- 試験：`tests/test_freshness_run.py` に G-T の (i)〜(iii) を足す（既存の試験は変えない）．
+- 手順の記録：`docs/d0003_experiment_workflow.md` §7.1 に本番のコマンドを 1 行足す．
+- 実機のコマンドの例：`bash scripts/tasks/live_run.sh freshness_run d0009_a5b_r1 --intervals 0,60,600,inf --arrival-gap-s 0.5 --poll-timeout-s 2 --central-coalesce`．
+
+### フェーズ 2 実行記録（2026-11-09）
+
+- **commit の順序**：実装と事前登録の節を c060d9f（`src/atrium/freshness_run.py`・`cli.py`・`tests/test_freshness_run.py`・`scripts/d0009/a5b_verdict.py`・docs・journal・backlog）に入れて push した後に，実機を流した（本番・smoke とも）．`mise run check`（pytest 1,043 件・ruff・mypy）は通過．
+- **実装**（追加だけ．既定の挙動は変えない）：質問を `question_split` で読む（`load_freshness_questions`．クエリ埋め込みは `build_requester` が既に同じ分割で読むので変更なし），`FreshnessParams.central_coalesce`・`--central-coalesce`，`flushes[].bm25_s`，条件ごとに `n_docs_base`・`n_docs_after_truncate`（G-B の「元の数に戻る」の記録．事前登録に無い追加），`run_meta.json` に `question_split`・`central_coalesce`．試験 3 件（G-T (i)〜(iii)）．
+- **config.yaml**：`scripts/d0009/a6_config.py p` の P から `answer_mode: retrieval_only` と `cluster.node_admin: true` に変えた．**`retrieval.ce_scores: table` は `retrieval_only` と両立しない**（config の検証が止める）ので，`ce_scores` を既定の `live` に戻した（事前登録に無い 1 キーの追加の変更．選択を通さないので結果に影響しない）．実験の後に `git checkout -- config.yaml` で戻した．
+- **実機**：`sg docker -c "mise run deploy"`（19:16〜19:19．直接の `mise run deploy` は docker の権限で失敗）→ smoke `d0009_a5b_smoke`（20 通）→ 本番 `d0009_a5b_r1`（19:28〜19:53）・`r2`（〜20:17）・`r3`（〜20:41．各約 24 分）→ `mise run stop`．state の `experiment_deadline` は開始時刻 + 4 時間（config の `timeout_min` 1,200 は今回の見込み 約 2 時間より極端に長いので短くした）．GPU は使っていない（gpu4 も wafl500〜509 も）．
+- **ゲート**（`results/d0009_a5_bm25_add/verdict.json`）：G-C（run_meta: `bm25_probe`・`rrf`・`holdout`，ノード 30 台とも 5 シャードが `fusion=rrf, body_bm25_probe=True`．`node_check.json`）・G-P（`pre_arrival_hit_rate` 0）・G-B（P2P 282 行全て `node_bm25_s` > 0，中央の有限の T の全転送で `bm25_s` > 0，各 T の後に `n_docs` 73,490 へ戻る）・G-N（比べた 232 通）を 3 ラウンドとも通過．有効なラウンド 3．smoke も構成・G-P・G-B を満たした（判定に使わない）．
+- **主な数値**（3 ラウンド r1・r2・r3．届けたメール 282 通．`results/d0009_a5_bm25_add/{verdict.json,bm25_add.json,analysis_report.md}`）：ノード `node_bm25_s` の p50 0.090・0.089・0.093 秒（p95 0.66・0.62・0.63，最大 5.8），P2P（direct．比べた 232 通）の p50 0.467・0.474・0.470 秒，中央の転送ごとの `bm25_s` の p50 11.74・11.82・11.92 秒，中央 T0 の p50 31.31・31.42・31.30 秒（比べた 232 通．T0 の転送は 9 回で 1〜45 通ずつ），中央 T60 の p50 74.6・74.5・74.7 秒（全 282 通で），T600 は 615.3・615.2・615.2 秒．符号検定は P2P が T0 より短い側に 232/232 で p = 1.45e-70（3 ラウンドとも），T0 が短い側は p = 1．
+- **判定**（`verdict_original`）：H-A5B1 は「BM25 を含めても P2P は 1 秒未満で追従する」，H-A5B2 は「BM25 の作り直しで中央の即時の追従（T0）が失われる」，H-A5B3 は「P2P が中央 T0 より速い」（全て 3 ラウンドで同じ側）．
+- **記述**：(i) `judge_freshness` の holds は 3 ラウンドとも True（P2P p50 < 1 秒かつ T ∈ {60, 600, ∞} より有意に短い）．(ii) P2P の `node_bm25_s` の p50 は受信箱の文書の数の四分位で 0.037・0.074・0.131・0.393 秒（r1．範囲 41〜5,485 通），中央の内訳（p50．T0）は転送 0.071・埋め込み 8.4・BM25 11.7 秒．(iii) T0 のまとめ足しは 9 回（先頭 1 通，次が 23〜24 通，以降 35〜45 通）．(iv) 1 通ごとに作り直す場合の T0 の待ち（作り直し 11.7 秒だけの下限の計算）は先頭 11.7 秒・p50 約 1,591 秒・最後 約 3,170 秒，T0 を保てる届く速さの上限は約 0.085 通/秒（今回の 2 通/秒の約 1/24）．(v) p0007 C quiet の値（質問集合・fusion・機器が違うので並べるだけ）は P2P 0.439 秒・中央 T0 0.040 秒．(vi) routed の p50 は 0.65〜0.67 秒（56 通が打ち切り）．(vii) 届けるメール 282 通の `n_docs` の増分は要約の全体（73,772 通）の 0.38%，語数の増分は 0.40%，1 通あたりの異なる語は p50 96（最大 628）で，全て公開の語彙に入る（要約はこのメールを含んで作ってあるので自明）．時間は測っていない．
+- **異常・偏差**：(a) 本番の 3 ラウンドで，ノード 192.168.13.107 の `/v1/retrieve` が 500（`store._search_rrf` の `IndexError: index 1919 is out of bounds for axis 0 with size 1919`．密ベクトルの行数と BM25 の行数の食い違い．add と並行する検索の競合の見込み〔推測〕）を r1・r2 の routed の質問で各 1 件起こした（質問者の `question ... failed`．r3 は 0）．routed は参考で判定に使わず，direct・p2p の results.jsonl は error 0．(b) 上の `ce_scores` の変更．(c) `n_docs_after_truncate` の追加．(d) 記述 (vii) は制御点で実行し，制御点の `.venv` を `uv sync --frozen` で作り，`scikit-learn` を `uv pip install` した（REMOTE_DIR の `.venv`．同期の除外対象）．(e) smoke で T = 5 の p50 は約 24 秒（T0 と同様にまとめ足しの上積み）．
+- **未確認**：ノードの 500 の原因の確定（コードの確認のみで再現していない），segment 方式の中央，採否の判定は rc-evaluator．最終 commit・push は未実施．
+
+### Iteration 33 実行済み：分析・考察（2026-11-09．research-cycle の phase 3．判定：採用．値 `bm25_index_add` を閉じる．H-A5B1「P2P は 1 秒未満で追従する」・H-A5B2「中央の T0 の即時の追従は失われる」・H-A5B3「P2P が中央 T0 より速い」は 3 ラウンドとも同じ側．`verdict_revised` は足さない．次はレバー `d0009.A5_extend_measurements` の値 `central_outage_sweep`）
+
+**変更**：事前登録（commit c060d9f．実装・集計のスクリプト・閾値・journal の事前登録の節を実機の前に同じ commit で push）のとおり，`atrium freshness-run` を主構成の取得（`bm25_probe` D = 24・`fusion: rrf`）・H の質問・`retrieval_only`・中央は `--central-coalesce` にして，実機で 3 ラウンド流した．GPU は使っていない．phase 3 では結果の解釈と文書の更新だけを行い，`verdict.json`（`verdict_original`）・スクリプト・results は変えていない．
+
+**結果**（`results/d0009_a5_bm25_add/{verdict.json,bm25_add.json,analysis_report.md,public_diff.json,node_check.json}`．各ラウンド 届けたメール 282 通，比べた 232 通）
+
+| ラウンド | ノード `node_bm25_s` p50（p95） | P2P direct p50（p95） | 中央の転送ごとの `bm25_s` p50 | 中央 T0 p50（p95） | 中央 T60 p50（比べた 232 通．全 282 通では 74.5〜74.7） | 中央 T600 p50（比べた 232 通．全 282 通では 615.2〜615.3） | 符号検定（P2P が短い側） |
+|---|---|---|---|---|---|---|---|
+| r1 | 0.090（0.66） | 0.467（1.23） | 11.74 | 31.31（41.8） | 69.7 | 602.0 | 232/232，p = 1.45e-70 |
+| r2 | 0.089（0.62） | 0.474（1.26） | 11.82 | 31.42（41.6） | 69.4 | 601.9 | 232/232，p = 1.45e-70 |
+| r3 | 0.093（0.63） | 0.470（1.23） | 11.92 | 31.30（41.7） | 69.8 | 601.9 | 232/232，p = 1.45e-70 |
+
+- ゲート：G-C・G-P・G-B・G-N を 3 ラウンドとも通過（有効なラウンド 3）．G-T（`mise run check`．pytest 1,043 件・ruff・mypy）も通過．
+- 中央の 1 回の転送の内訳（r1 の p50）：T0（9 回．1 回あたり 1〜45 通，p50 40 通）は転送 0.07 秒・埋め込み 8.4 秒・BM25 11.7 秒．T60（4 回．p50 120 通）は埋め込み 25.5 秒・BM25 11.9 秒．T600（2 回．281 通）は埋め込み 58.6 秒．
+- P2P の `node_bm25_s` は受信箱の文書の数で増える（r1 の四分位：41〜152 通で p50 0.037 秒，152〜294 通で 0.074 秒，294〜506 通で 0.131 秒，506〜5,485 通で 0.393 秒・最大 5.77 秒）．最大の 5.77 秒（direct 6.21 秒）は 192.168.13.100 の 1 通．
+- routed（参考）：p50 0.65〜0.67 秒，56 通が打ち切り．ノード 192.168.13.107 の 500 が r1・r2 で各 1 件（下の X1）．
+
+**ノイズか信号か**
+- 3 ラウンドの揺れは，P2P direct の p50 で 0.467〜0.474 秒（幅 1.5%），中央の `bm25_s` で 11.74〜11.92 秒（幅 1.5%），中央 T0 で 31.30〜31.42 秒（幅 0.4%）．Iteration 31 の同じ系の揺れ（P2P 3.5%・中央 0.2%，BM25 の作り直しの幅 8%）と同じ程度か小さい．
+- 判定の閾値からの距離は揺れより 2 桁大きい：P2P の 0.47 秒は 1 秒の閾値の半分未満，中央の `bm25_s` 11.7 秒と T0 31.3 秒は 5 秒の閾値の 2 倍以上．符号検定は 232 通の全てで P2P が短い．したがって 3 つの判定はノイズの範囲で入れ替わる距離に無い．
+- ただし 3 ラウンドは同じ deploy・同じ届けるメール（種 12）なので，揺れは「同じ条件の再実行」の揺れで，届けるメールの選び方や届く速さの揺れは含まない．
+
+**仮説との一致・不一致**
+- 一致：ノードの `node_bm25_s` の p50 0.09 秒（見込み 0.05〜0.5 秒），P2P direct の p50 0.47 秒（見込み 0.5〜1.0 秒のやや下）．中央の作り直し 11.7〜11.9 秒（見込み約 12 秒）．P2P が T0 より速い．
+- 不一致：中央 T0 の p50 31.3 秒は見込み 12〜25 秒を超え，T60 の p50（全 282 通 74.6 秒）も見込み 55〜60 秒を超えた．原因は，見込みが中央の埋め込みの時間を p0007 C（制御点に GPU があった見込みの 0.02 秒／通）で置いたことで，今回の制御点の CPU の埋め込みは約 4.7〜4.8 通/秒（T0 で 40 通に 8.4 秒，T60 で 120 通に 25.5 秒．Iteration 31 の 4.7 通/秒と一致）だった．T0 の 1 回の転送は約 20 秒（埋め込み 8.4 ＋ BM25 11.7）で，届いたメールは「進行中の転送の残り（平均で約半回）＋自分を含む次の転送 1 回」を待つので，p50 は約 30 秒になる（計算．実測 31.3 秒と整合）．
+- H-A5B2 の判定は埋め込みの機器に依らない：BM25 の作り直しだけで 11.7 秒で閾値 5 秒を超える．中央の埋め込みを GPU にした場合の T0 は，1 回の転送が約 12 秒になり p50 は約 18 秒と見込む（計算．未測定）が，それでも 5 秒以上で「失われる」の側に残る．
+- 想定外の挙動：ノード 192.168.13.107 の `/v1/retrieve` の 500（`store._search_rrf` の `IndexError`．密ベクトルと BM25 の行数の食い違い）．add と並行する検索の競合の見込み（推測．未再現）．routed の質問だけで起き，判定に使う direct・中央の行は error 0．言語崩れ・発散・OOM は該当しない（`retrieval_only`）．
+- 集計の小さな欠け：`bm25_add.json` の `breakdown_ii_iii_vi.p2p_all.direct_s` が NaN（ホストごとの値と判定に使う `p2p_direct_compared` は出ている）．届いたメールのうち direct の時間の無い行を含めて集計した結果とみられる（未確認）．判定に使わない記述の欄で，採否に影響しない．
+
+**判定**：**採用**．事前登録の成功条件 (1) G-T の通過，(2) 有効なラウンド 3（2 以上），(3) H-A5B1〜H-A5B3 の判定と記述 (i)〜(vii) の `results/d0009_a5_bm25_add/` への出力，を全て満たす（仮説の成否は使っていない）．事前登録の判定の規則の範囲で解釈を足す必要は無いので `verdict_revised` は null のままにした．値 `bm25_index_add` を閉じる．A5 の残りの値は `central_outage_sweep`．
+
+**主張できる範囲**：主構成の取得（`bm25_probe` D = 24・RRF）で，H の正解のメールの 10%（282 通）を 2 通/秒で届けたとき，(1) P2P のノードは受信箱の BM25（2 つ）を作り直しても 1 通あたり p50 0.09 秒で，答えられるまでの p50 は 0.47 秒（p95 1.2 秒．最大の受信箱〔5,485 通〕では 6 秒）．(2) 全体の BM25 を作り直す中央は 1 回 11.7〜11.9 秒（制御点の CPU）で，まとめ足しでも T0 の p50 は 31 秒（埋め込みも制御点の CPU）．1 通ごとに作り直すなら中央が T0 を保てる届く速さは約 0.085 通/秒が上限（計算）．(3) 232 通の全てで P2P が中央 T0 より早く答えられる．
+**主張できない範囲**：segment 方式・差分の追加の BM25 の中央（Lucene・Elasticsearch の慣行の形．全体の作り直しより小さくなりうる），中央の埋め込みを GPU で行う場合の T0 の実測，届く速さを変えた場合，公開情報の配り直しの時間と routed への影響，生成・選択を含む答え，add と検索が並行するときのノードの正しさ（X1）．
+
+**事前登録からの偏差**：(a) `retrieval.ce_scores` を `table` から既定の `live` に戻した（`retrieval_only` と両立しないため．選択を通さないので結果に影響しない）．(b) `n_docs_base`・`n_docs_after_truncate` を足した（G-B の記録．追加だけ）．(c) 記述 (vii) のために制御点の `.venv` を作った．(d) docker の権限で `sg docker -c` を経由した．いずれも判定の規則・閾値を変えていない．事前登録の commit の順序（Iteration 32 の偏差 (iii)）は今回は守られた．
+
+**学び**
+- **全体を作り直す BM25 は，中央の「即時の追従」を構造的に失わせる**：作り直しの 11.7 秒は 73,772 通の全体に比例する固定の費用で，届く速さが 1 / 11.7 ≈ 0.085 通/秒を超えると，まとめ足ししか手が無い．P2P は受信箱（平均約 490 通）だけを作り直すので，同じ実装の作りでも 2 桁小さい．この差は「P2P の利点」ではなく「全体を作り直す中央の実装」との差なので，引用するときは segment 方式の中央（未測定）を併記する．
+- **見込みの時間は，中央の埋め込みの機器を毎回の事前登録で明記した値から作る**：T0・T60 の見込みの外れは全て，p0007 C の頃の（GPU の）埋め込みの速さを置いたことによる．Iteration 31 の学び（制御点に GPU が無い）を見込みの計算に反映しきれていなかった．以後，中央の時間を見込むときは「埋め込み 約 4.7 通/秒（制御点の CPU）」を使う．
+- **P2P の追加の費用は受信箱の大きさの裾で決まる**：p50 は 0.09 秒でも，最大の受信箱（5,485 通）では 5.8 秒かかる．受信箱の大きさの分布が偏る組織では，p50 だけでなく最大の受信箱の値を併記する．
+- **add と検索を並行させると，ノードの索引の行の数が一時的に食い違いうる**（X1．推測）．今の `freshness-run` は routed の参考の行でしか検索を並行させないので判定に影響しなかったが，実際の運用（メールが届きながら質問を受ける）では起きうる．
+
 ## Iteration 32: 主構成で生成の委託に送る文書を含めた露出の全体の算出
 
 **位置づけ**：レバー `d0009.A4_exposure_total` の値 `with_generation_delegation`（backlog B109 (3)・申し送り (a)〜(c)）．主構成（R3′ の経路．V2 はオフラインで経路に無い）で，デバイス間を渡る文書を「cross-encoder の採点のために質問者へ渡る文書」と「CPU の専門家が生成を委託する GPU の PC へ送る文書（placement の `delegate_of`）」の 2 つの受け手に分けて数え，全体の露出を出す．既存の実行の再集計だけで行うオフラインの評価（運用ルール 13）で，実機・GPU は使わない（ルール 14 の GPU の処理も無い）．構成を選ばない記述の測定なので，運用ルール 10 の新しい質問集合は判定の主に H を使い，test は 37.6% との照合だけに使う．d0009 A4 に着手を書いた（運用ルール 9）．この節が事前登録である．**rc-executor は，集計の結果を見る前に，集計のスクリプトとこの事前登録を commit する**．

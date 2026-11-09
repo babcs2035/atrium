@@ -1,0 +1,207 @@
+{
+ "phase": "post",
+ "checked_at": 1794236417.5406797,
+ "pass": true,
+ "hosts": [
+  {
+   "host": "wafl500",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 55.78214816666108,
+    "2026-11-09T14:58": 56.45254965733535,
+    "2026-11-09T14:59": 56.937368894216355
+   },
+   "min_tokens_per_s": 55.78214816666108,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 3506864716,
+   "sw_thermal_counter_delta_us": 7072975,
+   "ok": true
+  },
+  {
+   "host": "wafl501",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 59.58753076592281,
+    "2026-11-09T14:58": 59.62871058561877,
+    "2026-11-09T14:59": 59.0670201385982
+   },
+   "min_tokens_per_s": 59.0670201385982,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 5828569882,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl502",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 58.87315566183745,
+    "2026-11-09T14:58": 59.24008493225221,
+    "2026-11-09T14:59": 59.845574947781806
+   },
+   "min_tokens_per_s": 58.87315566183745,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl503",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 58.75223507011398,
+    "2026-11-09T14:58": 59.102299820395636,
+    "2026-11-09T14:59": 59.702418335620635
+   },
+   "min_tokens_per_s": 58.75223507011398,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl504",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 58.56798435154438,
+    "2026-11-09T14:58": 58.38564743823263,
+    "2026-11-09T14:59": 58.564132085792714
+   },
+   "min_tokens_per_s": 58.38564743823263,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl505",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 57.97882449737653,
+    "2026-11-09T14:58": 58.17682582924182,
+    "2026-11-09T14:59": 58.18117757776227
+   },
+   "min_tokens_per_s": 57.97882449737653,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl506",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 58.22685618510699,
+    "2026-11-09T14:58": 58.38531575143194,
+    "2026-11-09T14:59": 58.08485921336504
+   },
+   "min_tokens_per_s": 58.08485921336504,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl507",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 56.73259983637768,
+    "2026-11-09T14:58": 58.05616441263229,
+    "2026-11-09T14:59": 58.26945544280416
+   },
+   "min_tokens_per_s": 56.73259983637768,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl508",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 59.83948143623771,
+    "2026-11-09T14:58": 58.46599983012444,
+    "2026-11-09T14:59": 60.1155957721112
+   },
+   "min_tokens_per_s": 58.46599983012444,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 0,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  },
+  {
+   "host": "wafl509",
+   "per_minute_tokens_per_s": {
+    "2026-11-09T14:57": 59.97821379587121,
+    "2026-11-09T14:58": 60.43348679667498,
+    "2026-11-09T14:59": 60.33327277152544
+   },
+   "min_tokens_per_s": 59.97821379587121,
+   "speed_ok": true,
+   "utilization": [
+    0,
+    0,
+    0
+   ],
+   "idle_wait_s": 0,
+   "a_idle": true,
+   "sw_thermal_counter_us": 33052862,
+   "sw_thermal_counter_delta_us": 0,
+   "ok": true
+  }
+ ]
+}

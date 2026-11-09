@@ -1,0 +1,16 @@
+{
+ "gate": "G-V",
+ "routing": "bm25_probe",
+ "probe_d": 24,
+ "n_questions": 288,
+ "n_mismatched": 0,
+ "mismatched_examples": [],
+ "passed": true,
+ "summary_sha256": {
+  "bm25_stats.npz": "0eead785e7105a3a54d27da32ac8ca30e8ee906c49398604a82281a7446d2aac",
+  "centers.npz": "f97ba2296e7498a4735ebb50b52ca51c8792e0fa3fde9a2190c1063da2569c79",
+  "meta.json": "e5ce0977273818ad6920bb7b7652b4eb9f99242bcd1a07aa1d019455dc901d00",
+  "vocab.json": "1838503cdb91fc572fcaa1087127e2f5aa82f40ee4d8bacb9ccd2915d90c69ce",
+  "weights.npz": "dfb8334afe57c36ad700765d6f0044480add3c47032c8d8d19b483619c97f59c"
+ }
+}
