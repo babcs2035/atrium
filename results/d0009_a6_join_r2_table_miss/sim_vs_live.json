@@ -1,0 +1,22 @@
+{
+ "pre_join": {
+  "predicted_hit_rate": 0.0,
+  "live_hit_rate": 0.0
+ },
+ "candidate_agreement_with_offline_summary": 0.9965277777777778,
+ "bm25_stats_vs_offline": {
+  "n_docs_live": 73772,
+  "n_docs_offline": 73772,
+  "avg_doc_len_live": 335.86778181423847,
+  "avg_doc_len_offline": 335.86778181423847,
+  "avg_doc_len_rel_diff": 0.0,
+  "n_terms_only_live": 0,
+  "n_terms_only_offline": 5425,
+  "n_terms_common": 193067,
+  "n_terms_df_mismatch": 9341,
+  "max_abs_df_diff": 1.0,
+  "g_a_stats_match": false
+ },
+ "delay_zero_vs_main": null,
+ "causes": "候補の不一致は，デバイスの CPU と GPU の埋め込みの丸め（重心が僅かに違う）と，公開情報の作り直しで CORI の cf・長さの平均が変わる分"
+}

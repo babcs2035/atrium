@@ -170,7 +170,16 @@ def run_owner(cfg: AtriumConfig, paths: DatasetPaths, out_dir: Path) -> int:
 
 
 def run_central_embed(cfg: AtriumConfig, paths: DatasetPaths, out_dir: Path) -> int:
-    """最初の 135 受信箱の索引に加わる 15 受信箱を CPU で埋め込んで足し，75 問の上位 TOP_DEPTH 通を書く（GPU は使わない）．"""
+    """最初の 135 受信箱の索引に加わる 15 受信箱を CPU で埋め込んで足し，75 問の上位 TOP_DEPTH 通を書く（GPU は使わない）．
+
+    実機では加わる 3 台が別々の時刻に索引へ載り，質問はその時点の索引（加わった台の部分集合）で答えるので，加わる台の全ての部分集合
+    （空を除く 7 通り）の索引について，その中の台の受信箱の質問の上位 TOP_DEPTH 通を求め，問ごとに和集合を書く
+    （Iteration 31 の r2 で，台が 1 つだけ載った索引の上位に，全て載った索引の上位 100 通に無い文書が入って表に無い組になった）．
+    """
+    import itertools
+
+    import numpy as np
+
     from atrium.encoders import ArcticEncoder
 
     e = cfg.data.require_enronqa()
@@ -180,19 +189,43 @@ def run_central_embed(cfg: AtriumConfig, paths: DatasetPaths, out_dir: Path) -> 
     central = CentralIndex.from_corpus(
         rrf, paths, sources=[s for s in e.sources if s not in joiner_set]
     )
-    encoder = ArcticEncoder(e.encoder, e.embed_batch_size, device="cpu")
+    n_initial = central.n_docs
+    encoder: ArcticEncoder | None = None
+    host_docs: dict[str, list[dict[str, str]]] = {}
+    host_emb: dict[str, np.ndarray] = {}
     for host, inboxes in inboxes_of_host.items():
-        docs = [d for inbox in inboxes for d in read_inbox(paths, inbox)]
-        emb = encoder.encode_texts([d["content"] for d in docs])
-        add_s = central.append(
-            [d["id"] for d in docs], [d["title"] for d in docs], [d["content"] for d in docs], emb
-        )
-        logger.info("appended %s: %d mails (add %.1f s)", host, len(docs), add_s)
+        host_docs[host] = [d for inbox in inboxes for d in read_inbox(paths, inbox)]
+        cache = out_dir / f"emb_{host}.npy"
+        if cache.exists():
+            host_emb[host] = np.load(cache)
+            continue
+        encoder = encoder or ArcticEncoder(e.encoder, e.embed_batch_size, device="cpu")
+        host_emb[host] = encoder.encode_texts([d["content"] for d in host_docs[host]])
+        np.save(cache, host_emb[host])
+        logger.info("embedded %s: %d mails", host, len(host_docs[host]))
     embedder = holdout_embedder(paths, e.encoder)
+    questions = joiner_questions(paths, joiner_inboxes)
+    host_of_inbox = {i: h for h, inboxes in inboxes_of_host.items() for i in inboxes}
     top: dict[str, list[str]] = {}
-    for q in joiner_questions(paths, joiner_inboxes):
-        ids = central.search_ids(embedder.embed(q)[e.encoder], TOP_DEPTH, q.question)
-        top[q.qid] = [central.doc_ids[i] for i in ids]
+    hosts = list(inboxes_of_host)
+    for size in range(1, len(hosts) + 1):
+        for subset in itertools.combinations(hosts, size):
+            central.truncate(n_initial)
+            for host in subset:
+                docs = host_docs[host]
+                central.append(
+                    [d["id"] for d in docs],
+                    [d["title"] for d in docs],
+                    [d["content"] for d in docs],
+                    host_emb[host],
+                )
+            for q in questions:
+                if host_of_inbox[q.bank] not in subset:
+                    continue
+                ids = central.search_ids(embedder.embed(q)[e.encoder], TOP_DEPTH, q.question)
+                seen = top.setdefault(q.qid, [])
+                seen += [d for d in (central.doc_ids[i] for i in ids) if d not in seen]
+            logger.info("state %s done", subset)
     (out_dir / CENTRAL_TOP_FILE).write_text(
         json.dumps({"n_docs": central.n_docs, "top": top}), encoding="utf-8"
     )

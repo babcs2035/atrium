@@ -4,7 +4,7 @@
  "top_depth": 100,
  "k_ret": 50,
  "n_pairs_existing": 143100,
- "n_pairs_new": 3103,
+ "n_pairs_new": 3598,
  "n_top_depth_pairs_missing": 0,
  "n_questions_existing_table_set_within_rebuilt_top_depth": 75,
  "G_TB_central_passed": true
