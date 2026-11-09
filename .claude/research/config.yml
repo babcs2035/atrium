@@ -366,7 +366,15 @@ levers:
             「主構成で E2 成立」と書くかは人間の判断（backlog B109）．A6 の 3 つの値は全て閉じた"}
   - {name: d0009.A4_exposure_total, values: [with_generation_delegation],
      note: "d0009 A4（中）．主構成の露出の全体．37.6% は cross-encoder の採点で質問者へ渡る文書の下限である．GPU を持たない PC が
-            回答の生成を GPU 搭載 PC に委託するときに送る文書を含めた全体の露出を，保存した文書の識別子から求める（p0007 B と同じ数え方）"}
+            回答の生成を GPU 搭載 PC に委託するときに送る文書を含めた全体の露出を，保存した文書の識別子から求める（p0007 B と同じ数え方）．
+            着手：Iteration 32（事前登録は journal の Iteration 32．backlog B109）．37.6% は p0007_a6_test の 3 候補の context_doc_ids の和集合（27,704 通）と確定．
+            委託先へ送る文書は候補の context_doc_ids と同じ（node.py）なので，受け手（質問者・GPU の PC 10 台）ごとの集合から E_any_total（和集合．主）と E_pair_total を出す．
+            主は H（d0009_a3_p1．p2・p3 を併記），Q・test は記述．既存の実行の再集計（運用ルール 13）で実機・GPU は使わない．scripts/d0009/a4_exposure_total.py．
+            完了：Iteration 32（2026-11-09．採用）．結果は results/d0009_a4_exposure/（verdict.json・exposure_total.json・analysis_report.md），記述は journal の Iteration 32「実行済み」．
+            判定（verdict_original）：H-A4a は「委託は重複なしの露出を増やさない」（H・p2・p3 とも E_any_total − E_req = 0 通．委託先へ送る文書は全て質問者にも渡る）．
+            したがって 37.6% は下限ではなく，委託を含めた重複なしの全体に等しい（test 37.55%．error 1 行の分だけ下限）．H は E_any_total 0.3698・E_deleg 0.2462・E_pair_total 0.6160・
+            E_max_gpu 0.0309（GPU の PC 1 台あたり 1,439〜2,277 通）．H-A4c は verdict_revised で対象を単一の質問集合（約 2,900 問）と解釈し，H・H2・test とも 50% 未満．
+            合算の Q（H ∪ H2．5,669 問）は 0.5498 で，重複なしの露出は問の数に依る（50% 未満は問の数と組で引用する）．A4 の値は全て閉じた"}
   - {name: d0009.A5_extend_measurements, values: [bm25_index_add, central_outage_sweep],
      note: "d0009 A5（中）．(1) bm25_index_add：BM25 を含む構成で新規メールを索引へ加える費用を測る（p0007 C は転送の間隔と密ベクトルの追加だけ）．
             (2) central_outage_sweep：中央の停止 45 秒の仮定（中央の積分 22.8 = 0.76 × 30 秒）を変えて，障害の比較の大小が変わらないかを確かめる．

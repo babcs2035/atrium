@@ -1,0 +1,187 @@
+{
+ "verdict_original": {
+  "gates": {
+   "G-37": {
+    "docs_req_test": 27704,
+    "expected": 27704,
+    "passes": true
+   },
+   "G-H": {
+    "E_req_H": 0.3698151060022773,
+    "reference": 0.3698151060022773,
+    "abs_diff": 0.0,
+    "within_tolerance": true
+   },
+   "G-D": {
+    "H": true,
+    "H_p2": true,
+    "H_p3": true,
+    "H2": true,
+    "Q": true,
+    "test": true
+   },
+   "G-S_n_questions_not_subset": {
+    "H": {
+     "d0009_a3_p1": 0
+    },
+    "H_p2": {
+     "d0009_a3_p2": 0
+    },
+    "H_p3": {
+     "d0009_a3_p3": 0
+    },
+    "H2": {
+     "d0009_m1_h2_base": 0
+    },
+    "Q": {
+     "d0009_a3_p1": 0,
+     "d0009_m1_h2_base": 0
+    },
+    "test": {
+     "p0007_a6_test": 0
+    }
+   }
+  },
+  "H-A4a": {
+   "sides": {
+    "H": "no_increase",
+    "H_p2": "no_increase",
+    "H_p3": "no_increase"
+   },
+   "consistent": true,
+   "verdict": "委託は重複なしの露出を増やさない（37.6% の数え方は全体に等しい）"
+  },
+  "H-A4b": {
+   "H": {
+    "E_req": 0.3698151060022773,
+    "E_deleg": 0.24620452204088272,
+    "E_any_total": 0.3698151060022773,
+    "E_pair_total": 0.61601962804316,
+    "E_max_gpu": 0.03086536897467874,
+    "docs_with_2plus_recipients": 18163,
+    "within_expected": {
+     "E_deleg": true,
+     "E_pair_total": true,
+     "E_max_gpu": true
+    }
+   },
+   "H_p2": {
+    "E_req": 0.3698151060022773,
+    "E_deleg": 0.24620452204088272,
+    "E_any_total": 0.3698151060022773,
+    "E_pair_total": 0.61601962804316,
+    "E_max_gpu": 0.03086536897467874,
+    "docs_with_2plus_recipients": 18163,
+    "within_expected": {
+     "E_deleg": true,
+     "E_pair_total": true,
+     "E_max_gpu": true
+    }
+   },
+   "H_p3": {
+    "E_req": 0.3698151060022773,
+    "E_deleg": 0.24620452204088272,
+    "E_any_total": 0.3698151060022773,
+    "E_pair_total": 0.61601962804316,
+    "E_max_gpu": 0.03086536897467874,
+    "docs_with_2plus_recipients": 18163,
+    "within_expected": {
+     "E_deleg": true,
+     "E_pair_total": true,
+     "E_max_gpu": true
+    }
+   },
+   "H2": {
+    "E_req": 0.36942200292794014,
+    "E_deleg": 0.2486444721574581,
+    "E_any_total": 0.36942200292794014,
+    "E_pair_total": 0.6180664750853982,
+    "E_max_gpu": 0.029496285853711435,
+    "docs_with_2plus_recipients": 18343,
+    "within_expected": {
+     "E_deleg": true,
+     "E_pair_total": true,
+     "E_max_gpu": true
+    }
+   },
+   "Q": {
+    "E_req": 0.5497614270997127,
+    "E_deleg": 0.37137396302120046,
+    "E_any_total": 0.5497614270997127,
+    "E_pair_total": 0.9211353901209131,
+    "E_max_gpu": 0.048595673155126605,
+    "docs_with_2plus_recipients": 27397,
+    "within_expected": {
+     "E_deleg": false,
+     "E_pair_total": false,
+     "E_max_gpu": false
+    }
+   },
+   "test": {
+    "E_req": 0.37553543349780405,
+    "E_deleg": 0.25077265087024886,
+    "E_any_total": 0.37553543349780405,
+    "E_pair_total": 0.626308084368053,
+    "E_max_gpu": 0.030919590088380414,
+    "docs_with_2plus_recipients": 18500,
+    "within_expected": {
+     "E_deleg": true,
+     "E_pair_total": true,
+     "E_max_gpu": true
+    }
+   }
+  },
+  "H-A4c": {
+   "per_group": {
+    "H": {
+     "E_any_total": 0.3698151060022773,
+     "below_H_B_threshold": true
+    },
+    "H_p2": {
+     "E_any_total": 0.3698151060022773,
+     "below_H_B_threshold": true
+    },
+    "H_p3": {
+     "E_any_total": 0.3698151060022773,
+     "below_H_B_threshold": true
+    },
+    "H2": {
+     "E_any_total": 0.36942200292794014,
+     "below_H_B_threshold": true
+    },
+    "Q": {
+     "E_any_total": 0.5497614270997127,
+     "below_H_B_threshold": false
+    },
+    "test": {
+     "E_any_total": 0.37553543349780405,
+     "below_H_B_threshold": true
+    }
+   },
+   "note": "E_pair_total は H-B の対象ではない（p0007 B の数え方は受け手ごとの集合の和集合）"
+  },
+  "adopt": true
+ },
+ "verdict_revised": {
+  "written_by": "rc-evaluator（Iteration 32 の phase 3．2026-11-09．verdict_original は書き換えていない）",
+  "changes": "H-A4c の対象の解釈だけを足す．ゲート・H-A4a・H-A4b・adopt は verdict_original と同じ",
+  "H-A4c": {
+   "interpretation": "事前登録は対象の集合を書いていない．p0007 B の H-B（閾値 50%）は test の 1 つの質問集合（2,940 問）の重複なしの数で判定したので，H-A4c の対象は同じ規模の単一の質問集合（H 2,862 問・H2 2,807 問・test 2,939 問）と解釈する．Q（H ∪ H2．5,669 問）は別々の質問集合の合算で問の数が約 2 倍なので，H-B と同じ物差しの判定には使わず，問の数を増やしたときの記述として扱う",
+   "single_question_sets": {
+    "H": 0.3698151060022773,
+    "H2": 0.36942200292794014,
+    "test": 0.37553543349780405,
+    "all_below_H_B_threshold": true
+   },
+   "union_Q_descriptive": {
+    "E_any_total": 0.5497614270997127,
+    "docs_H_plus_H2": 54535,
+    "docs_union": 40557,
+    "docs_overlap": 13978,
+    "note": "重複なしの露出は質問の数に依存し，約 2,900 問の集合では 37〜38%，約 5,700 問では 55% になる．「50% 未満」は質問の数と組で引用する"
+   },
+   "verdict": "単一の質問集合（約 2,900 問）では E_any_total は全て 50% 未満（H-B と同じ側）．合算の Q では 50% を超え，50% 未満は質問の数に依る"
+  },
+  "adopt": true
+ }
+}

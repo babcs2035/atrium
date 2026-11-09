@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 31,
-  "iteration_name": "主構成で PC を途中で加えたときの P2P と中央集約の答えられるまでの時間と転送量の測り直し",
+  "iteration": 32,
+  "iteration_name": "主構成で生成の委託に送る文書を含めた露出の全体の算出",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "d0009.A6_remeasure_main=join",
-  "experiment_dir": "results/d0009_a6_join",
+  "current_lever": "d0009.A4_exposure_total=with_generation_delegation",
+  "experiment_dir": null,
   "experiment_deadline": null,
   "updated_at": 1794217071,
-  "last_slack_ts": "1794170664.164569",
-  "iteration_thread_ts": "1794182142.095359",
+  "last_slack_ts": "1794218151.150379",
+  "iteration_thread_ts": "1794217904.950389",
   "notion_toggle_created": true,
-  "last_commit": "dee2a3c"
+  "last_commit": "54ba988"
 }

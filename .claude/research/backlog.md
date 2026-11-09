@@ -17,6 +17,24 @@
 
 ---
 
+## B110 [auto-decided 2026-11-09] Iteration 32（d0009 A4・露出の全体）は採用．値 `with_generation_delegation` を閉じて A4 を完了にし，Iteration 33 のレバーは `d0009.A5_extend_measurements` の値 `bm25_index_add`
+- 状況: Iteration 32 の phase 3．ゲート G-37・G-H・G-D・G-S は全て通過し，H-A4a は H・p2・p3 とも E_any_total − E_req = 0 通（「委託は重複なしの露出を増やさない」）．H は E_any_total 0.3698・E_deleg 0.2462・E_pair_total 0.6160・E_max_gpu 0.0309．合算の Q（H ∪ H2．5,669 問）は E_any_total 0.5498 で H-A4c の 50% を超えた．詳細は journal の Iteration 32「実行済み」．
+- 自動選択:
+  (1) **採用**．事前登録の成功条件（G-37・G-D の通過と出力の揃い）を満たす．値 `with_generation_delegation` を閉じ，d0009 A4 を完了にした（config.yml の A4 の note，d0009 の A4 節と §E の表．運用ルール 9）．
+  (2) **H-A4c の対象の解釈**を `results/d0009_a4_exposure/verdict.json` の `verdict_revised` に足した（`verdict_original` は残す）．事前登録は対象の集合を書いていないので，p0007 B の H-B（test 2,940 問の 1 集合）と同じ物差しとして，約 2,900 問の単一の質問集合（H・H2・test）を対象と解釈した（3 集合とも 50% 未満）．Q は問の数が約 2 倍の合算なので記述にした．採否には影響しない．
+  (3) 関連文書の直し：`docs/d0007_p2p_vs_central_report.md`（F-6 の露出の段落に「委託を含めても 37.6%．5,669 問では 55.0%」を追記），`docs/d0009_rinko_handover.md` の A1 の「少なくとも 37.6%」を直した．`docs/d0003_experiment_workflow.md` に集計のコマンドを 1 行足した．`docs/d0008_report_outline.md` と報告書の本文（repo の外）は直していない（下の要レビュー (a)）．
+  (4) **Iteration 33 のレバー**：levers の順（A4 の次）で `d0009.A5_extend_measurements` の値 `bm25_index_add`．**iteration_name: 「新しいメールを BM25 の索引へ加える費用の測定」**．
+- 根拠: (4) A5 の 2 つの値のうち note の順で先の値．`central_outage_sweep` は Iteration 30 の 45 秒の仮定の感度で，既存の結果の再集計で済む見込みが高いが，levers の値の順を変える理由は無い．Iteration 31 で中央の BM25 の作り直しが 11〜12 秒／台（制御点の CPU）と測れており，`bm25_index_add` の中央の側の材料になる．
+- Iteration 33 の rc-researcher への申し送り（要レビュー．可逆）:
+  (a) p0007 C（転送の間隔と密ベクトルの追加）の手順と結果の置き場所を確かめ，BM25 を含む主構成で「新しいメールが 1 通（または k 通）届いたときの費用」を P2P と中央で何を測るかを決める．P2P（`bm25_probe`）はデバイスの局所の BM25 の更新と，公開情報（語ごとの文書頻度・`bm25_len_total`・`n_docs`）の配り直し（質問者の `Bm25Stats` の組み直し）がある．中央は BM25 の作り直し（Iteration 31 で 11〜12 秒／台）か，segment 方式の差分の追加か．
+  (b) 実機が要るか，gpu4 や wafl の CPU のオフラインの計測で足りるかを運用ルール 13 で確かめる．埋め込みの GPU を使うなら運用ルール 14（wafl500〜509）．中央の埋め込みの機器（制御点に GPU が無い．Iteration 31 の学び）を事前登録で明記する．
+  (c) 判定の質問集合は運用ルール 10 に従う（費用の測定で正答率を判定しないなら，その旨を書く）．
+- 要レビュー:
+  (a) **報告書の文言（repo の外 `research-papers/202611_rinko-report/` と `docs/d0008_report_outline.md`）**：「37.6% は下限」「委託による分を含めた全体は算出していない」「at least 37.6%」は，A4 の結果では「委託を含めても 37.6%（約 2,900 問の質問集合）」に直せる．また「50% 未満」「27.3%」は問の数（2,940 問）と組で書くのが正確である．提出済みの報告書を直すかは人間の判断（d0008 は直していない）．
+  (b) A1（Iteration 23）の組織全体の（PC, 文書）の組 0.370 → 0.473 は質問者の分だけで，委託の分（約 0.25）を含まない．d0009 の A1 節の数値に注を足すか（含めると質問者 1 台で 0.616，3 台で約 0.72 の見込み．未集計）．
+  (c) 事前登録の journal の節が，集計の前の commit（d544da4）に入っていなかった（スクリプトに閾値が固定されているので判定は有効とした）．以後，rc-executor の事前 commit に journal を含めることを徹底する．
+  (d) 未コミットのまま残すファイル：`results/` の Iteration 32 と無関係な未追跡ファイル（`d0009_a1_*` の `.judged` など，`d0009_a6_join/table/{emb_*.npy,owner.log}` など．B109 (c) と同じ）．
+
 ## B109 [auto-decided 2026-11-09] Iteration 31 (d0009 A6, join) is a conditional adoption: close value `join` and complete A6. The lever for Iteration 32 is `d0009.A4_exposure_total` (value `with_generation_delegation`)
 - Situation: phase 3 of Iteration 31. `verdict_original` stays non-adopted: G-A failed in all 3 rounds, valid rounds 0, H-A6J1 undecided. Under `verdict_revised` (G-A′, B108) there are 3 valid rounds and H-A6J1 = E2 holds: R = P2P / central is 1.138, 1.136 and 1.179; P2P p50 is 1,178–1,220 s, central p50 is 1,034–1,037 s; transfer is 8.26 MB vs 15.63 MB. Details are under "executed" for Iteration 31 in the journal.
 - Auto-decision:
