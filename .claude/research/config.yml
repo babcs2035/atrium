@@ -388,7 +388,11 @@ levers:
             segment 方式の中央は測っていない．次は central_outage_sweep（Iteration 34．backlog B112）．
             着手：Iteration 34（値 central_outage_sweep．事前登録は journal の Iteration 34．backlog B114）．Iteration 30 の P2P の時系列（P2P の停止は実測の 45 秒のまま）で，
             中央の停止 S を 0〜45 秒の格子で振り，I_P(S) = ∫_0^{S＋R＋30} と I_C = c × 30 の大小が入れ替わる境目 S* を条件・ラウンドごとに求める．S > 45 は I_P の単調性で決まる．
-            既存の結果の再集計（運用ルール 13）で実機・GPU は使わない．scripts/d0009/a5s_verdict.py → results/d0009_a5_outage_sweep/"}
+            既存の結果の再集計（運用ルール 13）で実機・GPU は使わない．scripts/d0009/a5s_verdict.py → results/d0009_a5_outage_sweep/
+            完了（central_outage_sweep）：Iteration 34（2026-11-09．採用）．結果は results/d0009_a5_outage_sweep/（verdict.json・outage_sweep.json・analysis_report.md），
+            記述は journal の Iteration 34「実行済み」．有効なラウンド 3．S* は availability k=1・3 が 0（S によらず P2P が上），k=6・10 が 6.0〜7.8 秒，container が 8.6〜18.8 秒．
+            S_robust 18.8 秒（S ≥ 20 で全 8 条件 P2P が上）．問の標本の幅・終わった時刻の版・R = 1.44 秒の当てはめを含めると約 34 秒（verdict_revised）．
+            S ≤ 5 秒では availability k ≤ 3 だけ P2P が上．S < 45 は P2P の k 台が 45 秒止まる障害に対して中央が先に戻る比較として読む．A5 の値は全て閉じた"}
   - {name: d0009.B1_drop_failed_peers, values: [health_check_exclusion],
      note: "d0009 B1（中）．停止した PC を問い合わせ先から外す仕組み．10 台を強制停止すると回答できる割合が 0.747 → 0.028 に下がった．
             生存確認で 2.01 秒で検出できるので，検出した PC を質問者が問い合わせ先から外す．既定は今の挙動（追加だけの設定キー）．

@@ -1,0 +1,315 @@
+{
+ "iteration": 34,
+ "c": 0.9444444444444444,
+ "I_C": 28.333333333333332,
+ "valid_rounds": [
+  "d0009_a6_failure_r1",
+  "d0009_a6_failure_r2",
+  "d0009_a6_failure_r3"
+ ],
+ "gates": {
+  "G_T": "mise run check の結果は journal に記録（このスクリプトでは確かめない）",
+  "G_R0_max_abs_error": 0.0,
+  "G_R0": true,
+  "G_M_grid_monotone_violations": 0,
+  "G_M_solve_max_abs_error": 3.552713678800501e-15,
+  "G_M": true,
+  "n_valid_rounds": 3,
+  "n_conditions": 8,
+  "rates_match_question_bins": true,
+  "G_R0_conditions_match_iteration30": true
+ },
+ "gates_passed_except_G_T": true,
+ "verdict_original": {
+  "H_A5S1": {
+   "availability:k=1": {
+    "S_star": {
+     "range": [
+      0.0,
+      0.0
+     ],
+     "label": "S によらず P2P が上"
+    },
+    "T_star": {
+     "range": [
+      3.9761904761904745,
+      9.694444444444443
+     ],
+     "label": "境目あり"
+    }
+   },
+   "availability:k=3": {
+    "S_star": {
+     "range": [
+      0.0,
+      0.0
+     ],
+     "label": "S によらず P2P が上"
+    },
+    "T_star": {
+     "range": [
+      11.05357142857143,
+      11.67857142857143
+     ],
+     "label": "境目あり"
+    }
+   },
+   "availability:k=6": {
+    "S_star": {
+     "range": [
+      6.202016507091116,
+      7.81371786335616
+     ],
+     "label": "境目あり"
+    },
+    "T_star": {
+     "range": [
+      19.927128427128423,
+      21.32142857142857
+     ],
+     "label": "境目あり"
+    }
+   },
+   "availability:k=10": {
+    "S_star": {
+     "range": [
+      5.965364270438883,
+      7.618571604981469
+     ],
+     "label": "境目あり"
+    },
+    "T_star": {
+     "range": [
+      19.69047619047619,
+      21.324074074074076
+     ],
+     "label": "境目あり"
+    }
+   },
+   "container:k=1": {
+    "S_star": {
+     "range": [
+      8.57562262526092,
+      17.968009773084383
+     ],
+     "label": "境目あり"
+    },
+    "T_star": {
+     "range": [
+      22.08333333333333,
+      31.69312169312169
+     ],
+     "label": "境目あり"
+    }
+   },
+   "container:k=3": {
+    "S_star": {
+     "range": [
+      10.82562262526092,
+      15.608221413296022
+     ],
+     "label": "境目あり"
+    },
+    "T_star": {
+     "range": [
+      24.33333333333333,
+      29.33333333333333
+     ],
+     "label": "境目あり"
+    }
+   },
+   "container:k=6": {
+    "S_star": {
+     "range": [
+      9.82562262526092,
+      18.794497530907393
+     ],
+     "label": "境目あり"
+    },
+    "T_star": {
+     "range": [
+      23.33333333333333,
+      32.5
+     ],
+     "label": "境目あり"
+    }
+   },
+   "container:k=10": {
+    "S_star": {
+     "range": [
+      11.274888079962693,
+      12.32562262526092
+     ],
+     "label": "境目あり"
+    },
+    "T_star": {
+     "range": [
+      25.0,
+      25.83333333333333
+     ],
+     "label": "境目あり"
+    }
+   }
+  },
+  "S_robust": 18.794497530907393,
+  "T_robust": 32.5,
+  "H_A5S2": {
+   "0.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "中央が上",
+    "availability:k=10": "中央が上",
+    "container:k=1": "中央が上",
+    "container:k=3": "中央が上",
+    "container:k=6": "中央が上",
+    "container:k=10": "中央が上"
+   },
+   "2.5": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "中央が上",
+    "availability:k=10": "中央が上",
+    "container:k=1": "中央が上",
+    "container:k=3": "中央が上",
+    "container:k=6": "中央が上",
+    "container:k=10": "中央が上"
+   },
+   "5.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "中央が上",
+    "availability:k=10": "中央が上",
+    "container:k=1": "中央が上",
+    "container:k=3": "中央が上",
+    "container:k=6": "中央が上",
+    "container:k=10": "中央が上"
+   },
+   "10.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "決まらない",
+    "container:k=3": "中央が上",
+    "container:k=6": "決まらない",
+    "container:k=10": "中央が上"
+   },
+   "15.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "決まらない",
+    "container:k=3": "決まらない",
+    "container:k=6": "決まらない",
+    "container:k=10": "P2P が上"
+   },
+   "20.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "P2P が上",
+    "container:k=3": "P2P が上",
+    "container:k=6": "P2P が上",
+    "container:k=10": "P2P が上"
+   },
+   "25.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "P2P が上",
+    "container:k=3": "P2P が上",
+    "container:k=6": "P2P が上",
+    "container:k=10": "P2P が上"
+   },
+   "30.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "P2P が上",
+    "container:k=3": "P2P が上",
+    "container:k=6": "P2P が上",
+    "container:k=10": "P2P が上"
+   },
+   "35.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "P2P が上",
+    "container:k=3": "P2P が上",
+    "container:k=6": "P2P が上",
+    "container:k=10": "P2P が上"
+   },
+   "40.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "P2P が上",
+    "container:k=3": "P2P が上",
+    "container:k=6": "P2P が上",
+    "container:k=10": "P2P が上"
+   },
+   "45.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "P2P が上",
+    "container:k=3": "P2P が上",
+    "container:k=6": "P2P が上",
+    "container:k=10": "P2P が上"
+   }
+  },
+  "reference_points": {
+   "30.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "P2P が上",
+    "container:k=3": "P2P が上",
+    "container:k=6": "P2P が上",
+    "container:k=10": "P2P が上"
+   },
+   "10.0": {
+    "availability:k=1": "P2P が上",
+    "availability:k=3": "P2P が上",
+    "availability:k=6": "P2P が上",
+    "availability:k=10": "P2P が上",
+    "container:k=1": "決まらない",
+    "container:k=3": "中央が上",
+    "container:k=6": "決まらない",
+    "container:k=10": "中央が上"
+   }
+  },
+  "S_gt_45_lower_bound": {
+   "grid": [
+    60.0,
+    90.0,
+    120.0,
+    300.0
+   ],
+   "all_conditions_p2p_above": true,
+   "basis": "I_P(S) は S について単調に増えるので，全条件・全ラウンドで I_P(45) > I_C なら S > 45 でも I_P > I_C（測っていない時刻の割合は 0 と置いた下限）"
+  }
+ },
+ "note": "P2P の停止は実測の 45 秒のまま．S < 45 は中央が P2P の止めた台より先に戻る比較．問の標本の幅・終わった時刻の版・R = 1.44 秒は outage_sweep.json（判定に使わない）．",
+ "verdict_revised": {
+  "decided_in": "Iteration 34 phase 3（rc-evaluator．2026-11-09）．verdict_original は変えていない．scripts/d0009/a5s_verdict.py を流し直すとこの欄は消える",
+  "T_star_label": "H_A5S1.*.T_star.label は使わない．availability k=1・3 は T* が R_r より小さい（3.98〜11.68 秒 < 13.5〜13.7 秒）ので，検出と同時に再起動しても P2P が上，という S_star.label の読みが正しい",
+  "reading": "S < 45 は P2P の k 台が 45 秒止まる障害に対して中央が先に戻る比較（p0007 E1 の両側同じ時刻に復旧の作りではない）．結論は『P2P の k 台が 45 秒止まる障害に対し，中央の停止 S が何秒までなら中央が上か』と読む",
+  "S_robust_main": 18.794497530907393,
+  "S_robust_all_descriptives": {
+   "bootstrap_p97_5_max": 30.669497530907393,
+   "completion_time_S_star_max": 33.66377696885158,
+   "R_1_44_S_star_max": 31.06,
+   "S_all_variants": 33.66377696885158
+  },
+  "summary": "主の数え方では S ≥ 18.8 秒で全 8 条件 P2P が上．問の標本の幅（97.5 %）・終わった時刻の版・R = 1.44 秒の当てはめの全てを含めても S ≥ 約 34 秒で全 8 条件 P2P が上．S が 10 秒以下（自動の検出と再起動が速い中央）では availability k ≤ 3 だけが頑健に P2P が上で，container は主の数え方でも中央が上か決まらない"
+ }
+}

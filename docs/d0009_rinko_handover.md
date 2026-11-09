@@ -81,6 +81,13 @@
   - 比べた 232 通の全てで，P2P が中央 T0 より早く答えられた（符号検定 p = 1.45e-70）．
   - 制約：中央の値は全体を作り直す BM25 の実装の値で，新しい文書を segment として足す方式（Lucene・Elasticsearch）は測っていない．中央の埋め込みは GPU の無い制御点の CPU．届く間隔・届けるメールは 1 通り．ノードへの追加と検索が並行すると `/v1/retrieve` が 500 を返す事象が 2 件あった（参考の routed の質問のみ．原因は未確定．`.claude/research/backlog.md` の B113）．
 - 着手（中央の停止時間）：Iteration 34（事前登録は `.claude/research/journal.md` の Iteration 34．設計の判断は `.claude/research/backlog.md` の B114）．Iteration 30（`results/d0009_a6_failure_r{1,2,3}/`）の P2P の時系列を使い，中央の停止時間 S を 0〜45 秒で振って，P2P と中央の積分の大小が入れ替わる境目 S* を条件（止め方・k）とラウンドごとに求める．P2P の停止は実測の 45 秒のまま．既存の結果の再集計（運用ルール 13）で，実機・GPU は使わない．
+- 完了（中央の停止時間）：Iteration 34（2026-11-09．採用）．結果は `results/d0009_a5_outage_sweep/`（`verdict.json`・`outage_sweep.json`・`analysis_report.md`），集計は `scripts/d0009/a5s_verdict.py`，記述は `.claude/research/journal.md` の Iteration 34．判定（P2P の k 台が 45 秒止まる障害に対し，中央 C1-RRF-CE が S 秒止まってから再起動〔13.5〜13.7 秒〕する比較．3 ラウンド）：
+  - availability の k = 1・3 は，中央が検出と同時に再起動しても（S = 0）P2P が上．
+  - 残りの 6 条件には境目 S* があり，availability の k = 6・10 は 6.0〜7.8 秒，container は 8.6〜18.8 秒．S ≥ 20 秒なら全 8 条件で P2P が上で，Iteration 30 の「45 秒の仮定で全 8 条件 P2P が上」は約 20 秒の停止まで保つ．S ≤ 5 秒では，P2P が上なのは availability の k ≤ 3 だけ．
+  - 問の標本の幅（区間ごとの復元抽出の 97.5 %）・終わった時刻で数えた版・中央の再起動 1.44 秒（BM25 を作り直さない中央）の当てはめを含めると，全 8 条件で P2P が上と言えるのは S ≥ 約 34 秒から．Kubernetes の既定の liveness の目安（約 30 秒）は，container の終わった時刻の版の境目（28〜34 秒）の上に当たる．
+  - 境目は止めた間の P2P の割合ではなく，ほぼ「S = 0 での不足 ÷ 平常の割合」で決まる（S を伸ばして足されるのは窓の終わりの P2P の再開の後の区間）．したがってこの比較も，止めた間の P2P の強さを直接は表さない．
+  - 制約：P2P の停止は 45 秒の 1 点で，両側の停止を揃えた比較は実測が無い．S < 45 は中央が P2P の止めた台より先に戻る比較である．正答率・V2 の選択の経路・p0007 E1 の構成（`fusion: none`）の境目は出していない．
+- A5 の 2 つの値（新規メール・中央の停止時間）は全て完了した．
 
 ### A6. 負荷・障害・参加の主構成での再測定（優先度：中）
 
@@ -193,8 +200,8 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は完了（Iteration 30．採用．45 秒の仮定で全 8 条件 P2P が上だが止めた間の割合に依らない．検出と同時の再起動では availability k ≤ 3 以外は中央が上．`results/d0009_a6_failure/`）．参加は完了（Iteration 31．条件付きの採用．事後に改めたゲート G-A′ で E2 成立〔P2P は中央の 1.14〜1.18 倍・転送量は約半分〕．ただし中央の埋め込みが GPU の無い制御点の CPU であることに依る．`results/d0009_a6_join/`）．A6 は完了 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 完了（Iteration 32．採用．委託は重複なしの露出を増やさず，37.6% は全体に等しい．50% 未満は約 2,900 問の質問集合での値．`results/d0009_a4_exposure/`） |
-| 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 索引への追加は完了（Iteration 33．採用．BM25 を含めても P2P は p50 0.47 秒で追従し，全体を作り直す中央の T0 は p50 31 秒．`results/d0009_a5_bm25_add/`）．中央の停止時間は着手（Iteration 34．既存の結果の再集計） |
-| 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 未着手 |
+| 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 索引への追加は完了（Iteration 33．採用．BM25 を含めても P2P は p50 0.47 秒で追従し，全体を作り直す中央の T0 は p50 31 秒．`results/d0009_a5_bm25_add/`）．中央の停止時間は完了（Iteration 34．採用．中央の停止 S ≥ 20 秒で全 8 条件 P2P が上，問の標本などの揺れを含めると約 34 秒．S ≤ 5 秒では availability k ≤ 3 だけ P2P が上．`results/d0009_a5_outage_sweep/`）．A5 は完了 |
+| 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 未着手（次に着手．`.claude/research/backlog.md` の B115） |
 | 9 | B2 | レバー `d0009.B2_split_reranker` | 未着手 |
 | − | C1 | 運用ルール 10：A1〜A6・B3 の判定は新しく分けた質問か別のデータセットで行う | 全イテレーションに適用 |
 | − | C2 | 運用ルール 11：選択まで実機で通す．オフラインならその旨と一致の確かめの範囲を併記する | 全イテレーションに適用 |

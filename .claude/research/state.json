@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 33,
-  "iteration_name": "新しいメールを BM25 の索引へ加える費用の測定",
+  "iteration": 34,
+  "iteration_name": "中央集約の停止時間を変えたときの障害の比較の確かめ",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "d0009.A5_extend_measurements=bm25_index_add",
-  "experiment_dir": "results/d0009_a5b_r1",
-  "experiment_deadline": 1794233811,
+  "current_lever": "d0009.A5_extend_measurements=central_outage_sweep",
+  "experiment_dir": "results/d0009_a5_outage_sweep",
+  "experiment_deadline": null,
   "updated_at": 1794224552,
-  "last_slack_ts": "1794218454.817739",
-  "iteration_thread_ts": "1794218883.098939",
+  "last_slack_ts": "1794224786.176089",
+  "iteration_thread_ts": "1794225153.803579",
   "notion_toggle_created": true,
-  "last_commit": "79fc5f1"
+  "last_commit": "9477edd"
 }
