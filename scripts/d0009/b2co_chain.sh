@@ -62,6 +62,8 @@ mkdir -p "$RESULT_DIR"
 say() { echo "[$(date +%F_%T)] $*" >> "$LOG"; }
 ip_of() { echo "192.168.15.10${1#wafl50}"; }
 HOST_IP=$(ip_of "$HOST")
+# 機を wafl503 に替えた流し直しでは，G-GEN・G-CO・本番の実行名に w503_ を付け，wafl502 の記録を上書きしない（env0 が prod_prefix.txt に書く）
+host_prefix() { tr -d '\n' < "$RESULT_DIR/prod_prefix.txt" 2> /dev/null; }
 SCORER_UP=unknown
 STOPPED=false
 ssh_retry() {
@@ -135,11 +137,11 @@ container_running() { # container_running <name>
 }
 # 生成の container（Ollama・node）を動かす．始めの状態（動いていたか・llama3.1:8b が載っていたか）を 1 度だけ記録する（stop で戻す）
 gen_up() {
-  if [ ! -f "$RESULT_DIR/gen_initial_state.txt" ]; then
+  if [ ! -f "$RESULT_DIR/gen_initial_state_$HOST.txt" ]; then
     local running=no loaded=no
     container_running atrium-ollama-1 && running=yes
     if [ "$running" = yes ] && ollama_curl /api/ps 2> /dev/null | jq -e '.models | length > 0' > /dev/null 2>&1; then loaded=yes; fi
-    echo "ollama_running=$running model_loaded=$loaded" > "$RESULT_DIR/gen_initial_state.txt"
+    echo "ollama_running=$running model_loaded=$loaded" > "$RESULT_DIR/gen_initial_state_$HOST.txt"
   fi
   local waited=0
   ssh_retry "$HOST" "docker start atrium-ollama-1 atrium-node-1 > /dev/null"
@@ -324,12 +326,14 @@ stage_env0() {
 }
 
 stage_ggen() {
-  local rdir="results/${BASE}_ggen"
+  local prefix rdir
+  prefix=$(host_prefix)
+  rdir="results/${BASE}_${prefix}ggen"
   if [ -f "$rdir/ggen.json" ] && [ "$(jq .pass "$rdir/ggen.json")" = true ]; then say "ggen skip (G-GEN passed)"; return; fi
   set_state g
   mkdir -p "$rdir"
   ssh_retry "$HOST" "cat $REMOTE_DIR/config.yaml" > "$rdir/remote_config.yaml" 2>> "$LOG"
-  RUN_NAME=ggen KIND=g WARMUP=0 MEASURE=0 EXTRA=(--gen-limit "$GEN_LIMIT")
+  RUN_NAME=${prefix}ggen KIND=g WARMUP=0 MEASURE=0 EXTRA=(--gen-limit "$GEN_LIMIT")
   run_bench
   exit_if_failed $? "G-GEN run INVALID: $(tr -d '\n' < "$rdir/valid.json" 2> /dev/null)"
   uv run python $D/b2co_verdict.py ggen --run "$rdir" >> "$LOG" 2>&1
@@ -350,10 +354,12 @@ stage_s16() {
 }
 
 stage_co() {
-  local rdir="results/${BASE}_copass" rc
+  local prefix rdir rc
+  prefix=$(host_prefix)
+  rdir="results/${BASE}_${prefix}copass"
   if [ -f "$rdir/gco.json" ] && [ "$(jq .pass "$rdir/gco.json")" = true ]; then say "co skip (G-CO passed)"; return; fi
   set_state b
-  RUN_NAME=copass KIND=b WARMUP=0 MEASURE=0 EXTRA=(--one-pass --dump-scores)
+  RUN_NAME=${prefix}copass KIND=b WARMUP=0 MEASURE=0 EXTRA=(--one-pass --dump-scores)
   run_bench
   exit_if_failed $? "G-CO run INVALID: $(tr -d '\n' < "$rdir/valid.json" 2> /dev/null)"
   uv run python $D/b2co_verdict.py gco --run "$rdir" >> "$LOG" 2>&1
@@ -422,14 +428,14 @@ stage_verdict() {
   uv run python $D/b2co_verdict.py summary >> "$LOG" 2>&1
 }
 
-# 採点の server と生成の container を始めの状態（gen_initial_state.txt）へ戻す：始めに止まっていれば止め，動いていたら llama3.1:8b を元の常駐へ戻す
+# 採点の server と生成の container を始めの状態（gen_initial_state_$HOST.txt）へ戻す：始めに止まっていれば止め，動いていたら llama3.1:8b を元の常駐へ戻す
 stage_stop() {
   scorer_stop
-  if [ -f "$RESULT_DIR/gen_initial_state.txt" ] && container_running atrium-ollama-1; then
-    if grep -q 'ollama_running=no' "$RESULT_DIR/gen_initial_state.txt"; then
+  if [ -f "$RESULT_DIR/gen_initial_state_$HOST.txt" ] && container_running atrium-ollama-1; then
+    if grep -q 'ollama_running=no' "$RESULT_DIR/gen_initial_state_$HOST.txt"; then
       model_unload
       ssh_retry "$HOST" "docker stop atrium-node-1 atrium-ollama-1 > /dev/null" >> "$LOG" 2>&1
-    elif grep -q 'model_loaded=yes' "$RESULT_DIR/gen_initial_state.txt"; then
+    elif grep -q 'model_loaded=yes' "$RESULT_DIR/gen_initial_state_$HOST.txt"; then
       model_load
     else
       model_unload

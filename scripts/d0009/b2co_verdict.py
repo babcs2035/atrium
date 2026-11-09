@@ -64,6 +64,7 @@ GPU_MEM_MAX_MIB = 11776
 E_SMALL_LOSS_MIN = 0.90
 E_LARGE_LOSS_MAX = 0.80
 GPUS_TOTAL = 10
+FIRST_HOST = "wafl502"
 CANDIDATES_PER_QUESTION = 3
 
 
@@ -377,11 +378,10 @@ def prod_prefix() -> str:
     return path.read_text(encoding="utf-8").strip() if path.exists() else ""
 
 
-def load_rounds(host: str) -> tuple[dict[int, dict[str, Path]], dict[str, list[str]]]:
-    """ラウンド → 種類（g・s・b）→ 有効な実行のディレクトリ（再実行があれば最初の有効なもの）と，無効だった実行の理由．"""
+def load_rounds(prefix: str) -> tuple[dict[int, dict[str, Path]], dict[str, list[str]]]:
+    """ラウンド → 種類（g・s・b）→ 有効な実行のディレクトリ（再実行があれば最初の有効なもの）と，無効だった実行の理由．prefix は実行名の前置き．"""
     runs: dict[int, dict[str, Path]] = {}
     invalid: dict[str, list[str]] = {}
-    prefix = prod_prefix()
     for rnd in ROUNDS:
         for kind in KINDS:
             for suffix in ("", "_retry"):
@@ -428,12 +428,10 @@ def answer_match_rate(
     return sum(a_g[p] == a_b[p] for p in common) / len(common) if common else None
 
 
-def summarize() -> dict[str, Any]:
-    """H-C0・H-C1 の数値と機械的な判定．colocate_summary.json・verdict.json・analysis_report.md を書く（採否の評価は rc-evaluator が行う）．"""
-    host = (RESULT_DIR / "host.txt").read_text(encoding="utf-8").split()[0]
-    gates = gate_status()
-    runs, invalid = load_rounds(host)
-    valid_rounds = [r for r in ROUNDS if set(runs.get(r, {})) == set(KINDS)]
+def describe_rounds(
+    runs: dict[int, dict[str, Path]], valid_rounds: list[int], host: str
+) -> dict[str, Any]:
+    """有効なラウンドごとに r_g・r_s・E_co と，生成・採点・可否の記述を作る．"""
     rounds: dict[str, Any] = {}
     for rnd in valid_rounds:
         g_run, s_run, b_run = runs[rnd]["g"], runs[rnd]["s"], runs[rnd]["b"]
@@ -459,15 +457,26 @@ def summarize() -> dict[str, Any]:
             "answer_match_rate_G_vs_B": answer_match_rate(g_run, b_run, win_g, win_b),
             "facts_B": feasibility_facts(b_run),
         }
+    return rounds
+
+
+def summarize() -> dict[str, Any]:
+    """H-C0・H-C1 の数値と機械的な判定．colocate_summary.json・verdict.json・analysis_report.md を書く（採否の評価は rc-evaluator が行う）．"""
+    host = (RESULT_DIR / "host.txt").read_text(encoding="utf-8").split()[0]
+    prefix = prod_prefix()
+    gates = gate_status(prefix)
+    runs, invalid = load_rounds(prefix)
+    valid_rounds = [r for r in ROUNDS if set(runs.get(r, {})) == set(KINDS)]
+    rounds = describe_rounds(runs, valid_rounds, host)
     e_values = [v["E_co"] for v in rounds.values() if v["E_co"] is not None]
     # H-C0：G-CO と，有効なラウンドの B（有効な B が無い／G-CO が無いときは材料が無いので undetermined）
     not_fit: dict[str, list[str]] = {}
     mem_max: dict[str, float | None] = {}
-    gco_path = run_dir("copass") / "gco.json"
+    gco_path = run_dir(f"{prefix}copass") / "gco.json"
     if gco_path.exists():
         gco = read_json(gco_path)
-        not_fit["copass"] = gco["not_fit_reasons"]
-        mem_max["copass"] = gco["facts"]["gpu_mem_max_mib"]
+        not_fit[f"{prefix}copass"] = gco["not_fit_reasons"]
+        mem_max[f"{prefix}copass"] = gco["facts"]["gpu_mem_max_mib"]
     for rnd in ROUNDS:
         b_path = runs.get(rnd, {}).get("b")
         if b_path is not None:
@@ -487,6 +496,17 @@ def summarize() -> dict[str, Any]:
             "X_req_S_median_qps": x_req,
             **balance_estimates(x_gen, x_req, mid),
         }
+    first_attempt = None
+    if prefix:
+        # 機を替えた流し直しのとき：wafl502 の最初の試行（無効が 2 回で止まった本番）を記述として残す（採否に使わない）
+        first_runs, first_invalid = load_rounds("")
+        first_rounds = [r for r in ROUNDS if set(first_runs.get(r, {})) == set(KINDS)]
+        first_attempt = {
+            "host": FIRST_HOST,
+            "valid_rounds": first_rounds,
+            "rounds": describe_rounds(first_runs, first_rounds, FIRST_HOST),
+            "invalid_runs": first_invalid,
+        }
     summary = {
         "host": host,
         "gates": gates,
@@ -504,6 +524,7 @@ def summarize() -> dict[str, Any]:
             "large_loss": E_LARGE_LOSS_MAX,
         },
         "balance_estimates_description_only": estimates,
+        "first_attempt_description_only": first_attempt,
     }
     RESULT_DIR.mkdir(parents=True, exist_ok=True)
     (RESULT_DIR / "colocate_summary.json").write_text(
@@ -524,17 +545,20 @@ def summarize() -> dict[str, Any]:
     return summary
 
 
-def gate_status() -> dict[str, Any]:
-    """G-GEN・G-S16・G-CO（の可否と得点の一致）・smoke の通過状況（記録が無ければ None）．all_passed は G-CO の可否の項目を除く 4 つ全ての通過．"""
+def gate_status(prefix: str) -> dict[str, Any]:
+    """G-GEN・G-S16・G-CO（の可否と得点の一致）・smoke の通過状況（記録が無ければ None）．all_passed は 5 項目の全ての通過．
+
+    prefix は G-GEN・G-CO の実行名の前置き（機を替えた流し直しは w503_）．G-S16 と smoke は wafl502 のものを使う（事前登録）．
+    """
 
     def passed(path: Path, key: str = "pass") -> bool | None:
         return read_json(path)[key] if path.exists() else None
 
     gates: dict[str, Any] = {
-        "G_GEN": passed(run_dir("ggen") / "ggen.json"),
+        "G_GEN": passed(run_dir(f"{prefix}ggen") / "ggen.json"),
         "G_S16": passed(run_dir("s16pass") / "gf16.json"),
-        "G_CO_feasible": passed(run_dir("copass") / "gco.json", "feasible"),
-        "G_CO_scores_match": passed(run_dir("copass") / "gco.json", "scores_match"),
+        "G_CO_feasible": passed(run_dir(f"{prefix}copass") / "gco.json", "feasible"),
+        "G_CO_scores_match": passed(run_dir(f"{prefix}copass") / "gco.json", "scores_match"),
         "smoke": passed(run_dir("smoke") / "valid.json", "valid"),
     }
     gates["all_passed"] = all(
