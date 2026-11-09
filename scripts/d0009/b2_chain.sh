@@ -88,8 +88,9 @@ wait_cool() { # wait_cool <waited_file> <host>...
   done
 }
 gpu_log_start() { # gpu_log_start <host> <name>
+  # ssh が戻るよう，背景の処理の標準入出力を全て閉じる（括弧で包まないと && の左側の出力が ssh の接続を握り続ける）
   ssh_retry "$1" "mkdir -p $REMOTE_DIR/b2 && rm -f $REMOTE_DIR/b2/$2.gpu.csv && \
-    setsid nohup bash -c 'echo \$\$ > $REMOTE_DIR/b2/$2.pid; while :; do echo \"\$(date +%s.%N),\$(nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits | tr -d \" \")\"; sleep 1; done' > $REMOTE_DIR/b2/$2.gpu.csv 2> /dev/null < /dev/null &"
+    (setsid nohup bash -c 'echo \$\$ > $REMOTE_DIR/b2/$2.pid; while :; do echo \"\$(date +%s.%N),\$(nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits | tr -d \" \")\"; sleep 1; done' > $REMOTE_DIR/b2/$2.gpu.csv 2> /dev/null < /dev/null &) > /dev/null 2>&1"
 }
 gpu_log_stop() { # gpu_log_stop <host> <name> <out>
   ssh_retry "$1" "kill \$(cat $REMOTE_DIR/b2/$2.pid) 2> /dev/null; sleep 1; cat $REMOTE_DIR/b2/$2.gpu.csv" > "$3" 2> /dev/null
