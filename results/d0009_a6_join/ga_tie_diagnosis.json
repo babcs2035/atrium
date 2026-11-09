@@ -1,0 +1,13 @@
+{
+ "n_devices": 30,
+ "vocab_size_min": 17502,
+ "vocab_size_max": 72895,
+ "n_devices_over_term_size": 1,
+ "cutoff_df_of_devices_over_term_size": [
+  1
+ ],
+ "n_terms_df_mismatch": 9341,
+ "n_terms_only_offline_df_positive": 4195,
+ "n_terms_only_live": 0,
+ "max_abs_df_diff": 1.0
+}

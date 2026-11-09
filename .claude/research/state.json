@@ -5,11 +5,11 @@
   "phase": "execute",
   "status": "running",
   "current_lever": "d0009.A6_remeasure_main=join",
-  "experiment_dir": null,
-  "experiment_deadline": null,
-  "updated_at": 1794181089,
+  "experiment_dir": "results/d0009_a6_join_r1",
+  "experiment_deadline": 1794211793,
+  "updated_at": 1794192677,
   "last_slack_ts": "1794170664.164569",
   "iteration_thread_ts": "1794182142.095359",
   "notion_toggle_created": true,
-  "last_commit": "0f04390"
+  "last_commit": "bf45cfb"
 }

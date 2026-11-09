@@ -1,0 +1,22 @@
+[09:35:12] table enronqa/ce_table/holdout_owner_join.jsonl sha256 gpu4=ca2736eae9703e2acd9a3cc673a3c4b8dd88cfd98d2c68bc5b9703f7b1ad3a13 control=ca2736eae9703e2acd9a3cc673a3c4b8dd88cfd98d2c68bc5b9703f7b1ad3a13
+[09:35:12] table enronqa/ce_table/holdout_join.jsonl sha256 gpu4=b226483d1ba4282292a69a5d87558b3c641cc06d4fd3498428aef9a8ba42e7ac control=b226483d1ba4282292a69a5d87558b3c641cc06d4fd3498428aef9a8ba42e7ac
+[09:38:07] deployed
+[2026-11-09_09:38:10] BEGIN d0009_a6_join_smoke
+[09:38:13] max other-process GPU memory on wafl500-509: 0 MiB
+[09:39:16] max other-process GPU memory on wafl500-509: 0 MiB
+[09:40:18] max other-process GPU memory on wafl500-509: 0 MiB
+[09:40:18] d0009_a6_join_smoke confound=none
+[09:59:17] d0009_a6_join_smoke live_run=0
+[09:59:19] d0009_a6_join_smoke G-R ok (all nodes serving)
+[09:59:19] d0009_a6_join_smoke table_miss=0
+[2026-11-09_09:59:19] BEGIN d0009_a6_join_r1
+[09:59:21] max other-process GPU memory on wafl500-509: 0 MiB
+[10:00:24] max other-process GPU memory on wafl500-509: 0 MiB
+[10:01:27] max other-process GPU memory on wafl500-509: 0 MiB
+[10:01:27] d0009_a6_join_r1 confound=none
+[11:34:39] d0009_a6_join_r1 live_run=0
+[11:34:41] d0009_a6_join_r1 G-R ok (all nodes serving)
+[11:34:41] d0009_a6_join_r1 table_miss=0
+[11:34:41] d0009_a6_join_r1 G-J same_plan=true
+[11:34:41] d0009_a6_join_r1 G-A ok=false agreement=0.9965277777777778
+[11:34:41] d0009_a6_join_r1 G-J/G-A FAILED (same_plan=true g_a=false); stop before the next run

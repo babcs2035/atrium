@@ -1,0 +1,28 @@
+{
+ "verdict_original": {
+  "hypothesis": "P2P が答えられるまでの時間の中央値で中央より短い，または同等（中央の 1.25 倍以内）で転送量が小さい",
+  "p2p": {
+   "n": 15,
+   "n_censored": 0,
+   "p50": 1178.608073498006,
+   "p95": 1311.3660128409974,
+   "max": 1311.3660128409974
+  },
+  "central": {
+   "n": 15,
+   "n_censored": 0,
+   "p50": 1036.0055272559403,
+   "p95": 1683.6170805939473,
+   "max": 1683.6170805939473
+  },
+  "equivalence_ratio": 1.25,
+  "p2p_bytes": 8256409,
+  "central_bytes": 15629809,
+  "faster": false,
+  "equivalent": true,
+  "less_transfer": true,
+  "branch": "equivalent_less_transfer",
+  "holds": true
+ },
+ "verdict_revised": null
+}

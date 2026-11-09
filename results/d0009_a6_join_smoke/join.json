@@ -1,0 +1,332 @@
+{
+ "plan": {
+  "joiner_hosts": [
+   "192.168.15.106"
+  ],
+  "joiner_inboxes": [
+   "arnold-j",
+   "blair-l",
+   "perlingiere-d",
+   "semperger-c",
+   "williams-j"
+  ],
+  "n_initial_devices": 29,
+  "smoke_initial_devices": null,
+  "smoke_summary_max_docs": 200
+ },
+ "setup": {
+  "n_devices": 29,
+  "device_total_s_p50": 236.09934599499684,
+  "published_bytes_total": 17036368
+ },
+ "pre_join": {
+  "n_questions": 10,
+  "hit_rate": 0.0
+ },
+ "p2p": {
+  "devices": [
+   {
+    "host": "192.168.15.106",
+    "rtt_s": 140.3094064668985,
+    "device_total_s": 140.25974395498633,
+    "device_tokenize_s": 0.09210444195196033,
+    "device_embed_s": 135.69726335490122,
+    "device_kmeans_s": 0.00968219805508852,
+    "device": "cpu",
+    "n_docs": 971,
+    "payload_bytes": 2698997,
+    "published_bytes": 613496,
+    "up_s": 0.005175628000870347,
+    "published_s": 140.34064274595585,
+    "profile_s": 0.041668248013593256,
+    "assemble_s": 0.49081874697003514,
+    "member_s": 140.8731544909533,
+    "answers": [
+     {
+      "inbox": "arnold-j",
+      "answer_s": 149.11656106589362,
+      "tries": 1,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/24789-0",
+        "answered": true,
+        "finished_s": 149.11656106589362,
+        "e2e_s": 8.243325913907029,
+        "failure_kind": null,
+        "timings": {
+         "route_s": 0.006449041073210537,
+         "generate_s": 7.926609609974548,
+         "ce_s": 0.00018904695753008127
+        }
+       }
+      ]
+     },
+     {
+      "inbox": "blair-l",
+      "answer_s": 146.2095331469318,
+      "tries": 1,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/29311-0",
+        "answered": true,
+        "finished_s": 146.2095331469318,
+        "e2e_s": 5.336222517071292,
+        "failure_kind": null,
+        "timings": {
+         "route_s": 0.005753784906119108,
+         "generate_s": 5.022638884955086,
+         "ce_s": 0.0007401650073006749
+        }
+       }
+      ]
+     },
+     {
+      "inbox": "perlingiere-d",
+      "answer_s": 147.74214213795494,
+      "tries": 1,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/16547-0",
+        "answered": true,
+        "finished_s": 147.74214213795494,
+        "e2e_s": 6.86880298901815,
+        "failure_kind": null,
+        "timings": {
+         "route_s": 0.006096563069149852,
+         "generate_s": 6.569217435084283,
+         "ce_s": 0.0006136340089142323
+        }
+       }
+      ]
+     },
+     {
+      "inbox": "semperger-c",
+      "answer_s": 154.28786173195112,
+      "tries": 2,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/5159-0",
+        "answered": false,
+        "finished_s": 151.824469851912,
+        "e2e_s": 10.951109859044664,
+        "failure_kind": null,
+        "timings": {
+         "route_s": 0.005695801926776767,
+         "generate_s": 10.650904517038725,
+         "ce_s": 0.0006463259924203157
+        }
+       },
+       {
+        "qid": "enronqa/holdout/5174-0",
+        "answered": true,
+        "finished_s": 154.28786173195112,
+        "e2e_s": 2.463324944023043,
+        "failure_kind": null,
+        "timings": {
+         "route_s": 0.02353724604472518,
+         "generate_s": 2.3719771989854053,
+         "ce_s": 0.0006663440726697445
+        }
+       }
+      ]
+     },
+     {
+      "inbox": "williams-j",
+      "answer_s": 143.03785081091337,
+      "tries": 1,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/9356-0",
+        "answered": true,
+        "finished_s": 143.03785081091337,
+        "e2e_s": 2.1639863239834085,
+        "failure_kind": null,
+        "timings": {
+         "route_s": 0.0048692619893699884,
+         "generate_s": 1.8553383520338684,
+         "ce_s": 0.0006809859769418836
+        }
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "answer_s": [
+   149.11656106589362,
+   146.2095331469318,
+   147.74214213795494,
+   154.28786173195112,
+   143.03785081091337
+  ],
+  "answer_summary": {
+   "n": 5,
+   "n_censored": 0,
+   "p50": 147.74214213795494,
+   "p95": 154.28786173195112,
+   "max": 154.28786173195112
+  },
+  "member_s_summary": {
+   "n": 1,
+   "n_censored": 0,
+   "p50": 140.8731544909533,
+   "p95": 140.8731544909533,
+   "max": 140.8731544909533
+  },
+  "payload_bytes": 2698997,
+  "published_bytes": 613496,
+  "exposed_mails": 0
+ },
+ "central": {
+  "devices": [
+   {
+    "host": "192.168.15.106",
+    "n_mails": 2094,
+    "transfer_bytes": 4234843,
+    "transfer_s": 0.19146963104140013,
+    "embed_s": 441.39826185489073,
+    "add_s": 11.954768625088036,
+    "bm25_s": 11.920165839022957,
+    "indexed_s": 453.54976798198186,
+    "answers": [
+     {
+      "inbox": "arnold-j",
+      "answer_s": 455.9449490190018,
+      "tries": 1,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/24789-0",
+        "answered": true,
+        "finished_s": 455.94493567803875,
+        "e2e_s": 2.395116047002375,
+        "failure_kind": null,
+        "timings": {
+         "generate_s": 2.368997393990867,
+         "retrieve_s": 0.02528043300844729,
+         "rerank_s": 0.00022465898655354977
+        }
+       }
+      ]
+     },
+     {
+      "inbox": "blair-l",
+      "answer_s": 457.38150245300494,
+      "tries": 1,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/29311-0",
+        "answered": true,
+        "finished_s": 457.38148964906577,
+        "e2e_s": 1.4364323560148478,
+        "failure_kind": null,
+        "timings": {
+         "generate_s": 1.406486663967371,
+         "retrieve_s": 0.027897097053937614,
+         "rerank_s": 0.0010028850520029664
+        }
+       }
+      ]
+     },
+     {
+      "inbox": "perlingiere-d",
+      "answer_s": 461.0838288840605,
+      "tries": 2,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/16547-0",
+        "answered": false,
+        "finished_s": 459.26704993704334,
+        "e2e_s": 1.8854581540217623,
+        "failure_kind": null,
+        "timings": {
+         "generate_s": 1.857092292048037,
+         "retrieve_s": 0.026664425036869943,
+         "rerank_s": 0.0006478179711848497
+        }
+       },
+       {
+        "qid": "enronqa/holdout/16549-0",
+        "answered": true,
+        "finished_s": 461.0838170320494,
+        "e2e_s": 1.816718859015964,
+        "failure_kind": null,
+        "timings": {
+         "generate_s": 1.7868337179534137,
+         "retrieve_s": 0.028378865914419293,
+         "rerank_s": 0.0004665249725803733
+        }
+       }
+      ]
+     },
+     {
+      "inbox": "semperger-c",
+      "answer_s": 465.4280291249743,
+      "tries": 2,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/5159-0",
+        "answered": false,
+        "finished_s": 463.1014560509939,
+        "e2e_s": 2.017530892044306,
+        "failure_kind": null,
+        "timings": {
+         "generate_s": 1.9884864119812846,
+         "retrieve_s": 0.027366211055777967,
+         "rerank_s": 0.0007075750036165118
+        }
+       },
+       {
+        "qid": "enronqa/holdout/5174-0",
+        "answered": true,
+        "finished_s": 465.4280176020693,
+        "e2e_s": 2.326511288061738,
+        "failure_kind": null,
+        "timings": {
+         "generate_s": 2.2970452720765024,
+         "retrieve_s": 0.027270994032733142,
+         "rerank_s": 0.0011968580074608326
+        }
+       }
+      ]
+     },
+     {
+      "inbox": "williams-j",
+      "answer_s": 467.2874933020212,
+      "tries": 1,
+      "rows": [
+       {
+        "qid": "enronqa/holdout/9356-0",
+        "answered": true,
+        "finished_s": 467.28749040106777,
+        "e2e_s": 1.8593842190457508,
+        "failure_kind": null,
+        "timings": {
+         "generate_s": 1.8306031450629234,
+         "retrieve_s": 0.02712940308265388,
+         "rerank_s": 0.0006619089981541038
+        }
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "answer_s": [
+   455.9449490190018,
+   457.38150245300494,
+   461.0838288840605,
+   465.4280291249743,
+   467.2874933020212
+  ],
+  "answer_summary": {
+   "n": 5,
+   "n_censored": 0,
+   "p50": 461.0838288840605,
+   "p95": 467.2874933020212,
+   "max": 467.2874933020212
+  },
+  "transfer_bytes": 4234843,
+  "exposed_mails": 2094
+ },
+ "delays": []
+}
