@@ -40,6 +40,9 @@ PROMPT = (
 )
 SSH = ["ssh", "-n", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15"]
 SSH_TIMEOUT_S = 180
+SSH_CONNECTION_FAILED = 255
+SSH_ATTEMPTS = 3
+SSH_RETRY_WAIT_S = 5
 # Ollama の llama-server の log の行．例: `... slot print_timing: id  0 | task 18 |        eval time =    1153.40 ms /    67 tokens (...)`
 EVAL_LINE = re.compile(
     r"^(\d{4}-\d\d-\d\dT\d\d:\d\d):\d\d\.\d+Z .*print_timing.*\|\s+eval time =\s+([\d.]+) ms /\s+(\d+) tokens"
@@ -50,9 +53,19 @@ COUNTER_LINE = re.compile(r"^\s*SW Thermal Slowdown\s*:\s*(\d+) us\s*$")
 
 def ssh_out(host: str, command: str) -> str:
     """host で command を実行して標準出力を返す（失敗は例外．ssh の警告は標準エラーなので混ざらない）．"""
-    done = subprocess.run(
-        [*SSH, host, command], capture_output=True, text=True, timeout=SSH_TIMEOUT_S, check=True
-    )
+    for attempt in range(SSH_ATTEMPTS):
+        done = subprocess.run(
+            [*SSH, host, command],
+            capture_output=True,
+            text=True,
+            timeout=SSH_TIMEOUT_S,
+            check=False,
+        )
+        # 255 は ssh の接続の失敗（一時的に起きる）．コマンドの失敗は再試行しない
+        if done.returncode != SSH_CONNECTION_FAILED or attempt == SSH_ATTEMPTS - 1:
+            break
+        time.sleep(SSH_RETRY_WAIT_S)
+    done.check_returncode()
     return done.stdout
 
 
