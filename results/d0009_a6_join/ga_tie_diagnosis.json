@@ -9,5 +9,6 @@
  "n_terms_df_mismatch": 9341,
  "n_terms_only_offline_df_positive": 4195,
  "n_terms_only_live": 0,
- "max_abs_df_diff": 1.0
+ "max_abs_df_diff": 1.0,
+ "n_mismatch_not_at_cutoff": 0
 }

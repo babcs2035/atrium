@@ -135,8 +135,10 @@ run_one() {
   g_a=$(jq --argjson min "$MIN_CANDIDATE_AGREEMENT" \
     '(.bm25_stats_vs_offline.g_a_stats_match == true) and ((.candidate_agreement_with_offline_summary // 0) >= $min)' "results/$run/sim_vs_live.json")
   echo "[$(date +%T)] $run G-A ok=$g_a agreement=$(jq .candidate_agreement_with_offline_summary "results/$run/sim_vs_live.json")" >> "$LOG"
-  if [ "$same_plan" != true ] || [ "$g_a" != true ]; then
-    echo "[$(date +%T)] $run G-J/G-A FAILED (same_plan=$same_plan g_a=$g_a); stop before the next run" >> "$LOG"; exit 1
+  # G-A（原文）が通らなくても止めない：公開する語の打ち切りの境目の同点で必ず不一致になるため，G-A′（a6j_verdict.py）で事後に検証する（backlog B108）
+  if [ "$g_a" != true ]; then echo "[$(date +%T)] $run G-A (original) not met; continue, verified by G-A' in a6j_verdict.py" >> "$LOG"; fi
+  if [ "$same_plan" != true ]; then
+    echo "[$(date +%T)] $run G-J FAILED (same_plan=$same_plan); stop before the next run" >> "$LOG"; exit 1
   fi
 }
 

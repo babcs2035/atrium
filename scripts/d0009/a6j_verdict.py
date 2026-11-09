@@ -17,12 +17,17 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from a6j_ga_ties import tie_diagnosis
+
 from atrium.dynamics import durations_or_censored, judge_join, summarize_times
 
 OUT_DIR = Path("results/d0009_a6_join")
 ROUNDS = (1, 2, 3)
 MIN_VALID_ROUNDS = 2
 MIN_CANDIDATE_AGREEMENT = 0.90
+STATS_REL_TOLERANCE = 1e-6
+SUMMARY_DIR = Path("/tmp/ga")
+DATA_DIR = Path("artifacts")
 E2_HOLDS = "E2 成立"
 E2_FAILS = "E2 不成立"
 UNDECIDED = "決まらない"
@@ -103,8 +108,22 @@ def round_summary(n: int, cost: Mapping[str, Any]) -> dict[str, Any]:
     table_misses = sum(
         r["failure_kind"] == "table_miss" for side in (p2p, central) for r in try_rows(side)
     )
+    # G-A′（revised．journal の Iteration 31「G-A の改訂」）：n_docs・avg_doc_len は従来どおり，published_df の差は公開する語の打ち切りの境目の同点だけ．
+    # 境目の同点だけかは a6j_ga_ties.tie_diagnosis で再計算し，実行が書いた差の数と一致することも確かめる
+    diagnosis = tie_diagnosis(run / "placement.json", SUMMARY_DIR, DATA_DIR)
+    ga_prime = bool(
+        stats
+        and stats["n_docs_live"] == stats["n_docs_offline"]
+        and stats["avg_doc_len_rel_diff"] is not None
+        and stats["avg_doc_len_rel_diff"] <= STATS_REL_TOLERANCE
+        and diagnosis["n_mismatch_not_at_cutoff"] == 0
+        and diagnosis["n_terms_df_mismatch"] == stats["n_terms_df_mismatch"]
+        and diagnosis["n_terms_only_live"] == stats["n_terms_only_live"] == 0
+    )
     gates = {
         "G_A_stats_match": bool(stats.get("g_a_stats_match")),
+        "G_A_prime_tie_diagnosis": diagnosis,
+        "G_A_prime_ok": ga_prime,
         "G_A_candidate_agreement": agreement,
         "G_A_agreement_ok": agreement is not None and agreement >= MIN_CANDIDATE_AGREEMENT,
         "G_J_same_plan": (
@@ -115,13 +134,14 @@ def round_summary(n: int, cost: Mapping[str, Any]) -> dict[str, Any]:
         "G_R_ok": not_serving == "none",
         "table_miss": table_misses,
     }
-    valid = (
-        gates["G_A_stats_match"]
-        and gates["G_A_agreement_ok"]
+    common_ok = (
+        gates["G_A_agreement_ok"]
         and gates["G_J_same_plan"]
         and gates["G_R_ok"]
         and table_misses == 0
     )
+    valid = common_ok and gates["G_A_stats_match"]
+    valid_revised = common_ok and ga_prime
     p2p_times = durations_or_censored(p2p["answer_s"])
     central_times = durations_or_censored(central["answer_s"])
     verdict = judge_join(p2p_times, central_times, p2p["payload_bytes"], central["transfer_bytes"])
@@ -146,6 +166,7 @@ def round_summary(n: int, cost: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "round": n,
         "valid": bool(valid),
+        "valid_revised": bool(valid_revised),
         "gates": gates,
         "verdict_original": verdict,
         "ratio_p50_p2p_over_central": (
@@ -229,20 +250,21 @@ def main() -> None:
         for n in ROUNDS
         if Path(f"results/d0009_a6_join_r{n}/join.json").exists()
     ]
-    valid = [r for r in rounds if r["valid"]]
-    holds = [bool(r["verdict_original"]["holds"]) for r in valid]
-    ratios = [
-        r["ratio_p50_p2p_over_central"]
-        for r in valid
-        if r["ratio_p50_p2p_over_central"] is not None
-    ]
     table_owner = json.loads((OUT_DIR / "table/table_check_owner.json").read_text("utf-8"))
     table_central = json.loads((OUT_DIR / "table/table_check_central.json").read_text("utf-8"))
     g_tb = bool(table_owner["G_TB_owner_passed"] and table_central["G_TB_central_passed"])
     e2_old = json.loads((P2P_E2 / "verdict.json").read_text("utf-8"))["verdict_original"]
-    adopted = g_tb and len(valid) >= MIN_VALID_ROUNDS
-    verdict = {
-        "verdict_original": {
+
+    def verdict_of(key: str) -> dict[str, Any]:
+        """key（valid／valid_revised）のラウンドで H-A6J1〜J3 と採否を出す（規則は同じ）．"""
+        valid = [r for r in rounds if r[key]]
+        holds = [bool(r["verdict_original"]["holds"]) for r in valid]
+        ratios = [
+            r["ratio_p50_p2p_over_central"]
+            for r in valid
+            if r["ratio_p50_p2p_over_central"] is not None
+        ]
+        return {
             "H_A6J1": three_way(holds),
             "n_valid_rounds": len(valid),
             "valid_rounds": [r["round"] for r in valid],
@@ -254,10 +276,16 @@ def main() -> None:
                 "median": statistics.median(ratios) if ratios else None,
             },
             "G_TB": g_tb,
-            "adopted": adopted,
+            "adopted": g_tb and len(valid) >= MIN_VALID_ROUNDS,
             "independent_units_note": "受信箱は 15 だが，時間はほぼデバイス（3 台）の単位で決まるので，独立な単位は 3 である",
+        }
+
+    verdict = {
+        "verdict_original": verdict_of("valid"),
+        "verdict_revised": {
+            **verdict_of("valid_revised"),
+            "note": "G-A（published_df が語ごとに一致）は原文では不通過．公開する語の打ち切りの境目の同点の並びの違いだけを許す G-A′ による revised．採否の根拠は verdict_revised（orchestrator が r2・r3 を見る前に固定．backlog B108）",
         },
-        "verdict_revised": None,
     }
     (OUT_DIR / "verdict.json").write_text(
         json.dumps(verdict, indent=1, ensure_ascii=False), encoding="utf-8"
