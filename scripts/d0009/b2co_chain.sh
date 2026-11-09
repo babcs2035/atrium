@@ -207,7 +207,9 @@ save_healthz() { # save_healthz <out>
 }
 # container のログの out of memory の行の数（container が無ければ 0）
 oom_count() { # oom_count <container>
-  ssh_retry "$HOST" "docker logs $1 2>&1 | grep -ci 'out of memory'" 2> /dev/null | tr -d '\n' | grep -E '^[0-9]+$' || echo 0
+  local n
+  n=$(ssh_retry "$HOST" "docker logs $1 2>&1 | grep -ci 'out of memory'; true" 2> /dev/null | head -n 1 | tr -dc '0-9')
+  echo "${n:-0}"
 }
 
 # 実機の条件を 1 回流す．RUN_NAME・KIND（g|s|b）・WARMUP・MEASURE・EXTRA（bench の追加の引数の配列）を呼び出し側が設定する（状態は呼び出し側が set_state 済み）．
