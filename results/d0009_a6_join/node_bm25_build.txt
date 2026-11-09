@@ -43,3 +43,138 @@ node-1  | 2026-11-09 00:37:17,355 INFO atrium.store: loaded shard mckay-j (179 d
 node-1  | 2026-11-09 00:37:17,471 INFO atrium.store: loaded shard mclaughlin-e (346 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.11 s)
 node-1  | 2026-11-09 00:37:17,634 INFO atrium.store: loaded shard presto-k (494 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.15 s)
 node-1  | 2026-11-09 00:37:17,914 INFO atrium.store: loaded shard sager-e (871 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.27 s)
+== 192.168.13.103
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 02:59:37,030 INFO atrium.store: loaded shard panus-s (61 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.04 s)
+node-1  | 2026-11-09 02:59:37,075 INFO atrium.store: loaded shard reitmeyer-j (64 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.04 s)
+node-1  | 2026-11-09 02:59:37,124 INFO atrium.store: loaded shard ring-a (58 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.04 s)
+node-1  | 2026-11-09 02:59:37,186 INFO atrium.store: loaded shard sanchez-m (59 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.06 s)
+node-1  | 2026-11-09 02:59:39,125 INFO atrium.store: loaded shard taylor-m (2671 docs, fusion=rrf, body_bm25_probe=True, bm25 build 1.91 s)
+== 192.168.13.105
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 03:00:03,126 INFO atrium.store: loaded shard bailey-s (98 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.04 s)
+node-1  | 2026-11-09 03:00:03,192 INFO atrium.store: loaded shard donohoe-t (93 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.06 s)
+node-1  | 2026-11-09 03:00:03,248 INFO atrium.store: loaded shard gang-l (90 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 03:00:04,338 INFO atrium.store: loaded shard jones-t (2255 docs, fusion=rrf, body_bm25_probe=True, bm25 build 1.06 s)
+node-1  | 2026-11-09 03:00:04,373 INFO atrium.store: loaded shard swerzbin-m (75 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.03 s)
+== 192.168.15.106
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 03:00:09,706 INFO atrium.store: loaded shard arnold-j (603 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.18 s)
+node-1  | 2026-11-09 03:00:09,903 INFO atrium.store: loaded shard blair-l (696 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.19 s)
+node-1  | 2026-11-09 03:00:09,993 INFO atrium.store: loaded shard perlingiere-d (380 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.08 s)
+node-1  | 2026-11-09 03:00:10,047 INFO atrium.store: loaded shard semperger-c (171 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 03:00:10,134 INFO atrium.store: loaded shard williams-j (244 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.08 s)
+== 192.168.13.100
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 02:59:34,755 INFO atrium.store: loaded shard dasovich-j (5485 docs, fusion=rrf, body_bm25_probe=True, bm25 build 8.39 s)
+node-1  | 2026-11-09 02:59:34,759 INFO atrium.store: loaded shard phanis-s (5 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.00 s)
+node-1  | 2026-11-09 02:59:34,767 INFO atrium.store: loaded shard quenet-j (9 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.01 s)
+node-1  | 2026-11-09 02:59:34,777 INFO atrium.store: loaded shard solberg-g (13 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.01 s)
+node-1  | 2026-11-09 02:59:34,788 INFO atrium.store: loaded shard south-s (13 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.01 s)
+== 192.168.15.100
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 03:00:12,564 INFO atrium.store: loaded shard davis-d (212 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.07 s)
+node-1  | 2026-11-09 03:00:12,630 INFO atrium.store: loaded shard mckay-j (179 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.06 s)
+node-1  | 2026-11-09 03:00:12,742 INFO atrium.store: loaded shard mclaughlin-e (346 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.10 s)
+node-1  | 2026-11-09 03:00:12,911 INFO atrium.store: loaded shard presto-k (494 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.16 s)
+node-1  | 2026-11-09 03:00:13,200 INFO atrium.store: loaded shard sager-e (871 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.28 s)
+== 192.168.13.103
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 05:53:43,820 INFO atrium.store: loaded shard panus-s (61 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 05:53:43,873 INFO atrium.store: loaded shard reitmeyer-j (64 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 05:53:43,912 INFO atrium.store: loaded shard ring-a (58 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.03 s)
+node-1  | 2026-11-09 05:53:43,958 INFO atrium.store: loaded shard sanchez-m (59 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.04 s)
+node-1  | 2026-11-09 05:53:45,939 INFO atrium.store: loaded shard taylor-m (2671 docs, fusion=rrf, body_bm25_probe=True, bm25 build 1.95 s)
+== 192.168.13.105
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 05:53:26,614 INFO atrium.store: loaded shard bailey-s (98 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.06 s)
+node-1  | 2026-11-09 05:53:26,694 INFO atrium.store: loaded shard donohoe-t (93 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.07 s)
+node-1  | 2026-11-09 05:53:26,766 INFO atrium.store: loaded shard gang-l (90 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.06 s)
+node-1  | 2026-11-09 05:53:28,328 INFO atrium.store: loaded shard jones-t (2255 docs, fusion=rrf, body_bm25_probe=True, bm25 build 1.53 s)
+node-1  | 2026-11-09 05:53:28,366 INFO atrium.store: loaded shard swerzbin-m (75 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.03 s)
+== 192.168.15.106
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 05:53:46,315 INFO atrium.store: loaded shard arnold-j (603 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.18 s)
+node-1  | 2026-11-09 05:53:46,507 INFO atrium.store: loaded shard blair-l (696 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.19 s)
+node-1  | 2026-11-09 05:53:46,598 INFO atrium.store: loaded shard perlingiere-d (380 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.08 s)
+node-1  | 2026-11-09 05:53:46,652 INFO atrium.store: loaded shard semperger-c (171 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 05:53:46,740 INFO atrium.store: loaded shard williams-j (244 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.08 s)
+== 192.168.13.100
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 05:53:19,203 INFO atrium.store: loaded shard dasovich-j (5485 docs, fusion=rrf, body_bm25_probe=True, bm25 build 7.77 s)
+node-1  | 2026-11-09 05:53:19,208 INFO atrium.store: loaded shard phanis-s (5 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.00 s)
+node-1  | 2026-11-09 05:53:19,214 INFO atrium.store: loaded shard quenet-j (9 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.00 s)
+node-1  | 2026-11-09 05:53:19,223 INFO atrium.store: loaded shard solberg-g (13 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.01 s)
+node-1  | 2026-11-09 05:53:19,236 INFO atrium.store: loaded shard south-s (13 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.01 s)
+== 192.168.15.100
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 05:53:52,720 INFO atrium.store: loaded shard davis-d (212 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.07 s)
+node-1  | 2026-11-09 05:53:52,786 INFO atrium.store: loaded shard mckay-j (179 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.06 s)
+node-1  | 2026-11-09 05:53:52,899 INFO atrium.store: loaded shard mclaughlin-e (346 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.10 s)
+node-1  | 2026-11-09 05:53:53,065 INFO atrium.store: loaded shard presto-k (494 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.16 s)
+node-1  | 2026-11-09 05:53:53,346 INFO atrium.store: loaded shard sager-e (871 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.27 s)
+== 192.168.13.103
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 06:03:54,674 INFO atrium.store: loaded shard panus-s (61 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 06:03:54,729 INFO atrium.store: loaded shard reitmeyer-j (64 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 06:03:54,787 INFO atrium.store: loaded shard ring-a (58 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 06:03:54,848 INFO atrium.store: loaded shard sanchez-m (59 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.04 s)
+node-1  | 2026-11-09 06:03:56,837 INFO atrium.store: loaded shard taylor-m (2671 docs, fusion=rrf, body_bm25_probe=True, bm25 build 1.96 s)
+== 192.168.13.105
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 06:03:52,979 INFO atrium.store: loaded shard bailey-s (98 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.06 s)
+node-1  | 2026-11-09 06:03:53,053 INFO atrium.store: loaded shard donohoe-t (93 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.07 s)
+node-1  | 2026-11-09 06:03:53,119 INFO atrium.store: loaded shard gang-l (90 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.06 s)
+node-1  | 2026-11-09 06:03:54,734 INFO atrium.store: loaded shard jones-t (2255 docs, fusion=rrf, body_bm25_probe=True, bm25 build 1.59 s)
+node-1  | 2026-11-09 06:03:54,773 INFO atrium.store: loaded shard swerzbin-m (75 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.03 s)
+== 192.168.15.106
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 06:04:38,720 INFO atrium.store: loaded shard arnold-j (603 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.18 s)
+node-1  | 2026-11-09 06:04:38,918 INFO atrium.store: loaded shard blair-l (696 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.19 s)
+node-1  | 2026-11-09 06:04:39,004 INFO atrium.store: loaded shard perlingiere-d (380 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.08 s)
+node-1  | 2026-11-09 06:04:39,062 INFO atrium.store: loaded shard semperger-c (171 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 06:04:39,147 INFO atrium.store: loaded shard williams-j (244 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.08 s)
+== 192.168.13.100
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 06:04:13,159 INFO atrium.store: loaded shard dasovich-j (5485 docs, fusion=rrf, body_bm25_probe=True, bm25 build 7.79 s)
+node-1  | 2026-11-09 06:04:13,163 INFO atrium.store: loaded shard phanis-s (5 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.00 s)
+node-1  | 2026-11-09 06:04:13,170 INFO atrium.store: loaded shard quenet-j (9 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.00 s)
+node-1  | 2026-11-09 06:04:13,181 INFO atrium.store: loaded shard solberg-g (13 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.01 s)
+node-1  | 2026-11-09 06:04:13,192 INFO atrium.store: loaded shard south-s (13 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.01 s)
+== 192.168.15.100
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+node-1  | 2026-11-09 06:04:27,167 INFO atrium.store: loaded shard davis-d (212 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.07 s)
+node-1  | 2026-11-09 06:04:27,226 INFO atrium.store: loaded shard mckay-j (179 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.05 s)
+node-1  | 2026-11-09 06:04:27,339 INFO atrium.store: loaded shard mclaughlin-e (346 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.11 s)
+node-1  | 2026-11-09 06:04:27,505 INFO atrium.store: loaded shard presto-k (494 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.16 s)
+node-1  | 2026-11-09 06:04:27,793 INFO atrium.store: loaded shard sager-e (871 docs, fusion=rrf, body_bm25_probe=True, bm25 build 0.28 s)

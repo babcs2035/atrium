@@ -1,0 +1,1122 @@
+{
+ "rounds": [
+  {
+   "round": 1,
+   "valid": false,
+   "valid_revised": true,
+   "gates": {
+    "G_A_stats_match": false,
+    "G_A_prime_tie_diagnosis": {
+     "n_devices": 30,
+     "vocab_size_min": 17502,
+     "vocab_size_max": 72895,
+     "n_devices_over_term_size": 1,
+     "cutoff_df_of_devices_over_term_size": [
+      1
+     ],
+     "n_terms_df_mismatch": 9341,
+     "n_terms_only_offline_df_positive": 4195,
+     "n_terms_only_live": 0,
+     "max_abs_df_diff": 1.0,
+     "n_mismatch_not_at_cutoff": 0
+    },
+    "G_A_prime_ok": true,
+    "G_A_candidate_agreement": 0.9965277777777778,
+    "G_A_agreement_ok": true,
+    "G_J_same_plan": true,
+    "G_R_not_serving_after": "none",
+    "G_R_ok": true,
+    "table_miss": 0
+   },
+   "verdict_original": {
+    "hypothesis": "P2P が答えられるまでの時間の中央値で中央より短い，または同等（中央の 1.25 倍以内）で転送量が小さい",
+    "p2p": {
+     "n": 15,
+     "n_censored": 0,
+     "p50": 1178.608073498006,
+     "p95": 1311.3660128409974,
+     "max": 1311.3660128409974
+    },
+    "central": {
+     "n": 15,
+     "n_censored": 0,
+     "p50": 1036.0055272559403,
+     "p95": 1683.6170805939473,
+     "max": 1683.6170805939473
+    },
+    "equivalence_ratio": 1.25,
+    "p2p_bytes": 8256409,
+    "central_bytes": 15629809,
+    "faster": false,
+    "equivalent": true,
+    "less_transfer": true,
+    "branch": "equivalent_less_transfer",
+    "holds": true
+   },
+   "ratio_p50_p2p_over_central": 1.1376465110372296,
+   "ce_cost_estimate": {
+    "t_P_median_s": 0.2023570125165861,
+    "t_C_median_s": 0.6694628379773349,
+    "verdict": {
+     "hypothesis": "P2P が答えられるまでの時間の中央値で中央より短い，または同等（中央の 1.25 倍以内）で転送量が小さい",
+     "p2p": {
+      "n": 15,
+      "n_censored": 0,
+      "p50": 1178.8104305105226,
+      "p95": 1311.568369853514,
+      "max": 1311.568369853514
+     },
+     "central": {
+      "n": 15,
+      "n_censored": 0,
+      "p50": 1037.344452931895,
+      "p95": 1684.2865434319247,
+      "max": 1684.2865434319247
+     },
+     "equivalence_ratio": 1.25,
+     "p2p_bytes": 8256409,
+     "central_bytes": 15629809,
+     "faster": false,
+     "equivalent": true,
+     "less_transfer": true,
+     "branch": "equivalent_less_transfer",
+     "holds": true
+    },
+    "note": "答えられた最初の試行までの試行の数 × 1 問あたりの採点時間の中央値を，答えられるまでの時間に足した見積もり（表を引くので実機の時間には入っていない）"
+   },
+   "p2p_devices": [
+    {
+     "host": "192.168.13.103",
+     "device": "cpu",
+     "n_docs": 2913,
+     "up_s": 0.005866319057531655,
+     "device_tokenize_s": 0.36908845393918455,
+     "device_embed_s": 1301.7358896899968,
+     "device_kmeans_s": 0.09573132998775691,
+     "device_total_s": 1302.3965667739976,
+     "rtt_s": 1302.458700036048,
+     "published_s": 1302.481763354037,
+     "profile_s": 0.05215403204783797,
+     "assemble_s": 0.8327604250516742,
+     "member_s": 1303.3666919430252,
+     "payload_bytes": 2738503,
+     "published_bytes": 684168,
+     "first_answer_after_member_s": [
+      6.178389784996398,
+      4.89634097693488,
+      3.7946639659348875,
+      6.587589571019635,
+      7.999320897972211
+     ]
+    },
+    {
+     "host": "192.168.13.105",
+     "device": "cpu",
+     "n_docs": 2611,
+     "up_s": 0.007517838035710156,
+     "device_tokenize_s": 0.2731710340594873,
+     "device_embed_s": 1172.9058779779589,
+     "device_kmeans_s": 0.08575718710198998,
+     "device_total_s": 1173.4414363250835,
+     "rtt_s": 1173.509588193032,
+     "published_s": 1173.5380484909983,
+     "profile_s": 0.05434744607191533,
+     "assemble_s": 0.7737611120101064,
+     "member_s": 1174.3661758169765,
+     "payload_bytes": 2690163,
+     "published_bytes": 631536,
+     "first_answer_after_member_s": [
+      2.8511759490938857,
+      2.889301873045042,
+      5.946312880027108,
+      8.37000863905996,
+      4.2418976810295135
+     ]
+    },
+    {
+     "host": "192.168.15.106",
+     "device": "cpu",
+     "n_docs": 2094,
+     "up_s": 0.008092020056210458,
+     "device_tokenize_s": 0.17632041103206575,
+     "device_embed_s": 290.7263764819363,
+     "device_kmeans_s": 0.01721275004092604,
+     "device_total_s": 291.0243120789528,
+     "rtt_s": 291.0742332160007,
+     "published_s": 291.1049230810022,
+     "profile_s": 0.041301539982669055,
+     "assemble_s": 0.7543922079494223,
+     "member_s": 291.90064089000225,
+     "payload_bytes": 2827743,
+     "published_bytes": 665752,
+     "first_answer_after_member_s": [
+      1.2470870369579643,
+      3.0798488670261577,
+      4.073697910062037,
+      6.589174431981519,
+      1.5504948779707775
+     ]
+    }
+   ],
+   "central_devices": [
+    {
+     "host": "192.168.13.103",
+     "n_mails": 2913,
+     "transfer_bytes": 6341992,
+     "transfer_s": 0.5352698459755629,
+     "embed_s": 629.6617201109184,
+     "add_s": 12.060696756001562,
+     "bm25_s": 12.051120763993822,
+     "indexed_s": 1669.8237769269617,
+     "first_answer_after_indexed_s": [
+      1.4509042679565027,
+      3.1618859650334343,
+      5.238795210956596,
+      11.552132057026029,
+      13.793303666985594
+     ]
+    },
+    {
+     "host": "192.168.13.105",
+     "n_mails": 2611,
+     "transfer_bytes": 5052973,
+     "transfer_s": 0.277765589999035,
+     "embed_s": 557.464406108018,
+     "add_s": 11.29254738194868,
+     "bm25_s": 11.258759781951085,
+     "indexed_s": 569.039909546962,
+     "first_answer_after_indexed_s": [
+      1.71622404595837,
+      3.2394171530613676,
+      5.0836888160556555,
+      8.002386996988207,
+      10.292661719024181
+     ]
+    },
+    {
+     "host": "192.168.15.106",
+     "n_mails": 2094,
+     "transfer_bytes": 4234844,
+     "transfer_s": 0.4794046429451555,
+     "embed_s": 447.5161035050405,
+     "add_s": 11.537713795085438,
+     "bm25_s": 11.527950333082117,
+     "indexed_s": 1028.0975885009393,
+     "first_answer_after_indexed_s": [
+      2.55276616406627,
+      4.007553452975117,
+      7.9079387550009415,
+      12.287479276070371,
+      14.217207086039707
+     ]
+    }
+   ],
+   "p2p_by_host": {
+    "192.168.13.103": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1309.5450817280216,
+      "p95": 1311.3660128409974,
+      "max": 1311.3660128409974
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1309.7474387405382,
+      "p95": 1311.568369853514,
+      "max": 1311.568369853514
+     }
+    },
+    "192.168.13.105": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1178.608073498006,
+      "p95": 1182.7361844560364,
+      "max": 1182.7361844560364
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1178.8104305105226,
+      "p95": 1182.938541468553,
+      "max": 1182.938541468553
+     }
+    },
+    "192.168.15.106": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 294.9804897570284,
+      "p95": 298.48981532198377,
+      "max": 298.48981532198377
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 295.182846769545,
+      "p95": 298.89452934701694,
+      "max": 298.89452934701694
+     }
+    }
+   },
+   "central_by_host": {
+    "192.168.13.103": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1675.0625721379183,
+      "p95": 1683.6170805939473,
+      "max": 1683.6170805939473
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1675.7320349758957,
+      "p95": 1684.2865434319247,
+      "max": 1684.2865434319247
+     }
+    },
+    "192.168.13.105": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 574.1235983630177,
+      "p95": 579.3325712659862,
+      "max": 579.3325712659862
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 574.793061200995,
+      "p95": 580.0020341039635,
+      "max": 580.0020341039635
+     }
+    },
+    "192.168.15.106": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1036.0055272559403,
+      "p95": 1042.314795586979,
+      "max": 1042.314795586979
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1037.344452931895,
+      "p95": 1042.9842584249564,
+      "max": 1042.9842584249564
+     }
+    }
+   },
+   "p2p_tries": {
+    "tries_distribution": {
+     "1": 14,
+     "2": 1
+    },
+    "first_try_answered_rate": 0.9333333333333333,
+    "n_censored": 0,
+    "failure_kinds": {
+     "None": 16
+    },
+    "n_tries_total": 16
+   },
+   "central_tries": {
+    "tries_distribution": {
+     "1": 13,
+     "2": 2
+    },
+    "first_try_answered_rate": 0.8666666666666667,
+    "n_censored": 0,
+    "failure_kinds": {
+     "None": 17
+    },
+    "n_tries_total": 17
+   },
+   "p2p_payload_bytes": 8256409,
+   "p2p_published_bytes": 1981456,
+   "central_transfer_bytes": 15629809,
+   "central_exposed_mails": 7618,
+   "pre_join": {
+    "n_questions": 75,
+    "hit_rate": 0.0
+   },
+   "setup": {
+    "n_devices": 27,
+    "device_total_s_p50": 938.0166796910344,
+    "published_bytes_total": 18173864
+   }
+  },
+  {
+   "round": 2,
+   "valid": false,
+   "valid_revised": true,
+   "gates": {
+    "G_A_stats_match": false,
+    "G_A_prime_tie_diagnosis": {
+     "n_devices": 30,
+     "vocab_size_min": 17502,
+     "vocab_size_max": 72895,
+     "n_devices_over_term_size": 1,
+     "cutoff_df_of_devices_over_term_size": [
+      1
+     ],
+     "n_terms_df_mismatch": 9341,
+     "n_terms_only_offline_df_positive": 4195,
+     "n_terms_only_live": 0,
+     "max_abs_df_diff": 1.0,
+     "n_mismatch_not_at_cutoff": 0
+    },
+    "G_A_prime_ok": true,
+    "G_A_candidate_agreement": 0.9965277777777778,
+    "G_A_agreement_ok": true,
+    "G_J_same_plan": true,
+    "G_R_not_serving_after": "none",
+    "G_R_ok": true,
+    "table_miss": 0
+   },
+   "verdict_original": {
+    "hypothesis": "P2P が答えられるまでの時間の中央値で中央より短い，または同等（中央の 1.25 倍以内）で転送量が小さい",
+    "p2p": {
+     "n": 15,
+     "n_censored": 0,
+     "p50": 1177.9478903729469,
+     "p95": 1367.3220745649887,
+     "max": 1367.3220745649887
+    },
+    "central": {
+     "n": 15,
+     "n_censored": 0,
+     "p50": 1036.898524187971,
+     "p95": 1690.2140177610563,
+     "max": 1690.2140177610563
+    },
+    "equivalence_ratio": 1.25,
+    "p2p_bytes": 8256409,
+    "central_bytes": 15629803,
+    "faster": false,
+    "equivalent": true,
+    "less_transfer": true,
+    "branch": "equivalent_less_transfer",
+    "holds": true
+   },
+   "ratio_p50_p2p_over_central": 1.1360300578067042,
+   "ce_cost_estimate": {
+    "t_P_median_s": 0.2023570125165861,
+    "t_C_median_s": 0.6694628379773349,
+    "verdict": {
+     "hypothesis": "P2P が答えられるまでの時間の中央値で中央より短い，または同等（中央の 1.25 倍以内）で転送量が小さい",
+     "p2p": {
+      "n": 15,
+      "n_censored": 0,
+      "p50": 1178.1502473854634,
+      "p95": 1367.5244315775053,
+      "max": 1367.5244315775053
+     },
+     "central": {
+      "n": 15,
+      "n_censored": 0,
+      "p50": 1037.5679870259482,
+      "p95": 1690.8834805990336,
+      "max": 1690.8834805990336
+     },
+     "equivalence_ratio": 1.25,
+     "p2p_bytes": 8256409,
+     "central_bytes": 15629803,
+     "faster": false,
+     "equivalent": true,
+     "less_transfer": true,
+     "branch": "equivalent_less_transfer",
+     "holds": true
+    },
+    "note": "答えられた最初の試行までの試行の数 × 1 問あたりの採点時間の中央値を，答えられるまでの時間に足した見積もり（表を引くので実機の時間には入っていない）"
+   },
+   "p2p_devices": [
+    {
+     "host": "192.168.13.103",
+     "device": "cpu",
+     "n_docs": 2913,
+     "up_s": 0.008559795911423862,
+     "device_tokenize_s": 0.37392135499976575,
+     "device_embed_s": 1352.6621901399922,
+     "device_kmeans_s": 0.10681290400680155,
+     "device_total_s": 1358.433247574023,
+     "rtt_s": 1358.4928881909,
+     "published_s": 1358.5236235558987,
+     "profile_s": 0.05465529893990606,
+     "assemble_s": 0.8260911259567365,
+     "member_s": 1359.4043844649568,
+     "payload_bytes": 2738502,
+     "published_bytes": 684168,
+     "first_answer_after_member_s": [
+      6.242830988951027,
+      3.4326076949946582,
+      4.919549169018865,
+      7.917690100031905,
+      6.228451153030619
+     ]
+    },
+    {
+     "host": "192.168.13.105",
+     "device": "cpu",
+     "n_docs": 2611,
+     "up_s": 0.008047410985454917,
+     "device_tokenize_s": 0.2773849230725318,
+     "device_embed_s": 1167.197748466977,
+     "device_kmeans_s": 0.08373801491688937,
+     "device_total_s": 1172.7188145589316,
+     "rtt_s": 1172.7732516180258,
+     "published_s": 1172.7999070360092,
+     "profile_s": 0.054466646048240364,
+     "assemble_s": 0.8340477599995211,
+     "member_s": 1173.6884384310106,
+     "payload_bytes": 2690162,
+     "published_bytes": 631536,
+     "first_answer_after_member_s": [
+      2.9475658339215443,
+      1.8507692869752645,
+      8.31811268394813,
+      6.582325440947898,
+      4.259451941936277
+     ]
+    },
+    {
+     "host": "192.168.15.106",
+     "device": "cpu",
+     "n_docs": 2094,
+     "up_s": 0.009001430938951671,
+     "device_tokenize_s": 0.17909827991388738,
+     "device_embed_s": 298.6011294289492,
+     "device_kmeans_s": 0.019396691932342947,
+     "device_total_s": 302.31083525309805,
+     "rtt_s": 302.3513373780297,
+     "published_s": 302.3772249239264,
+     "profile_s": 0.041155667044222355,
+     "assemble_s": 0.7695039069512859,
+     "member_s": 303.1879076809855,
+     "payload_bytes": 2827745,
+     "published_bytes": 665752,
+     "first_answer_after_member_s": [
+      1.7196131839882582,
+      8.290711639914662,
+      6.368727984954603,
+      13.505722438916564,
+      4.856012447969988
+     ]
+    }
+   ],
+   "central_devices": [
+    {
+     "host": "192.168.13.103",
+     "n_mails": 2913,
+     "transfer_bytes": 6341988,
+     "transfer_s": 0.47495384502690285,
+     "embed_s": 633.0321344860131,
+     "add_s": 12.122448727022856,
+     "bm25_s": 12.112943866057321,
+     "indexed_s": 1676.490061240038,
+     "first_answer_after_indexed_s": [
+      1.3785264469916,
+      3.0561967230169103,
+      5.164253441034816,
+      11.382385776028968,
+      13.723956521018408
+     ]
+    },
+    {
+     "host": "192.168.13.105",
+     "n_mails": 2611,
+     "transfer_bytes": 5052970,
+     "transfer_s": 0.4545746900839731,
+     "embed_s": 563.4262351120124,
+     "add_s": 11.632753833080642,
+     "bm25_s": 11.62283873395063,
+     "indexed_s": 1031.3315196650801,
+     "first_answer_after_indexed_s": [
+      1.9139055989217013,
+      3.4225470509845763,
+      5.567004522890784,
+      8.640531371929683,
+      10.85297385090962
+     ]
+    },
+    {
+     "host": "192.168.15.106",
+     "n_mails": 2094,
+     "transfer_bytes": 4234845,
+     "transfer_s": 0.18787063693162054,
+     "embed_s": 444.7191866870271,
+     "add_s": 11.357315071974881,
+     "bm25_s": 11.324167244019918,
+     "indexed_s": 456.26844417804386,
+     "first_answer_after_indexed_s": [
+      2.562040747026913,
+      4.058464774978347,
+      7.975749776000157,
+      12.388864704989828,
+      14.763526716968045
+     ]
+    }
+   ],
+   "p2p_by_host": {
+    "192.168.13.103": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1365.6328356179874,
+      "p95": 1367.3220745649887,
+      "max": 1367.3220745649887
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1365.835192630504,
+      "p95": 1367.5244315775053,
+      "max": 1367.5244315775053
+     }
+    },
+    "192.168.13.105": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1177.9478903729469,
+      "p95": 1182.0065511149587,
+      "max": 1182.0065511149587
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1178.1502473854634,
+      "p95": 1182.2089081274753,
+      "max": 1182.2089081274753
+     }
+    },
+    "192.168.15.106": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 309.5566356659401,
+      "p95": 316.6936301199021,
+      "max": 316.6936301199021
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 309.7589926784567,
+      "p95": 317.09834414493525,
+      "max": 317.09834414493525
+     }
+    }
+   },
+   "central_by_host": {
+    "192.168.13.103": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1681.6543146810727,
+      "p95": 1690.2140177610563,
+      "max": 1690.2140177610563
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1682.32377751905,
+      "p95": 1690.8834805990336,
+      "max": 1690.8834805990336
+     }
+    },
+    "192.168.13.105": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1036.898524187971,
+      "p95": 1042.1844935159897,
+      "max": 1042.1844935159897
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1037.5679870259482,
+      "p95": 1042.853956353967,
+      "max": 1042.853956353967
+     }
+    },
+    "192.168.15.106": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 464.244193954044,
+      "p95": 471.0319708950119,
+      "max": 471.0319708950119
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 465.5831196299987,
+      "p95": 471.70143373298924,
+      "max": 471.70143373298924
+     }
+    }
+   },
+   "p2p_tries": {
+    "tries_distribution": {
+     "1": 14,
+     "2": 1
+    },
+    "first_try_answered_rate": 0.9333333333333333,
+    "n_censored": 0,
+    "failure_kinds": {
+     "None": 16
+    },
+    "n_tries_total": 16
+   },
+   "central_tries": {
+    "tries_distribution": {
+     "1": 13,
+     "2": 2
+    },
+    "first_try_answered_rate": 0.8666666666666667,
+    "n_censored": 0,
+    "failure_kinds": {
+     "None": 17
+    },
+    "n_tries_total": 17
+   },
+   "p2p_payload_bytes": 8256409,
+   "p2p_published_bytes": 1981456,
+   "central_transfer_bytes": 15629803,
+   "central_exposed_mails": 7618,
+   "pre_join": {
+    "n_questions": 75,
+    "hit_rate": 0.0
+   },
+   "setup": {
+    "n_devices": 27,
+    "device_total_s_p50": 926.9415772740031,
+    "published_bytes_total": 18173864
+   }
+  },
+  {
+   "round": 3,
+   "valid": false,
+   "valid_revised": true,
+   "gates": {
+    "G_A_stats_match": false,
+    "G_A_prime_tie_diagnosis": {
+     "n_devices": 30,
+     "vocab_size_min": 17502,
+     "vocab_size_max": 72895,
+     "n_devices_over_term_size": 1,
+     "cutoff_df_of_devices_over_term_size": [
+      1
+     ],
+     "n_terms_df_mismatch": 9341,
+     "n_terms_only_offline_df_positive": 4195,
+     "n_terms_only_live": 0,
+     "max_abs_df_diff": 1.0,
+     "n_mismatch_not_at_cutoff": 0
+    },
+    "G_A_prime_ok": true,
+    "G_A_candidate_agreement": 0.9965277777777778,
+    "G_A_agreement_ok": true,
+    "G_J_same_plan": true,
+    "G_R_not_serving_after": "none",
+    "G_R_ok": true,
+    "table_miss": 0
+   },
+   "verdict_original": {
+    "hypothesis": "P2P が答えられるまでの時間の中央値で中央より短い，または同等（中央の 1.25 倍以内）で転送量が小さい",
+    "p2p": {
+     "n": 15,
+     "n_censored": 0,
+     "p50": 1219.696643364965,
+     "p95": 1419.0654854039894,
+     "max": 1419.0654854039894
+    },
+    "central": {
+     "n": 15,
+     "n_censored": 0,
+     "p50": 1034.435256544035,
+     "p95": 1678.2045145520242,
+     "max": 1678.2045145520242
+    },
+    "equivalence_ratio": 1.25,
+    "p2p_bytes": 8256408,
+    "central_bytes": 15629809,
+    "faster": false,
+    "equivalent": true,
+    "less_transfer": true,
+    "branch": "equivalent_less_transfer",
+    "holds": true
+   },
+   "ratio_p50_p2p_over_central": 1.1790942310298602,
+   "ce_cost_estimate": {
+    "t_P_median_s": 0.2023570125165861,
+    "t_C_median_s": 0.6694628379773349,
+    "verdict": {
+     "hypothesis": "P2P が答えられるまでの時間の中央値で中央より短い，または同等（中央の 1.25 倍以内）で転送量が小さい",
+     "p2p": {
+      "n": 15,
+      "n_censored": 0,
+      "p50": 1219.8990003774816,
+      "p95": 1419.267842416506,
+      "max": 1419.267842416506
+     },
+     "central": {
+      "n": 15,
+      "n_censored": 0,
+      "p50": 1035.1047193820123,
+      "p95": 1678.8739773900015,
+      "max": 1678.8739773900015
+     },
+     "equivalence_ratio": 1.25,
+     "p2p_bytes": 8256408,
+     "central_bytes": 15629809,
+     "faster": false,
+     "equivalent": true,
+     "less_transfer": true,
+     "branch": "equivalent_less_transfer",
+     "holds": true
+    },
+    "note": "答えられた最初の試行までの試行の数 × 1 問あたりの採点時間の中央値を，答えられるまでの時間に足した見積もり（表を引くので実機の時間には入っていない）"
+   },
+   "p2p_devices": [
+    {
+     "host": "192.168.13.103",
+     "device": "cpu",
+     "n_docs": 2913,
+     "up_s": 0.006843816954642534,
+     "device_tokenize_s": 0.3708268229383975,
+     "device_embed_s": 1409.4637552850181,
+     "device_kmeans_s": 0.100310851004906,
+     "device_total_s": 1410.1219312449684,
+     "rtt_s": 1410.1770206530346,
+     "published_s": 1410.2038977929624,
+     "profile_s": 0.05498797493055463,
+     "assemble_s": 0.8331564259715378,
+     "member_s": 1411.0920571970055,
+     "payload_bytes": 2738500,
+     "published_bytes": 684168,
+     "first_answer_after_member_s": [
+      5.549783137976192,
+      7.973428206983954,
+      4.359566195984371,
+      3.2306897139642388,
+      6.854915000963956
+     ]
+    },
+    {
+     "host": "192.168.13.105",
+     "device": "cpu",
+     "n_docs": 2611,
+     "up_s": 0.006243521929718554,
+     "device_tokenize_s": 0.30107466294430196,
+     "device_embed_s": 1215.684353319928,
+     "device_kmeans_s": 0.08231939794495702,
+     "device_total_s": 1216.2441579320002,
+     "rtt_s": 1216.306919912924,
+     "published_s": 1216.3403548549395,
+     "profile_s": 0.0543471269775182,
+     "assemble_s": 0.754581201937981,
+     "member_s": 1217.149300440913,
+     "payload_bytes": 2690163,
+     "published_bytes": 631536,
+     "first_answer_after_member_s": [
+      1.7111057980218902,
+      1.1404617400839925,
+      2.547342924051918,
+      4.186190017033368,
+      2.7571752090007067
+     ]
+    },
+    {
+     "host": "192.168.15.106",
+     "device": "cpu",
+     "n_docs": 2094,
+     "up_s": 0.007959834998473525,
+     "device_tokenize_s": 0.17506985098589212,
+     "device_embed_s": 293.62044115690514,
+     "device_kmeans_s": 0.016551238019019365,
+     "device_total_s": 293.9132970169885,
+     "rtt_s": 293.95770451205317,
+     "published_s": 293.98843519191723,
+     "profile_s": 0.04111760598607361,
+     "assemble_s": 0.7789582699770108,
+     "member_s": 294.80853399494663,
+     "payload_bytes": 2827745,
+     "published_bytes": 665752,
+     "first_answer_after_member_s": [
+      2.551418435992673,
+      3.648879723972641,
+      5.5630375309847295,
+      6.6333602799568325,
+      1.955785162979737
+     ]
+    }
+   ],
+   "central_devices": [
+    {
+     "host": "192.168.13.103",
+     "n_mails": 2913,
+     "transfer_bytes": 6341992,
+     "transfer_s": 0.42460550006944686,
+     "embed_s": 632.4467201669468,
+     "add_s": 12.010374550940469,
+     "bm25_s": 12.000968324020505,
+     "indexed_s": 1674.4537665710086,
+     "first_answer_after_indexed_s": [
+      0.5250865459674969,
+      2.2074086259817705,
+      2.7460927489446476,
+      3.2492031479487196,
+      3.750747981015593
+     ]
+    },
+    {
+     "host": "192.168.13.105",
+     "n_mails": 2611,
+     "transfer_bytes": 5052973,
+     "transfer_s": 0.40373894397635013,
+     "embed_s": 562.6069378630491,
+     "add_s": 11.197225742042065,
+     "bm25_s": 11.180787794990465,
+     "indexed_s": 1029.992682829965,
+     "first_answer_after_indexed_s": [
+      0.7360040240455419,
+      2.2633777679875493,
+      4.442573714070022,
+      6.20705338998232,
+      8.451570625067689
+     ]
+    },
+    {
+     "host": "192.168.15.106",
+     "n_mails": 2094,
+     "transfer_bytes": 4234844,
+     "transfer_s": 0.19121281802654266,
+     "embed_s": 444.65153372311033,
+     "add_s": 11.33803240803536,
+     "bm25_s": 11.304036559071392,
+     "indexed_s": 456.1845875789877,
+     "first_answer_after_indexed_s": [
+      0.8998509260127321,
+      2.345523252035491,
+      5.470762204029597,
+      7.554725755006075,
+      8.44899062498007
+     ]
+    }
+   ],
+   "p2p_by_host": {
+    "192.168.13.103": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1416.6418403349817,
+      "p95": 1419.0654854039894,
+      "max": 1419.0654854039894
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1416.8441973474983,
+      "p95": 1419.267842416506,
+      "max": 1419.267842416506
+     }
+    },
+    "192.168.13.105": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1219.696643364965,
+      "p95": 1221.3354904579464,
+      "max": 1221.3354904579464
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1219.8990003774816,
+      "p95": 1221.537847470463,
+      "max": 1221.537847470463
+     }
+    },
+    "192.168.15.106": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 298.45741371891927,
+      "p95": 301.44189427490346,
+      "max": 301.44189427490346
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 298.65977073143586,
+      "p95": 301.84660829993663,
+      "max": 301.84660829993663
+     }
+    }
+   },
+   "central_by_host": {
+    "192.168.13.103": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1677.1998593199532,
+      "p95": 1678.2045145520242,
+      "max": 1678.2045145520242
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1677.8693221579306,
+      "p95": 1678.8739773900015,
+      "max": 1678.8739773900015
+     }
+    },
+    "192.168.13.105": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1034.435256544035,
+      "p95": 1038.4442534550326,
+      "max": 1038.4442534550326
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 1035.1047193820123,
+      "p95": 1039.11371629301,
+      "max": 1039.11371629301
+     }
+    },
+    "192.168.15.106": {
+     "n_inboxes": 5,
+     "answer_s": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 461.6553497830173,
+      "p95": 464.6335782039678,
+      "max": 464.6335782039678
+     },
+     "answer_s_with_ce_cost_estimate": {
+      "n": 5,
+      "n_censored": 0,
+      "p50": 462.99427545897197,
+      "p95": 465.3030410419451,
+      "max": 465.3030410419451
+     }
+    }
+   },
+   "p2p_tries": {
+    "tries_distribution": {
+     "1": 14,
+     "2": 1
+    },
+    "first_try_answered_rate": 0.9333333333333333,
+    "n_censored": 0,
+    "failure_kinds": {
+     "None": 16
+    },
+    "n_tries_total": 16
+   },
+   "central_tries": {
+    "tries_distribution": {
+     "1": 13,
+     "2": 2
+    },
+    "first_try_answered_rate": 0.8666666666666667,
+    "n_censored": 0,
+    "failure_kinds": {
+     "None": 17
+    },
+    "n_tries_total": 17
+   },
+   "p2p_payload_bytes": 8256408,
+   "p2p_published_bytes": 1981456,
+   "central_transfer_bytes": 15629809,
+   "central_exposed_mails": 7618,
+   "pre_join": {
+    "n_questions": 75,
+    "hit_rate": 0.0
+   },
+   "setup": {
+    "n_devices": 27,
+    "device_total_s_p50": 932.0152286969824,
+    "published_bytes_total": 18173864
+   }
+  }
+ ],
+ "table_check_owner": {
+  "n_wanted_questions": 75,
+  "n_new_questions_scored": 45,
+  "n_pairs_existing": 216000,
+  "n_pairs_new_partial": 33750,
+  "n_pairs_merged": 249750,
+  "n_p_candidates_compared": 864,
+  "n_p_candidates_mismatched": 0,
+  "mismatched_examples": [],
+  "n_needed_pairs": 56250,
+  "n_needed_pairs_missing": 0,
+  "tolerance": 1e-06,
+  "G_TB_owner_passed": true
+ },
+ "table_check_central": {
+  "n_questions": 75,
+  "n_docs_rebuilt_index": 73772,
+  "top_depth": 100,
+  "k_ret": 50,
+  "n_pairs_existing": 143100,
+  "n_pairs_new": 3598,
+  "n_top_depth_pairs_missing": 0,
+  "n_questions_existing_table_set_within_rebuilt_top_depth": 75,
+  "G_TB_central_passed": true
+ },
+ "p0007_e2_reference": {
+  "note": "構成・質問が違うので比べない（並べるだけ）",
+  "verdict_original": {
+   "hypothesis": "P2P が答えられるまでの時間の中央値で中央より短い，または同等（中央の 1.25 倍以内）で転送量が小さい",
+   "p2p": {
+    "n": 15,
+    "n_censored": 0,
+    "p50": 1282.6955572692677,
+    "p95": 1500.1636802670546,
+    "max": 1500.1636802670546
+   },
+   "central": {
+    "n": 15,
+    "n_censored": 0,
+    "p50": 80.91769372904673,
+    "p95": 131.85568147804588,
+    "max": 131.85568147804588
+   },
+   "equivalence_ratio": 1.25,
+   "p2p_bytes": 8256336,
+   "central_bytes": 15629811,
+   "faster": false,
+   "equivalent": false,
+   "less_transfer": true,
+   "branch": null,
+   "holds": false
+  }
+ }
+}

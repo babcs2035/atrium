@@ -32,3 +32,41 @@
 [13:34:26] d0009_a6_join_r2 G-R ok (all nodes serving)
 [13:34:26] d0009_a6_join_r2 table_miss=1
 [13:34:26] d0009_a6_join_r2 G-TB FAILED (table_miss=1); fix the table before the next run
+[14:51:39] table enronqa/ce_table/holdout_owner_join.jsonl sha256 gpu4=ca2736eae9703e2acd9a3cc673a3c4b8dd88cfd98d2c68bc5b9703f7b1ad3a13 control=ca2736eae9703e2acd9a3cc673a3c4b8dd88cfd98d2c68bc5b9703f7b1ad3a13
+[14:51:40] table enronqa/ce_table/holdout_join.jsonl sha256 gpu4=32463814e9a37728bfdb2713439f7f5ebadb972d1bb3120dde3ebd808cfd4b55 control=32463814e9a37728bfdb2713439f7f5ebadb972d1bb3120dde3ebd808cfd4b55
+[14:54:14] deployed
+[2026-11-09_14:54:17] BEGIN d0009_a6_join_r2
+[14:54:19] max other-process GPU memory on wafl500-509: 0 MiB
+[14:55:21] max other-process GPU memory on wafl500-509: 0 MiB
+[14:56:24] max other-process GPU memory on wafl500-509: 0 MiB
+[14:56:24] d0009_a6_join_r2 confound=none
+[14:56:39] d0009_a6_join_r2 live_run=0
+[14:56:40] d0009_a6_join_r2 G-R ok (all nodes serving)
+[14:56:40] d0009_a6_join_r2 table_miss=1
+[14:56:40] d0009_a6_join_r2 G-TB FAILED (table_miss=1); fix the table before the next run
+[15:02:32] table enronqa/ce_table/holdout_owner_join.jsonl sha256 gpu4=ca2736eae9703e2acd9a3cc673a3c4b8dd88cfd98d2c68bc5b9703f7b1ad3a13 control=ca2736eae9703e2acd9a3cc673a3c4b8dd88cfd98d2c68bc5b9703f7b1ad3a13
+[15:02:32] table enronqa/ce_table/holdout_join.jsonl sha256 gpu4=32463814e9a37728bfdb2713439f7f5ebadb972d1bb3120dde3ebd808cfd4b55 control=32463814e9a37728bfdb2713439f7f5ebadb972d1bb3120dde3ebd808cfd4b55
+[15:05:00] deployed
+[2026-11-09_15:05:02] BEGIN d0009_a6_join_r2
+[15:05:05] max other-process GPU memory on wafl500-509: 0 MiB
+[15:06:07] max other-process GPU memory on wafl500-509: 0 MiB
+[15:07:09] max other-process GPU memory on wafl500-509: 0 MiB
+[15:07:09] d0009_a6_join_r2 confound=none
+[16:41:22] d0009_a6_join_r2 live_run=0
+[16:41:24] d0009_a6_join_r2 G-R ok (all nodes serving)
+[16:41:24] d0009_a6_join_r2 table_miss=0
+[16:41:24] d0009_a6_join_r2 G-J same_plan=true
+[16:41:24] d0009_a6_join_r2 G-A ok=false agreement=0.9965277777777778
+[16:41:24] d0009_a6_join_r2 G-A (original) not met; continue, verified by G-A' in a6j_verdict.py
+[2026-11-09_16:41:24] BEGIN d0009_a6_join_r3
+[16:41:26] max other-process GPU memory on wafl500-509: 0 MiB
+[16:42:28] max other-process GPU memory on wafl500-509: 0 MiB
+[16:43:31] max other-process GPU memory on wafl500-509: 0 MiB
+[16:43:31] d0009_a6_join_r3 confound=none
+[18:19:44] d0009_a6_join_r3 live_run=0
+[18:19:46] d0009_a6_join_r3 G-R ok (all nodes serving)
+[18:19:46] d0009_a6_join_r3 table_miss=0
+[18:19:46] d0009_a6_join_r3 G-J same_plan=true
+[18:19:46] d0009_a6_join_r3 G-A ok=false agreement=0.9965277777777778
+[18:19:46] d0009_a6_join_r3 G-A (original) not met; continue, verified by G-A' in a6j_verdict.py
+[2026-11-09_18:19:49] ALL DONE

@@ -1,0 +1,7 @@
+2026-11-09 09:02:23,992 central index: 66154 emails from 135 inboxes in 0.6 s
+2026-11-09 09:02:30,994 Load pretrained SentenceTransformer: Snowflake/snowflake-arctic-embed-m-v1.5
+2026-11-09 09:02:32,220 1 prompts are loaded, with the keys: ['query']
+2026-11-09 09:14:45,205 appended 192.168.13.103: 2913 mails (add 6.8 s)
+2026-11-09 09:23:54,718 appended 192.168.13.105: 2611 mails (add 6.8 s)
+2026-11-09 09:31:14,847 appended 192.168.15.106: 2094 mails (add 7.0 s)
+2026-11-09 09:31:16,092 wrote central_top.json (75 questions)

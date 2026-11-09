@@ -1,0 +1,45 @@
+{
+ "verdict_original": {
+  "H_A6J1": "決まらない",
+  "n_valid_rounds": 0,
+  "valid_rounds": [],
+  "holds_per_valid_round": [],
+  "H_A6J2_ratio_p50": {
+   "per_round": [],
+   "min": null,
+   "max": null,
+   "median": null
+  },
+  "G_TB": true,
+  "adopted": false,
+  "independent_units_note": "受信箱は 15 だが，時間はほぼデバイス（3 台）の単位で決まるので，独立な単位は 3 である"
+ },
+ "verdict_revised": {
+  "H_A6J1": "E2 成立",
+  "n_valid_rounds": 3,
+  "valid_rounds": [
+   1,
+   2,
+   3
+  ],
+  "holds_per_valid_round": [
+   true,
+   true,
+   true
+  ],
+  "H_A6J2_ratio_p50": {
+   "per_round": [
+    1.1376465110372296,
+    1.1360300578067042,
+    1.1790942310298602
+   ],
+   "min": 1.1360300578067042,
+   "max": 1.1790942310298602,
+   "median": 1.1376465110372296
+  },
+  "G_TB": true,
+  "adopted": true,
+  "independent_units_note": "受信箱は 15 だが，時間はほぼデバイス（3 台）の単位で決まるので，独立な単位は 3 である",
+  "note": "G-A（published_df が語ごとに一致）は原文では不通過．公開する語の打ち切りの境目の同点の並びの違いだけを許す G-A′ による revised．採否の根拠は verdict_revised（orchestrator が r2・r3 を見る前に固定．backlog B108）"
+ }
+}
