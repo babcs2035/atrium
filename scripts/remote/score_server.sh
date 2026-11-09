@@ -29,12 +29,12 @@ start_host() {
   ensure_tunnel "$host"
   retry 3 nssh "$host" "docker pull -q $IMAGE_FULL > /dev/null"
   uidgid=$(nssh "$host" 'echo $(id -u):$(id -g)')
-  if ! nssh "$host" "[ -d $MODEL_SNAPSHOT ]"; then
+  if ! nssh "$host" "[ -e $MODEL_SNAPSHOT/model.safetensors ]"; then
     log "$host: fetching $MODEL@$REVISION with hf"
-    retry 3 nssh "$host" "mkdir -p $HF_HUB_HOST_DIR && docker run --rm --user $uidgid -e HOME=/tmp \
+    retry 3 nssh "$host" "mkdir -p $HF_HUB_HOST_DIR && docker run --rm --user $uidgid -e HOME=/tmp -e HF_XET_CACHE=/tmp/xet \
       -v $HF_HUB_HOST_DIR:/cache/huggingface/hub $IMAGE_FULL hf download $MODEL --revision $REVISION > /dev/null"
   fi
-  nssh "$host" "[ -d $MODEL_SNAPSHOT ]"
+  nssh "$host" "[ -e $MODEL_SNAPSHOT/model.safetensors ]"
   nssh "$host" "docker rm -f $SCORER_CONTAINER > /dev/null 2>&1 || true"
   # 自分たちの Ollama が載せている llama3.1:8b（約 6.7 GB）を降ろす（container が無ければ何もしない）
   nssh "$host" 'ip=$(docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" atrium-ollama-1 2> /dev/null); \
