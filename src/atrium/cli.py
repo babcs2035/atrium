@@ -24,6 +24,7 @@
     frontier-verdict          複数のデータの frontier.json から汎用の判定を出す（p0006 §7.3．操作端末）
     score-server              cross-encoder の採点の server を起動する（d0009 B2．GPU の PC のコンテナ）
     score-bench               cross-encoder の採点だけの閉じた系の負荷試験（EnronQA の H．d0009 B2．制御点のコンテナ）
+    colocate-bench            採点と生成を同じ GPU に載せた閉じた系の負荷試験（採点だけ・生成だけ・両方．d0009 B2．制御点のコンテナ）
     node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     churn-cascade-eval        二段の方式の参加・離脱への頑健さのオフラインの評価（EnronQA．Iteration 15．制御点のコンテナ）
@@ -675,6 +676,62 @@ def cmd_score_bench(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     score_bench.write_outputs(Path(args.out_dir), bench, loop, args.dump_scores)
     print(json.dumps(bench, indent=1, ensure_ascii=False))
+    return 0
+
+
+def cmd_colocate_bench(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """採点と生成を同じ GPU に載せた閉じた系の負荷試験（d0009 B2 の同居）を行い，score_bench.json・gen_bench.json などを書く．"""
+    from atrium import colocate_bench, score_bench
+    from atrium.experiment import read_image_git_head
+    from atrium.requester import RemoteCandidateScorer
+
+    if args.concurrency < 1 or args.gen_concurrency < 1:
+        raise SystemExit("--concurrency and --gen-concurrency must be positive")
+    if args.mode in ("score", "both") and not args.scorer:
+        raise SystemExit(f"--scorer is required for --mode {args.mode}")
+    if args.mode in ("gen", "both") and not args.gen_url:
+        raise SystemExit(f"--gen-url is required for --mode {args.mode}")
+    if args.mode == "gen" and args.one_pass:
+        raise SystemExit("--one-pass is for --mode score or both (use --gen-limit for gen)")
+    if args.gen_limit is not None and args.mode != "gen":
+        raise SystemExit("--gen-limit is for --mode gen")
+    score_inputs = (
+        score_bench.load_inputs(Path(args.data_dir), Path(args.run_results))
+        if args.mode != "gen"
+        else []
+    )
+    gen_inputs = (
+        colocate_bench.load_generation_inputs(Path(args.data_dir), Path(args.run_results))
+        if args.mode != "score"
+        else []
+    )
+    scorer = RemoteCandidateScorer(args.scorer) if args.mode != "gen" else None
+    git_head = read_image_git_head()
+    score_result, gen_result = colocate_bench.run_colocated(
+        args.mode,
+        scorer,
+        score_inputs,
+        args.concurrency,
+        args.gen_url,
+        gen_inputs,
+        args.gen_concurrency,
+        args.gen_limit,
+        args.warmup_s,
+        args.measure_s,
+        args.one_pass,
+        git_head,
+    )
+    out_dir = Path(args.out_dir)
+    summary: dict[str, object] = {}
+    if score_result is not None:
+        bench, loop = score_result
+        score_bench.write_outputs(out_dir, bench, loop, args.dump_scores)
+        summary["score"] = bench
+    if gen_result is not None:
+        gen_bench, records = gen_result
+        colocate_bench.write_generation_outputs(out_dir, gen_bench, records)
+        summary["gen"] = gen_bench
+    print(json.dumps(summary, indent=1, ensure_ascii=False))
     return 0
 
 
@@ -1856,6 +1913,44 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--one-pass", action="store_true", help="288 問を 1 周だけ採点して終える（G-S）")
     p.add_argument("--dump-scores", action="store_true", help="全組の得点を scores.jsonl に書く")
     p.set_defaults(func=cmd_score_bench)
+
+    p = sub.add_parser(
+        "colocate-bench",
+        help="採点と生成を同じ GPU に載せた閉じた系の負荷試験（EnronQA の H．d0009 B2．制御点のコンテナ）",
+    )
+    p.add_argument("--mode", choices=["score", "gen", "both"], required=True)
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--scorer",
+        action="append",
+        help="採点の server の URL（score・both で必要．送り先の番号の順に複数）",
+    )
+    p.add_argument(
+        "--gen-url", help="生成の送り先の node の URL（gen・both で必要．POST /v1/generate）"
+    )
+    p.add_argument(
+        "--run-results",
+        default="results/d0009_a3_p1/results.jsonl",
+        help="候補の文脈の文書 ID を読む実行の results.jsonl",
+    )
+    p.add_argument("--concurrency", type=int, default=30, help="採点の同時の問の数 C_s")
+    p.add_argument("--gen-concurrency", type=int, default=2, help="生成の同時の要求の数 C_g")
+    p.add_argument(
+        "--gen-limit",
+        type=int,
+        default=None,
+        help="生成だけで，864 候補の先頭 N 件を 1 回送って終える（G-GEN）",
+    )
+    p.add_argument("--warmup-s", type=float, default=20.0, help="測定の前の慣らしの秒数")
+    p.add_argument("--measure-s", type=float, default=120.0, help="測定の区間の秒数")
+    p.add_argument(
+        "--one-pass",
+        action="store_true",
+        help="採点 288 問を 1 周したら両方を止める（G-S16・G-CO）",
+    )
+    p.add_argument("--dump-scores", action="store_true", help="全組の得点を scores.jsonl に書く")
+    p.set_defaults(func=cmd_colocate_bench)
 
     p = sub.add_parser("owner-eval", help="持ち主推定の入力を揃えた評価（EnronQA．p0005 T2）")
     p.add_argument("--data-dir", required=True)

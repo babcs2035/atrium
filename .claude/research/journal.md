@@ -3,6 +3,110 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 40: cross-encoder の採点を生成と同じ GPU に載せたときの速さと可否
+
+**位置づけ**：レバー `d0009.B2_colocated_scoring` の値 `colocate_with_generator`（backlog B128 (3)(4)．Iteration 39 の評価で levers の末尾に足した）．設計の判断は backlog B129．d0009 B2 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，実機の実行（G-ENV0 以降）より前に，実装とこの節を同じ commit に入れて push する**．GPU は wafl502 の 1 枚だけを使い，wafl500・501・509 は使わない（B120・B122・B123）．gpu4 の GPU は使わない（運用ルール 14）．採点の形は Iteration 38・39 で採用した fp16（Sigmoid は fp32）・最大長 1,024・batch 4 に固定する（B128 (a)）．
+
+### 調査で分かったこと
+
+**(1) 今の経路と置き方（コードと記録の確認．事実）**
+- 採点の server（`atrium score-server`．container `atrium-scorer`・port 8200）を起動する `scripts/remote/score_server.sh` は，起動の前に wafl の自分たちの Ollama（`atrium-ollama-1`）の llama3.1:8b を `keep_alive: 0` で降ろす（「共存できないため」．F-6 の fp32・切らない採点 7.0〜7.8 GB と生成の約 6.7 GB の記録による）．つまり今の B2 の測定は全て「採点だけが GPU に載る」置き方である．
+- GPU の PC の Ollama（`docker/compose.node_gpu.yml`．Ollama 0.35.1・`OLLAMA_KEEP_ALIVE=-1`）は `OLLAMA_NUM_PARALLEL=1` で要求を 1 件ずつ処理する（journal_archive の Iteration 36 の Ollama の log の記録）．Ollama の port は外へ出しておらず，CPU の専門家の委託は GPU の PC の node の `POST /v1/generate`（`src/atrium/node.py` の `generate_for_peer`．質問・文書の題と本文・options・`allow_unknown`・`logprobs` を受け，`prompts.build_messages` で主構成の穴埋めのプロンプトを作って自分の Ollama に送る）を通る．この経路の応答は `prompt_tokens`・`output_tokens`・`prefill_s`・`decode_s` を返す．
+- Iteration 39 の採点（fp16・1,024）の GPU メモリの最大は 1,950〜1,992 MiB，X_req は 2.626〜2.632 問/秒，GPU の使用率の平均 94.2〜94.5 %（事実）．
+
+**(2) H の 288 問の生成の負荷の形（phase 1 に gpu4 の CPU で `results/d0009_a3_p1/results.jsonl` の `node_answers` から数えた．事実．GPU は使っていない）**
+- 864 候補（288 問 × 3）の入力は `prompt_tokens` 最小 1,322・中央値 2,526・p90 3,634・p99 5,188・最大 10,597（平均 2,676），出力は `output_tokens` 中央値 30・p90 65・p99 201・最大 2,048（平均 41.5）．
+- GPU の PC の上の速さは，decode 中央値 59.3 トークン/秒（51.0〜72.1），prefill 中央値 2,184 トークン/秒．1 候補の GPU の時間は prefill 約 1.2 秒 + decode 約 0.7 秒 ≈ 1.9 秒（平均から．推測を含む）で，**時間の約 6 割は計算が律速の prefill** である．864 候補は 10 台に 71〜98 件ずつ分かれた．
+- → 1 枚の生成だけの容量は約 0.5 候補/秒（約 0.17 問/秒）の見込み（推測）．Iteration 29 の P2P の 1.32 問/秒では 1 台あたり約 0.4 候補/秒（使用の割合で約 8 割）になる（推測）．
+
+**(3) 外部の情報（tavily．出典付き．事実と推測を分ける）**
+- MPS を使わない場合，同じ GPU の複数の process（CUDA の context）は時分割で切り替わり，ある瞬間に GPU を使えるのは 1 つの process だけで，正味では直列に近い（NVIDIA Developer Forums "Parallelization of kernels without MPS"，https://forums.developer.nvidia.com/t/parallelization-of-kernels-without-mps/70159 ．PyTorch Forums "Multiprocessing vs. Nvidia MPS for parallel training on a single GPU"，https://discuss.pytorch.org/t/multiprocessing-vs-nvidia-mps-for-parallel-training-on-a-single-gpu/99877 の「既定では各 device は一度に 1 つの context の kernel だけを動かす」）．ただし各 process が GPU を使わない隙間（CPU 側の処理・要求の合間）は他方が埋められる（同 PyTorch Forums の議論．事実）．→ 両方を飽和させると，2 つの処理量の単独に対する比の和は 1 前後（時分割の切り替えの費用で 1 を下回り，隙間を埋める分で上回りうる）になる見込み（推測）．
+- LLM の prefill は計算が律速，decode はメモリの帯域が律速で，同じ GPU で混ぜると互いに干渉する（vLLM の分離の記事の要約，https://forkast.news/vllms-disaggregated-serving-cuts-gpu-interference-delivering-2-5x-higher-goodput-on-the-same-hardware ．二次の記事）．cross-encoder も計算が律速なので，生成の prefill と強く競合しうる（推測）．
+- RAG の実運用の報告では，埋め込みと reranker を合わせて約 2.5〜3 GB とし，LLM の KV キャッシュの余裕を残すため別の GPU に分ける例がある（Muhammad Tahir Ali の LinkedIn の投稿，https://www.linkedin.com/posts/muhammad-tahir-ali-b6256920a_you-dont-need-a-big-gpu-for-rag-retrieval-activity-7516430306565070848-mu-L ．個人の報告で定量の比較は無い）．RAGO（Jiang et al., ISCA 2025．https://www.alphaxiv.org/abs/2503.14649 ，https://github.com/google/rago ）は RAG の各段（reranker を含む）の資源の割り当てと配置を性能の模型で探す枠組みで，reranker は通常は全体の時間に占める割合が小さいとする（著者の投稿の要約．事実）．同じ消費者向けの 12 GB の GPU で 8B の生成と cross-encoder を共存させた定量の報告は見つからなかった．
+- Ollama は読み込みの時点の空きの VRAM から載せる層の数を見積もり，足りないと一部の層を CPU に置く（GitHub ollama/ollama の issue #6008・#9068 の log の `memory.available`・`layers.offload`）．この CPU への溢れは警告なしに起き，`ollama ps`（`/api/ps` の `size_vram` と `size`）で分かる（issue #14258，https://github.com/ollama/ollama/issues/14258 ）．10% の層の溢れで生成が 33.8 → 4.7 トークン/秒・prefill も約 900 → 30 トークン/秒に落ちた報告がある（issue #17099，https://github.com/ollama/ollama/issues/17099 ）．→ **先に採点が VRAM を取った状態で llama3.1:8b を読み込むと，Ollama が溢れを選ぶ恐れがある**ので，共存の可否は OOM だけでなく溢れ（`size_vram < size`）でも判定する（推測に基づく設計）．
+
+### 仮説
+
+RTX 3060（12 GB）1 枚に，採点（bge-reranker-v2-m3．fp16・最大長 1,024・batch 4．約 2.0 GB）と生成（llama3.1:8b．num_ctx 16,384・`OLLAMA_NUM_PARALLEL=1`．約 6.7 GB）を同時に載せても，OOM・失敗の要求・Ollama の CPU への溢れは起きず（共存できる），両方を飽和させたときの処理量の単独に対する比の和 E_co は 0.90 以上である（時分割の損が 1 割以内で，分け合いの見積もりに使ってよい）．
+
+### 単一レバー
+
+**採点の server の置き方** を **「生成の Ollama を降ろした GPU に採点だけを載せる」（今．`score_server.sh` が `keep_alive: 0` で降ろす）から「生成の llama3.1:8b を載せたままの同じ GPU に採点を載せる」（colocate_with_generator）へ**替える．
+- 値の定義（事前に固定）：wafl502 の上で，採点の container `atrium-scorer`（fp16・`--max-length 1024`・batch 4）を先に起動し，その後に自分たちの Ollama（`atrium-ollama-1`）へ llama3.1:8b を主構成と同じ `num_ctx` 16,384・`keep_alive: -1` で読み込む（この順は Ollama の溢れの起きやすい側．調査の (3)）．以後，両方を載せたまま採点の要求と生成の要求を同時に流す．
+- 対照（単独）は同じ日の同じ機の「採点だけ」（llama3.1:8b を `keep_alive: 0` で降ろす．Iteration 39 と同じ）と「生成だけ」（採点の container を止める）．
+- 変えないもの：採点のモデル・revision・dtype・最大長・batch・lock・入力（H の 288 問の 4,320 組），生成のモデル・Ollama 0.35.1・`OLLAMA_NUM_PARALLEL=1`・`num_ctx`・`num_predict` 2,048・温度 0・`think: false`・穴埋めのプロンプト・`allow_unknown` と `logprobs` は `d0009_a3_p1` の条件（`scripts/d0009/a3_config.py p`）．
+
+### 固定する構成
+
+- 採点の負荷：Iteration 38・39 のまま．H の 288 問（`holdout`・`question_limit: 2`）の 3 候補 × 上位 5 通（`results/d0009_a3_p1/results.jsonl`），閉じた系・同時の問 C_s = 30，制御点 wafl-ctrl5 の CPU から送る．
+- 生成の負荷：同じ 288 問の 864 候補（同じ `context_doc_ids` の 5 通．題と本文）を，問の順・候補の順に，閉じた系・同時の要求 **C_g = 2**（Ollama は 1 件ずつ処理するので，2 で GPU を空けずに飽和させる）で送る．送り先は wafl502 の node の `POST /v1/generate`（委託と同じ経路）．wafl502 の node の container が使えない場合に限り，同じ messages・options を Ollama の `/api/chat` へ直接（ssh の転送で）送る経路に替え，替えたことを記録する（G-GEN を同じ基準で通す）．
+- GPU は **wafl502 の 1 枚**．取得・probe は流さず，wafl502 以外の 29 台の専門家は deploy しない．他の研究者のプロセスに触れない．gpu4・wafl-ctrl5 の GPU は使わない（運用ルール 8・14）．
+- config.yaml の実験の経路（`atrium run`）は変えない．
+
+### 実行の手順と順序（事前に固定）
+
+1. **G-ENV0**：wafl502 で他の研究者の GPU のプロセスが 0（あれば最大 2 時間待つ），SW Thermal Slowdown・HW Slowdown が Not Active，温度 ≤ 60 °C．SW Thermal Slowdown の累計を記録する．
+2. **G-GEN（生成の経路の確かめ．生成だけ）**：llama3.1:8b を `num_ctx` 16,384 で読み込み，`/api/ps` で `size_vram == size`（100% GPU）・`context_length` 16,384 を確かめる．864 候補の先頭 30 件を C_g = 2 で送り，失敗 0・30 件全ての `prompt_tokens` が `d0009_a3_p1` の保存値と一致（同じプロンプトであることの確かめ）．node の config.yaml の `llm`（`num_ctx`・`num_predict`・`temperature`・`think`・`answer_prompt_format`）が今の config.yaml と同じであることも記録する．不通過なら本番を流さない．
+3. **G-S16（採点の対照の経路の退行の確かめ．採点だけ）**：llama3.1:8b を降ろし，fp16・1,024 の server で 288 問を 1 周（`--one-pass --dump-scores`）．Iteration 39 の 1,024 の 1 周（`results/d0009_b2_ml1024_l1kpass/scores.jsonl`）との |差| ≤ 1e−3，R3′ と V2 の選択が 288 問で一致．不通過なら本番を流さない．
+4. **G-CO（共存の読み込みと得点の一致．両方）**：採点の server を載せたまま（上の 3 の続き）llama3.1:8b を読み込み，`/api/ps` で 100% GPU を確かめる．生成の閉じた系（C_g = 2）を流しながら採点の 1 周（`--one-pass --dump-scores`）を流す．得点が G-S16 と |差| ≤ 1e−3 で R3′ と V2 の選択が一致し，採点・生成の失敗 0，OOM 0（両 container の log の `out of memory` の数），1 周の後も 100% GPU．**OOM・溢れ・失敗のどれかが起きたら本番を流さず，H-C0 を「載せられない」とする**（得点の不一致だけなら本番を流さず原因を記録する．判定不能）．
+5. **smoke（両方）**：慣らし 10 秒・区間 30 秒で両方の失敗 0．
+6. **本番**：3 ラウンド．各ラウンドで G（生成だけ）・S（採点だけ）・B（両方）を 1 回ずつ，順は種 40 の無作為で決める．G の前は採点の container を止め，S の前は llama3.1:8b を降ろし，B の前は採点の server を起動してから llama3.1:8b を読み込む（4 と同じ順）．各実行の前後に `/api/ps` を記録する．各実行は**慣らし 60 秒 + 測る区間 600 秒**．G・B の生成の流れは毎回 864 候補の先頭から送る．各実行の前に温度 ≤ 60 °C・SW Thermal Slowdown が Not Active まで待つ（最大 15 分．冷ます時間を記録）．
+
+### 測るもの
+
+- **主（可否）**：B の各実行と G-CO の，OOM の数・採点と生成の失敗の要求の数・Ollama の 100% GPU（前後の `size_vram == size`）・GPU メモリの最大（nvidia-smi．1 秒ごと）．
+- **主（速さ）**：
+  - 採点の比 r_s = X_req(B) / X_req(S)（X_req は区間 600 秒に終わった採点の要求の数 ÷ 3 ÷ 600．Iteration 38・39 と同じ）．
+  - 生成の比 r_g = Σ_p t_G(p) / Σ_p t_B(p)．t(p) は候補 p の GPU の上の時間（node の応答の `prefill_s + decode_s`．待ち行列の時間は含めない）で，和は**同じラウンドの G と B の両方の区間に終わった候補 p** だけで取る（G・B は同じ先頭から送るが，B は終わる数が少ないので，終わった数をそのまま比べると候補の重さの違いが混ざる．その偏りを避けるため，同じ候補の時間で比べる）．
+  - **E_co = r_g + r_s**（同じラウンドの 3 実行から）．1 は「1 枚を 2 つの処理で時間を分け合う」のと同じ効率を意味する．
+- 記述（速さ）：生成の区間に終わった候補の数 X_gen（候補/秒），decode・prefill のトークン/秒の中央値（`output_tokens / decode_s`・`prompt_tokens / prefill_s`），生成の要求の待ち時間 p50・p95，採点の server の `duration_s` p50・p95，問の待ち時間 p50・p95，GPU の使用率，温度の最大，SW Thermal Slowdown の累計の差，制御点の CPU．G と B の同じ候補の回答の文字列の一致の割合（温度 0・1 件ずつの処理なので同じ見込み．記述）．
+- 記述（見積もり．採否に使わない）：単独の X_gen(G)・X_req(S) と E_co から，GPU の PC 10 台のうち 1 台に採点を同居させた場合と，1 台を採点だけに回す場合の，生成と採点が釣り合うときの処理量の上限（問/秒）を出す．
+
+### ゲートと有効な実行
+
+- **有効な実行**：区間の SW Thermal Slowdown の累計の差 0 秒・温度の最大 < 83 °C・他の研究者の GPU のプロセス 0．G・S は失敗の要求 0 も要る（B の失敗は H-C0 の材料で，無効にはしない）．**安全の打ち切り**：実行中に 83 °C 以上か SW Thermal Slowdown が Active になったら止めて無効にし，60 °C 以下に戻るまで次を流さない．
+- **有効なラウンド**：同じラウンドの G・S・B の全てが有効．無効の実行は同じラウンドの最後に 1 回だけ流し直してよい．
+- **機を替える規則**：wafl502 で 2 回無効になったら，残りの本番の全てのラウンドを wafl503 で最初から流し直す（G-ENV0・G-GEN・G-CO も wafl503 で取り直す．G-S16 は wafl502 のものを使う）．wafl503 でも 2 回無効なら判定不能．wafl500・501・509 では補わない．
+
+### 判定の規則
+
+- **H-C0（可否．主）**：
+  - 「載せられる」：G-CO と全ての有効な B で，OOM 0・失敗の要求 0（採点・生成とも）・前後とも 100% GPU・GPU メモリの最大 ≤ 11,776 MiB（12,288 MiB から 512 MiB の余裕）．
+  - 「載せられない」：G-CO か有効な B のどれかで OOM・Ollama の溢れ（`size_vram < size`）・失敗の要求が 1 以上．
+  - それ以外（全て 0 だが GPU メモリの最大が 11,776 MiB を超える）は「決まらない」．
+- **H-C1（速さ．主）**：有効なラウンドの全てで E_co ≥ 0.90 なら「損が小さい」，全てで E_co < 0.80 なら「損が大きい」，それ以外は「決まらない」．
+- 記述：r_g と r_s の大きさ（どちらが多く譲るか）．
+
+**閾値の根拠とノイズの目安**：X_req のラウンドの間の揺れは Iteration 38・39 で 0.2〜0.4% で，区間 600 秒に約 4,700 要求が終わるので 1 要求の刻みは約 0.02%．生成は区間 600 秒に約 300 候補が終わる見込みで 1 候補の刻みは約 0.3% だが，同じ候補の時間で比べるので刻みの影響は小さい（揺れは G の 3 ラウンドで確かめて記述する）．0.90 は Iteration 37 の分け合いの効率の基準 0.85 より厳しく，揺れ（1% 未満の見込み）の 10 倍以上の損として置いた．0.80 は時分割の切り替えの費用が 2 割を超える，分け合いの見積もりに使えない水準として置いた．GPU メモリの余裕 512 MiB は CUDA の context や Ollama の見積もりの誤差（数百 MiB の見込み．推測）を見込んだ値である．
+
+### 成功条件（事前登録）
+
+(1) G-ENV0・G-GEN・G-S16・G-CO・smoke を通過し，(2) 有効なラウンドが 2 以上あり，(3) H-C0・H-C1 を判定し，`results/d0009_b2_colocated_scoring/{verdict.json,colocate_summary.json,analysis_report.md}` に書く．
+- **採用**：(1)〜(3) を満たし，H-C0 が「載せられる」かつ H-C1 が「損が小さい」．値 `colocate_with_generator` を閉じる（後の反復で，採点を生成と同じ GPU に置く構成と，E_co による分け合いの見積もりを使ってよい根拠とする．既定の挙動は変えない）．
+- **棄却**：H-C0 が「載せられない」（G-CO で起きて本番を流さなかった場合を含む）か，(1)〜(3) を満たし H-C1 が「損が大きい」．値を閉じる．
+- それ以外の組み合わせは「決まらない」で，採用でも棄却でもない記述として値を閉じる（ラウンドを足さない）．
+- G-CO の可否の項目以外で (1) か (2) を満たさなければ判定不能で，値を閉じずに原因を backlog に残す．
+
+### 期待効果（見込み．検証対象ではない）
+
+GPU メモリの最大は 約 6.7 + 2.0 ≈ 8.7〜9.5 GB で 12 GB に収まる（推測．Ollama の見積もりが溢れを選ばなければ）．両方を飽和させると時分割で分け合い，r_g・r_s はそれぞれ 0.4〜0.6，E_co ≈ 0.90〜1.05（推測．生成の decode の要求の合間や CPU 側の処理の隙間を採点が埋める分で 1 を超えうる）．生成の要求の時間は B で 1.7〜2.5 倍に伸びる見込み．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
+
+- `scripts/remote/score_server.sh`：省略可能な引数 `--keep-generator`（既定なし＝今と同じく llama3.1:8b を降ろす）．付けたときだけ降ろす処理を飛ばす．
+- 生成の負荷の生成：`src/atrium/score_bench.py` の `load_inputs`・閉じた系の形を再利用し，生成の閉じた系（`/v1/generate` へ C_g 本．要求ごとに qid・候補の番号・送った時刻・終わった時刻・`prompt_tokens`・`output_tokens`・`prefill_s`・`decode_s`・回答の文字列・失敗を `gen_requests.jsonl` に書く）を足す．**B では採点と生成の区間を同じ時刻に揃える必要がある**ので，1 つの process で両方の流れを動かす CLI（例：`atrium colocate-bench --mode {gen,score,both} --gen-url … --score-url … --gen-concurrency 2`．既存の `atrium score-bench` は変えない）にする．`--one-pass`（採点の 1 周が終わったら両方を止める）と `--gen-limit N`（G-GEN の先頭 30 件）を持たせる．
+- `/api/ps` の記録と OOM の数え：chain の中で wafl502 の上の `curl` と `docker logs` から取る（Ollama の port は外へ出ていないので，`score_server.sh` と同じく container の IP で呼ぶ）．
+- chain：`scripts/d0009/b2l_chain.sh` を元に `scripts/d0009/b2co_chain.sh`（G-ENV0 → G-GEN → G-S16 → G-CO → smoke → 本番 3 ラウンド〔種 40〕→ server の停止・llama3.1:8b は元の常駐〔`keep_alive: -1`〕に戻す → 後の nvidia-smi）．実行名は `results/d0009_b2_co_{ggen,s16pass,copass,smoke,r<round>_{g,s,b}}/`．熱の待ち・打ち切り・記録は Iteration 38・39 のまま．
+- 集計：`scripts/d0009/b2co_verdict.py` → `results/d0009_b2_colocated_scoring/`．`b2c_verdict.py`・`b2l_verdict.py` の一致・X_req の関数を再利用する．r_g（同じ候補の時間の比），E_co，H-C0・H-C1 の規則は単体の試験（`tests/test_b2co_verdict.py`）で境界（E_co 0.80・0.90，GPU メモリ 11,776 MiB，溢れ・OOM・失敗 1 件）を確かめる．
+- B118・提案 X1〜X4 は混ぜない．
+
+### 主張できない範囲（事前に書く）
+
+- 飽和していない（主構成の実際の）負荷での生成と採点の待ち時間，主構成の全体（30 台・委託）の処理量の変化（見積もりだけ），GPU の PC 10 台への採点の配置の最適．
+- MPS・CUDA のストリームの優先度・Ollama の `OLLAMA_NUM_PARALLEL` ≥ 2・他の `num_ctx`，fp32 や最大長 8,192 の採点との共存．読み込みの順を逆（生成を先）にした場合の溢れの有無．
+- RTX 3060（wafl502 か 503）以外の GPU，熱の減速の起きる状態，H の 288 問以外の入力（長い文書の多い集合では採点・生成とも重くなる）．
+- 正答率（生成の文字列の一致は記述するが判定しない）．
+
 ## Iteration 39: cross-encoder の入力を 1,024 トークンで切ったときの速さと選ぶ候補の一致
 
 **位置づけ**：レバー `d0009.B2_scoring_cost` の値 `max_length_1024`（backlog B126 (3)．levers の値の順）．設計の判断は backlog B127．d0009 B2 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，実機の実行（G-ENV0 以降）より前に，実装とこの節を同じ commit に入れて push する**．wafl500・501・509 は使わない（B120・B122・B123）．土台の dtype は Iteration 38 で採用した fp16（Sigmoid は fp32）にする（B126 (a)）．

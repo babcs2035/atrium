@@ -17,6 +17,18 @@
 
 ---
 
+## B129 [auto-decided 2026-11-10] Iteration 40（d0009 B2_colocated_scoring・値 colocate_with_generator）の設計：wafl502 の 1 枚で，採点を先に載せてから llama3.1:8b を読み込み，生成だけ・採点だけ・両方を 3 ラウンド流して可否（H-C0）と処理量の比の和 E_co（H-C1．閾値 0.90）を測る
+- 状況: B128 の申し送り (a)〜(d) に従って Iteration 40 を設計した．phase 1 に gpu4 の CPU で `results/d0009_a3_p1/results.jsonl` の `node_answers` から H の 864 候補の生成の負荷を数えた（入力の中央値 2,526 トークン・出力の中央値 30 トークン，decode 59 トークン/秒・prefill 2,184 トークン/秒で，1 候補の GPU の時間 約 1.9 秒の約 6 割が prefill）．コードの確認で，(i) `score_server.sh` は起動の前に llama3.1:8b を降ろす，(ii) GPU の PC の Ollama は port を外へ出しておらず，委託は node の `POST /v1/generate` を通る（応答に prefill_s・decode_s がある），(iii) Ollama は `OLLAMA_NUM_PARALLEL=1`，と分かった．外部の情報で，MPS なしの複数 process は時分割で動くこと，Ollama は読み込みの時点の空きの VRAM が足りないと警告なしに CPU へ溢れること（issue #14258・#17099）を確かめた．詳細は journal の Iteration 40「調査で分かったこと」．
+- 自動選択:
+  (1) 値の定義：採点の server（fp16・1,024・batch 4）を先に起動し，その後に llama3.1:8b を num_ctx 16,384 で読み込む（溢れの起きやすい順）．対照は同じ日の同じ機の「採点だけ」（llama を降ろす）と「生成だけ」（採点の container を止める）．
+  (2) 生成の負荷：H の 864 候補を wafl502 の node の `/v1/generate`（委託と同じ経路）へ閉じた系 C_g = 2（Ollama は 1 件ずつなので GPU を飽和させる最小）で送る．node が使えなければ Ollama の `/api/chat` へ直接（記録する）．採点は C_s = 30（Iteration 38・39 のまま）．
+  (3) 速さの指標：r_s = X_req の比，r_g = 同じ候補の prefill_s + decode_s の和の比（B は終わる候補が少なく，終わった数の比では候補の重さが混ざるため），E_co = r_g + r_s．H-C1 は全ラウンドで E_co ≥ 0.90 で損が小さい，全て < 0.80 で損が大きい．
+  (4) 可否 H-C0：OOM・失敗の要求・Ollama の溢れ（`/api/ps` の size_vram < size）が 0 で GPU メモリの最大 ≤ 11,776 MiB なら載せられる．G-CO（両方を載せた採点の 1 周）で起きたら本番を流さず「載せられない」（棄却）．
+  (5) 得点の一致（B128 (d)）：G-S16（Iteration 39 の 1,024 の 1 周との |差| ≤ 1e−3・選択の一致）と G-CO（G-S16 との同じ基準）をゲートにした．機材は wafl502・代わりは wafl503，熱の運用は Iteration 38・39 のまま，順は種 40．
+- 根拠: 置き方だけを変え（単一レバー），採点の形は採用済みの値に固定した．両方を飽和させた比の和は，Iteration 37 の分け合いの見積もりに直接使える量で，時分割（MPS なし）の理論の値 1 に対する損として読める．全て追加だけの引数・CLI・script で既定の挙動は変えず，取り消せる．
+- 不可逆・人間の判断を要する事項: 無い（B120 は引き続き人間の判断待ち）．
+- 要レビュー: (a) 飽和した負荷の比で判定し，主構成の実際の負荷（1 台あたり使用の割合 約 8 割の見込み）での待ち時間は扱わない．(b) 読み込みの順を採点が先に固定した．逆の順の可否は測らない．(c) 生成の経路は wafl502 の node の container が使える前提で，使えなければ Ollama へ直接に替える（G-GEN の prompt_tokens の一致で同じプロンプトを確かめる）．(d) 0.90・0.80 の閾値は Iteration 37 の 0.85 と時分割の見込みから置いた自動の判断．(e) phase 1 の調査で同じ GPU に 8B の生成と cross-encoder を共存させた定量の報告は見つからなかった．(f) 未コミットのまま残すファイル：作業ツリーにあった Iteration 40 と無関係な未追跡ファイル（`results/d0009_a1_*` など．B128 要レビュー (c) と同じ）．
+
 ## B128 [auto-decided 2026-11-10] Iteration 39（d0009 B2_scoring_cost・値 max_length_1024）は採用で値を閉じ，レバーを使い切る．levers を B1（保留）以外使い切ったので新しいレバー `d0009.B2_colocated_scoring` を足し，Iteration 40 はその値 `colocate_with_generator`
 - 状況: Iteration 39 の phase 3．成功条件 (1)〜(3) を満たした（G-ENV0・G-F16〔Iteration 38 の fp16 の 1 周と |差| 0.0〕・G-AT〔両側 sdpa・最大長 8,192 と 1,024〕・G-TR〔1,024 以下の |差| の中央値 0，超える組の 204/333 が > 1e−3〕・smoke の通過，wafl502 の有効なラウンド 3，無効な実行 0）．H-L2：X_req 2.276〜2.278 → 2.626〜2.632 問/秒，S = 1.156・1.156・1.152（全て ≥ 1.08）で「速くなる」．H-L1：非有限 0，R3′ の食い違い 1 問（3294-0．Δc_R3 −1），V2 0 問で「一致する」．GPU メモリの最大 4.2 → 2.0 GB．詳細は journal の Iteration 39「実行済み」．
 - 自動選択:

@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 39,
-  "iteration_name": "cross-encoder の入力を 1,024 トークンで切ったときの速さと選ぶ候補の一致",
-  "phase": "evaluate",
+  "iteration": 40,
+  "iteration_name": "cross-encoder の採点を生成と同じ GPU に載せたときの速さと可否",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "d0009.B2_scoring_cost=max_length_1024（fp16 の上で CrossEncoder の max_length を 8,192 → 1,024．atrium score-server --max-length 1024）",
-  "experiment_dir": "results/d0009_b2_scoring_cost_maxlen1024",
-  "experiment_deadline": 1794295971,
+  "current_lever": "d0009.B2_colocated_scoring=colocate_with_generator",
+  "experiment_dir": null,
+  "experiment_deadline": null,
   "updated_at": 1794257415,
-  "last_slack_ts": "1794245582.816609",
-  "iteration_thread_ts": "1794252425.456449",
+  "last_slack_ts": "1794258134.957529",
+  "iteration_thread_ts": "1794258126.729949",
   "notion_toggle_created": true,
-  "last_commit": "915869d"
+  "last_commit": "ed0f546"
 }

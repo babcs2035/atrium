@@ -2,17 +2,18 @@
 # 制御点から GPU の PC（wafl502〜509 など）で cross-encoder の採点の server（`atrium score-server`．d0009 B2）の container を起動・停止する．
 #
 # 使い方（操作端末から `bash scripts/tasks/remote.sh score_server start <host>...`．host は 192.168.15.10N の形）:
-#   bash scripts/remote/score_server.sh start [--dtype=float32|float16] [--max-length=N] <host>...   image・モデルを用意して container atrium-scorer を起動し，/healthz が 200 になるまで待つ
+#   bash scripts/remote/score_server.sh start [--dtype=float32|float16] [--max-length=N] [--keep-generator] <host>...   image・モデルを用意して container atrium-scorer を起動し，/healthz が 200 になるまで待つ
 #   bash scripts/remote/score_server.sh stop <host>...    container atrium-scorer を止める（削除・image・モデルの削除はしない）
 # - --dtype=（float32 か float16．既定 float32．start の先頭の引数）で採点のモデルの dtype を選ぶ（制御点への ssh では環境変数が渡らないので引数にした）．
 # - --max-length=N（1 組を切るトークン数．既定は指定なし＝tokenizer の上限 8192．--dtype= の後ろ）で最大長を選ぶ．
+# - --keep-generator（--max-length= の後ろ．d0009 B2 の同居の測定）を付けると，llama3.1:8b を降ろさずに採点の server を起動する（既定は降ろす）．
 # - image は制御点の registry の atrium-full（CUDA 版の torch を含む．deploy 済みでなければ publish が要る）．
 # - モデルは各機の ~/.cache/huggingface/hub に hf CLI で取得したものを，読み取り専用で mount する（運用ルール 15．無ければ container の hf で取得する）．
-# - GPU を使う自分たちの Ollama（container atrium-ollama-1）が llama3.1:8b を載せていたら，keep_alive: 0 で VRAM から降ろす（共存できないため．
+# - GPU を使う自分たちの Ollama（container atrium-ollama-1）が llama3.1:8b を載せていたら，keep_alive: 0 で VRAM から降ろす（既定．共存できないため．
 #   モデルのファイル・container は消さない．他の研究者のプロセスには触れない）．
 source "$(dirname "$0")/lib.sh"
 
-USAGE="usage: score_server.sh <start|stop> [--dtype=float32|float16] [--max-length=N] <host>..."
+USAGE="usage: score_server.sh <start|stop> [--dtype=float32|float16] [--max-length=N] [--keep-generator] <host>..."
 ACTION=${1:?$USAGE}
 shift
 SCORER_DTYPE=float32
@@ -25,6 +26,8 @@ case "${1:-}" in
   --max-length=[1-9]*[0-9]|--max-length=[1-9]) SCORER_MAX_LENGTH_ARGS="--max-length ${1#--max-length=}"; shift ;;
   --max-length=*) echo "$USAGE" >&2; exit 2 ;;
 esac
+KEEP_GENERATOR=false
+if [ "${1:-}" = "--keep-generator" ]; then KEEP_GENERATOR=true; shift; fi
 [ "$#" -gt 0 ] || { echo "$USAGE" >&2; exit 2; }
 SCORER_CONTAINER=atrium-scorer
 SCORER_PORT=8200
@@ -48,8 +51,8 @@ start_host() {
   fi
   nssh "$host" "[ -e $MODEL_SNAPSHOT/model.safetensors ]"
   nssh "$host" "docker rm -f $SCORER_CONTAINER > /dev/null 2>&1 || true"
-  # 自分たちの Ollama が載せている llama3.1:8b（約 6.7 GB）を降ろす（container が無ければ何もしない）
-  nssh "$host" 'ip=$(docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" atrium-ollama-1 2> /dev/null); \
+  # 自分たちの Ollama が載せている llama3.1:8b（約 6.7 GB）を降ろす（container が無ければ何もしない．--keep-generator なら降ろさない）
+  [ "$KEEP_GENERATOR" = true ] || nssh "$host" 'ip=$(docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" atrium-ollama-1 2> /dev/null); \
     if [ -n "$ip" ]; then curl -s -m 30 http://$ip:11434/api/generate -d "{\"model\":\"llama3.1:8b\",\"keep_alive\":0}" > /dev/null || true; fi'
   nssh "$host" "docker run -d --name $SCORER_CONTAINER --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all --user $uidgid -e HOME=/tmp \
     -e HF_HUB_OFFLINE=1 -v $HF_HUB_HOST_DIR:/cache/huggingface/hub:ro -v $REMOTE_DIR/config.yaml:/app/config.yaml:ro \

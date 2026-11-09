@@ -222,10 +222,14 @@ def run_bench(
     measure_s: float,
     one_pass: bool,
     git_head: str,
+    start_at: float | None = None,
 ) -> tuple[dict[str, object], ClosedLoop]:
-    """1 回の実行（通常は慣らし＋測定の区間，one_pass は 1 周）を流し，（score_bench.json の中身，流れの記録）を返す．"""
+    """1 回の実行（通常は慣らし＋測定の区間，one_pass は 1 周）を流し，（score_bench.json の中身，流れの記録）を返す．
+
+    start_at は流れの開始の時刻（epoch 秒）．省略すると今から START_DELAY_S 秒後（colocate-bench が生成の流れと区間を揃えるときだけ指定する）．
+    """
     loop = ClosedLoop(scorer, inputs, concurrency, one_pass)
-    t0 = time.time() + START_DELAY_S
+    t0 = time.time() + START_DELAY_S if start_at is None else start_at
     window_start = t0 + warmup_s
     window_end = window_start + measure_s
     samples = WindowSamples()
