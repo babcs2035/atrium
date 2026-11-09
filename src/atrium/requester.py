@@ -71,6 +71,8 @@ from atrium.protocol import (
     ProfileResponse,
     RetrieveRequest,
     RetrieveResponse,
+    ScoreRequest,
+    ScoreResponse,
     ShardProfile,
 )
 from atrium.routing import Router, RoutingQuery, SourceProfile
@@ -337,6 +339,84 @@ class CrossEncoderReranker:
         scores = self.scores(query, [f"{d.doc.title}\n{d.doc.content}".strip() for d in docs])
         order = np.argsort(-np.asarray(scores))[:k]
         return [docs[int(i)] for i in order]
+
+
+class RemoteCandidateScorer:
+    """複数の採点の server（`atrium score-server`）へ，未完了の要求の最も少ない先から送る候補の採点（d0009 B2）．
+
+    1 回の `scores` 呼び出し（候補ごとの 5 通など）が 1 つの要求になり，その時点で送っていて未完了の要求が最も少ない server へ送る．
+    数が同じなら urls の並びの先．送り先を決める側が質問者の 1 つだけなので，状態が古くなる近似（power of two choices）は使わない．
+    失敗は別の server へ送り直さず，そのまま呼び出し元へ例外で返す（失敗した要求の数を有効な実行の条件にするため）．
+    """
+
+    # 1 つの要求の打ち切り（G = 1 で同時の 30 問が 1 つの GPU の lock を待つ最悪でも収まる長さ）
+    REQUEST_TIMEOUT_S = 300.0
+
+    def __init__(self, urls: Sequence[str], client: httpx.Client | None = None) -> None:
+        """送り先の URL の列（空は不可）を受け取る．client は試験で差し替える．"""
+        if not urls:
+            raise ValueError("RemoteCandidateScorer needs at least one scorer URL")
+        self._urls = list(urls)
+        self._client = client if client is not None else httpx.Client()
+        self._lock = threading.Lock()
+        self._in_flight = [0] * len(self._urls)
+        self._sent = [0] * len(self._urls)
+        self._failed = [0] * len(self._urls)
+
+    @property
+    def urls(self) -> list[str]:
+        """送り先の URL（並びは送り先の番号）．"""
+        return list(self._urls)
+
+    def counts(self) -> dict[str, dict[str, int]]:
+        """送り先ごとの，送った要求の数・失敗した数・今の未完了の数．"""
+        with self._lock:
+            return {
+                url: {
+                    "sent": self._sent[i],
+                    "failed": self._failed[i],
+                    "in_flight": self._in_flight[i],
+                }
+                for i, url in enumerate(self._urls)
+            }
+
+    def _acquire_target(self) -> int:
+        """未完了の最も少ない送り先を選び，その未完了を 1 つ増やす（同数なら番号の小さい方）．"""
+        with self._lock:
+            target = min(range(len(self._urls)), key=lambda i: (self._in_flight[i], i))
+            self._in_flight[target] += 1
+            self._sent[target] += 1
+            return target
+
+    def scores_with_target(self, query: str, texts: Sequence[str]) -> tuple[list[float], int]:
+        """（得点，送り先の番号）を返す．texts が空なら送らない．"""
+        if not texts:
+            return [], -1
+        target = self._acquire_target()
+        try:
+            response = self._client.post(
+                f"{self._urls[target]}/v1/score",
+                json=ScoreRequest(query=query, texts=list(texts)).model_dump(),
+                timeout=self.REQUEST_TIMEOUT_S,
+            )
+            response.raise_for_status()
+            parsed = ScoreResponse.model_validate_json(response.content)
+            if len(parsed.scores) != len(texts):
+                raise ValueError(
+                    f"scorer returned {len(parsed.scores)} scores for {len(texts)} texts"
+                )
+        except (httpx.HTTPError, ValueError):
+            with self._lock:
+                self._failed[target] += 1
+            raise
+        finally:
+            with self._lock:
+                self._in_flight[target] -= 1
+        return parsed.scores, target
+
+    def scores(self, query: str, texts: Sequence[str]) -> list[float]:
+        """質問と各文の関連度を，文の順に返す（CandidateScorer）．"""
+        return self.scores_with_target(query, texts)[0]
 
 
 class TableReranker:

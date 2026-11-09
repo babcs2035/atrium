@@ -413,7 +413,10 @@ levers:
   - {name: d0009.B2_split_reranker, values: [multi_gpu_scoring],
      note: "d0009 B2（中）．cross-encoder の採点を複数の GPU に分ける．生成が速い条件では質問者の採点が律速になる（A1 と関連）．
             採点のモデルは 8B の生成モデルと同じ 12 GB の GPU に共存できなかった（journal の F-6）ので，採点を置く GPU の割り当ても合わせて設計する．
-            wafl500〜509 の GPU は共有なので，他の研究者のプロセスに触れない"}
+            wafl500〜509 の GPU は共有なので，他の研究者のプロセスに触れない．
+            着手：Iteration 37（事前登録は journal の Iteration 37．backlog B121・B122）．採点だけの測定（生成・probe は流さない）．wafl502〜509 に採点の server（既存の CrossEncoderReranker.scores をそのまま）を置き，
+            制御点の CPU の新しい CLI（仮称 atrium score-bench．閉じた系・同時の問 30）から H の 288 問の 15 組/問を，未完了の最も少ない GPU へ送る．G ∈ {1, 2, 4, 8} × 3 ラウンド（種 37 の無作為な順）．
+            主は H-B2a（G = 2・4 で全ての有効なラウンドの E(G) = X(G)/(G·X(1)) ≥ 0.85）．G-S（表との差 ≤ 1e−3・R3′ の選択が 288 問で一致）を本番の前に通す．wafl500・501 は使わない．config.yaml の実験の経路は変えない"}
   # ---- 人間の指示（2026-11-08．backlog B89 [human-decided]）：最新の LLM に替えたときにどうなるか ----
   - {name: llm.expert_model_gpu, values: [gemma4-12b-it-qat],
      note: "Iteration 26 で追加（backlog B89〜B94）．主構成 R3′ の候補の回答を作る生成モデル（GPU の PC wafl500〜509．RTX 3060 12 GB の Ollama 0.35.1．

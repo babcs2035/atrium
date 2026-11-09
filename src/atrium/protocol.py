@@ -292,6 +292,20 @@ class SummaryResponse(_Model):
     device: str
 
 
+class ScoreRequest(_Model):
+    """採点の server（atrium score-server．d0009 B2）への要求．texts は `<題>\\n<本文>` の文（候補の文脈の上位 5 通など）．"""
+
+    query: str
+    texts: list[str]
+
+
+class ScoreResponse(_Model):
+    """質問と各文の cross-encoder の得点（文の順）と，server の中の採点の時間（秒．lock の待ちを含む）．"""
+
+    scores: list[float]
+    duration_s: float
+
+
 class Problem(_Model):
     """RFC 9457 の problem details．"""
 

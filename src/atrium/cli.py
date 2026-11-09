@@ -22,6 +22,8 @@
     owner-score-eval          probe の 2 段目の得点（vote・learned）のオフラインの評価（EnronQA．d0009 B3）
     build-summary             term_probe・hybrid_probe・bm25_probe の要約の成果物とオフラインの選択を作る（EnronQA．p0006 P4・p0007 A4．制御点のコンテナ）
     frontier-verdict          複数のデータの frontier.json から汎用の判定を出す（p0006 §7.3．操作端末）
+    score-server              cross-encoder の採点の server を起動する（d0009 B2．GPU の PC のコンテナ）
+    score-bench               cross-encoder の採点だけの閉じた系の負荷試験（EnronQA の H．d0009 B2．制御点のコンテナ）
     node-bench                専門家ノード 1 台への閉じた系の probe の負荷試験（EnronQA．Iteration 9．制御点のコンテナ）
     churn-eval                RQ-C のオフラインの評価（EnronQA．参加・離脱とメンバー表の古さ．制御点のコンテナ）
     churn-cascade-eval        二段の方式の参加・離脱への頑健さのオフラインの評価（EnronQA．Iteration 15．制御点のコンテナ）
@@ -641,6 +643,38 @@ def cmd_node_bench(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     )
     node_bench.write_outputs(Path(args.out_dir), bench, scores)
     print(node_bench.render_table(bench))
+    return 0
+
+
+def cmd_score_server(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """cross-encoder の採点の server を起動する（d0009 B2．GPU の PC のコンテナ内）．"""
+    from atrium import score_server
+
+    score_server.main(args.host, args.port)
+    return 0
+
+
+def cmd_score_bench(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """cross-encoder の採点だけの閉じた系の負荷試験（d0009 B2）を行い，score_bench.json などを書く．"""
+    from atrium import score_bench
+    from atrium.experiment import read_image_git_head
+    from atrium.requester import RemoteCandidateScorer
+
+    if args.concurrency < 1:
+        raise SystemExit(f"--concurrency must be positive: {args.concurrency}")
+    inputs = score_bench.load_inputs(Path(args.data_dir), Path(args.run_results))
+    scorer = RemoteCandidateScorer(args.scorer)
+    bench, loop = score_bench.run_bench(
+        scorer,
+        inputs,
+        args.concurrency,
+        args.warmup_s,
+        args.measure_s,
+        args.one_pass,
+        read_image_git_head(),
+    )
+    score_bench.write_outputs(Path(args.out_dir), bench, loop, args.dump_scores)
+    print(json.dumps(bench, indent=1, ensure_ascii=False))
     return 0
 
 
@@ -1778,6 +1812,38 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--warmup-s", type=float, default=5.0, help="水準ごとの測定の前の慣らしの秒数")
     p.add_argument("--measure-s", type=float, default=30.0, help="水準ごとの測定の区間の秒数")
     p.set_defaults(func=cmd_node_bench)
+
+    p = sub.add_parser(
+        "score-server",
+        help="cross-encoder の採点の server を起動する（d0009 B2．GPU の PC のコンテナ）",
+    )
+    p.add_argument("--host", default="0.0.0.0")  # noqa: S104 (コンテナ内で全インタフェースに公開する)
+    p.add_argument("--port", type=int, default=8200)
+    p.set_defaults(func=cmd_score_server)
+
+    p = sub.add_parser(
+        "score-bench",
+        help="cross-encoder の採点だけの閉じた系の負荷試験（EnronQA の H．d0009 B2．制御点のコンテナ）",
+    )
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--out-dir", required=True)
+    p.add_argument(
+        "--scorer",
+        action="append",
+        required=True,
+        help="採点の server の URL（送り先の番号の順に複数）",
+    )
+    p.add_argument(
+        "--run-results",
+        default="results/d0009_a3_p1/results.jsonl",
+        help="候補の文脈の文書 ID を読む実行の results.jsonl",
+    )
+    p.add_argument("--concurrency", type=int, default=30, help="同時の問の数 C")
+    p.add_argument("--warmup-s", type=float, default=20.0, help="測定の前の慣らしの秒数")
+    p.add_argument("--measure-s", type=float, default=120.0, help="測定の区間の秒数")
+    p.add_argument("--one-pass", action="store_true", help="288 問を 1 周だけ採点して終える（G-S）")
+    p.add_argument("--dump-scores", action="store_true", help="全組の得点を scores.jsonl に書く")
+    p.set_defaults(func=cmd_score_bench)
 
     p = sub.add_parser("owner-eval", help="持ち主推定の入力を揃えた評価（EnronQA．p0005 T2）")
     p.add_argument("--data-dir", required=True)

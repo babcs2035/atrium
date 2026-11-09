@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 36,
-  "iteration_name": "停止した PC を外す仕組みで増えた打ち切りの原因の切り分けと再測定",
-  "phase": "evaluate",
+  "iteration": 37,
+  "iteration_name": "cross-encoder の採点を複数の GPU に分けたときの処理の速さ",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "d0009.B1_drop_failed_peers=health_check_exclusion（再測定．G-GPU・D0・G-V を追加）",
+  "current_lever": "d0009.B2_split_reranker=multi_gpu_scoring（採点だけ．wafl502〜509 の G ∈ {1, 2, 4, 8}）",
   "experiment_dir": null,
   "experiment_deadline": null,
   "updated_at": 1794238350,
-  "last_slack_ts": "1794233356.073309",
-  "iteration_thread_ts": "1794233898.586469",
+  "last_slack_ts": "1794238778.761699",
+  "iteration_thread_ts": "1794239206.353139",
   "notion_toggle_created": true,
-  "last_commit": "1c7f5f6"
+  "last_commit": "1f3bfe3"
 }

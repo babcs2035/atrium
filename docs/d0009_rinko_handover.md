@@ -126,6 +126,7 @@
 
 - 採点は質問者だけが行うので，生成が速い条件では採点が律速になる（A1 と関連する）．
 - 採点のモデルは 8B の生成モデルと同じ 12 GB の GPU に共存できなかった（journal の F-6 の記録）ので，採点を置く GPU の割り当ても合わせて設計する．
+- 着手：Iteration 37（事前登録は `.claude/research/journal.md` の Iteration 37．設計の判断は `.claude/research/backlog.md` の B122）．採点だけの測定とする．GPU の PC wafl502〜509 に cross-encoder の採点の server を 1 つずつ置き，質問者に当たる制御点の CPU から，H の 288 問の 3 候補 × 上位 5 通の採点の要求を，未完了の要求の最も少ない GPU へ送る（同時の問 30・閉じた系）．GPU の数 G ∈ {1, 2, 4, 8} を 3 ラウンド交互に流し，処理量 X(G) と効率 X(G) / (G·X(1)) を測る．得点が表と一致し，選ぶ候補が変わらないことを本番の前に確かめる．wafl500（温度による減速．B120）と wafl501（減速の累計が最大）は使わない．生成と同時に流した全構成の処理量は測らず，GPU を生成と採点で分け合う場合の上限は見積もりで記述する．
 
 ### B3. 持ち主の特定と回答の選択の改良（研究の主課題）
 
@@ -206,7 +207,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 完了（Iteration 32．採用．委託は重複なしの露出を増やさず，37.6% は全体に等しい．50% 未満は約 2,900 問の質問集合での値．`results/d0009_a4_exposure/`） |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 索引への追加は完了（Iteration 33．採用．BM25 を含めても P2P は p50 0.47 秒で追従し，全体を作り直す中央の T0 は p50 31 秒．`results/d0009_a5_bm25_add/`）．中央の停止時間は完了（Iteration 34．採用．中央の停止 S ≥ 20 秒で全 8 条件 P2P が上，問の標本などの揺れを含めると約 34 秒．S ≤ 5 秒では availability k ≤ 3 だけ P2P が上．`results/d0009_a5_outage_sweep/`）．A5 は完了 |
 | 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 着手．Iteration 35 は判定不能（平常の区間のゲートが不通過で有効なラウンド 0．Iteration 30 に無かった締め切りの打ち切りが原因で，その原因は未特定．`results/d0009_b1_exclusion/`）．Iteration 36 で原因を切り分けて流し直す（`.claude/research/backlog.md` の B115〜B117）．着手：Iteration 36（B119．wafl500 の生成の減速が原因の候補．GPU のゲートを足して流し直す）．Iteration 36 は判定不能（外す仕組み無しでも wafl500 の減速で同じ打ち切り．`results/d0009_b1_exclusion_i36/`）．保留：wafl500 の冷却の人間の判断待ち（B120） |
-| 9 | B2 | レバー `d0009.B2_split_reranker` | 未着手 |
+| 9 | B2 | レバー `d0009.B2_split_reranker` | 着手：Iteration 37（値 `multi_gpu_scoring`．採点だけの測定で，wafl502〜509 の GPU を 1〜8 枚使う．`.claude/research/backlog.md` の B122） |
 | − | C1 | 運用ルール 10：A1〜A6・B3 の判定は新しく分けた質問か別のデータセットで行う | 全イテレーションに適用 |
 | − | C2 | 運用ルール 11：選択まで実機で通す．オフラインならその旨と一致の確かめの範囲を併記する | 全イテレーションに適用 |
 | − | C3 | 運用ルール 12：C3 の記録の名前・置き場所を変えない | 全イテレーションに適用 |

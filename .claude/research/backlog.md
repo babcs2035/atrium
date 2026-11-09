@@ -17,6 +17,20 @@
 
 ---
 
+## B122 [auto-decided 2026-11-10] Iteration 37（d0009 B2・採点の分散）の設計：採点だけの測定で，wafl502〜509 に採点の server を置き，GPU の数 G ∈ {1, 2, 4, 8} の処理量の伸びを測る．wafl500・501 は使わず，生成と同時の全構成は測らない
+- 状況: B121 (3) の条件（wafl500 に持続の負荷をかけない設計）で B2 を設計した．コードの確認で，(i) 主構成の採点は質問者の `CrossEncoderReranker.scores`（15 組/問．lock で 1 GPU の上は直列）を `CandidateScorer` の Protocol 越しに呼ぶ，(ii) 制御点は CPU 専用で Iteration 29〜36 は表（`ce_scores: table`）で採点を除いていた，(iii) 採点のプロセスは RTX 3060 で 7.0〜7.8 GB で，llama3.1:8b（約 6.7 GB）と同じ 12 GB の GPU に載らない（F-6），(iv) H の 288 問の 15 組/問の入力は `results/d0009_a3_p1` に保存済み，と分かった．
+- 自動選択:
+  (1) 採点だけの測定（生成・probe は流さない）．生成と同時の全構成は wafl500 を含む配置で持続の負荷になるので測らず，GPU を生成と採点で分け合う場合の上限は Iteration 29 の値からの見積もり（記述）にとどめる．
+  (2) 採点の GPU は wafl502〜509 の入れ子（G = 1 は 502）．wafl500 は B120 のため，wafl501 は SW Thermal Slowdown の累計が最大（5,829 秒）のための予防として使わない（B121 要レビュー (a) の「9 台まで」をさらに 8 台にした）．
+  (3) 振り分けは質問者の 1 か所で，未完了の要求の最も少ない GPU へ（Mitzenmacher 1996・HAProxy の比較．journal の Iteration 37 の出典）．
+  (4) 計算の中身（モデル・revision・batch 4・dtype・最大長・候補ごとの呼び出し）は変えない．得点の一致（表との差 ≤ 1e−3・選択の一致）を G-S で本番の前に確かめる．
+  (5) 各機の自分たちの Ollama の llama3.1:8b は実行の前に `keep_alive: 0` で VRAM から降ろす（共存できないため）．
+  (6) 熱の扱い：各実行の前に 60 °C 以下・SW Thermal Slowdown が Not Active まで待ち，83 °C 以上か減速が起きた実行は止めて無効にする．
+  (7) config.yaml の実験の経路（`atrium run`）には載せず，新しい CLI（採点の server・負荷の生成）の引数で送り先を渡す．運用ルール 1 の「config.yaml の 1 キー」ではなく CLI の変数 G をレバーにする（Iteration 9 の `atrium node-bench` と同じ扱い）．運用ルール 2 の役割は，生成を止めた時間帯に wafl502〜509 を採点だけに使うので「同時に 2 つの役割」に当たらないと読む（p0004 の解釈）．
+- 根拠: B2 の問い（採点が律速なら複数の GPU に分けて取り除けるか）の前提は「採点の処理量が GPU の数に比例して伸びるか」で，これは採点だけの測定で答えられ，wafl500 に負荷をかけない．生成と同時に流すには GPU の割り当て（生成と採点の分け方）と委託先の配置を変える必要があり，B1 と同じく wafl500 が関わる．全て追加だけの CLI で，既存の設定・results は変えず，Ollama のモデルを降ろす操作は次の生成の要求で戻る．
+- 不可逆・人間の判断を要する事項: 無い．
+- 要レビュー: (a) wafl501 を除いたことで格子は 8 枚まで．(b) 生成と同時の全構成で採点を分けた値は測らない．後の反復で `retrieval.ce_scores: remote`・`cluster.scorers`（追加だけ）として実験の経路に載せるかは結果を見て決める．(c) 採点の要求で文脈の文書が採点の PC へ渡る（E_pair が増える）．候補を生成した GPU の PC で採点する形なら新たに送らずに済むが，共存できないので今回は扱わない．(d) 熱の閾値 60 °C・83 °C は NVIDIA の「約 85 °C で減速」と Iteration 36 の wafl500 の 82 °C から置いた．
+
 ## B121 [auto-decided 2026-11-10] Iteration 36（d0009 B1・外す仕組みの再測定）は判定不能．値 `health_check_exclusion` を閉じずに B1 を保留し（B120 の人間の判断待ち），Iteration 37 のレバーは `d0009.B2_split_reranker` の値 `multi_gpu_scoring`（wafl500 に持続の負荷をかけない設計に限る）
 - 状況: Iteration 36 の phase 3．G-V は通過（288 問で不一致 0）．smoke は `fail_threshold` 1 で誤検出 3 回，事前登録で 1 回だけ許した閾値 2 の smoke_ft2 で 0 回．外す仕組み無しの D0 で G-ENV が不通過（止める前に答えられた割合 0.656・回答を返した割合 0.718・availability の `deadline` 55 件・G-GPU-post 不通過）．D0 の時間帯に wafl500 の生成が 15:17〜15:27 UTC に 10〜15 トークン/秒へ落ち，SW Thermal Slowdown の累計が +934 秒（他の 9 台は 0）．本番 r1〜r3 は流していない．詳細は journal の Iteration 36「実行済み」．
 - 自動選択:

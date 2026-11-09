@@ -3,6 +3,104 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 37: cross-encoder の採点を複数の GPU に分けたときの処理の速さ
+
+**位置づけ**：レバー `d0009.B2_split_reranker` の値 `multi_gpu_scoring`（backlog B121 (3)）．B1 は wafl500 の冷却の人間の判断（B120 [needs-human]）まで保留し，**wafl500 に持続の負荷をかけない設計に限って** B2 に着手する．設計の判断は backlog B122．d0009 B2 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，smoke と本番の実機の実行より前に，実装とこの節を同じ commit に入れて push する**．
+
+### 調査で分かったこと
+
+**(1) 今の採点の経路と費用（コードと既存の results の確認．事実）**
+- 主構成（`owner_answer`・`answer.aggregate: cross_encoder`）では，質問者が 3 候補の文脈の上位 5 通（計 15 組）を `CrossEncoderReranker.scores`（`BAAI/bge-reranker-v2-m3`・固定の revision・`batch_size` 4．`src/atrium/requester.py`）で候補ごとに 1 回ずつ採点し，候補ごとの最大で選ぶ（R3′）．`threading.Lock` のため 1 つの GPU の上では直列である．`Requester._candidate_ce_scores` は `CandidateScorer` の Protocol（`scores(query, texts)`）を通して呼ぶ．
+- 制御点 wafl-ctrl5 は CPU 専用（運用ルール 8）なので，Iteration 29〜36 の実機は `retrieval.ce_scores: table`（gpu4 で事前に計算した表 `ce_table/holdout_owner.jsonl` を引く）で採点の計算を除いていた．
+- 1 問の採点の費用：gpu4（RTX 5090）で H の 288 問・15 組/問の平均 0.218 秒（中央値 0.202．`results/d0009_a6_load/table/cost.json`）．RTX 3060（制御点の旧 GPU）では p0007 F-6 で parallel 1 の p50 1.31 秒，空いた GPU の処理量 0.60 問/秒（journal_archive の F-6．`results/p0007_f6_verdict/sim_vs_live.json`）．Iteration 29 の見積もりで，採点を RTX 3060 1 枚に置くと P2P は 1.32 → 0.53 問/秒（採点が律速）．
+- **GPU メモリ**：F-6 の実測で採点のプロセスは 7.0〜7.8 GB（長いメールで PyTorch の確保が膨らむ）．生成の llama3.1:8b（約 6.7 GB）と合わせると約 13.7 GB で，wafl500〜509 の RTX 3060（12 GB）に同時には載らない（d0009 B2 の注記）．
+- 採点の入力は保存済み：Iteration 29 と同じ H の 288 問（`question_split: holdout`・`question_limit: 2`）の全てで，`results/d0009_a3_p1/results.jsonl` の `owner_answer.candidates[].context_doc_ids` が 3 候補 × 5 通＝15 組そろう（計 4,320 組．cost.json の `n_unique_pairs` と同じ数）．
+
+**(2) 外部の情報（tavily．出典付き．事実と推測を分ける）**
+- bge-reranker-v2-m3 は XLM-RoBERTa-Large 系の 568M パラメータの cross-encoder で（BGE documentation "BGE Reranker"．https://bge-model.com/tutorial/5_Reranking/5.2.html ），最大長は 8,192 トークン，学習は最大長 1,024 で行ったので `max_length=1024` を推奨する，と作者が答えている（Hugging Face のモデルの議論 #9．https://huggingface.co/BAAI/bge-reranker-v2-m3/discussions/9 ）．fp16 は速いが性能がわずかに下がる（同じ BGE documentation）．→ 最大長・fp16・batch の大きさは得点を変えるので，今回は変えない（単一レバー）．F-6 の 7〜8 GB は長いメールを切らずに入れていることと合う（推測）．
+- 第三者の測定（TEI・fp16・Flash Attention・batch 64・短い文の条件）では RTX 3060 で毎秒 1 万組以上の値も載っているが（GigaGPU "Self-Hosted BGE Reranker Deployment Guide"．https://gigagpu.com/self-hosted-bge-reranker-deployment ．Spheron "Self-Host Embeddings and Rerankers: TEI on GPU Cloud"（2026）．https://www.spheron.network/blog/self-host-embedding-reranker-tei-gpu-cloud ），条件が違い（本基盤は fp32 相当・batch 4・長いメール），ベンダーのブログで測り方も分からないので参考にとどめる．本基盤の RTX 3060 の値は F-6 の約 11 組/秒．
+- 複数の複製への振り分け：待っている要求の最も少ない先へ送る方式（least connections・join the shortest queue）は，振り分けが 1 か所に集まる場合に最も偏りが小さい．無作為の 2 つから選ぶ方式は，振り分ける側が分散して状態が古い場合の近似である（M. Mitzenmacher, "The Power of Two Choices in Randomized Load Balancing", 博士論文, 1996．https://www.eecs.harvard.edu/~michaelm/postscripts/mythesis.pdf ．HAProxy "Test driving power of two random choices load balancing"．https://www.haproxy.com/blog/power-of-two-load-balancing ）．→ 今回の振り分ける側は質問者 1 つなので，待ちの最も少ない GPU へ送る形にする．
+- 浮動小数の一致：PyTorch は，同じ入力・同じ dtype でも計算の backend が違えば累積の順が違い，ビット単位の一致を保証しない（PyTorch "Reproducibility"．https://docs.pytorch.org/docs/stable/notes/randomness.html ）．→ 表（gpu4 の RTX 5090）と RTX 3060 の得点は完全には一致しない見込みで，許容の幅と選択の一致をゲートにする．
+- 熱：多くの GPU は約 85 °C で driver がクロックを下げ，能動冷却の GPU で起きるならファンの故障か吸排気の障害を疑う（NVIDIA TensorRT "Hardware/Software Environment for Performance Measurements"．https://docs.nvidia.com/deeplearning/tensorrt/10.x.x/performance/hw-sw-environment.html ）．`clocks_event_reasons.sw_thermal_slowdown` で問い合わせられる（nvidia-smi `--help-query-gpu` の写し．https://gist.github.com/sansmoraxz/8a98d987f12d7edc983d611b8326fc67 ）．→ Iteration 36 の学びのとおり，流している間の SW Thermal Slowdown と温度を記録し，減速した実行を除く．
+
+### 仮説
+
+cross-encoder の採点は GPU ごとに独立で，問どうしに依存が無いので，質問者が採点を G 枚の GPU（wafl502〜509 の RTX 3060）へ待ちの最も少ない先に振り分ければ，採点の処理量 X(G) は G にほぼ比例して伸びる（G = 4 までの効率 E(G) = X(G) / (G·X(1)) ≥ 0.85）．X(1) は F-6 と同じ程度（約 0.5〜0.75 問/秒）で，G = 4 で Iteration 29 の P2P の処理量 1.32 問/秒（採点を表で除いた値）を超え，採点は律速でなくなる．
+
+### 単一レバー
+
+**候補の文脈の cross-encoder の採点を置く GPU の数**を，「1 つの GPU で直列（今の `CrossEncoderReranker`．F-6 の質問者の GPU に当たる）」から，**「G 枚の GPU に 1 つずつ採点の server を置き，質問者が候補ごとの採点の要求を，送っていて未完了の要求の最も少ない GPU へ送る」**へ替える．G ∈ {1, 2, 4, 8}．
+- 採点の server の GPU は **wafl502〜509**（G = 1 は wafl502，G = 2 は 502・503，G = 4 は 502〜505，G = 8 は 502〜509 の入れ子）．**wafl500 は使わない**（B120）．**wafl501 も使わない**（SW Thermal Slowdown の起動からの累計が 5,829 秒で 10 台の最大．Iteration 36 の今回分の差は 0 だが，共有の機材に熱の負荷を寄せない予防．B122）．
+- 計算の中身（モデル・revision・`batch_size` 4・dtype・最大長・文の作り「題 + 改行 + 本文」・候補ごとに 5 通ずつ 1 回の呼び出し）は今の `CrossEncoderReranker.scores` のまま変えない．
+
+### 固定する構成
+
+- 採点の入力：H の 288 問（Iteration 29・30・36 と同じ．`holdout`・`question_limit: 2`）の 3 候補 × 上位 5 通（`results/d0009_a3_p1/results.jsonl` の `context_doc_ids`．本文は制御点のデータの corpus から引く）．問は `itertools.cycle` で同じ順に回す．
+- 負荷：閉じた系．同時の問の数 C = 30（Iteration 29 の parallel 30 と同じ）．1 問は 3 候補の採点の要求（各 5 通）を順に送り，3 つ目が返ったら完了．負荷の生成は制御点 wafl-ctrl5 の CPU（運用ルール 8 の範囲．GPU は使わない）．
+- 実行の窓：慣らし 20 秒（数えない）＋測る区間 120 秒．
+- **生成・取得・probe は流さない**（採点だけの測定．B121 の「wafl500 に持続の負荷をかけない設計」）．30 台の専門家は deploy しない（今の配置・config.yaml の `cluster.experts` は変えない）．
+- GPU：使う機の自分たちの Ollama（`atrium-ollama-1`）の llama3.1:8b を，各実行の前に `keep_alive: 0` で VRAM から降ろす（13.7 GB の共存はできないため．取り消せる操作で，モデルのファイル・container・image は消さない．終わったら降ろしたままでよく，次の deploy・生成の要求で載る）．他の研究者のプロセスには触れない．gpu4 の GPU は使わない（運用ルール 14）．モデルは各機の `~/.cache/huggingface/` に `hf` CLI で取得したものを読み取り専用で mount する（運用ルール 15．無ければ `hf download BAAI/bge-reranker-v2-m3 --revision <固定の revision>`）．
+
+### 実行の手順と順序（事前に固定）
+
+1. **G-ENV0（各機の空きと熱．最初に 1 回）**：wafl502〜509 で nvidia-smi により他の研究者の GPU のプロセスが 0（あれば最大 2 時間待ち，空かない機があれば下の「台数が足りないとき」），SW Thermal Slowdown・HW Slowdown が Not Active，温度 ≤ 60 °C．SW Thermal Slowdown の累計を記録する．
+2. **G-S（得点の一致．本番の前）**：G = 8 で H の 288 問を 1 周だけ採点し（負荷は C = 30），全 4,320 組の得点を表 `ce_table/holdout_owner.jsonl`（sha256 を記録）と比べる．**全組で |差| ≤ 1e−3**，かつ R3′ の選んだ候補の番号が **288 問の全てで表の選択と一致**（ただし表の上位 2 候補の得点の差が 2e−3 未満の問の食い違いは同点として許し，数を記録する）．満たさなければ本番を流さない（GPU の違いを超える食い違いは実装の誤りとみなす）．GPU ごとの最大の差も記録する．
+3. **校正（GPU ごとの速さ．記述と G-CAL）**：各機を 1 枚ずつ C = 30・慣らし 10 秒・区間 60 秒で流し，x_h（問/秒）を得る．**G-CAL**：8 台の x_h が中央値の ±15% に入る．外れる機は記録し，その機を入れ子の最後（G = 8 だけに入る位置）へ回す（順の入れ替えは本番の前に 1 回だけ）．
+4. **smoke**：G = 2・区間 30 秒．失敗の要求 0 件，両方の GPU に要求が届くこと．
+5. **本番**：G ∈ {1, 2, 4, 8} を 3 ラウンド．ラウンドごとに G の順を種 37 の無作為な並べ替えで決める（Iteration 29 と同じ交互の形）．**各実行の前**に使う全ての機で温度 ≤ 60 °C・SW Thermal Slowdown が Not Active になるまで待つ（最大 15 分．冷ます時間を記録）．
+
+### 測るもの
+
+- 主：X(G)＝測る区間に完了した問の数 ÷ 区間の秒数（問/秒）．E(G) = X(G) / (G·X(1))（同じラウンドの X(1)）．
+- 記述：問の採点の待ち時間（完了までの p50・p95），GPU ごとの受けた要求の数と GPU の使用率（nvidia-smi 1 秒ごと），各機の最大の GPU メモリ，温度の最大，SW Thermal Slowdown の累計の前後の差，制御点の CPU（/proc/stat），失敗の要求の数，校正の x_h の和 Σx_h に対する X(G) の比．
+- 記述（見積もり．測定ではない）：同じ 10 枚の GPU を生成と採点で分け合う場合（同じ GPU に共存できないので，G 枚を採点に回すと生成は 10 − G 枚）の P2P の処理量の上限 min(1.32 × (10 − G) / 10, X(G)) を G ごとに計算する（Iteration 29 の「比は GPU の枚数 ÷ 1 問あたりの生成の数でおおむね説明できる」による線形の仮定）．
+
+### ゲートと有効な実行
+
+- **有効な実行**：失敗の要求 0 件，使った全ての機で区間の SW Thermal Slowdown の累計の差 0 秒・温度の最大 < 83 °C，他の研究者の GPU のプロセスが 0．**安全の打ち切り**：実行中にどの機かが 83 °C 以上か SW Thermal Slowdown が Active になったら，その実行を止めて無効にし，その機の温度が 60 °C 以下に戻るまで次を流さない（共有の機材に高温の負荷をかけ続けない．Iteration 36 の学び）．
+- 無効になった実行は，同じラウンドの最後に 1 回だけ流し直してよい．同じ機で 2 回無効になったら，その機を含む G の残りの実行を流さず，B122 の手順（下の「台数が足りないとき」）に従い，backlog に記録する．
+- **台数が足りないとき（事前に固定）**：G-ENV0 か熱の打ち切りで使える機が 8 台に足りなければ，G の格子を {1, 2, 4, 使える台数} に置き換える（4 台未満なら {1, 2, 使える台数}）．wafl500・wafl501 で補わない．
+
+### 判定の規則
+
+- **H-B2a（主．比例して伸びるか）**：G = 2・4 の両方で，有効なラウンドの全てで E(G) ≥ 0.85 なら「伸びる」．G = 4 で有効なラウンドの全てで E(4) < 0.70 なら「伸びない」．それ以外は「決まらない」．
+- **H-B2b（採点が律速でなくなる台数）**：有効なラウンドの全てで X(G) ≥ 1.32 問/秒（Iteration 29 の P2P の処理量の中央値 1.3205）となる最小の G を G* とする（無ければ「8 枚でも律速」）．
+- **H-B2c（記述）**：E(8) と，G = 8 で頭打ちのときに律速の候補（制御点の CPU の張り付き・GPU の使用率の低下・要求の偏り）のどれと合うか．
+
+### 成功条件（事前登録）
+
+(1) G-ENV0・G-S・G-CAL（入れ替えを含む）・smoke を通過し，(2) G ごとに有効なラウンドが 2 以上あり，(3) H-B2a・H-B2b を判定し，記述を `results/d0009_b2_split_scoring/{verdict.json,b2_summary.json,analysis_report.md}` に書く．
+- **採用**：(1)〜(3) を満たし，H-B2a が「伸びる」．値 `multi_gpu_scoring` を閉じる．
+- **棄却**：(1)〜(3) を満たし，H-B2a が「伸びない」．律速の候補を記録して値を閉じる．
+- 「決まらない」は採用でも棄却でもない記述として値を閉じる（ラウンドを足さない）．
+- (1) か (2) を満たさなければ判定不能で，値を閉じずに原因を backlog に残す．G-S が不通過なら本番を流さない．
+
+**ノイズの目安**：Iteration 29 の同じ条件のラウンドの揺れは P2P 0.19%・中央 0.8%（生成の律速の値）．F-6 では GPU の共有の状態で採点の処理量が実行ごとに大きく動いた（0.60 と 0.241）．今回は他の研究者のプロセスが 0 で熱の減速の無い実行だけを使うので，揺れは数 % の見込み（推測）．閾値 0.85 と 0.70 はこの揺れより十分に大きい差として置いた．
+
+### 期待効果（見込み．検証対象ではない）
+
+X(1) ≈ 0.55〜0.75 問/秒，E(2)・E(4) ≈ 0.95，E(8) ≈ 0.9（8 × 約 0.6 ≈ 4.5〜5 問/秒．制御点の CPU は 1 問 15 本の文の JSON で余裕がある見込み）．G* = 3 の候補は格子に無いので G* = 4 の見込み．分け合いの見積もりでは G = 2 前後で min(1.32 × (10 − G)/10, X(G)) が最大（約 1.0〜1.1 問/秒．今の 1 枚の 0.53 の約 2 倍）．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
+
+- `src/atrium/requester.py`：`CandidateScorer` を満たす新しいクラス（例 `RemoteCandidateScorer`．採点の server の URL の列を受け取り，候補ごとの要求を未完了の要求の最も少ない先へ送る．同数なら列の順．送り先ごとの数を記録できる）．`_candidate_ce_scores` は変えない．
+- 採点の server：新しい CLI（例 `atrium score-server`．FastAPI の `POST /v1/score`（`{query, texts}` → `{scores, duration_s}`）と `GET /healthz`）．中身は既存の `CrossEncoderReranker.scores` を呼ぶだけ（lock も同じ）．wafl502〜509 で既存の torch を持つ image の container として動かす（`scripts/remote/` に起動と停止の script．作業ディレクトリは `~/workspace/ktakahashi/atrium` の下だけ．運用ルール 15）．
+- 負荷の生成：新しい CLI（例 `atrium score-bench`．`atrium node-bench` と同じ閉じた系・慣らしと区間の形）．入力は H の 288 問の `context_doc_ids` と corpus の本文．G-S の 1 周の得点の書き出し（`--dump-scores`）．
+- 設定：今回は config.yaml の実験の経路（`atrium run`）に載せない．`retrieval.ce_scores` に値 `remote` と `cluster.scorers`（既定は空）を足すのは，生成と合わせた実機に載せる後の反復で行う（今回は CLI の引数で送り先を渡す．既存の設定ファイルの形を変えない）．
+- chain：`scripts/d0009/b2_chain.sh`（G-ENV0 → Ollama のモデルを降ろす → server の起動 → G-S → 校正 → smoke → 本番 → server の停止 → 後の nvidia-smi の記録）．実行名は `results/d0009_b2_split_scoring_{gs,cal_<host>,smoke,r<round>_g<G>}/`．各実行の前後で nvidia-smi（他のプロセス・温度・clocks event reasons・SW Thermal Slowdown の累計）を残す．ssh と curl に再試行を入れる（Iteration 36 の学び）．
+- 集計：`scripts/d0009/b2_verdict.py` → `results/d0009_b2_split_scoring/`．
+- 試験：振り分け（未完了の最も少ない先・同数のときの順・失敗の扱い）と server の要求と応答の形を単体の試験で確かめる（モデルは偽物で可．採点の一致は G-S で実機の GPU で確かめる）．
+- B118（`tests/test_failure_run.py`）と提案 X1〜X3 は混ぜない．
+
+### 主張できない範囲（事前に書く）
+
+- 生成・取得・probe と同時に流した全構成の処理量（測らない．生成と採点を同じ GPU に置けない制約の下での上限は見積もりだけ）．
+- 10 枚の GPU の値（wafl500・501 を使わないので 8 枚まで）．wafl500・501 の採点の速さ．
+- 採点の要求で文脈の文書が採点の PC へ渡ることによる露出の増加（E_pair は増える．E_any は質問者へ渡る文書と同じ集合なので増えない見込みだが測らない）．採点を候補の生成をした GPU の PC で行えば文書を新たに送らずに済む形もあるが，生成との共存ができないので今回は測らない．
+- fp16・最大長 1,024・大きい batch・TEI などの速い実装での値（得点を変えるので別のレバー）．
+- V2（Gemma 4 12B の検証）の費用の分散（今回の対象は R3′ の cross-encoder の採点だけ）．
+- RTX 3060 以外の GPU の値，熱の減速が起きる状態での値（その実行は除く）．
+
 ## Iteration 36: 停止した PC を外す仕組みで増えた打ち切りの原因の切り分けと再測定
 
 **位置づけ**：レバー `d0009.B1_drop_failed_peers` の値 `health_check_exclusion` の追加の反復（backlog B117 (2)・申し送り (a)〜(d)）．Iteration 35 は平常の区間のゲート（G-FP (i)・G-B）が 3 ラウンドとも不通過で判定不能だった．phase 1 で既存の記録を照合して打ち切りの原因の候補を絞り，外す仕組みの値・設定は Iteration 35 のまま，実行の環境を確かめるゲートを足して同じ規則で 3 ラウンドを流し直す．設計の判断は backlog B119．d0009 B1 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である（Iteration 35 の事前登録のうち，ここで書き換えない項目はそのまま引き継ぐ）．**rc-executor は，D0 と本番の実機の実行より前に，実装とこの節を同じ commit に入れて push する**．
