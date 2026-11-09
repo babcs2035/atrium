@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 34,
-  "iteration_name": "中央集約の停止時間を変えたときの障害の比較の確かめ",
+  "iteration": 35,
+  "iteration_name": "停止した PC を問い合わせ先から外す仕組みの障害時の効果",
   "phase": "evaluate",
   "status": "running",
-  "current_lever": "d0009.A5_extend_measurements=central_outage_sweep",
-  "experiment_dir": "results/d0009_a5_outage_sweep",
-  "experiment_deadline": null,
-  "updated_at": 1794224552,
-  "last_slack_ts": "1794224786.176089",
-  "iteration_thread_ts": "1794225153.803579",
+  "current_lever": "d0009.B1_drop_failed_peers=health_check_exclusion",
+  "experiment_dir": "results/d0009_b1_exclusion_r{1,2,3}",
+  "experiment_deadline": 1794257499,
+  "updated_at": 1794232767,
+  "last_slack_ts": "1794225805.798279",
+  "iteration_thread_ts": "1794226279.830149",
   "notion_toggle_created": true,
-  "last_commit": "9477edd"
+  "last_commit": "3c7539d"
 }

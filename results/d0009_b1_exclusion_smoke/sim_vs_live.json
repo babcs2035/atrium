@@ -1,0 +1,20 @@
+{
+ "rows": [
+  {
+   "mode": "availability",
+   "k": 1,
+   "predicted_fault_hit_rate": 0.9375,
+   "live_fault_hit_rate": 0.7777777777777778,
+   "difference": -0.1597222222222222
+  },
+  {
+   "mode": "container",
+   "k": 1,
+   "predicted_fault_hit_rate": 0.896551724137931,
+   "live_fault_hit_rate": 0.9166666666666666,
+   "difference": 0.02011494252873558
+  }
+ ],
+ "max_abs_difference": 0.1597222222222222,
+ "causes": "予測は正解の受信箱が止まった質問だけが答えられないとする．実機では，止まったノードに probe・本照会を送る質問も時間切れで答えられず（要求を送る先は正解の受信箱とは限らない），予測より低くなる．質問の数が少ないと割合が揺れる"
+}

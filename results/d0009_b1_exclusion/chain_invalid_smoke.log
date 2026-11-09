@@ -1,0 +1,12 @@
+[21:24:30] deployed (fail_threshold=1)
+[2026-11-09_21:24:30] BEGIN d0009_b1_exclusion_smoke (D=30)
+[21:24:32] max other-process GPU memory on wafl500-509: 0 MiB
+[21:25:34] max other-process GPU memory on wafl500-509: 0 MiB
+[21:26:37] max other-process GPU memory on wafl500-509: 0 MiB
+[21:26:37] d0009_b1_exclusion_smoke confound=none
+[21:29:46] d0009_b1_exclusion_smoke live_run=0
+[21:29:48] d0009_b1_exclusion_smoke G-R ok (all nodes serving)
+[21:29:49] d0009_b1_exclusion_smoke table_miss=0
+[21:29:49] smoke false_positive_drops=0 (fail_threshold=1)
+[2026-11-09_21:29:49] BEGIN d0009_b1_exclusion_r1 (D=30)
+[21:29:51] max other-process GPU memory on wafl500-509: 0 MiB

@@ -1,0 +1,42 @@
+{
+ "iteration": 35,
+ "gates": {
+  "G_T": "mise run check の結果は journal に記録（このスクリプトでは確かめない）",
+  "G_TB_live_table_miss_total": 0,
+  "G_R_all_rounds": true,
+  "G_FP_ii_false_positive_drops_by_round": {
+   "d0009_b1_exclusion_r1": 10,
+   "d0009_b1_exclusion_r2": 5,
+   "d0009_b1_exclusion_r3": 7
+  },
+  "G_FP_i_pre_stop_hit_rate_by_round": {
+   "d0009_b1_exclusion_r1": 0.8453038674033149,
+   "d0009_b1_exclusion_r2": 0.8342857142857143,
+   "d0009_b1_exclusion_r3": 0.8181818181818182
+  },
+  "n_valid_rounds": 0
+ },
+ "valid_rounds": [],
+ "adopted": false,
+ "H_B1a_hypothesis_holds": false,
+ "H_B1a_container": {},
+ "H_B1b_availability": {},
+ "H_B1b_down_direction_ks": [],
+ "conditions": [],
+ "note": "F は止めた間に聞いた問のうち答えられた割合．終わった時刻の版（再開の確認より前に終わった問）を主とする．",
+ "verdict_revised": {
+  "decided_in": "Iteration 35 phase 3（rc-evaluator．2026-11-09）．既存のキー（gates・valid_rounds・adopted ほか．この実行の verdict_original に当たる）は変えていない．scripts/d0009/b1_verdict.py を流し直すとこの欄は消える",
+  "decision": "判定不能（採用でも棄却でもない）．事前登録の成功条件 (2)『有効なラウンドが 2 以上』を満たさない（有効なラウンド 0）ので，H-B1a・H-B1b は判定していない．ゲートの値（G-FP (i) 0.86・G-B 0.95）は変えない．adopted: false は『採用しない』の意味で，棄却ではない",
+  "value_status": "値 health_check_exclusion は閉じない．Iteration 36 で原因を切り分け，同じ事前登録の規則とゲートで 3 ラウンドを流し直す（backlog B117）",
+  "gate_failure_pattern": {
+   "summary": "止める前の未返答はラウンドあたり 12・14・16 件で，全てが条件の開始直後に同時に出す最初の 8 本のうちの 7・8 本目（同じ 2 つの位置）だった．24 条件のうち 21 条件で起き，起きなかったのは r1 の 1・2 条件目と r2 の 4 条件目．smoke の 2 条件では起きていない．Iteration 30 の 24 条件では 0 件",
+   "shape": "availability の条件では 2 本とも締め切り 30.0 秒の deadline．container k=6・10 では 1 本が止める操作の時刻（約 −0.3 秒）に RemoteProtocolError（e2e 約 25.5 秒）で落ち，もう 1 本が deadline．つまり 2 本とも止める前から応答が無いまま待っていた",
+   "where_not": "r1 の 3 条件目の開始の 1 秒以内に最初の 8 本の probe 192 件は全て 200 で返っている．待ちは probe の後（持ち主の回答の要求か生成）で起きている．n_visible は 30（何も外れていない）．HTTP の池はノードごとに 64 接続（http_pool: per_node）で，接続の数の上限ではない",
+   "counterfactual_reference": "参考（判定に使わない）：この 2 本を除くと止める前の答えられた割合は r1 0.905・r2 0.907・r3 0.900，回答を返した割合は 3 ラウンドとも 1.0 で，両ゲートの基準を超える．ゲートの不通過はこの現象だけで説明できる",
+   "cause": "未特定．候補は (a) 生存確認の監視が質問者と同じ httpx の client を使い，asyncio.wait_for で打ち切った確認が池か接続の状態を残す，(b) 打ち切った問の生成がノード・GPU に残り後の問を待たせる（r1 の 3 条件目の前の条件にも打ち切りが 9 件ある），(c) 生存確認の負荷，(d) 48ed798 の visible の経路で，全ノードが見えていても選ぶ受信箱が Iteration 30 と違う問があり，その問の生成が長い．各条件は itertools.cycle で同じ順に問を流すので，同じ問に固有の可能性がある",
+   "deadline_beyond_start": "締め切りの打ち切りは開始直後に限らない．availability の条件の打ち切りは 1 条件あたり 9〜17 件（Iteration 30 の availability は 24 条件の全てで 0 件）で，止める前・止めた間・再開の後（t > 45 秒）のいずれにもある．r1 の 1 条件目（availability k=1）だけ 0 件，2 条件目は t = 39.7 秒から始まる．r1 の 3 条件目と r2 の 8 条件目（どちらも availability k=10）では打ち切りの時刻の列が 0.1 秒の単位まで一致し，問ごとに決まった挙動に見える．したがって参考値の availability の『やや下がる向き』と container の値も，この打ち切りを含む"
+  },
+  "deviation_from_preregistration": "journal の『visible_urls の更新だけで足りる（requester.py の経路は変えない）』は bm25_probe では成り立たず，SummaryProbeRouter.candidates_with_scores に省略可能な引数 visible を足した（commit 48ed798．visible が None なら従来と同じ．本番の前に push）．外したデバイスを除いた上位 D 台を選ぶ形で，事前登録の単一レバー（止まったと判定したノードを 1 段目の候補・probe・回答の送り先から外す）の意味は変わらない．事前登録からの偏差として記録し，Iteration 36 の事前登録ではこの経路を前提に書く",
+  "reference_values_invalid_rounds": "参考（無効なラウンド．判定ではない）：止めた間の F（終わった時刻の版）は container k=1・3・6・10 が 0.38〜0.50・0.39〜0.41・0.27〜0.33・0.29〜0.45（Iteration 30 は 0.12〜0.13・0・0・0）で，H-B1a の基準（F30_max ＋ 0.15 = 0.275・0.15・0.15・0.15）を全て上回る向き．availability は k=1・3 が 0.45〜0.57・0.47〜0.55（Iteration 30 0.57・0.52），k=6・10 が 0.24・0.24（0.27〜0.28・0.32）で同程度かやや下がる向き"
+ }
+}

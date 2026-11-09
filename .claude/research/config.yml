@@ -399,7 +399,11 @@ levers:
             p0007 E1 と同じ条件で効果を測る．A1（複数の質問者の障害）の結果があれば合わせて読む．
             着手：Iteration 35（事前登録は journal の Iteration 35．backlog B116）．追加だけのキー experiment.peer_health（間隔 1 秒・打ち切り 2 秒・1 回の失敗で外し 1 回の成功で戻す．
             送り先は追加の GET /v1/alive）で Requester.visible_urls を更新する．外すのは止まったノードだけ（委託先が止まった CPU の台は記述 delegate_down で数える）．
-            Iteration 30 と同じ止め方・k・H の 288 問・締め切り 30 秒で 3 ラウンド実機．主は止めた間の答えられた割合（再開の前に終わった版）で，H-B1a（container で +0.15 以上）・H-B1b（availability は |差| ≤ 0.10）．"}
+            Iteration 30 と同じ止め方・k・H の 288 問・締め切り 30 秒で 3 ラウンド実機．主は止めた間の答えられた割合（再開の前に終わった版）で，H-B1a（container で +0.15 以上）・H-B1b（availability は |差| ≤ 0.10）．
+            Iteration 35 の結果（2026-11-09．判定不能〔採用でも棄却でもない〕．値は閉じない）：G-FP (i) 0.818〜0.845（基準 0.86）・G-B 0.909〜0.934（基準 0.95）が 3 ラウンドとも不通過で有効なラウンド 0．
+            Iteration 30 に無かった締め切りの打ち切り（availability で 1 条件 9〜17 件．止める前は各条件の最初の 8 本の 7・8 本目）が原因で，その原因は未特定．
+            結果は results/d0009_b1_exclusion/verdict.json（verdict_revised），記述は journal の Iteration 35「実行済み」．本番の前に SummaryProbeRouter に省略可能な引数 visible を足した（48ed798．偏差）．
+            次は Iteration 36 で同じ値の打ち切りの原因を切り分け，同じ規則・ゲートで 3 ラウンドを流し直す（backlog B117）．"}
   - {name: d0009.B2_split_reranker, values: [multi_gpu_scoring],
      note: "d0009 B2（中）．cross-encoder の採点を複数の GPU に分ける．生成が速い条件では質問者の採点が律速になる（A1 と関連）．
             採点のモデルは 8B の生成モデルと同じ 12 GB の GPU に共存できなかった（journal の F-6）ので，採点を置く GPU の割り当ても合わせて設計する．

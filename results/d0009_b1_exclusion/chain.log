@@ -1,0 +1,36 @@
+[21:45:46] deployed (fail_threshold=1)
+[2026-11-09_21:45:46] BEGIN d0009_b1_exclusion_smoke (D=30)
+[21:45:48] max other-process GPU memory on wafl500-509: 0 MiB
+[21:46:50] max other-process GPU memory on wafl500-509: 0 MiB
+[21:47:53] max other-process GPU memory on wafl500-509: 0 MiB
+[21:47:53] d0009_b1_exclusion_smoke confound=none
+[21:51:31] d0009_b1_exclusion_smoke live_run=0
+[21:51:33] d0009_b1_exclusion_smoke G-R ok (all nodes serving)
+[21:51:33] d0009_b1_exclusion_smoke table_miss=0
+[21:51:33] smoke failure_kind=other count=0
+[21:51:33] smoke false_positive_drops=0 (fail_threshold=1)
+[2026-11-09_21:51:33] BEGIN d0009_b1_exclusion_r1 (D=30)
+[21:51:35] max other-process GPU memory on wafl500-509: 0 MiB
+[21:52:37] max other-process GPU memory on wafl500-509: 0 MiB
+[21:53:40] max other-process GPU memory on wafl500-509: 0 MiB
+[21:53:40] d0009_b1_exclusion_r1 confound=none
+[22:12:34] d0009_b1_exclusion_r1 live_run=0
+[22:12:36] d0009_b1_exclusion_r1 G-R ok (all nodes serving)
+[22:12:36] d0009_b1_exclusion_r1 table_miss=0
+[2026-11-09_22:12:36] BEGIN d0009_b1_exclusion_r2 (D=30)
+[22:12:38] max other-process GPU memory on wafl500-509: 0 MiB
+[22:13:40] max other-process GPU memory on wafl500-509: 0 MiB
+[22:14:43] max other-process GPU memory on wafl500-509: 0 MiB
+[22:14:43] d0009_b1_exclusion_r2 confound=none
+[22:33:06] d0009_b1_exclusion_r2 live_run=0
+[22:33:08] d0009_b1_exclusion_r2 G-R ok (all nodes serving)
+[22:33:08] d0009_b1_exclusion_r2 table_miss=0
+[2026-11-09_22:33:08] BEGIN d0009_b1_exclusion_r3 (D=30)
+[22:33:11] max other-process GPU memory on wafl500-509: 0 MiB
+[22:34:13] max other-process GPU memory on wafl500-509: 0 MiB
+[22:35:16] max other-process GPU memory on wafl500-509: 0 MiB
+[22:35:16] d0009_b1_exclusion_r3 confound=none
+[22:53:38] d0009_b1_exclusion_r3 live_run=0
+[22:53:40] d0009_b1_exclusion_r3 G-R ok (all nodes serving)
+[22:53:40] d0009_b1_exclusion_r3 table_miss=0
+[2026-11-09_22:53:53] ALL DONE

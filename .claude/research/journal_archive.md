@@ -1,3 +1,112 @@
+## Iteration 32: 主構成で生成の委託に送る文書を含めた露出の全体の算出
+
+**位置づけ**：レバー `d0009.A4_exposure_total` の値 `with_generation_delegation`（backlog B109 (3)・申し送り (a)〜(c)）．主構成（R3′ の経路．V2 はオフラインで経路に無い）で，デバイス間を渡る文書を「cross-encoder の採点のために質問者へ渡る文書」と「CPU の専門家が生成を委託する GPU の PC へ送る文書（placement の `delegate_of`）」の 2 つの受け手に分けて数え，全体の露出を出す．既存の実行の再集計だけで行うオフラインの評価（運用ルール 13）で，実機・GPU は使わない（ルール 14 の GPU の処理も無い）．構成を選ばない記述の測定なので，運用ルール 10 の新しい質問集合は判定の主に H を使い，test は 37.6% との照合だけに使う．d0009 A4 に着手を書いた（運用ルール 9）．この節が事前登録である．**rc-executor は，集計の結果を見る前に，集計のスクリプトとこの事前登録を commit する**．
+
+### 調査で分かったこと
+
+- **37.6% の数え方（コードと結果から確定）**：27,704 通 = 73,772 通の 37.6% は，`results/p0007_a6_test`（test．`error` の無い 2,939 問）の各問の 3 候補の `owner_answer.candidates[].context_doc_ids`（各 5 通）の和集合の重複なしの数である．`src/atrium/multi_requester_eval.py` の `candidate_doc_ids`・`exposure`（N = 1．質問者 wafl-ctrl5 は受信箱を持たない）で再計算した値が `results/d0009_a1_multi_requester/multi_requester.json` の `"wafl-ctrl5": 27704` に残っており，`docs/d0007_p2p_vs_central_report.md` の 27,704 通と一致する．分母は `run_meta.json` の `sources` の文書数の合計（73,772）．委託で GPU の PC へ送る文書は含まない（`docs/d0008_report_outline.md` の表 2 の注「委託による分を含めた全体は算出していない」）．
+- **p0007 B の数え方（`src/atrium/exposure_eval.py`）**：「外に出た文書」＝持ち主のデバイスが本文をそのデバイス以外へ渡した文書で，受け手（`requester`・`delegate_gpu`）ごとの集合の和集合の重複なしの数（`distinct_docs`）を全メールで割る．受け手ごとの内訳（`distinct_docs_by_receiver`）も出す．p0007 B の P4-3（`delegate_gpu`）は 17.9%，P4-1（`snippet_return`）は 27.3%．今回も同じ「受け手ごとの集合 → 和集合」で数える．
+- **委託で送る文書は，質問者へ渡る文書と同じ集合（コードの確認）**：`src/atrium/node.py` の `/v1/answer` は，検索した上位 5 通 `context` を `delegate(req, context)` で委託先の `/v1/generate` へ本文ごと送り（`docs_sent = len(context)`），同じ `context` の ID を `features.context_doc_ids` として返す．したがって委託した候補（`node_answers[].delegated_to` が null でない）の送った文書は，その候補の `context_doc_ids` と一致する．質問者へ渡る文書は全候補の `context_doc_ids` なので，**委託先へ送る文書の集合は質問者へ渡る文書の集合の部分集合**になり，重複なしの数（和集合）は増えない見込み（推論．集計で確かめる）．増えるのは（受け手のデバイス, 文書）の組の数と，非所有のデバイスが 2 台以上見る文書の数である．
+- **placement（`results/d0009_a3_p1/placement.json`）**：30 台が各 5 受信箱．CPU の 20 台（192.168.13.100〜109・14.100〜109）が `delegate_of` で GPU の 10 台（192.168.15.100〜109）へ 2 台ずつ委託する．GPU の PC は自分の受信箱の候補を自分で生成する（`delegated_to` が null）．GPU の PC が受け取る文書は委託元の 2 台の 10 受信箱の文書だけで，自分の受信箱の文書は含まない．
+- **既存の実行で足りるか（申し送り (b)．運用ルール 13）**：H の主構成の実行 `d0009_a3_p1`・`p2`・`p3`（各 2,862 問・`error` 0・全問に 3 候補の `context_doc_ids`），H2 の `d0009_m1_h2_base`（2,807 問・`error` 0），test の `p0007_a6_test`（4,596 行のうち `error` 1,657 行．`error` の無い 2,939 問），`d0009_a6_p_r1`〜`r4`（288 問）は全て `node_answers[].delegated_to` と `docs_exposed_by_source` を持つ．委託した候補の数は H で 5,725（1 問あたり 2.00），test で 5,878 で，新しい実機の実行は要らない．GPU の処理も無い（申し送り (c) は該当なし）．
+- **`error` の行の扱い**：`error` の行は候補を保存しないので，委託の後に失敗した問の送った文書は数えられない（`p0007_a6_test` の 1,657 行．再試行の行）．H・H2 は `error` 0 なので影響しない．test の値はこの分の下限として記す．
+- **外部の文献**：分散 RAG の秘匿の議論は，取り出した文書が「集める側（orchestrator）」と「生成の LLM の側」の 2 か所で外に出ることを区別している．C-FedRAG（Addison ほか，2024．arXiv:2412.13163．https://www.alphaxiv.org/abs/2412.13163 ）は，データ源の中間結果を集める orchestrator と LLM の推論の両方を機密計算の TEE に置いて守る．Federated RAG の体系的なレビュー（EMNLP 2025 Findings．https://aclanthology.org/2025.findings-emnlp.388.pdf ）も，問い合わせと取り出した文書の両方を漏えいの経路に挙げる．実務の解説（Limina "RAG Security and Privacy"．https://www.getlimina.ai/en/blog/rag-privacy-guide ）は，生成の段で取り出した断片が全て LLM の提供側へ送られることを「構造上の性質」としている．これらは数え方を示さないので，数え方は p0007 B と A1 の E_any・E_pair（Iteration 23）に従う（文献の主張の検証はしていない）．
+
+### 仮説
+
+主構成で生成の委託に送る文書は全て質問者へ渡る文書に含まれるので，非所有のデバイスのどれかに渡った文書の重複なしの割合（E_any_total）は質問者の分（H 0.3698・test 0.376）と**同じ値**になり，37.6% は「下限」ではなく重複なしの全体の露出に等しい．委託先が加わることで増えるのは（デバイス, 文書）の組の数（E_pair_total）で，1 問の 3 候補のうち平均 2 候補が委託されるので，GPU の PC 10 台へ渡る文書の和集合（E_deleg）は 0.22〜0.30，E_pair_total は 0.60〜0.70，1 台の GPU の PC が受け取る文書（E_max_gpu）は全メールの 0.02〜0.04（委託元の 10 受信箱の文書の 3〜6 割）と見込む（推測）．
+
+### 単一レバー
+
+**露出の数え方の受け手**を，「cross-encoder の採点のために質問者へ渡る文書だけ（37.6% の数え方）」から，**「質問者へ渡る文書 ＋ CPU の専門家が生成を委託する GPU の PC へ送る文書（`node_answers[].delegated_to` の候補の `context_doc_ids`）」**へ広げる．構成・実行・質問・分母（73,772 通）は変えない．
+
+- **受け手の集合**：質問者 wafl-ctrl5 は D_req = 全候補の `context_doc_ids`（`candidate_doc_ids`）．GPU の PC g は D_g = `delegated_to == g` の候補の `context_doc_ids`．受け手が持つ受信箱の文書は数えない（`exposure` と同じ規則．委託では起こらない見込み）．
+- **指標（分母 73,772）**：E_req = |D_req|，E_deleg = |∪_g D_g|，**E_any_total = |D_req ∪ ⋃_g D_g|（主）**，E_pair_total = |D_req| + Σ_g |D_g|，E_max_gpu = max_g |D_g|，受け手が 2 台以上の文書の数，受信箱ごとの露出の割合（その受信箱の文書のうち外に出た割合．分布の最小・中央値・最大と，持ち主の種類 CPU・GPU 別）．
+- **集合**：主は H（`d0009_a3_p1`）．再実行の揺れとして `p2`・`p3` を同じに出す．Q = H ∪ H2（`d0009_a3_p1` ＋ `d0009_m1_h2_base` の和集合．Iteration 28 の B3ve と同じ）と test（`p0007_a6_test`．37.6% との照合）は記述．
+- **記述として足す受け手**（判定に使わない）：(i) V2 の検証の LLM を 1 台の GPU の PC に委託する配備（各候補の上位 5 通がその PC へ．Iteration 28 の B3ve で E_any は不変・その PC が 40,557 通）を，Q の E_pair に足した値．(ii) 質問者が採点をしない構成（選択を `max_score` にするなど）では露出は委託の分だけになるので，E_deleg をその場合の全体として併記する．
+
+### 固定する構成
+
+既存の実行の構成のまま（EnronQA・`question_split: holdout`・`routing: bm25_probe` D = 24・`owner_answer`・`owner_m: 3`・`answer.aggregate: cross_encoder`・`answer.save_candidates: true`・`retrieval.fusion: rrf`・`llm.answer_prompt_format: fill_in`・llama3.1:8b・質問者 1 台・30 台の専門家・placement の `delegate_of`）．`config.yaml`・`src/` の既存の挙動・既存の results は変えない（新しい集計のスクリプトと新しい出力のディレクトリだけを足す）．
+
+### ゲート（集計の前に固定）
+
+- **G-37（37.6% の再現）**：`p0007_a6_test` の E_req の重複なしの数が 27,704 通に一致する．一致しなければ数え方が違うので，原因を記録して止める．
+- **G-H（A1 との一致）**：`d0009_a3_p1` の E_req（H）を，Iteration 23 の H の値 0.3698 と並べる（実行が違うので一致は求めない．±0.005 を超える差は原因を記録する）．
+- **G-D（委託の記録の整合）**：委託した全候補で (i) `delegated_to == delegate_of[node_id]`，(ii) `delegated_to` が null でないのは `node_id` が CPU の 20 台のときだけ，(iii) `docs_exposed_by_source` の値の合計 = 委託した候補の `context_doc_ids` の数の合計（1 問ごと）．不一致の割合が 0.001 を超えたら，その実行は記述だけにする．
+- **G-S（部分集合の確かめ）**：1 問ごとに D_g ⊆ D_req を数える．成り立たない問があれば，その数と原因を記録する（判定には使わず，E_any_total はそのまま和集合で出す）．
+
+### 判定の規則（`results/d0009_a4_exposure/verdict.json`．`verdict_original` は書き換えない）
+
+- **H-A4a（主）**：H（`d0009_a3_p1`）で E_any_total − E_req ≤ 0.001（74 通以下）なら「委託は重複なしの露出を増やさない（37.6% の数え方は全体に等しい）」，> 0.001 なら「増やす（37.6% は下限）」と書く．p2・p3 で同じ側に出ることを併記する（違えば「決まらない」）．
+- **H-A4b（記述）**：E_pair_total・E_deleg・E_max_gpu・受け手が 2 台以上の文書の数を H・p2・p3・Q・test で出し，見込み（E_deleg 0.22〜0.30・E_pair_total 0.60〜0.70・E_max_gpu 0.02〜0.04）と照合する（外れても採否に使わない）．
+- **H-A4c（記述）**：p0007 B の H-B の閾値（全メールの 50%）に対し，E_any_total が 50% 未満を保つかを書く．E_pair_total は H-B の対象ではない（p0007 B の数え方は和集合）ことを併記する．
+
+### 成功条件（事前登録）
+
+測定のイテレーションで，仮説の成否を採否に使わない．(1) G-37・G-D を通過し，(2) H・p2・p3・Q・test の E_req・E_deleg・E_any_total・E_pair_total・E_max_gpu と受信箱ごとの分布が `results/d0009_a4_exposure/exposure_total.json` に出て，(3) H-A4a の判定と H-A4b・H-A4c の記述が `verdict.json` に出れば採用とし，値 `with_generation_delegation` を閉じる．G-37 不通過は「数え方を確定できない」として棄却（原因を記録）．
+
+### 実装の要点（rc-executor へ）
+
+- 新しいスクリプト `scripts/d0009/a4_exposure_total.py`（引数：実行のディレクトリの名前の一覧・出力先）．`results/<run>/results.jsonl` と `placement.json`・`run_meta.json`（分母の `sources`）を読み，`atrium.multi_requester_eval` の `candidate_doc_ids`・`inbox_of_doc_id`・`inboxes_by_host` と分母を求める既存の関数を使う（同じ規則を二重に書かない）．受け手ごとの集合は `owner_answer.candidates[i].source` と `node_answers[i].source`・`delegated_to` を source で対応させて作る（index の順序に頼らない）．
+- 小さな単体テスト（`tests/test_a4_exposure_total.py`）：固定の 2 問の行で，委託した候補の文書だけが D_g に入る，D_req と D_g の和集合・組の数，受け手が持つ受信箱の文書を数えない，`error` の行を飛ばす．
+- 出力 `results/d0009_a4_exposure/{exposure_total.json, verdict.json, analysis_report.md}`．文書 ID の一覧・本文は出力しない（数と割合だけ）．
+- 所要：集計は gpu4 の CPU で数分（推測）．実機・GPU・`config.yaml` の変更は無い．
+
+### フェーズ 2 実行記録（2026-11-09）
+
+- 事前 commit d544da4（`scripts/d0009/a4_exposure_total.py`・`tests/test_a4_exposure_total.py`）の後に，既存の results の再集計だけで実行した（実機・GPU・config.yaml の変更なし）．`mise run check` は pytest 1040 件・ruff・mypy が通った．
+- 生成物: `results/d0009_a4_exposure/{exposure_total.json,verdict.json,analysis_report.md}`．
+- ゲート: G-37（test の E_req = 27,704 通）・G-H（差 0）・G-D（不一致率 0．H の委託した候補 5,725 件）・G-S（D_g ⊆ D_req を満たさない問 0）を全て通過．
+- H-A4a: H・p2・p3 とも E_any_total − E_req = 0．委託先に渡る文書のうち質問者に渡らない文書は 0 通．判定は「委託は重複なしの露出を増やさない」．
+- 数値（分母 73,772 通．H）: E_req = E_any_total 0.3698，E_deleg 0.2462，E_pair_total 0.6160，E_max_gpu 0.0309．test は E_any_total 0.3755・E_pair_total 0.6263（error 行 1 行の候補が無く下限）．H2 は 0.3694・0.6181．
+- Q（H ∪ H2）は E_any_total 0.5498 で 50% 以上，E_deleg・E_pair_total・E_max_gpu は見込みの範囲外（H-A4c・H-A4b）．p2・p3 は p1 と全ての数値が同一（検索が決定的）．
+- 未確認: 採否の判定は rc-evaluator が行う．最終 commit・push は未実施．
+
+### Iteration 32 実行済み：分析・考察（2026-11-09．research-cycle の phase 3．判定：採用．値 `with_generation_delegation` を閉じ，d0009 A4 を完了にする．H-A4a は「委託は重複なしの露出を増やさない」．H-A4c は単一の質問集合なら 50% 未満，合算の Q は 50% 超（`verdict_revised` で解釈を足した）．次はレバー `d0009.A5_extend_measurements` の値 `bm25_index_add`）
+
+**変更**：事前登録（commit d544da4．スクリプトとテストを集計の前に固定）のとおり，既存の主構成の実行の保存した文書 ID を，受け手（質問者 wafl-ctrl5・委託先の GPU の PC 10 台）ごとの集合に分けて再集計した．実機・GPU・`config.yaml` の変更は無い．phase 3 では `verdict.json` の `verdict_revised`（H-A4c の対象の解釈）だけを足し，スクリプトと `verdict_original` は変えていない．
+
+**結果**（`results/d0009_a4_exposure/{exposure_total.json,verdict.json,analysis_report.md}`．分母 73,772 通）
+
+| 集合 | 問 | E_req（通） | E_deleg（通） | E_any_total | E_pair_total（組） | E_max_gpu（通） |
+|---|---|---|---|---|---|---|
+| H（`d0009_a3_p1`．p2・p3 も同値） | 2,862 | 0.3698（27,282） | 0.2462（18,163） | 0.3698 | 0.6160（45,445） | 0.0309（2,277） |
+| H2（`d0009_m1_h2_base`） | 2,807 | 0.3694（27,253） | 0.2486（18,343） | 0.3694 | 0.6181（45,596） | 0.0295（2,176） |
+| test（`p0007_a6_test`．error 1 行で下限） | 2,939 | 0.3755（27,704） | 0.2508（18,500） | 0.3755 | 0.6263（46,204） | 0.0309（2,281） |
+| Q（H ∪ H2．記述） | 5,669 | 0.5498（40,557） | 0.3714（27,397） | 0.5498 | 0.9211（67,954） | 0.0486（3,585） |
+
+- ゲート：G-37（test の E_req = 27,704 通）・G-H（差 0）・G-D（全集合で不一致率 0．H の委託した候補 5,725 件）・G-S（D_g ⊆ D_req を満たさない問 0．全集合）を通過．
+- H-A4a：H・p2・p3 とも E_any_total − E_req = 0 通（委託先へ送った文書のうち質問者へ渡らない文書は 0 通）．
+- GPU の PC ごとの受け取り（H）：1,439〜2,277 通（全メールの 2.0〜3.1%）．受け手が 2 台以上の文書は E_deleg と同数（委託した文書は全て質問者にも渡るため）．
+- 受信箱ごとの露出（H．その受信箱の文書のうち外に出た割合）：150 受信箱の中央値 0.494，CPU の持ち主 100 受信箱は中央値 0.536（0〜1.0），GPU の持ち主 50 受信箱は中央値 0.466（0.306〜0.649）．
+- 記述 (i)：V2 の検証の LLM を 1 台の GPU の PC に委託する配備を足すと，その PC へ 26,271〜26,484 通（H）が渡り，E_pair_total は 0.972〜0.975（H）・1.451〜1.455（Q）．E_any_total は変わらない．記述 (ii)：質問者が採点しない構成の全体は E_deleg（H 0.2462）．
+
+**ノイズか信号か**
+- H の p2・p3 は p1 と全ての数値が同一で，検索と候補の文書が決定的なので再実行の揺れの情報を持たない（Iteration 22 の候補の文書の一致と整合）．揺れの目安は質問集合の違いで，同じ規模の H・H2・test の E_any_total は 0.3694〜0.3755（幅 0.006）．
+- H-A4a の差 0 は統計の判定ではなく構造の帰結である：`node.py` は委託先へ送る `context` と同じ ID を `context_doc_ids` として返すので，D_g ⊆ D_req が全問で成り立つ（G-S で全集合 0 問）．したがって主構成のこのコードである限り，どの質問集合でも差は 0 になる．
+- E_deleg / E_req は H 0.666・H2 0.673・test 0.668 で，3 候補のうち CPU の持ち主の受信箱（150 のうち 100 = 2/3）の候補が委託される割合とほぼ一致する．E_pair_total / E_req ≈ 1.67 も同じ理由．
+
+**仮説との一致・不一致**
+- 一致：(i) E_any_total = E_req（37.6% の数え方は委託を含めた重複なしの全体に等しい）．(ii) H の E_deleg 0.246（見込み 0.22〜0.30），E_pair_total 0.616（0.60〜0.70），E_max_gpu 0.031（0.02〜0.04）は全て見込みの範囲内．H2・test も範囲内．
+- 不一致：Q は E_deleg 0.371・E_pair_total 0.921・E_max_gpu 0.049 で見込みの範囲外．見込みは単一の質問集合の規模を前提にしており，問の数が約 2 倍の Q を同じ範囲と照合したことが原因で，数え方の誤りではない．「委託元の 10 受信箱の文書の 3〜6 割」の見込みは，委託元ごとの分母を出していないので未照合．
+- 想定外の挙動：CPU の持ち主の受信箱に露出 0（質問が 1 問も届かない受信箱の見込み）と 1.0（小さい受信箱の全文書）がある．言語崩れ・発散・OOM は無し（オフラインの集計）．
+
+**H-A4c の対象の解釈（`verdict_revised`．`verdict_original` の per_group の判定は残した）**：事前登録は対象の集合を書いていない．p0007 B の H-B は test の 1 つの質問集合（2,940 問）の重複なしの数で判定したので，H-A4c は同じ規模の単一の質問集合（H・H2・test）に当てはめるのが H-B と同じ物差しである．この解釈では 3 集合とも 50% 未満（0.369〜0.376）．Q は別の問の合算で問の数が約 2 倍（H 27,282 通 ＋ H2 27,253 通，重なり 13,978 通，和集合 40,557 通）なので H-B の判定には使わず，「重複なしの露出は問の数とともに増え，約 5,700 問では 55% になる」という記述にする．したがって「50% 未満」は問の数（約 2,900 問）と組で引用する必要がある．この解釈は採否に影響しない（H-A4c は記述）．
+
+**判定**：**採用**．事前登録の成功条件 (1) G-37・G-D の通過，(2) 全集合の指標と受信箱ごとの分布の出力，(3) H-A4a の判定と H-A4b・H-A4c の記述の出力，を全て満たす（仮説の成否は使っていない）．実装の `adopt` は全集合の G-D の通過を要件にしており事前登録より厳しいが，全集合が通過したので結果は同じ．値 `with_generation_delegation` を閉じ，d0009 A4 を完了にする（A4 の値はこれだけ）．
+
+**主張できる範囲**：主構成（`bm25_probe` D = 24・`owner_answer` m 3・R3′ の経路・placement の `delegate_of`）で約 2,900 問の質問集合を流したとき，(1) 持ち主の外に出る文書の重複なしの割合は 37〜38%（H 36.98%・test 37.55%）で，生成の委託先へ送る文書を含めても増えない（委託先へ送る文書は全て質問者にも渡る）．(2) 受け手を区別した（PC, 文書）の組は全メールの 0.62 倍で，そのうち委託の分が 0.25．GPU の PC 1 台が受け取るのは全メールの 2.0〜3.1%．(3) 質問者が採点しない構成なら全体は委託の分（約 25%）になる．
+**主張できない範囲**：問の数が違う場合の露出（Q で 55%．問の数との関係の形は測っていない），質問者が複数のときの委託の分（A1 の 0.370 → 0.473 は質問者の分だけ），F-7（m = 4）・V2 を実機の経路に載せた構成，`error` の行で失われた候補の分（test の 1 行），質問の語の露出（文書の露出に数えていない）．
+
+**事前登録からの偏差・追加**：(i) H-A4c の対象の解釈を `verdict_revised` として足した．(ii) 実装の `adopt` が事前登録より厳しい（上記．影響なし）．(iii) 事前登録は「スクリプトとこの事前登録を集計の前に commit する」としたが，d544da4（18:55:19）に入ったのはスクリプトとテストだけで，journal の事前登録の節は未 commit のまま集計（出力 18:55〜18:57）を行った．ゲートの値（27,704 通・±0.005・0.001）と H-A4a の閾値（0.001）・見込みの範囲はスクリプトに書かれて d544da4 で固定されているので，判定の規則は集計の前に固定されていたとみなす．事前登録の文章は今回の最終 commit で入る．
+
+**学び**
+- **露出の受け手を足す前に，送る文書の集合どうしの包含をコードで確かめると，和集合の指標は計算の前に決まる**：主構成では委託の `context` と質問者へ返す `context_doc_ids` が同じ変数なので，委託は重複なしの露出を増やさず，（PC, 文書）の組だけを増やす．以後，「下限」と書いた露出の値は，残りの受け手の集合が既に数えた集合の部分集合かを先に確かめる．
+- **重複なしの露出は質問の数の関数で，構成だけの性質ではない**：同じ構成でも約 2,900 問で 37%，約 5,700 問で 55%．p0007 B の H-B「50% 未満」（2,940 問）と d0009 の露出の値は，問の数と組で引用する．問の数を変えた曲線（飽和の形）は未測定．
+- **A1（Iteration 23）の組織全体の（PC, 文書）の組 0.370 → 0.473 は質問者の分だけで，委託の分（約 0.25）を含まない**：委託の分は問ごとに決まり質問者の数に依らないので，含めると質問者 1 台で 0.616，3 台では約 0.72 になる見込み（推測．未集計）．
+- **決定的な検索の再実行は露出の揺れの情報を持たない**：p2・p3 は p1 と同値．露出の揺れを見るなら質問集合を変える（H・H2・test で幅 0.006）．
+
 ## Iteration 31: 主構成で PC を途中で加えたときの P2P と中央集約の答えられるまでの時間と転送量の測り直し
 
 **位置づけ**：レバー `d0009.A6_remeasure_main` の値 `join`（d0009 A6 の最後の値．backlog B106 (3)・申し送り (a)〜(e)）．p0007 E2（`results/p0007_e2_join`）は `hybrid_probe`・`retrieval_only`・`fusion: none`・test の質問で，「正解のメールが上位 5 通に入った最初の質問が終わった時刻」を答えられるまでの時間とした．これを P2P の主構成（`bm25_probe` D = 24・`owner_answer`・m 3・`fusion: rrf`・R3′ の選択の経路あり）と中央 C1-RRF-CE（RRF の索引・cross-encoder の再ランク・生成あり）と H の質問で測り直す．設計の判断は backlog B107．d0009 A6 に着手を書いた（運用ルール 9）．この節が事前登録である．**rc-executor が，本番の実機の実行（smoke を除く）より前に，実装とこの事前登録を commit・push する**．

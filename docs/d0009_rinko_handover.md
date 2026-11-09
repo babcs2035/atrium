@@ -118,6 +118,7 @@
 - 10 台の処理を強制的に停止させると，回答できる割合は 0.747 から 0.028 まで下がった．
 - 停止した PC は生存確認によって 2.01 秒で検出できるので，問い合わせ先から外す仕組みを加えれば，この低下を抑えられる可能性がある．
 - 着手：Iteration 35（事前登録は `.claude/research/journal.md` の Iteration 35．設計の判断は `.claude/research/backlog.md` の B116）．質問者が全ノードの生存を 1 秒ごと（打ち切り 2 秒．新しい `GET /v1/alive`）に確かめ，1 回の失敗で 1 段目の候補・probe・回答の送り先から外し，1 回の成功で戻す（追加だけの設定キー `experiment.peer_health`．既定は null で今の挙動）．外すのは止まったノードだけで，委託先が止まった CPU の台は外さず数えるだけにする．Iteration 30（外す仕組み無し）と同じ止め方・k・H の 288 問・締め切り 30 秒で 3 ラウンド実機で流し，止めた間に答えられた割合（再開の前に終わった問で数える版が主）を比べる．
+- Iteration 35 の結果（判定不能．採用でも棄却でもない）：平常の区間のゲート（止める前に答えられた割合 ≥ 0.86・回答を返した割合 ≥ 0.95）が 3 ラウンドとも不通過（0.818〜0.845・0.909〜0.934）で，有効なラウンドが無かった．外す仕組みを on にした実行では，外す仕組み無しの Iteration 30 に無かった締め切り 30 秒の打ち切りが条件あたり 9〜17 件起き（availability），止める前には各条件の最初の 8 本の 7・8 本目として現れた．原因は未特定で，外す仕組みの効果はまだ言えない．結果は `results/d0009_b1_exclusion/verdict.json`（`verdict_revised`）．Iteration 36 で原因を切り分け，同じ規則で流し直す（`.claude/research/backlog.md` の B117）．
 
 ### B2. cross-encoder の採点を複数の GPU に分ける
 
@@ -202,7 +203,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は完了（Iteration 30．採用．45 秒の仮定で全 8 条件 P2P が上だが止めた間の割合に依らない．検出と同時の再起動では availability k ≤ 3 以外は中央が上．`results/d0009_a6_failure/`）．参加は完了（Iteration 31．条件付きの採用．事後に改めたゲート G-A′ で E2 成立〔P2P は中央の 1.14〜1.18 倍・転送量は約半分〕．ただし中央の埋め込みが GPU の無い制御点の CPU であることに依る．`results/d0009_a6_join/`）．A6 は完了 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 完了（Iteration 32．採用．委託は重複なしの露出を増やさず，37.6% は全体に等しい．50% 未満は約 2,900 問の質問集合での値．`results/d0009_a4_exposure/`） |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 索引への追加は完了（Iteration 33．採用．BM25 を含めても P2P は p50 0.47 秒で追従し，全体を作り直す中央の T0 は p50 31 秒．`results/d0009_a5_bm25_add/`）．中央の停止時間は完了（Iteration 34．採用．中央の停止 S ≥ 20 秒で全 8 条件 P2P が上，問の標本などの揺れを含めると約 34 秒．S ≤ 5 秒では availability k ≤ 3 だけ P2P が上．`results/d0009_a5_outage_sweep/`）．A5 は完了 |
-| 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 着手（Iteration 35．事前登録は journal の Iteration 35．`.claude/research/backlog.md` の B115・B116） |
+| 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 着手．Iteration 35 は判定不能（平常の区間のゲートが不通過で有効なラウンド 0．Iteration 30 に無かった締め切りの打ち切りが原因で，その原因は未特定．`results/d0009_b1_exclusion/`）．Iteration 36 で原因を切り分けて流し直す（`.claude/research/backlog.md` の B115〜B117） |
 | 9 | B2 | レバー `d0009.B2_split_reranker` | 未着手 |
 | − | C1 | 運用ルール 10：A1〜A6・B3 の判定は新しく分けた質問か別のデータセットで行う | 全イテレーションに適用 |
 | − | C2 | 運用ルール 11：選択まで実機で通す．オフラインならその旨と一致の確かめの範囲を併記する | 全イテレーションに適用 |
