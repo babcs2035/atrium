@@ -2,14 +2,14 @@
   "repo": "atrium",
   "iteration": 31,
   "iteration_name": "主構成で PC を途中で加えたときの P2P と中央集約の答えられるまでの時間と転送量の測り直し",
-  "phase": "execute",
+  "phase": "evaluate",
   "status": "running",
   "current_lever": "d0009.A6_remeasure_main=join",
-  "experiment_dir": "results/d0009_a6_join_r2",
-  "experiment_deadline": 1794219699,
+  "experiment_dir": "results/d0009_a6_join",
+  "experiment_deadline": null,
   "updated_at": 1794217071,
   "last_slack_ts": "1794170664.164569",
   "iteration_thread_ts": "1794182142.095359",
   "notion_toggle_created": true,
-  "last_commit": "bf45cfb"
+  "last_commit": "dee2a3c"
 }
