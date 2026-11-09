@@ -1,0 +1,18 @@
+{
+ "H_B2a": "undetermined",
+ "H_B2b_g_star": 4,
+ "success_condition_2_enough_valid_rounds": true,
+ "note": "mechanical application of the pre-registered rules; adoption is decided by rc-evaluator",
+ "adoption": {
+  "decision": "undetermined_closed_as_description",
+  "decided_by": "rc-evaluator (Iteration 37 phase 3, 2026-11-10)",
+  "reason": "pre-registered success conditions (1)-(3) hold (G-ENV0/G-S/G-CAL/smoke passed; valid rounds G1:3 G2:3 G4:3 G8:2). H-B2a: E(2) 0.861-0.872 >= 0.85 in all rounds, but E(4) r1 0.831 and r3 0.842 < 0.85, and no round has E(4) < 0.70, so 'undetermined'. Per the rule, 'undetermined' closes multi_gpu_scoring as a description without adding rounds.",
+  "value_closed": "d0009.B2_split_reranker=multi_gpu_scoring"
+ },
+ "verdict_revised": {
+  "status": "post-hoc description; NOT used for adoption; H_B2a above is unchanged",
+  "H_B2a_if_X1_by_burst_period": "extends",
+  "basis": "window_bias.json (scripts/d0009/b2_window_bias.py). At G=1 the 30 concurrent questions complete in synchronized bursts of 30 (bursts at +13.8, 57.1, 97.6, 144.2 s from window start in all 3 rounds; 50% of 10 s bins empty), so the 120 s window always contains exactly 3 bursts and the counted X(1)=0.750 overstates the long-run rate X_period(1)=30/43.5 s=0.690 (+8.7%). With X_period(1), E(2)=0.936-0.947, E(4)=0.902-0.942, E(8)=0.942-0.953 (all >= 0.85). Request-count based E (completed scoring requests / 3) gives E(2)=1.01-1.03, E(4)=0.94-0.96, E(8)=0.96. G>=4 completions are not bursty.",
+  "H_B2b_note": "G*=4 by the rule. X(2) by count is 1.292-1.308 (1-2% below 1.32); by request count 1.364-1.389. G=2 is at the boundary."
+ }
+}

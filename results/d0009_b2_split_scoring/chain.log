@@ -1,0 +1,431 @@
+[2026-11-10_00:56:36] BEGIN stages: publish env0 start gs cal smoke prod (git 155da73dc167)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_00:56:49] published atrium-full 155da73dc167
+[2026-11-10_00:56:51] env0: usable=wafl502 wafl503 wafl504 wafl505 wafl506 wafl507 wafl508 wafl509 unusable=none waited=0s
+[2026-11-10_00:56:51] env0: grid 1 2 4 8
+[2026-11-10_01:15:36] start FAILED (see results/d0009_b2_split_scoring/chain.log.start)
+[2026-11-10_01:17:20] BEGIN stages: start gs cal smoke prod stop (git c10ff6ca39c6)
+[2026-11-10_01:20:08] scorers started on 192.168.15.102 192.168.15.103 192.168.15.104 192.168.15.105 192.168.15.106 192.168.15.107 192.168.15.108 192.168.15.109
+[2026-11-10_01:30:43] BEGIN stages: gs cal smoke prod stop (git b0c29a06bf5b)
+[2026-11-10_01:30:47] gs BEGIN hosts=wafl502,wafl503,wafl504,wafl505,wafl506,wafl507,wafl508,wafl509 warmup=0 measure=0 --one-pass --dump-scores
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+e6875ac071f2df615f96546235f5d8ae4ac0f917c257e9605946eccfbd55befb
+{"valid": true, "reasons": []}
+{
+ "n_pairs": 4320,
+ "n_questions": 288,
+ "n_pairs_missing_in_table": 0,
+ "n_pairs_over_tolerance": 0,
+ "max_abs_diff": 9.506940841674805e-06,
+ "max_abs_diff_by_target": {
+  "0": 2.205371856689453e-06,
+  "1": 2.682209014892578e-06,
+  "2": 1.9669532775878906e-06,
+  "3": 2.3245811462402344e-06,
+  "4": 1.6391277313232422e-06,
+  "5": 2.7418136596679688e-06,
+  "6": 2.60770320892334e-06,
+  "7": 9.506940841674805e-06
+ },
+ "n_selection_mismatch": 0,
+ "n_selection_mismatch_tolerated_as_tie": 0,
+ "table_sha256": "da0a7a55c29abd773935b791137b7e5cab2776f5737c9bce2a7949921b1e6fa2",
+ "n_errors": 0,
+ "tolerance": 0.001,
+ "tie_gap": 0.002,
+ "pass": true
+}
+[2026-11-10_01:32:12] G-S passed
+[2026-11-10_01:32:13] cal_wafl502 BEGIN hosts=wafl502 warmup=10 measure=60 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+68a7c7c9c972326c6b75f53e3fc2a5770ae383f1a59c686b3abd0ea8a854dc4d
+{"valid": true, "reasons": []}
+[2026-11-10_01:33:52] cal wafl502 valid=0
+[2026-11-10_01:33:53] cal_wafl503 BEGIN hosts=wafl503 warmup=10 measure=60 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+828bd15399711d27cf307b187f73be629daeac02d6401b3dcb5fe23801850737
+{"valid": true, "reasons": []}
+[2026-11-10_01:35:38] cal wafl503 valid=0
+[2026-11-10_01:35:39] cal_wafl504 BEGIN hosts=wafl504 warmup=10 measure=60 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+4f9c34e7ed8877f9ffb11cb5c0327b533c4cf6facf889f78e3e3d5eac01aa94f
+{"valid": true, "reasons": []}
+[2026-11-10_01:37:24] cal wafl504 valid=0
+[2026-11-10_01:37:25] cal_wafl505 BEGIN hosts=wafl505 warmup=10 measure=60 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+318257e321230b6632213a2e6f3b474a924b11a7d836091d8c0f0ba76c0dd3c0
+{"valid": true, "reasons": []}
+[2026-11-10_01:39:04] cal wafl505 valid=0
+[2026-11-10_01:39:05] cal_wafl506 BEGIN hosts=wafl506 warmup=10 measure=60 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+e9eabf7b071afc4046c97f75020031eb27cc6a124e748f1a6785c4b7b3613828
+{"valid": true, "reasons": []}
+[2026-11-10_01:40:45] cal wafl506 valid=0
+[2026-11-10_01:40:46] cal_wafl507 BEGIN hosts=wafl507 warmup=10 measure=60 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+bd893f1946b0df554ef86b80e7e0e37b4d4f4bdf14a42708a36594d2d5c0d087
+{"valid": true, "reasons": []}
+[2026-11-10_01:42:25] cal wafl507 valid=0
+[2026-11-10_01:42:26] cal_wafl508 BEGIN hosts=wafl508 warmup=10 measure=60 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+c7586c100e76fd10092ca641c68e467d6c69eca591283b6b096256d13f4f5049
+{"valid": true, "reasons": []}
+[2026-11-10_01:44:11] cal wafl508 valid=0
+[2026-11-10_01:44:12] cal_wafl509 BEGIN hosts=wafl509 warmup=10 measure=60 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+d06caa664340cc5124de430301fecce10e02283f32315e338d2f4fd6dffa3558
+{"valid": true, "reasons": []}
+[2026-11-10_01:45:56] cal wafl509 valid=0
+{
+ "x_h_qps": {
+  "wafl502": 0.5166666666666667,
+  "wafl503": 0.6333333333333333,
+  "wafl504": 0.6166666666666667,
+  "wafl505": 0.5666666666666667,
+  "wafl506": 0.5833333333333334,
+  "wafl507": 0.5166666666666667,
+  "wafl508": 0.6333333333333333,
+  "wafl509": 0.6666666666666666
+ },
+ "median_qps": 0.6000000000000001,
+ "band": 0.15,
+ "outside_band": [],
+ "order": [
+  "wafl502",
+  "wafl503",
+  "wafl504",
+  "wafl505",
+  "wafl506",
+  "wafl507",
+  "wafl508",
+  "wafl509"
+ ],
+ "pass": true,
+ "sum_x_h_qps": 4.733333333333333
+}
+[2026-11-10_01:45:57] G-CAL order: wafl502 wafl503 wafl504 wafl505 wafl506 wafl507 wafl508 wafl509
+[2026-11-10_01:45:58] smoke BEGIN hosts=wafl502,wafl503 warmup=10 measure=30 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+798b98d80e6127571a085c52f205a1dba059d2b9747c24aae3282ee88310d2e4
+{"valid": true, "reasons": []}
+[2026-11-10_01:47:08] smoke ok
+[2026-11-10_01:47:10] r1_g2 BEGIN hosts=wafl502,wafl503 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+200d5286b5ca734b1106feab6223a13f5f893e99f04b5d9d008010891f317cf8
+{"valid": true, "reasons": []}
+[2026-11-10_01:50:02] r1_g2 valid
+[2026-11-10_01:50:06] r1_g8 BEGIN hosts=wafl502,wafl503,wafl504,wafl505,wafl506,wafl507,wafl508,wafl509 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+8aaff968b2f5747c21a606c800185471742017291889dc570908d478dff0c4c4
+{"valid": true, "reasons": []}
+[2026-11-10_01:52:53] r1_g8 valid
+[2026-11-10_01:52:56] r1_g4 BEGIN hosts=wafl502,wafl503,wafl504,wafl505 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+0d43070adba256128aaf5a3ae31406c271a39bbe54ca151195fafa2f3d06edc1
+{"valid": true, "reasons": []}
+[2026-11-10_01:55:38] r1_g4 valid
+[2026-11-10_01:55:39] r1_g1 BEGIN hosts=wafl502 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+e5ff663d41f2bbdb851ab031684efba0a59870de65048be2d97cbbf07d478e23
+{"valid": true, "reasons": []}
+[2026-11-10_01:58:46] r1_g1 valid
+[2026-11-10_01:58:50] r2_g8 BEGIN hosts=wafl502,wafl503,wafl504,wafl505,wafl506,wafl507,wafl508,wafl509 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+daad6c20ab54e5ca51bf8311fee5be57a229dfd4371c72e7c0ad2cf1f478b5c1
+{"valid": true, "reasons": []}
+[2026-11-10_02:01:37] r2_g8 valid
+[2026-11-10_02:01:38] r2_g1 BEGIN hosts=wafl502 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+674e65e0d1639bef23250d88cf1d2e9fad7026c988321fbfed0fa72e8bd58598
+{"valid": true, "reasons": []}
+[2026-11-10_02:04:45] r2_g1 valid
+[2026-11-10_02:04:46] r2_g2 BEGIN hosts=wafl502,wafl503 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+7f874e761c682ed75b2d45458b75125d294b3ba91adcd2337f94ee0360806bf8
+{"valid": true, "reasons": []}
+[2026-11-10_02:07:44] r2_g2 valid
+[2026-11-10_02:07:46] r2_g4 BEGIN hosts=wafl502,wafl503,wafl504,wafl505 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+d2ef5d1fc3441ea2ea6d57f0adfdb6639c1dfbc44874214effb5b703ff2abd64
+{"valid": true, "reasons": []}
+[2026-11-10_02:10:35] r2_g4 valid
+[2026-11-10_02:10:36] r3_g1 BEGIN hosts=wafl502 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+1944df86c6a550b18a9233b7c8a8e9efc5508e65976fb56b12b0230073963771
+{"valid": true, "reasons": []}
+[2026-11-10_02:13:43] r3_g1 valid
+[2026-11-10_02:13:44] r3_g2 BEGIN hosts=wafl502,wafl503 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+6b53909f074077aa7b41246010e6f81f7e7f0ce59cdb0c7dfa420a5e76513cf2
+{"valid": true, "reasons": []}
+[2026-11-10_02:16:38] r3_g2 valid
+[2026-11-10_02:16:40] r3_g4 BEGIN hosts=wafl502,wafl503,wafl504,wafl505 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+f5bacf2642e83e48382fa39fbb78037d11445e11603d85dcf1856934f8ae2545
+{"valid": true, "reasons": []}
+[2026-11-10_02:19:22] r3_g4 valid
+[2026-11-10_02:19:48] r3_g8 BEGIN hosts=wafl502,wafl503,wafl504,wafl505,wafl506,wafl507,wafl508,wafl509 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+04947399ad8ea6d62c30fb62a633272ce44e6ca99ebde634cac84edbf108d39d
+[2026-11-10_02:22:18] r3_g8 ABORTED: wafl509 temp=72 sw=Active
+{"valid": false, "reasons": ["safety abort: wafl509 temp=72 sw=Active", "wafl505: slowdown Active samples 1/0", "wafl509: slowdown Active samples 2/0"]}
+[2026-11-10_02:22:31] r3_g8 INVALID: safety abort: wafl509 temp=72 sw=Active;wafl505: slowdown Active samples 1/0;wafl509: slowdown Active samples 2/0;
+[2026-11-10_02:22:57] r3_g8_retry BEGIN hosts=wafl502,wafl503,wafl504,wafl505,wafl506,wafl507,wafl508,wafl509 warmup=20 measure=120 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+69302e96d48f89b8ad256f122fea15937c331ef73a9fe832867618c17bf71c84
+[2026-11-10_02:24:18] r3_g8_retry ABORTED: wafl509 temp=83 sw=NotActive
+{"valid": false, "reasons": ["safety abort: wafl509 temp=83 sw=NotActive", "no score_bench.json", "wafl509: max temperature 83.0"]}
+[2026-11-10_02:24:31] r3_g8_retry INVALID: safety abort: wafl509 temp=83 sw=NotActive;no score_bench.json;wafl509: max temperature 83.0;
+{
+ "grid": [
+  1,
+  2,
+  4,
+  8
+ ],
+ "order": [
+  "wafl502",
+  "wafl503",
+  "wafl504",
+  "wafl505",
+  "wafl506",
+  "wafl507",
+  "wafl508",
+  "wafl509"
+ ],
+ "calibration": {
+  "x_h_qps": {
+   "wafl502": 0.5166666666666667,
+   "wafl503": 0.6333333333333333,
+   "wafl504": 0.6166666666666667,
+   "wafl505": 0.5666666666666667,
+   "wafl506": 0.5833333333333334,
+   "wafl507": 0.5166666666666667,
+   "wafl508": 0.6333333333333333,
+   "wafl509": 0.6666666666666666
+  },
+  "median_qps": 0.6000000000000001,
+  "band": 0.15,
+  "outside_band": [],
+  "order": [
+   "wafl502",
+   "wafl503",
+   "wafl504",
+   "wafl505",
+   "wafl506",
+   "wafl507",
+   "wafl508",
+   "wafl509"
+  ],
+  "pass": true,
+  "sum_x_h_qps": 4.733333333333333
+ },
+ "by_g": {
+  "1": {
+   "valid_rounds": [
+    1,
+    2,
+    3
+   ],
+   "x_qps": {
+    "1": 0.75,
+    "2": 0.75,
+    "3": 0.75
+   },
+   "efficiency": {
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0
+   },
+   "x_qps_median": 0.75,
+   "sum_x_h_ratio": 1.4516129032258063,
+   "p2p_upper_bound_qps": 0.75
+  },
+  "2": {
+   "valid_rounds": [
+    1,
+    2,
+    3
+   ],
+   "x_qps": {
+    "1": 1.3083333333333333,
+    "2": 1.2916666666666667,
+    "3": 1.2916666666666667
+   },
+   "efficiency": {
+    "1": 0.8722222222222222,
+    "2": 0.8611111111111112,
+    "3": 0.8611111111111112
+   },
+   "x_qps_median": 1.2916666666666667,
+   "sum_x_h_ratio": 1.1231884057971016,
+   "p2p_upper_bound_qps": 1.056
+  },
+  "4": {
+   "valid_rounds": [
+    1,
+    2,
+    3
+   ],
+   "x_qps": {
+    "1": 2.4916666666666667,
+    "2": 2.6,
+    "3": 2.525
+   },
+   "efficiency": {
+    "1": 0.8305555555555556,
+    "2": 0.8666666666666667,
+    "3": 0.8416666666666667
+   },
+   "x_qps_median": 2.525,
+   "sum_x_h_ratio": 1.082142857142857,
+   "p2p_upper_bound_qps": 0.792
+  },
+  "8": {
+   "valid_rounds": [
+    1,
+    2
+   ],
+   "x_qps": {
+    "1": 5.266666666666667,
+    "2": 5.2
+   },
+   "efficiency": {
+    "1": 0.8777777777777778,
+    "2": 0.8666666666666667
+   },
+   "x_qps_median": 5.233333333333333,
+   "sum_x_h_ratio": 1.1056338028169015,
+   "p2p_upper_bound_qps": 0.264
+  }
+ },
+ "runs": {
+  "r1_g1": {
+   "run": "d0009_b2_split_scoring_r1_g1",
+   "x_qps": 0.75,
+   "n_ok": 90,
+   "latency_p50_s": 40.80370736122131,
+   "latency_p95_s": 43.63623317480087,
+   "little_ratio": 0.9796177496512731,
+   "control_cpu_busy": 0.01042152204311922,
+   "generator_process_cpu_util": 0.00792511666666667,
+   "requests_per_target": [
+    244
+   ],
+   "hosts": {
+    "wafl502": {
+     "util_mean_pct": 98.76923076923077,
+     "mem_max_mib": 8060.0,
+     "temp_max_c": 79.0,
+     "requests_in_window": 244
+    }
+   }
+  },
+  "r1_g2": {
+   "run": "d0009_b2_split_scoring_r1_g2",
+   "x_qps": 1.3083333333333333,
+   "n_ok": 157,
+   "latency_p50_s": 21.162705898284912,
+   "latency_p95_s": 23.504117441177367,
+   "little_ratio": 0.9202573532528346,
+   "control_cpu_busy": 0.011089930009601068,
+   "generator_process_cpu_util": 0.016276200000000005,
+   "requests_per_target": [
+    238,
+    262
+   ],
+   "hosts": {
+    "wafl502": {
+     "util_mean_pct": 98.72649572649573,
+     "mem_max_mib": 8060.0,
+     "temp_max_c": 78.0,
+     "requests_in_window": 238
+    },
+    "wafl503": {
+     "util_mean_pct": 98.41525423728814,
+     "mem_max_mib": 4404.0,
+     "temp_max_c": 68.0,
+     "requests_in_window": 262
+    }
+   }
+  },
+  "r1_g4": {
+   "run": "d0009_b2_split_scoring_r1_g4",
+   "x_qps": 2.4916666666666667,
+   "n_ok": 299,
+   "latency_p50_s": 10.982686996459961,
+   "latency_p95_s": 16.35192475318864,
+   "little_ratio": 0.9803383635150061,
+   "control_cpu_busy": 0.012331932188291624,
+   "generator_process_cpu_util": 0.029303833333333338,
+   "requests_per_target": [
+    257,
+    208,
+    208,
+    243
+   ],
+   "hosts": {
+    "wafl502": {
+     "util_mean_pct": 97.99145299145299,
+     "mem_max_mib": 8060.0,
+     "temp_max_c": 78.0,
+     "requests_in_window": 257
+    },
+    "wafl503": {
+     "util_mean_pct": 98.66666666666667,
+     "mem_max_mib": 8116.0,
+     "temp_max_c": 69.0,
+     "requests_in_window": 208
+    },
+    "wafl5
+[2026-11-10_02:24:31] prod done; summary written to results/d0009_b2_split_scoring
+[2026-11-10_02:24:34] scorers stopped; post-stop snapshots in results/d0009_b2_split_scoring/after_stop
+[2026-11-10_02:24:34] ALL DONE

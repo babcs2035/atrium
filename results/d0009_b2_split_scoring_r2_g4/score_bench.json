@@ -1,0 +1,59 @@
+{
+ "kind": "score_bench",
+ "git_head": "155da73dc167",
+ "scorers": [
+  "http://192.168.15.102:8200",
+  "http://192.168.15.103:8200",
+  "http://192.168.15.104:8200",
+  "http://192.168.15.105:8200"
+ ],
+ "n_scorers": 4,
+ "concurrency": 30,
+ "one_pass": false,
+ "n_questions_input": 288,
+ "scorer_counts_total": {
+  "http://192.168.15.102:8200": {
+   "sent": 322,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.103:8200": {
+   "sent": 304,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.104:8200": {
+   "sent": 292,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.105:8200": {
+   "sent": 252,
+   "failed": 0,
+   "in_flight": 0
+  }
+ },
+ "n_request_errors_total": 0,
+ "warmup_s": 20.0,
+ "measure_s": 120.0,
+ "window_start": 1794244092.6453795,
+ "window_end": 1794244212.6453795,
+ "n_ok": 312,
+ "n_errors": 0,
+ "error_examples": [],
+ "throughput_qps": 2.6,
+ "latency_s": {
+  "p50": 10.856172680854797,
+  "p95": 15.21194554567337
+ },
+ "latency_mean_s": 11.638080328702927,
+ "little_ratio": 1.008633628487587,
+ "requests_per_target_in_window": [
+  259,
+  243,
+  227,
+  203
+ ],
+ "control_cpu_busy": 0.01242936280377474,
+ "generator_process_cpu_util": 0.029501508333333332
+}

@@ -416,7 +416,12 @@ levers:
             wafl500〜509 の GPU は共有なので，他の研究者のプロセスに触れない．
             着手：Iteration 37（事前登録は journal の Iteration 37．backlog B121・B122）．採点だけの測定（生成・probe は流さない）．wafl502〜509 に採点の server（既存の CrossEncoderReranker.scores をそのまま）を置き，
             制御点の CPU の新しい CLI（仮称 atrium score-bench．閉じた系・同時の問 30）から H の 288 問の 15 組/問を，未完了の最も少ない GPU へ送る．G ∈ {1, 2, 4, 8} × 3 ラウンド（種 37 の無作為な順）．
-            主は H-B2a（G = 2・4 で全ての有効なラウンドの E(G) = X(G)/(G·X(1)) ≥ 0.85）．G-S（表との差 ≤ 1e−3・R3′ の選択が 288 問で一致）を本番の前に通す．wafl500・501 は使わない．config.yaml の実験の経路は変えない"}
+            主は H-B2a（G = 2・4 で全ての有効なラウンドの E(G) = X(G)/(G·X(1)) ≥ 0.85）．G-S（表との差 ≤ 1e−3・R3′ の選択が 288 問で一致）を本番の前に通す．wafl500・501 は使わない．config.yaml の実験の経路は変えない．
+            完了：Iteration 37（2026-11-10．決まらない〔採用でも棄却でもない記述として値を閉じた〕）．結果は results/d0009_b2_split_scoring/（verdict.json・b2_summary.json・analysis_report.md・事後の window_bias.json），
+            実行は results/d0009_b2_split_scoring_{gs,cal_<host>,smoke,r<round>_g<G>}/，記述は journal の Iteration 37「実行済み」．G-S 最大 |差| 9.5e−6・選択の食い違い 0．
+            X(G) の中央値 G = 1・2・4・8 で 0.750・1.292・2.525・5.233 問/秒．E(2) 0.861〜0.872，E(4) 0.831〜0.867（r1・r3 が 0.85 未満）で H-B2a は決まらない，H-B2b の G* = 4．E(8) 0.867〜0.878（制御点の CPU 1.5% 以下で振り分けの律速は無い）．
+            G = 8 の r3 は wafl509 の熱で 2 回打ち切り（有効 2 ラウンド）．G = 1 の完了は 30 問の塊に同期し，区間の数え方は X(1) を約 8.7% 高くした（塊の間隔からの X(1) 0.690 なら E は全て ≥ 0.90．verdict_revised は事後の記述で採否に使わない）．
+            分け合いの見積もりの最大は G = 2 の約 1.06 問/秒．B2 は完了．続きは levers の末尾の d0009.B2_scoring_cost（backlog B124）"}
   # ---- 人間の指示（2026-11-08．backlog B89 [human-decided]）：最新の LLM に替えたときにどうなるか ----
   - {name: llm.expert_model_gpu, values: [gemma4-12b-it-qat],
      note: "Iteration 26 で追加（backlog B89〜B94）．主構成 R3′ の候補の回答を作る生成モデル（GPU の PC wafl500〜509．RTX 3060 12 GB の Ollama 0.35.1．
@@ -447,6 +452,13 @@ levers:
             記述は journal の Iteration 27「実行済み」．llama3.1:8b の direct は上限 2,048 に達した候補が 0.216（判定の 17 問）・0.224（150 問）で上限 5% を超えた．
             上限の候補はほぼ持ち主でない受信箱（100/304．持ち主は 1/146）で，答えが文脈に無いと理由の段で探し続ける．主構成のプロンプトは fill_in のまま．
             理由なしの direct（書式と CoT を同時に変える）は試しておらず，生成モデルの替えの再挑戦とともに人間の判断に残す（backlog B100 (a)）．次は B3 の answer_verification（B100）"}
+  # ---- Iteration 37 の評価で追加（2026-11-10．backlog B124 [auto-decided]）：d0009 の levers を B1（保留）以外使い切ったため ----
+  - {name: d0009.B2_scoring_cost, values: [fp16, max_length_1024],
+     note: "仮称．d0009 B2 の続き：採点を置く GPU の数ではなく，採点 1 回の費用を下げる．
+            既定は今の挙動（CrossEncoderReranker の dtype は fp32 相当・最大長は切らない・batch_size 4）．1 イテレーションに値を 1 つずつ（fp16 → max_length_1024 の順）．
+            どちらも得点を変えるので，fp32 の表（ce_table/holdout_owner.jsonl）との差と R3′ の選んだ候補の一致（288 問）を主にし，選択が変われば正誤の変化を記述する．
+            主構成の選択 V2 の特徴量に cross-encoder の得点が入っていれば V2 の選択の一致も見る．処理量は wafl502 の 1 枚で測り，Iteration 37 の学び（閉じた系の完了の塊の同期）から，
+            区間を塊の周期の十分な倍数にするか組の数で数える．wafl500・501・509 は使わない（B120・B122・B123）．追加だけの引数で既定の挙動は変えない．事前登録で形・閾値を rc-researcher が決める"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

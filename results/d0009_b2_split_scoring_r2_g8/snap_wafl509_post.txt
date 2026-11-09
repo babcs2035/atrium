@@ -1,0 +1,4 @@
+ts=1794243686
+gpu=60,0,7189,NotActive,NotActive
+counter_us=33052862
+other_procs=0

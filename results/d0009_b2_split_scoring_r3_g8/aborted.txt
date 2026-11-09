@@ -1,0 +1,1 @@
+wafl509 temp=72 sw=Active

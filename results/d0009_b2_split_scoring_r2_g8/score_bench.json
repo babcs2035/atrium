@@ -1,0 +1,87 @@
+{
+ "kind": "score_bench",
+ "git_head": "155da73dc167",
+ "scorers": [
+  "http://192.168.15.102:8200",
+  "http://192.168.15.103:8200",
+  "http://192.168.15.104:8200",
+  "http://192.168.15.105:8200",
+  "http://192.168.15.106:8200",
+  "http://192.168.15.107:8200",
+  "http://192.168.15.108:8200",
+  "http://192.168.15.109:8200"
+ ],
+ "n_scorers": 8,
+ "concurrency": 30,
+ "one_pass": false,
+ "n_questions_input": 288,
+ "scorer_counts_total": {
+  "http://192.168.15.102:8200": {
+   "sent": 309,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.103:8200": {
+   "sent": 302,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.104:8200": {
+   "sent": 252,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.105:8200": {
+   "sent": 290,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.106:8200": {
+   "sent": 299,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.107:8200": {
+   "sent": 300,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.108:8200": {
+   "sent": 234,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.109:8200": {
+   "sent": 279,
+   "failed": 0,
+   "in_flight": 0
+  }
+ },
+ "n_request_errors_total": 0,
+ "warmup_s": 20.0,
+ "measure_s": 120.0,
+ "window_start": 1794243556.0222313,
+ "window_end": 1794243676.0222313,
+ "n_ok": 624,
+ "n_errors": 0,
+ "error_examples": [],
+ "throughput_qps": 5.2,
+ "latency_s": {
+  "p50": 5.4795273542404175,
+  "p95": 7.8143972873687755
+ },
+ "latency_mean_s": 5.81079785984296,
+ "little_ratio": 1.00720496237278,
+ "requests_per_target_in_window": [
+  256,
+  249,
+  201,
+  247,
+  251,
+  247,
+  186,
+  231
+ ],
+ "control_cpu_busy": 0.014705267995153946,
+ "generator_process_cpu_util": 0.059615383333333334
+}

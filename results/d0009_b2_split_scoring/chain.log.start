@@ -1,0 +1,74 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[01:15:36] FAILED: 192.168.15.102 (log: artifacts/logs/score_server_start/192.168.15.102.log)
+               ^^^^^^^^^^^^^^^^^^^^^
+      File "/opt/venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4924, in from_pretrained
+        if is_from_file and not is_sharded and checkpoint_files[0].endswith(".safetensors"):
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'NoneType' object has no attribute 'endswith'
+[01:15:36] FAILED: 192.168.15.103 (log: artifacts/logs/score_server_start/192.168.15.103.log)
+        xet_get(
+      File "/opt/venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 633, in xet_get
+        download_files(
+    OSError: I/O error: I/O error: Permission denied (os error 13)
+    [01:05:21] retrying (3/3): nssh 192.168.15.103 mkdir -p $HOME/.cache/huggingface/hub && docker run --rm --user 1000:1000 -e HOME=/tmp       -v $HOME/.cache/huggingface/hub:/cache/huggingface/hub localhost:5000/atrium-full:latest hf download BAAI/bge-reranker-v2-m3 --revision 953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e > /dev/null
+[01:15:36] FAILED: 192.168.15.104 (log: artifacts/logs/score_server_start/192.168.15.104.log)
+               ^^^^^^^^^^^^^^^^^^^^^
+      File "/opt/venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4924, in from_pretrained
+        if is_from_file and not is_sharded and checkpoint_files[0].endswith(".safetensors"):
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'NoneType' object has no attribute 'endswith'
+[01:15:36] FAILED: 192.168.15.105 (log: artifacts/logs/score_server_start/192.168.15.105.log)
+               ^^^^^^^^^^^^^^^^^^^^^
+      File "/opt/venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4924, in from_pretrained
+        if is_from_file and not is_sharded and checkpoint_files[0].endswith(".safetensors"):
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'NoneType' object has no attribute 'endswith'
+[01:15:36] FAILED: 192.168.15.106 (log: artifacts/logs/score_server_start/192.168.15.106.log)
+               ^^^^^^^^^^^^^^^^^^^^^
+      File "/opt/venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4924, in from_pretrained
+        if is_from_file and not is_sharded and checkpoint_files[0].endswith(".safetensors"):
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'NoneType' object has no attribute 'endswith'
+[01:15:36] FAILED: 192.168.15.107 (log: artifacts/logs/score_server_start/192.168.15.107.log)
+               ^^^^^^^^^^^^^^^^^^^^^
+      File "/opt/venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4924, in from_pretrained
+        if is_from_file and not is_sharded and checkpoint_files[0].endswith(".safetensors"):
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'NoneType' object has no attribute 'endswith'
+[01:15:36] FAILED: 192.168.15.108 (log: artifacts/logs/score_server_start/192.168.15.108.log)
+               ^^^^^^^^^^^^^^^^^^^^^
+      File "/opt/venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4924, in from_pretrained
+        if is_from_file and not is_sharded and checkpoint_files[0].endswith(".safetensors"):
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'NoneType' object has no attribute 'endswith'
+[01:15:36] FAILED: 192.168.15.109 (log: artifacts/logs/score_server_start/192.168.15.109.log)
+               ^^^^^^^^^^^^^^^^^^^^^
+      File "/opt/venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4924, in from_pretrained
+        if is_from_file and not is_sharded and checkpoint_files[0].endswith(".safetensors"):
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'NoneType' object has no attribute 'endswith'
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[01:19:31] ok: 192.168.15.102
+[01:20:08] ok: 192.168.15.103
+[01:20:08] ok: 192.168.15.104
+[01:20:08] ok: 192.168.15.105
+[01:20:08] ok: 192.168.15.106
+[01:20:08] ok: 192.168.15.107
+[01:20:08] ok: 192.168.15.108
+[01:20:08] ok: 192.168.15.109

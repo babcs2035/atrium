@@ -1,0 +1,64 @@
+{
+ "kind": "score_bench",
+ "git_head": "155da73dc167",
+ "scorers": [
+  "http://192.168.15.102:8200",
+  "http://192.168.15.103:8200",
+  "http://192.168.15.104:8200",
+  "http://192.168.15.105:8200",
+  "http://192.168.15.106:8200",
+  "http://192.168.15.107:8200",
+  "http://192.168.15.108:8200",
+  "http://192.168.15.109:8200"
+ ],
+ "n_scorers": 8,
+ "concurrency": 30,
+ "one_pass": true,
+ "n_questions_input": 288,
+ "scorer_counts_total": {
+  "http://192.168.15.102:8200": {
+   "sent": 119,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.103:8200": {
+   "sent": 116,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.104:8200": {
+   "sent": 125,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.105:8200": {
+   "sent": 103,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.106:8200": {
+   "sent": 111,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.107:8200": {
+   "sent": 109,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.108:8200": {
+   "sent": 95,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://192.168.15.109:8200": {
+   "sent": 86,
+   "failed": 0,
+   "in_flight": 0
+  }
+ },
+ "n_request_errors_total": 0,
+ "duration_s": 60.88885307312012,
+ "n_questions_done": 288,
+ "n_errors": 0
+}

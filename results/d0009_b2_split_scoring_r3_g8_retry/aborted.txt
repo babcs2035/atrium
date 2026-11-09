@@ -1,0 +1,1 @@
+wafl509 temp=83 sw=NotActive

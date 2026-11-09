@@ -1,3 +1,126 @@
+## Iteration 34: 中央集約の停止時間を変えたときの障害の比較の確かめ
+
+**位置づけ**：レバー `d0009.A5_extend_measurements` の値 `central_outage_sweep`（backlog B112 (2)・申し送り (a)〜(c)）．Iteration 30（`results/d0009_a6_failure/`．事前登録は `journal_archive.md` の Iteration 30）の H-A6F1 は「中央は 45 秒止まってから再起動する」仮定で全 8 条件「P2P が上」，H-A6F2（検出と同時の再起動）は availability k = 1・3 だけ「P2P が上」だった．その間の停止時間 S で大小がどこで入れ替わるかを，既存の 3 ラウンドの時系列の再集計で求める（運用ルール 13）．設計の判断は backlog B114．d0009 A5 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，集計を流す前に，実装とこの節を同じ commit に入れて push する**．
+
+### 調査で分かったこと
+
+- **Iteration 30 の積分の作り（`journal_archive.md` の Iteration 30・`src/atrium/failure_run.py`・`src/atrium/dynamics.py`・`scripts/d0009/a6f_verdict.py` の確認）**：時刻 0 は P2P の k 台を止める操作の終わり（t0）．P2P の割合 p(t) は質問を**聞いた時刻**で 5 秒の区間に分けた平均（`binned_rates`．区間は −15 秒から）で，質問の無い区間は直前の値で埋める（`fill_forward`．先頭は平常の割合）．I_P は階段関数の [0, W] の積分（`integrate_rates`）で，W_r = 45 ＋ R_r ＋ 30（R_r は中央の索引の子プロセスの再起動の実測 13.71・13.73・13.51 秒）．中央は [0, 45 ＋ R] で 0，その後 c = 0.9444（Iteration 29 の C1-RRF-CE の上位 5 通．4 回とも同じ）なので，I_C = c × 30 = 28.33 で**窓の長さに依らない定数**である．H-A6F2 の窓 W0 = R ＋ 30 は，下の定義の S = 0 に当たる．
+- **時系列の範囲**：failure-run は質問を `end_at = max(t0 ＋ W, 再開の後 post_s)` まで流し続け，`rates` は [−15, W) を覆う（W ≈ 88.5〜88.7 秒）．各 `failure.json` の `p2p[].questions` に問ごとの `t_s`・`e2e_s`・`hit` があり，`start.acked_at_s`（再開の確認．約 45.0〜45.8 秒）もあるので，S ≤ 45 の任意の窓 [0, S ＋ R ＋ 30] の I_P は実測の範囲の中で計算し直せる．新しい実行は要らない．
+- **S > 45 の扱い（申し送り (b)）**：p(t) ≥ 0 なので I_P(S) は S について単調に増える．S = 45 で全 8 条件・全ラウンドで I_P > I_C（51.4〜75.5 対 28.33）なので，**S > 45 では，測っていない時刻の P2P の割合を 0 と置いた下限でも「P2P が上」**になる．したがって S > 45 は外挿なしで決まり，P2P の割合が平常に戻るかを仮定する必要が無い．P2P の停止時間（45 秒）を S と一緒に動かす形は実機が要り，単一レバーと混ざるので行わない（下の「主張できない範囲」）．
+- **境目は R に依らない形でも書ける（計算）**：I_P は窓の終わり S ＋ R ＋ 30 だけで決まるので，中央の止まっている時間の全体 T = S ＋ R で境目 T* を出せば，再起動の時間の仮定（BM25 を作り直す 13.7 秒か，p0007 E1 の `fusion: none` の 1.44 秒か）を後から当てはめられる（S* = max(0, T* − R)）．
+- **現実の停止時間の目安（出典．比べる参照点として使う．判定には使わない）**：
+  - Kubernetes の liveness probe は既定で `periodSeconds` 10 秒・`failureThreshold` 3 回で，連続 3 回の失敗でコンテナを再起動する（Kubernetes Docs "Liveness, Readiness, and Startup Probes"．https://kubernetes.io/docs/concepts/workloads/pods/probes ）．既定のままなら検出だけで約 20〜30 秒かかる（`initialDelaySeconds`・応答の打ち切りの設定で変わる．推測を含む）．例として `periodSeconds` 10・`failureThreshold` 3 の設定で約 60 秒の失敗の後に再起動しうると書く記事もある（MeteorOps "Liveness vs Readiness Probe"．https://meteorops.com/blog/how-to-configure-kubernetes-liveness-probes-without-causing-restart-loops ．`initialDelaySeconds` 30 を含む例）．
+  - Elasticsearch 7 以降は master からの follower check を既定で 1 秒ごと・打ち切り 10 秒で行い，連続 3 回の失敗でノードを外す（Elastic Docs "Cluster fault detection"．https://www.elastic.co/docs/deploy-manage/distributed-architecture/discovery-cluster-formation/cluster-fault-detection ・OpenSearch Docs "Discovery and cluster formation settings"．https://docs.opensearch.org/latest/tuning-your-cluster/discovery-cluster-formation/settings ・Netdata "Elasticsearch node left the cluster"．https://www.netdata.cloud/guides/elasticsearch/elasticsearch-node-left-cluster ）．接続が即座に拒否されれば約 3 秒，応答しなければ約 30 秒で検出される（設定値からの計算）．
+  - したがって自動の検出と再起動を持つ中央なら S は数秒〜数十秒，人の対応を要するなら数分以上になりうる．p0007 E1 の 45 秒はこの間の 1 点である．
+- **積分で障害を比べる考え方**：性能の時間変化の欠けた面積で強さを測る「resilience triangle」（Bruneau ら，"A Framework to Quantitatively Assess and Enhance the Seismic Resilience of Communities"，Earthquake Spectra 19(4)，2003．https://www.eng.buffalo.edu/~bruneau/8NCEE-Bruneau%20Reinhorn%20Resilience.pdf ・TR News 250 の解説 https://onlinepubs.trb.org/onlinepubs/trnews/trnews250_p14-17.pdf ）と同じ形で，面積は回復までの時間に強く依る．p0007 E1 の窓の積分も，中央の回復の時間（S ＋ R）が窓の長さを決めるので，S の選び方が結論を左右する（Iteration 30 の学び「45 秒の仮定の下では止めた後の P2P だけで I_C を超える」）．
+- **Iteration 30 の学びから引き継ぐ注意**：(i) container の止めた間の割合は聞いた時刻で数えるので，再開まで待って締め切り内に終わった問が入る（k ≥ 3 では再開の前に答えた問は 0）．(ii) 同じ問を同じ順で流す決定的な系なので，3 ラウンドの揺れは問の標本の揺れを表さない．境目の近くでは問の標本の幅を併記する．
+
+### 仮説
+
+S の格子の上で，I_P(S) は単調に増え，I_C は一定なので，各条件に境目 S* が 1 つだけある．availability k = 1・3 は S = 0 で既に「P2P が上」（H-A6F2）なので S* = 0．availability k = 6・10 は S = 0 の不足（28.33 − 約 22 ≈ 6）を止めた間の割合 約 0.43〜0.47 で埋めるので S* ≈ 10〜20 秒．container は S = 0 の不足が 約 11〜18 で，止めた間の（聞いた時刻の）割合 0.33〜0.64 で埋めるので S* ≈ 20〜40 秒．全条件・全ラウンドの最大 S_robust は 45 秒未満（S = 45 で全て「P2P が上」なので必ず ≤ 45）で，25〜40 秒の見込み．したがって「P2P が上」の結論は，自動の検出と再起動が数秒で済む中央（S ≲ 10 秒）では availability の k ≤ 3 にしか残らず，Kubernetes の既定程度（S ≈ 30 秒）では container の一部が「決まらない」か「中央が上」になる（推測）．
+
+### 単一レバー
+
+**障害の比較の中央の停止時間**を，Iteration 30 の「S = 45 秒（主．H-A6F1）と S = 0（併記．H-A6F2）の 2 点」から，**S の格子 {0, 2.5, 5, 10, 15, 20, 25, 30, 35, 40, 45} 秒と，大小が入れ替わる境目 S* の厳密な値**へ替える．他は全て Iteration 30 と同じにする．
+
+- **定義**：中央は障害の時刻 0 から S 秒止まり，S に再起動を始め，S ＋ R_r に答えられるようになり，その後 30 秒を測る．窓 W(S) = S ＋ R_r ＋ 30．I_P(S, r) = `integrate_rates(rates_r, bin_start_s, bin_s, 0, W(S))`（`failure.json` の `rates` をそのまま使う．`fill_forward` 済み）．I_C = c × 30 = 28.33（S に依らない）．P2P の k 台の停止は実測の 45 秒のまま（S < 45 では中央が P2P より先に戻る比較になる）．
+- **境目 S***：I_P(S) > I_C となる最小の S ≥ 0（階段関数の積分は区分的に線形なので，区間ごとに厳密に解く）．I_P(0) > I_C なら S* = 0．T* = S* ＋ R_r（I_P(0) > I_C のときは T* を [0, R_r] の中で同じ規則で解いた値）も出す．
+- **S > 45**：判定は単調性による下限で行う（I_P(S) ≥ I_P(45)）．格子の値 {60, 90, 120, 300} は「下限で P2P が上」と書くだけで，測っていない時刻の割合は使わない．
+
+### 固定する構成
+
+Iteration 30 の 3 ラウンド（`results/d0009_a6_failure_r{1,2,3}/failure.json`．全て有効．G-T・G-TB・G-B・G-R 通過）の P2P の主構成（`bm25_probe` D = 24・`owner_answer`・m 3・`fusion: rrf`・R3′ の選択の経路）・H の 288 問（`question_limit: 2`．運用ルール 10．Iteration 30 と同じ集合）・止め方（availability・container）・k（1・3・6・10．種 12）・P2P の停止 45 秒・締め切り 30 秒・区間の幅 5 秒・`fill_forward`・答えられたの定義（R3′ の選んだ候補の文脈に正解）・中央の c = 0.9444・再起動の実測 R_r・復旧の後 30 秒．
+
+**実機・GPU の使用**：無い．既存の `failure.json` と `results/d0009_a6_failure/verdict.json` の再集計（運用ルール 13）で，gpu4 の CPU で数秒〜数分．wafl500〜509・gpu4 の GPU とも使わない（運用ルール 14 の処理は発生しない）．
+
+### 判定の規則（`results/d0009_a5_outage_sweep/verdict.json`．`verdict_original` は書き換えない．集計は `scripts/d0009/a5s_verdict.py`）
+
+- **H-A5S1（主．境目）**：各条件 (m, k) について，3 ラウンドの S*_r の範囲 [min, max] を出す．全ラウンドで S*_r = 0 なら「S によらず P2P が上」，全ラウンドで 0 < S*_r ≤ 45 なら「境目あり（範囲）」と書く．全体の S_robust = max_{m,k,r} S*_r を「この S 以上なら全 8 条件で P2P が上」として出す．同じ値を T*（= S* ＋ R）でも出す．
+- **H-A5S2（主．格子の各点の向き）**：格子の各 S で，Iteration 30 と同じ 3 値の規則（有効なラウンドの全てで I_P > I_C なら「P2P が上」，全てで < なら「中央が上」，それ以外は「決まらない」）を 8 条件に当てる．参照点として S = 30（Kubernetes の既定の liveness の検出の目安）と S = 10 の 8 条件の結果を本文に引く．
+- **記述（判定に使わない）**：(i) 問の標本の幅：各ラウンドの `questions` を 5 秒の区間ごとに復元抽出して（2,000 回．種 12）`binned_rates` → `fill_forward` → S* を計算し直した 2.5〜97.5 パーセンタイル（Iteration 30 の学び (ii)）．(ii) 終わった時刻の版：止めた間（[0, 45)）に聞いた問のうち，終わった時刻（`t_s ＋ e2e_s`）が再開の確認（`start.acked_at_s`）より後のものを「答えられない」にして作り直した S*（Iteration 30 の `posthoc_completion.json` と同じ分け方．container の数え方の作り物を除いた版）．(iii) R = 1.44 秒（p0007 E1．BM25 を作り直さない中央）を当てはめた S* = max(0, T* − 1.44)．(iv) 対称の比較（P2P の停止も S とする）は実測が無いので出さない．ただし「中央の再起動 R の分だけ中央が長く止まるので，P2P の再開の後の割合が平常に戻る限り S によらず P2P が上になる」ことを 1 行の注として書く．
+
+### ゲート（集計の前に固定）
+
+- **G-T（互換）**：`mise run check`（pytest・ruff・mypy）が通る．境目を解く関数を `atrium.dynamics` に追加だけで足す場合は，単体の試験（階段関数で解が区間の中にある・区間の境にある・S = 0 で既に超える・範囲内で超えない〔None を返す〕）を `tests/test_dynamics.py` に足す．既存の試験は変えない．
+- **G-R0（再現）**：S = 45 の I_P(45, r) が `verdict.json` の `I_P`（= `failure.json` の `integral`）と，S = 0 の I_P(0, r) が `I_P_w0` と，24 個（8 条件 × 3 ラウンド）の全てで |差| ≤ 1e−9．H-A6F1・H-A6F2 の 8 条件の結果が Iteration 30 と一致する．満たさなければ止めて原因を記録する．
+- **G-M（単調）**：格子の上で I_P(S, r) が全ての条件・ラウンドで減らない．I_P(S*) − I_C が解いた点で |差| ≤ 1e−6（S* > 0 のとき）．
+- **有効なラウンド**：Iteration 30 の有効なラウンド（3）をそのまま使う．
+
+### 成功条件（事前登録）
+
+(1) G-T・G-R0・G-M を通過し，(2) 有効なラウンドが 2 以上あり，(3) H-A5S1・H-A5S2 を上の規則で出し，記述 (i)〜(iii) を `verdict.json`・`outage_sweep.json`・`analysis_report.md` に書く．仮説の成否（S* の値）は採用の条件にしない（測定の再集計のイテレーション）．採用なら値 `central_outage_sweep` を閉じて A5 を完了にし，次は levers の順で `d0009.B1_drop_failed_peers`．
+
+**ノイズの目安**：availability の止めた間の割合はラウンドの間で 0〜0.009 しか揺れない（決定的な系）ので，availability の S* のラウンドの間の揺れは 1 秒前後の見込み．container は 0.33〜0.64 と揺れ，S* の範囲は 10 秒以上になりうる．問の標本の幅（記述 (i)）は止めた間の問 8〜47 件の二項の揺れ（約 ±0.07〜0.17）に当たる．
+
+### 期待効果（見込み．検証対象ではない）
+
+availability k = 1・3 は S* = 0，k = 6・10 は S* ≈ 10〜20 秒，container は S* ≈ 20〜40 秒，S_robust ≈ 25〜40 秒．S = 30 で container の一部が「決まらない」か「中央が上」．終わった時刻の版（記述 (ii)）では container の S* が延び，S_robust が 45 秒に近づく見込み．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけ）
+
+- `src/atrium/dynamics.py` に，階段関数の [0, t] の積分が目標の値を超える最小の t を返す関数（例 `first_time_integral_exceeds(rates, start, bin_s, target, t_min, t_max) -> float | None`）を追加だけで足し，`tests/test_dynamics.py` に上の 4 件の試験を足す（既存の関数は変えない）．
+- `scripts/d0009/a5s_verdict.py`：入力は `results/d0009_a6_failure_r{1,2,3}/failure.json` と `results/d0009_a6_failure/verdict.json`（c・I_P・I_P_w0・有効なラウンド）．出力は `results/d0009_a5_outage_sweep/{verdict.json,outage_sweep.json,analysis_report.md}`．既存の `results/d0009_a6_failure/` は読むだけで書き換えない．
+- `docs/d0003_experiment_workflow.md` の §7.2（障害）に集計のコマンドを 1 行足す．
+
+### 主張できない範囲（事前に書く）
+
+P2P の停止時間を 45 秒以外にした場合（実測が無い），S > 45 での P2P の割合の実際の値（下限だけを使う），中央の再起動の時間を実測の R 以外にした場合（記述 (iii) の計算だけ），中央の cross-encoder・生成の再起動，GPU の PC を含まない止める集合，正答率（採点していない），V2 の選ぶ候補での割合，問の集合を替えたときの向き（記述 (i) は同じ 288 問の中の復元抽出）．
+
+### フェーズ 2 実行記録（rc-executor）
+
+- 事前登録 commit：`e0ca123`（実装・試験・journal・docs を同じ commit で push してから集計を実行）．実装：`atrium.dynamics.first_time_integral_exceeds`（追加のみ），`tests/test_dynamics.py` に 4 件，`scripts/d0009/a5s_verdict.py`，`docs/d0003_experiment_workflow.md` §7.2 に 1 行．
+- G-T：`mise run check`（pytest 1047 件・ruff・mypy）通過．G-R0：S = 45・S = 0 の I_P が `verdict.json` の `I_P`・`I_P_w0` と 24 個全てで最大 |差| 0.0，H-A6F1・H-A6F2 の 8 条件の結果も Iteration 30 と一致．G-M：格子の単調性の違反 0，解いた点の |I_P(S*) − I_C| 最大 3.6e−15．有効なラウンド 3．`rates` と問ごとの結果の区間平均も一致．
+- 出力：`results/d0009_a5_outage_sweep/{verdict.json,outage_sweep.json,analysis_report.md}`（実行は約 1 秒．実機・GPU なし）．
+- 数値（判定の解釈は phase 3）：S*_r の範囲（秒）は availability k=1・3 が 0（T* 3.98〜9.69・11.05〜11.68），k=6 が 6.20〜7.81，k=10 が 5.97〜7.62，container k=1 が 8.58〜17.97，k=3 が 10.83〜15.61，k=6 が 9.83〜18.79，k=10 が 11.27〜12.33．S_robust = 18.79 秒（T_robust = 32.50 秒）．S > 45 は全 24 で I_P(45) > I_C（下限で P2P が上）．
+- H-A5S2：S = 0〜5 は availability k ≤ 3 だけ「P2P が上」，S = 10 は availability の 4 条件（k=1・3・6・10）が「P2P が上」，container k=1・6 が「決まらない」，k=3・10 が「中央が上」．S = 15 は container k=10 が「P2P が上」，k=1・3・6 が「決まらない」．S ≥ 20 は 8 条件とも「P2P が上」．S = 30 は 8 条件とも「P2P が上」．
+- 記述：復元抽出の 2.5〜97.5 パーセンタイルの幅は availability k=6・10 で約 12〜14 秒，container で 0〜14 秒（r3 の container k=6 は 9.8〜9.8）．終わった時刻の版の S* は availability k=1 が 0〜2.1，k=3 が 5.9〜6.3，k=6 が 17.9〜18.9，k=10 が 14.2〜15.6，container が 28.2〜33.7．R = 1.44 秒の当てはめの S* は最大 31.1 秒（container k=6 r1）．
+- 注意：`verdict.json` の `H_A5S1.*.T_star.label` は S* と同じ関数で付けた文字列で，T* は 0 に張り付かないので availability k=1・3 でも「境目あり」と出る（T* の範囲の数値だけを使う）．
+
+### Iteration 34 実行済み：分析・考察（2026-11-09．research-cycle の phase 3．判定：採用．値 `central_outage_sweep` を閉じ，d0009 A5 を完了にする．主の数え方では中央の停止 S ≥ 18.8 秒で全 8 条件 P2P が上，記述の全ての版を含めると S ≥ 約 34 秒．`verdict_revised` で読み方を足した．次はレバー `d0009.B1_drop_failed_peers`）
+
+**変更**：事前登録（commit e0ca123．`atrium.dynamics.first_time_integral_exceeds` の追加・試験 4 件・`scripts/d0009/a5s_verdict.py`・docs を集計の前に push）のとおり，Iteration 30 の 3 ラウンド（`results/d0009_a6_failure_r{1,2,3}/failure.json`）の P2P の時系列を再集計し，中央の停止 S を格子 {0, 2.5, …, 45} 秒で振って，I_P(S) = ∫_0^{S＋R＋30} p(t) dt と I_C = 28.33 の大小が入れ替わる境目 S* を条件・ラウンドごとに解いた．実機・GPU は使っていない．phase 3 では `verdict.json` に `verdict_revised`（読み方の追加）を足しただけで，`verdict_original`・スクリプト・`outage_sweep.json`・`analysis_report.md` は変えていない（`a5s_verdict.py` を流し直すと `verdict_revised` は消える）．
+
+**結果**（`results/d0009_a5_outage_sweep/{verdict.json,outage_sweep.json,analysis_report.md}`．有効なラウンド 3．S* の単位は秒）
+
+| 条件 | S*（r1・r2・r3） | I_P(0)（r1〜r3） | 復元抽出 2.5〜97.5 % の最大の上端 | 終わった時刻の版の S* | R = 1.44 秒の S* |
+|---|---|---|---|---|---|
+| availability k=1 | 0・0・0 | 31.6〜34.0 | 2.0 | 0〜2.1 | 2.5〜8.3 |
+| availability k=3 | 0・0・0 | 30.2〜31.0 | 3.7 | 5.9〜6.3 | 9.6〜10.2 |
+| availability k=6 | 7.3・6.2・7.8 | 21.5〜22.8 | 13.4 | 17.9〜18.9 | 18.5〜19.9 |
+| availability k=10 | 7.6・6.0・6.7 | 21.6〜23.0 | 14.9 | 14.2〜15.6 | 18.3〜19.9 |
+| container k=1 | 13.4・18.0・8.6 | 13.3〜19.8 | 23.4 | 28.2〜31.7 | 20.6〜30.3 |
+| container k=3 | 12.5・15.6・10.8 | 13.2〜17.5 | 25.6 | 31.8〜32.8 | 22.9〜27.9 |
+| container k=6 | 18.8・16.3・9.8 | 10.2〜18.5 | 30.7 | 32.1〜33.7 | 21.9〜31.1 |
+| container k=10 | 12.1・11.3・12.3 | 16.0〜17.1 | 14.8 | 32.4〜32.8 | 23.6〜24.4 |
+
+- ゲート：G-T（pytest 1,047 件・ruff・mypy）・G-R0（S = 45・0 の I_P が Iteration 30 の `I_P`・`I_P_w0` と 24 個全てで差 0.0．H-A6F1・H-A6F2 の 8 条件も一致）・G-M（格子の単調性の違反 0．解いた点の誤差 最大 3.6e−15）を通過．
+- H-A5S1：S_robust = 18.79 秒（container k=6 r1），T_robust = 32.50 秒．availability k=1・3 は「S によらず P2P が上」，残りの 6 条件は「境目あり」．
+- H-A5S2：S = 0〜5 は availability k ≤ 3 だけ「P2P が上」，残り 6 条件は「中央が上」．S = 10 は availability の 4 条件が「P2P が上」，container は k=1・6 が「決まらない」，k=3・10 が「中央が上」．S = 15 は container k=1・3・6 が「決まらない」．S ≥ 20 は 8 条件とも「P2P が上」（参照点の S = 30 も全て「P2P が上」）．S > 45 は単調性の下限で全て「P2P が上」．
+
+**ノイズか信号か**
+- availability の S* のラウンドの間の幅は 1.6 秒以内（k=6：6.2〜7.8，k=10：6.0〜7.6）で，事前登録の見込み（1 秒前後）と同じ程度．container の幅は 1.1〜9.4 秒（k=1 が最大）で，見込み（10 秒以上になりうる）の範囲に収まる．ラウンドの揺れは決定的な系の再実行の揺れで，問の標本の揺れ（記述 (i)）はそれより大きい：availability k=6・10 の復元抽出の幅は約 12〜15 秒，container は最大で 9.6〜30.7 秒（k=6 r1）．
+- したがって **S* の点の値（6〜19 秒）は問の標本で ±数秒〜十数秒動く値**で，条件どうしの S* の細かい順（例えば container の k ごとの大小）はノイズの範囲にある．頑健に言えるのは (a) availability k ≤ 3 は S によらず P2P が上（復元抽出の上端も 3.7 秒以下．R = 13.7 秒の再起動の間に P2P の積分が I_C を超える），(b) S ≥ 20 秒は主の数え方の 24 個全てで P2P が上，(c) 記述の全ての版（復元抽出の 97.5 % の上端 最大 30.7・終わった時刻の版 最大 33.7・R = 1.44 秒 最大 31.1）を含めても S ≥ 約 34 秒なら全 8 条件で P2P が上（`verdict_revised.S_robust_all_descriptives`），(d) S ≤ 5 秒では availability k ≥ 6 と container の全てで中央が上（3 ラウンドとも），である．
+- Kubernetes の既定の liveness の目安（S ≈ 30 秒）は，主の数え方では全条件 P2P が上だが，container の終わった時刻の版（28.2〜33.7 秒）の境目の上に当たる．「Kubernetes 程度の中央にも P2P が上」とは container では言い切れない．
+
+**仮説との一致・不一致**
+- 一致：I_P(S) は単調に増え，各条件・ラウンドに境目が 1 つだけある．availability k=1・3 は S* = 0．S_robust < 45．終わった時刻の版で container の S* が延びた（28〜34 秒）．
+- 不一致：S* は見込みより小さい．availability k=6・10 は見込み 10〜20 秒に対し 6〜8 秒，container は見込み 20〜40 秒に対し 8.6〜18.8 秒，S_robust は見込み 25〜40 秒に対し 18.8 秒．S = 30 で container の一部が「決まらない」の見込みも外れた（全て P2P が上）．
+- **外れの原因（計算で確かめた）**：見込みは，S を伸ばしたときに足される面積を「止めた間の割合」（0.33〜0.64）で埋めると置いた．しかし窓は終わりの側が伸びる（W(S) = S ＋ R ＋ 30 ≈ 43.7 ＋ S）ので，S ≳ 1.3 秒で足される区間は P2P が再開した後（t ≥ 45 秒）になり，そこでの割合は平常（約 0.85〜1.0）である．実際，I_P の S = 0〜10 の傾きは availability で 0.85〜0.93，container で 0.75〜1.00 だった．したがって S* ≈ (I_C − I_P(0)) / 平常の割合で，S* は止めた間の割合ではなく S = 0 の不足（availability k ≥ 6 で 約 6，container で 約 9〜18）でほぼ決まる．
+- 想定外の挙動：無い（再集計で，言語崩れ・発散・OOM は該当しない）．`T_star.label` の付け方の不具合（phase 2 の注意）は `verdict_revised.T_star_label` で読み方を書いた．
+
+**判定**：**採用**．事前登録の成功条件 (1) G-T・G-R0・G-M の通過，(2) 有効なラウンド 3（2 以上），(3) H-A5S1・H-A5S2 と記述 (i)〜(iii) の出力，を全て満たす（S* の値は採否に使わない）．`verdict_revised` に，(a) `T_star.label` を使わない，(b) S < 45 は「P2P の k 台が 45 秒止まる障害に対して中央が先に戻る」比較として読む（B114 (a)），(c) 記述の全ての版を含めた頑健な境目 約 34 秒，を足した．値 `central_outage_sweep` を閉じ，A5 の 2 つの値は全て閉じた（A5 完了）．
+
+**主張できる範囲**：主構成（`bm25_probe`・`owner_answer`・R3′）の P2P で k 台（1・3・6・10）を 45 秒止める障害に対し，中央 C1-RRF-CE（再起動 13.5〜13.7 秒・再起動後の割合 0.944）の停止 S が約 19 秒以上（主の数え方．問の標本と数え方の揺れを含めると約 34 秒以上）なら，窓の積分は全 8 条件で P2P が上．S が 5 秒以下なら，P2P が上なのは availability の k ≤ 3 だけ．Iteration 30 の「45 秒の仮定で全 8 条件 P2P が上」は，45 秒より短い約 19〜34 秒の停止まで保つ．
+**主張できない範囲**：P2P の停止時間を 45 秒以外にした場合（実測無し．対称の比較は `note_symmetric` の注だけ），S > 45 の P2P の割合の実際の値，中央の再起動を実測の R 以外にした場合の実測，問の集合を替えた場合，正答率，V2 の選択の経路，p0007 E1 の構成（`fusion: none`）での境目（計算していない）．
+
+**事前登録からの偏差**：無い（phase 2 の報告どおり．`verdict_revised` は phase 3 で足した解釈）．
+
+**学び**
+- **窓の積分の比較では，停止時間を伸ばして足されるのは窓の「終わり」の面積で，そこは障害の後の平常の割合になる**：中央の停止 S を伸ばすと窓 S ＋ R ＋ 30 の終わりが伸び，P2P の再開の後の区間が足される．したがって境目は止めた間の P2P の割合ではなく「S = 0 での不足 ÷ 平常の割合」で決まる．Iteration 30 の学び（45 秒の仮定は止めた後の P2P だけで決まる）と同じ構造が S < 45 にも及んでいた．この形の比較で「P2P の障害への強さ」を言うには，止めた間の割合そのもの（または両側の停止を揃えた比較）を見る必要がある．
+- **見込みは「どの区間の割合が足されるか」を窓の定義から先に確かめて作る**：今回の外れ（S* が見込みの約半分）は全てこの点から来た．
+- **決定的な系の境目は，ラウンドの範囲ではなく問の標本の幅で引用する**：availability k=6・10 のラウンドの幅は 1.6 秒だが，復元抽出の幅は 12〜15 秒あった．
+- **container の結果は「止まったノードを外す仕組みが無い」ことの影響を受ける**：終わった時刻の版で container の S* が 28〜34 秒へ延び，availability（0〜19 秒）との差が開く．次のレバー B1（`health_check_exclusion`）で外す仕組みを入れれば，container の止めた間の割合が availability に近づく見込みで，この差の原因を切り分けられる．
+
 ## Iteration 33: 新しいメールを BM25 の索引へ加える費用の測定
 
 **位置づけ**：レバー `d0009.A5_extend_measurements` の値 `bm25_index_add`（backlog B110 (4)・申し送り (a)〜(c)）．p0007 C（`results/p0007_c_freshness`・`p0007_c_freshness_quiet`）は `hybrid_probe`・`fusion: none`・`retrieval_only`・test の質問で，新しいメールが答えに使えるまでの時間を測った．BM25 を含む主構成の取得の部分（`bm25_probe` D = 24・`fusion: rrf`）では，P2P のノードも中央も索引に BM25 が加わるので，その追加の費用と，答えられるまでの時間への影響を実機で測る（運用ルール 13）．設計の判断は backlog B111．d0009 A5 に着手を書いた（運用ルール 9）．この節が事前登録である．**rc-executor は，本番の実機の実行（smoke を除く）より前に，実装とこの事前登録の節を同じ commit に入れて push する**（Iteration 32 の偏差 (iii) の再発防止）．

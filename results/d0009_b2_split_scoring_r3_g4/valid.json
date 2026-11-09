@@ -1,0 +1,42 @@
+{
+ "valid": true,
+ "reasons": [],
+ "hosts": {
+  "wafl502": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 154,
+   "max_temp_c": 79.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl503": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 155,
+   "max_temp_c": 69.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl504": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 156,
+   "max_temp_c": 79.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl505": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 157,
+   "max_temp_c": 79.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  }
+ }
+}

@@ -1,0 +1,82 @@
+{
+ "valid": false,
+ "reasons": [
+  "safety abort: wafl509 temp=83 sw=NotActive",
+  "no score_bench.json",
+  "wafl509: max temperature 83.0"
+ ],
+ "hosts": {
+  "wafl502": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 84,
+   "max_temp_c": 79.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl503": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 85,
+   "max_temp_c": 69.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl504": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 86,
+   "max_temp_c": 77.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl505": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 87,
+   "max_temp_c": 78.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl506": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 88,
+   "max_temp_c": 74.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl507": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 89,
+   "max_temp_c": 79.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl508": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 90,
+   "max_temp_c": 76.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  },
+  "wafl509": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 91,
+   "max_temp_c": 83.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  }
+ }
+}

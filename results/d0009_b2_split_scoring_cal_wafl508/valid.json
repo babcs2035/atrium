@@ -1,0 +1,15 @@
+{
+ "valid": true,
+ "reasons": [],
+ "hosts": {
+  "wafl508": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 101,
+   "max_temp_c": 74.0,
+   "sw_thermal_active_samples": 0,
+   "hw_slowdown_active_samples": 0
+  }
+ }
+}

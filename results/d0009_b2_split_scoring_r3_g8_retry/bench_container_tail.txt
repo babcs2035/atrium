@@ -1,0 +1,8 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+2026-11-09 17:24:17,368 INFO httpx: HTTP Request: POST http://192.168.15.109:8200/v1/score "HTTP/1.1 200 OK"
+2026-11-09 17:24:17,383 INFO httpx: HTTP Request: POST http://192.168.15.103:8200/v1/score "HTTP/1.1 200 OK"
+2026-11-09 17:24:17,388 INFO httpx: HTTP Request: POST http://192.168.15.106:8200/v1/score "HTTP/1.1 200 OK"
+2026-11-09 17:24:17,447 INFO httpx: HTTP Request: POST http://192.168.15.104:8200/v1/score "HTTP/1.1 200 OK"
+2026-11-09 17:24:17,487 INFO httpx: HTTP Request: POST http://192.168.15.105:8200/v1/score "HTTP/1.1 200 OK"
