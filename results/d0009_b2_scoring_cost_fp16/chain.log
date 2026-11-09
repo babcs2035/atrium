@@ -1,0 +1,350 @@
+[2026-11-10_02:50:09] BEGIN stages: publish env0 f32pass f16pass smoke prod host=wafl502 (git 43a01529f132)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_02:50:21] published atrium-full 43a01529f132
+[2026-11-10_02:50:21] env0 passed on wafl502 (waited 0s): ts=1794246621 gpu=48,0,32,NotActive,NotActive counter_us=0 other_procs=0 
+[2026-11-10_02:50:52] scorer started on 192.168.15.102 dtype=float32
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_02:50:53] f32pass BEGIN host=wafl502 warmup=0 measure=0 --one-pass --dump-scores
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+130b4f9605d44890ab6cb3b1db5befa122a76a56b55c96697732a55582396cf7
+{"valid": true, "reasons": []}
+{
+ "gs": {
+  "n_pairs": 4320,
+  "n_questions": 288,
+  "n_pairs_missing_in_table": 0,
+  "n_pairs_over_tolerance": 0,
+  "max_abs_diff": 9.506940841674805e-06,
+  "max_abs_diff_by_target": {
+   "0": 9.506940841674805e-06
+  },
+  "n_selection_mismatch": 0,
+  "n_selection_mismatch_tolerated_as_tie": 0,
+  "table_sha256": "da0a7a55c29abd773935b791137b7e5cab2776f5737c9bce2a7949921b1e6fa2",
+  "n_errors": 0,
+  "tolerance": 0.001,
+  "tie_gap": 0.002,
+  "pass": true
+ },
+ "n_candidates_rebuilt": 864,
+ "n_candidates_missing_in_ce_features": 0,
+ "ce_max_abs_diff": {
+  "n": 864,
+  "median": 5.960464477539063e-08,
+  "p99": 1.4558434486389167e-06,
+  "max": 2.60770320892334e-06,
+  "n_nonfinite": 0
+ },
+ "ce_top1_abs_diff": {
+  "n": 864,
+  "median": 2.9336661100387573e-08,
+  "p99": 1.2141466140747073e-06,
+  "max": 2.7418136596679688e-06,
+  "n_nonfinite": 0
+ },
+ "feature_tolerance": 0.001,
+ "pass": true
+}
+[2026-11-10_02:58:22] G-F32 passed
+[2026-11-10_02:58:53] scorer started on 192.168.15.102 dtype=float16
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_02:58:54] f16pass BEGIN host=wafl502 warmup=0 measure=0 --one-pass --dump-scores
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+2d8bf226a44eb90655692a18cbf685e372d66dca769a7c70e7291621828514e4
+{"valid": true, "reasons": []}
+{
+ "float32": {
+  "dtype": "float32",
+  "attn_implementation": "sdpa",
+  "tokenizer_max_length": 8192
+ },
+ "float16": {
+  "dtype": "float16",
+  "attn_implementation": "sdpa",
+  "tokenizer_max_length": 8192
+ },
+ "pass": true
+}
+[2026-11-10_03:01:14] G-AT passed
+{
+ "n_pairs": 4320,
+ "n_questions": 288,
+ "n_questions_with_labels": 288,
+ "n_nonfinite": 0,
+ "abs_diff_vs_table": {
+  "n": 4320,
+  "median": 1.6078742965342126e-05,
+  "p99": 0.0008388078440378564,
+  "max": 0.0024406452472670592,
+  "n_nonfinite": 0
+ },
+ "abs_diff_vs_f32_same_day": {
+  "n": 4320,
+  "median": 1.6085167988971576e-05,
+  "p99": 0.0008389136422823322,
+  "max": 0.002450152188108734,
+  "n_nonfinite": 0
+ },
+ "R3p_vs_table": {
+  "n_mismatch": 0,
+  "n_mismatch_tie": 0,
+  "delta_correct": 0,
+  "delta_correct_excluding_ties": 0,
+  "mismatch_qids": [],
+  "tie_qids": []
+ },
+ "R3p_vs_f32_same_day": {
+  "n_mismatch": 0,
+  "n_mismatch_tie": 0,
+  "delta_correct": 0,
+  "delta_correct_excluding_ties": 0,
+  "mismatch_qids": [],
+  "tie_qids": []
+ },
+ "V2_vs_stored_features": {
+  "n_mismatch": 0,
+  "n_mismatch_tie": 0,
+  "delta_correct": 0,
+  "delta_correct_excluding_ties": 0,
+  "mismatch_qids": [],
+  "tie_qids": []
+ },
+ "V2_vs_f32_same_day": {
+  "n_mismatch": 0,
+  "n_mismatch_tie": 0,
+  "delta_correct": 0,
+  "delta_correct_excluding_ties": 0,
+  "mismatch_qids": [],
+  "tie_qids": []
+ },
+ "spearman_per_question_vs_table": {
+  "n": 288,
+  "median": 1.0,
+  "min": 0.996422170998389
+ },
+ "top1_agreement_vs_table": 0.9988425925925926,
+ "n_candidates_top1": 864,
+ "H_F1": "agree"
+}
+[2026-11-10_03:01:15] H-F1 numbers written to results/d0009_b2_scoring_cost_fp16/fp16_agreement.json
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_03:01:16] smoke BEGIN host=wafl502 warmup=10 measure=30 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+e45a04d0c6e82b5f338f09fe7106abb5ea51b4fa949ea60f15f1bf39b2538f37
+{"valid": true, "reasons": []}
+[2026-11-10_03:02:18] smoke ok
+[2026-11-10_03:02:50] scorer started on 192.168.15.102 dtype=float32
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_03:02:51] r1_f32 BEGIN host=wafl502 warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+a1d66bf4457af8569dd007a3e76db5ac0246b3da081dfc3427b9230a3aff6d15
+{"valid": true, "reasons": []}
+[2026-11-10_03:14:41] r1_f32 valid
+[2026-11-10_03:15:12] scorer started on 192.168.15.102 dtype=float16
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_03:15:13] r1_f16 BEGIN host=wafl502 warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+525409de8be7fe63272304d6a1615aa2570c6772d45df2ed739b43ee637f42ec
+{"valid": true, "reasons": []}
+[2026-11-10_03:26:36] r1_f16 valid
+[2026-11-10_03:27:07] scorer started on 192.168.15.102 dtype=float32
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_03:27:09] r2_f32 BEGIN host=wafl502 warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+29ab4cdd4639ac45715bbb6e79270753515f70225de6043808d0e1e72d2d696b
+{"valid": true, "reasons": []}
+[2026-11-10_03:38:59] r2_f32 valid
+[2026-11-10_03:39:30] scorer started on 192.168.15.102 dtype=float16
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_03:39:31] r2_f16 BEGIN host=wafl502 warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+31247a070a73386ce8d9d8a4bf190c0224e6e96436b3ec245640d8c59026d7ac
+{"valid": true, "reasons": []}
+[2026-11-10_03:50:49] r2_f16 valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_03:50:50] r3_f16 BEGIN host=wafl502 warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+4da960b648c82bc5d96d00771085f729e80c890049280ed824c45508d4be141b
+{"valid": true, "reasons": []}
+[2026-11-10_04:02:08] r3_f16 valid
+[2026-11-10_04:02:39] scorer started on 192.168.15.102 dtype=float32
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_04:02:41] r3_f32 BEGIN host=wafl502 warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+e99d22996532de5e8ca4b809973e2ecea92708f7bbd04aa6b3a0bf67be4833ee
+{"valid": true, "reasons": []}
+[2026-11-10_04:14:31] r3_f32 valid
+{
+ "host": "wafl502",
+ "runs": {
+  "1": {
+   "float32": {
+    "run": "d0009_b2_fp16_r1_f32",
+    "x_req_qps": 0.6805555555555555,
+    "x_count_qps": 0.7,
+    "x_period_qps": 0.6865932513037962,
+    "n_ok_questions": 420,
+    "latency_p50_s": 41.46571981906891,
+    "latency_p95_s": 56.82111419439316,
+    "little_ratio": 1.026418791413307,
+    "server_duration_s": {
+     "p50": 13.927035758038983,
+     "p95": 22.778241554927078
+    },
+    "gpu_util_mean_pct": 98.34129692832765,
+    "gpu_mem_max_mib": 7542.0,
+    "gpu_temp_max_c": 78.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.010409579818604514,
+    "generator_process_cpu_util": 0.008294530000000001,
+    "cool_wait_s": 0
+   },
+   "float16": {
+    "run": "d0009_b2_fp16_r1_f16",
+    "x_req_qps": 2.277777777777778,
+    "x_count_qps": 2.2733333333333334,
+    "x_period_qps": 1.0367823028733383,
+    "n_ok_questions": 1364,
+    "latency_p50_s": 12.472777366638184,
+    "latency_p95_s": 16.740715205669403,
+    "little_ratio": 0.9999481015867657,
+    "server_duration_s": {
+     "p50": 4.124254549504258,
+     "p95": 7.320952358422799
+    },
+    "gpu_util_mean_pct": 95.29180887372014,
+    "gpu_mem_max_mib": 4276.0,
+    "gpu_temp_max_c": 78.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.01197686458321736,
+    "generator_process_cpu_util": 0.027148805,
+    "cool_wait_s": 0
+   }
+  },
+  "2": {
+   "float32": {
+    "run": "d0009_b2_fp16_r2_f32",
+    "x_req_qps": 0.6805555555555555,
+    "x_count_qps": 0.7,
+    "x_period_qps": 0.6864584235190075,
+    "n_ok_questions": 420,
+    "latency_p50_s": 41.487712025642395,
+    "latency_p95_s": 56.81098597049713,
+    "little_ratio": 1.0266179938316344,
+    "server_duration_s": {
+     "p50": 13.921227185986936,
+     "p95": 22.78280171654187
+    },
+    "gpu_util_mean_pct": 98.5938566552901,
+    "gpu_mem_max_mib": 7498.0,
+    "gpu_temp_max_c": 78.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.010358145578901383,
+    "generator_process_cpu_util": 0.008216434999999998,
+    "cool_wait_s": 0
+   },
+   "float16": {
+    "run": "d0009_b2_fp16_r2_f16",
+    "x_req_qps": 2.2783333333333333,
+    "x_count_qps": 2.2733333333333334,
+    "x_period_qps": 1.0371585591242063,
+    "n_ok_questions": 1364,
+    "latency_p50_s": 12.46986472606659,
+    "latency_p95_s": 16.747639930248262,
+    "little_ratio": 0.9995529664622412,
+    "server_duration_s": {
+     "p50": 4.121809963136911,
+     "p95": 7.317665046080947
+    },
+    "gpu_util_mean_pct": 95.4258943781942,
+    "gpu_mem_max_mib": 4260.0,
+    "gpu_temp_max_c": 78.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.012195631116603762,
+    "generator_process_cpu_util": 0.027464904999999994,
+    "cool_wait_s": 0
+   }
+  },
+  "3": {
+   "float32": {
+    "run": "d0009_b2_fp16_r3_f32",
+    "x_req_qps": 0.6805555555555555,
+    "x_count_qps": 0.7,
+    "x_period_qps": 0.6867118378259728,
+    "n_ok_questions": 420,
+    "latency_p50_s": 41.45864009857178,
+    "latency_p95_s": 56.814455556869504,
+    "little_ratio": 1.026247798959414,
+    "server_duration_s": {
+     "p50": 13.92118629696779,
+     "p95": 22.782713747723026
+    },
+    "gpu_util_mean_pct": 98.64846416382252,
+    "gpu_mem_max_mib": 7540.0,
+    "gpu_temp_max_c": 79.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.010222820763956905,
+    "generator_process_cpu_util": 0.008266775,
+    "cool_wait_s": 0
+   },
+   "float16": {
+    "run": "d0009_b2_fp16_r3_f16",
+    "x_req_qps": 2.2816666666666667,
+    "x_count_qps": 2.2733333333333334,
+    "x_period_qps": 0.939554553400398,
+    "n_ok_questions": 1364,
+    "latency_p50_s": 12.45779299736023,
+    "latency_p95_s": 16.724920678138734,
+    "little_ratio": 0.998271294037501,
+    "server_duration_s": {
+     "p50": 4.115108351921663,
+     "p95": 7.311138066882267
+    },
+    "gpu_util_mean_pct": 95.01535836177474,
+    "gpu_mem_max_mib": 4260.0,
+    "gpu_temp_max_c": 79.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.012235633359636048,
+[2026-11-10_04:14:31] prod done; summary written to results/d0009_b2_scoring_cost_fp16
+[2026-11-10_04:14:31] ALL DONE
+[2026-11-10_04:14:46] BEGIN stages: stop host=wafl502 (git 43a01529f132)
+[2026-11-10_04:14:49] scorer stopped; post-stop snapshot in results/d0009_b2_scoring_cost_fp16/after_stop
+[2026-11-10_04:14:49] ALL DONE

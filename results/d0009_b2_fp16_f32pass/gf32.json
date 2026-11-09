@@ -1,0 +1,37 @@
+{
+ "gs": {
+  "n_pairs": 4320,
+  "n_questions": 288,
+  "n_pairs_missing_in_table": 0,
+  "n_pairs_over_tolerance": 0,
+  "max_abs_diff": 9.506940841674805e-06,
+  "max_abs_diff_by_target": {
+   "0": 9.506940841674805e-06
+  },
+  "n_selection_mismatch": 0,
+  "n_selection_mismatch_tolerated_as_tie": 0,
+  "table_sha256": "da0a7a55c29abd773935b791137b7e5cab2776f5737c9bce2a7949921b1e6fa2",
+  "n_errors": 0,
+  "tolerance": 0.001,
+  "tie_gap": 0.002,
+  "pass": true
+ },
+ "n_candidates_rebuilt": 864,
+ "n_candidates_missing_in_ce_features": 0,
+ "ce_max_abs_diff": {
+  "n": 864,
+  "median": 5.960464477539063e-08,
+  "p99": 1.4558434486389167e-06,
+  "max": 2.60770320892334e-06,
+  "n_nonfinite": 0
+ },
+ "ce_top1_abs_diff": {
+  "n": 864,
+  "median": 2.9336661100387573e-08,
+  "p99": 1.2141466140747073e-06,
+  "max": 2.7418136596679688e-06,
+  "n_nonfinite": 0
+ },
+ "feature_tolerance": 0.001,
+ "pass": true
+}

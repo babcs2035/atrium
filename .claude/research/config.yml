@@ -461,7 +461,11 @@ levers:
             区間を塊の周期の十分な倍数にするか組の数で数える．wafl500・501・509 は使わない（B120・B122・B123）．追加だけの引数で既定の挙動は変えない．事前登録で形・閾値を rc-researcher が決める．
             着手：Iteration 38（値 fp16．事前登録は journal の Iteration 38．backlog B125）．`atrium score-server --dtype float16`（重みと計算を fp16，Sigmoid は logits を fp32 に直してから）．
             wafl502 の 1 枚で fp32 の同じ日の 1 周（G-F32）と fp16 の 1 周から R3′・V2 の選択の一致と正誤の変化（H-F1），慣らし 60 秒・区間 600 秒の 3 ラウンドの組の比 S = X_req(fp16)/X_req(fp32)（H-F2．≥ 1.5 で速くなる）．
-            採用は H-F2 が速くなる かつ H-F1 が一致する（n_R3・n_V2 ≤ 2，Δc ≥ −1 問）．wafl502 で 2 回無効なら wafl503 で流し直す"}
+            採用は H-F2 が速くなる かつ H-F1 が一致する（n_R3・n_V2 ≤ 2，Δc ≥ −1 問）．wafl502 で 2 回無効なら wafl503 で流し直す．
+            完了（fp16）：Iteration 38（2026-11-10．採用）．結果は results/d0009_b2_scoring_cost_fp16/（verdict.json・fp16_summary.json・fp16_agreement.json・gat.json・analysis_report.md），
+            実行は results/d0009_b2_fp16_{f32pass,f16pass,smoke,r<round>_<dtype>}/，記述は journal の Iteration 38「実行済み」．wafl502 の 3 ラウンドで無効な実行 0．
+            X_req 0.681 → 2.278〜2.282 問/秒（S = 3.347〜3.353），GPU メモリの最大 7.5 → 4.3 GB．得点の表との |差| の最大 2.44e−3，R3′・V2 の選択の食い違い 0・Δc 0．
+            fp16 は後の反復で採点に使ってよい（CrossEncoderReranker の既定は fp32 のまま）．次は値 max_length_1024（backlog B126．dtype は fp16 を土台にする）"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

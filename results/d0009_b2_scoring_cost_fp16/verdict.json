@@ -1,0 +1,13 @@
+{
+ "H_F1": "agree",
+ "H_F2": "faster",
+ "success_condition_1_gates_passed": true,
+ "success_condition_2_enough_valid_rounds": true,
+ "note": "mechanical application of the pre-registered rules; adoption is decided by rc-evaluator",
+ "adoption": {
+  "decision": "adopted",
+  "decided_by": "rc-evaluator (Iteration 38 phase 3, 2026-11-10)",
+  "reason": "success conditions (1)-(3) met; H_F2 faster (S_r = 3.347, 3.348, 3.353 >= 1.5 in all 3 valid rounds) and H_F1 agree (non-finite 0, n_R3 = n_V2 = 0, delta_c = 0)",
+  "scope": "fp16 may be used for scoring in later iterations; CrossEncoderReranker default stays float32"
+ }
+}

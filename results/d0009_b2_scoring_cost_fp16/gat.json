@@ -1,0 +1,13 @@
+{
+ "float32": {
+  "dtype": "float32",
+  "attn_implementation": "sdpa",
+  "tokenizer_max_length": 8192
+ },
+ "float16": {
+  "dtype": "float16",
+  "attn_implementation": "sdpa",
+  "tokenizer_max_length": 8192
+ },
+ "pass": true
+}

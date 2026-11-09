@@ -2,14 +2,14 @@
   "repo": "atrium",
   "iteration": 38,
   "iteration_name": "cross-encoder の採点を半精度にしたときの速さと選ぶ候補の一致",
-  "phase": "execute",
+  "phase": "evaluate",
   "status": "running",
   "current_lever": "d0009.B2_scoring_cost=fp16",
-  "experiment_dir": null,
-  "experiment_deadline": null,
-  "updated_at": 1794238350,
+  "experiment_dir": "results/d0009_b2_scoring_cost_fp16",
+  "experiment_deadline": 1794275409,
+  "updated_at": 1794251700,
   "last_slack_ts": "1794245582.816609",
   "iteration_thread_ts": "1794246028.068229",
   "notion_toggle_created": true,
-  "last_commit": "3aa6a66"
+  "last_commit": "43a0152"
 }

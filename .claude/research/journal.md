@@ -96,6 +96,51 @@ S ≈ 1.8〜2.5（X_req(fp32) ≈ 0.69〜0.75，X_req(fp16) ≈ 1.3〜1.8 問/�
 - H の 288 問以外の質問集合での選択の一致，正答率の変化の検定（288 問の候補の上の記述で，McNemar の判定は行わない）．
 - RTX 3060（wafl502 か 503）以外の GPU の値，熱の減速の起きる状態の値．
 
+### 実行の記録（rc-executor．評価は rc-evaluator が行う）
+
+実装と事前登録は commit 43a0152（実機より前に push）．結果は `results/d0009_b2_scoring_cost_fp16/`，実行は `results/d0009_b2_fp16_*/`．wafl502 のまま 3 ラウンドで，無効な実行・熱の打ち切り・失敗の要求は 0．
+- G-ENV0・G-F32（表との最大 |差| 9.51e-6，選択の食い違い 0）・G-AT（sdpa・最大長 8192）・smoke は通過．
+- H-F1 の材料：fp16 の 4,320 組は非有限 0，表との |差| の最大 2.44e-3，R3′・V2 の食い違い 0，Δc 0．機械判定は agree．
+- H-F2 の材料：X_req（問/秒）fp32 0.6806 → fp16 2.278（S = 3.347・3.348・3.353）．機械判定は faster．GPU メモリの最大 7.5 → 4.3 GB，温度の最大 78〜79 °C．
+- 注意：`fp16_summary.json` の `x_period_qps` は塊の前提が fp16 で崩れるので参考にならない（判定は X_req）．
+
+### Iteration 38 実行済み：分析・考察（2026-11-10．research-cycle の phase 3．判定：**採用**〔H-F2 速くなる かつ H-F1 一致する．値 `fp16` を閉じる．既定の挙動は変えない〕．次は同じレバーの値 `max_length_1024`（B126））
+
+**変更**：cross-encoder（bge-reranker-v2-m3）の重みと計算の dtype を fp32 から fp16 へ（Sigmoid は logits を fp32 に直してから）．`atrium score-server --dtype float16` の追加だけの引数（commit 43a0152）．attention は両 dtype とも sdpa，tokenizer の最大長は 8,192（G-AT）．
+
+**結果**（wafl502 の 1 枚．無効な実行 0・熱の打ち切り 0・失敗の要求 0・冷ます待ち 0 秒・SW Thermal Slowdown の累計の差 0）
+
+| ラウンド | X_req fp32（問/秒） | X_req fp16 | S | server の 5 組の時間 p50 fp32 → fp16（秒） | 問の待ち時間 p50 fp32 → fp16（秒） | GPU メモリの最大 fp32 → fp16 | 温度の最大 |
+|---|---|---|---|---|---|---|---|
+| 1 | 0.681 | 2.278 | 3.347 | 13.93 → 4.12 | 41.5 → 12.5 | 7,542 → 4,276 MiB | 78 °C |
+| 2 | 0.681 | 2.278 | 3.348 | 13.92 → 4.12 | 41.5 → 12.5 | 7,498 → 4,260 MiB | 78 °C |
+| 3 | 0.681 | 2.282 | 3.353 | 13.92 → 4.12 | 41.5 → 12.5 | 7,540 → 4,260 MiB | 79 °C |
+
+- 一致（fp16 の 1 周の 4,320 組）：非有限 0．表との |差| の中央値 1.6e−5・p99 8.4e−4・最大 2.44e−3（同じ日の fp32 との差もほぼ同じ．fp32 の GPU の違い 9.5e−6 の約 250 倍だが，選択には届かない）．R3′・V2 とも，表に対しても同じ日の fp32 に対しても食い違い 0（同点 0），Δc_R3 = Δc_V2 = 0．問ごとの 15 組の順位の Spearman は中央値 1.0・最小 0.996，候補ごとの上位 1 通の一致は 863/864．
+- 機械判定：H-F1 agree，H-F2 faster（3 ラウンド全てで S ≥ 1.5）．`verdict.json` に `adoption` を足した．
+
+**ノイズか信号か**
+- S のラウンドの間の揺れは 3.347〜3.353（0.2%）で，閾値 1.5 との差（約 2.2 倍）は事前に見込んだ比の揺れ ±6% と比べて桁違いに大きい．server の側の 5 組の時間の比（p50 で 3.38 倍）も S と合うので，速くなったのは GPU の上の計算で，負荷の生成や数え方の作りものではない．**有意な変化（信号）**．
+- fp32 の X_req は 3 ラウンドとも 0.6806（区間 600 秒に 1,225 要求）で同じ値だった．同じ問の順・同じ同期の閉じた系で，600 秒は fp32 の塊の周期（約 43.5 秒）の約 14 倍なので，量子化の偏りは 1 塊分（30 問）÷ 14 周期 ≈ 1/14 未満（約 7% 未満）で，揺れ 0 自体は精度の証拠ではない（Iteration 37 の学び）．Iteration 37 の塊の間隔からの X_period(1) 0.690 とは −1.4% で合う．fp16 の側は塊が崩れ（待ち時間の p50 12.5 秒で区間に約 48 周期．`x_count_qps` 2.273 と X_req 2.278 が 0.2% で合う），数え方の偏りは小さい．よって S の過大は最大でも数 % で，判定は変わらない．
+- 一致の側は食い違い 0 問で，閾値（2 問）と比べてノイズの議論の余地が無い．
+
+**仮説との一致・不一致**
+- 「処理量は 1.5 倍以上」は合う．ただし大きさは見込み（S ≈ 1.8〜2.5）を超えて約 3.35 倍だった（想定外．公式の「2〜3 倍」の上端も超える）．原因の候補（推測．確かめていない）：PyTorch は既定で fp32 の行列積に TF32 を使わない（`torch.backends.cuda.matmul.allow_tf32` の既定 False）ので，fp32 は Ampere の tensor core を使わず，fp16 だけが tensor core に乗る．加えて，切らない長いメールでは attention とメモリの転送量の半減が効く．
+- 「得点の差は選択を変えない」は合う（食い違い 0・Δc 0）．得点の差の中央値 1.6e−5 は見込み（1e−4〜1e−3）より小さく，最大 2.44e−3 は見込みの範囲．
+- GPU メモリの最大は見込みどおり 7.5 → 4.3 GB．GPU の使用率は 98% → 95% に下がった（tokenize などの CPU の側の割合が相対的に増えた可能性．推測）．温度の最大は fp32・fp16 とも 78〜79 °C で，600 秒の連続の負荷でも wafl502 は 83 °C に届かなかった（B125 要レビュー (c)）．
+- 想定外の挙動（言語崩れ・発散・OOM・非有限）は無い．
+
+**判定**：**採用**．事前登録の成功条件 (1)（G-ENV0・G-F32・G-AT・smoke の通過）・(2)（有効なラウンド 3）・(3)（H-F1・H-F2 の判定と 3 つの出力）を満たし，H-F2 が「速くなる」かつ H-F1 が「一致する」．値 `fp16` を閉じる．後の反復で採点に fp16 を使ってよい根拠とする（`CrossEncoderReranker` の既定は fp32 のまま変えない）．
+
+**主張できる範囲**：wafl502 の RTX 3060 1 枚で，H の 288 問の採点（15 組/問・最大長は切らない・batch 4）を fp16（Sigmoid は fp32）にすると，閉じた系 C = 30 の処理量は 0.681 → 2.278〜2.282 問/秒（3.35 倍），GPU メモリの最大は 7.5 → 4.3 GB になり，R3′・V2 の選ぶ候補は 288 問の全てで変わらない．1 枚の fp16 の処理量は Iteration 29 の P2P の処理量 1.32 問/秒を超え，Iteration 37 の G = 4（fp32）の 2.49〜2.60 問/秒に近い．
+**主張できない範囲**：生成と同じ GPU に載せた場合の可否と速さ（4.3 + 約 6.7 GB ≈ 11 GB で 12 GB に収まる見込みは出たが測っていない），複数の GPU での fp16，wafl502 以外の機，公式の `CrossEncoder` の fp16 のまま（Sigmoid も fp16）の値，H 以外の質問集合での選択の一致．分け合いの見積もり（記述．測定ではない）：fp16 なら採点に 1 枚を回すだけで min(1.32 × 9/10, 2.278) = 1.188 問/秒で，fp32 の最大（G = 2 の 1.056）を上回る．
+
+**学び**
+- **fp32 と fp16 の速さの比は，見込みの「2 倍前後」より大きく 3.35 倍だった**．RTX 3060 で PyTorch の既定（TF32 を使わない fp32）と比べる場合，公式の文書の倍率をそのまま見込みに使うと過小になりうる（原因は推測で確かめていない）．次に速さを見込むときは server の側の `duration_s` を smoke で先に測って事前登録の見込みに使う．
+- **閉じた系の塊の同期は，速くなった側で崩れる**：fp32 は 30 問の塊（周期約 43.5 秒）のまま，fp16 は塊が崩れたので，`x_period_qps`（塊の間隔からの値）は fp16 で 0.94〜1.04 と意味の無い値になった．dtype のように速さの変わるレバーの比は，区間に終わった要求の数（X_req）で数えるのが両側で頑健で，Iteration 37 の学び (ii) を事前登録に入れたことが効いた．
+- **fp16 の得点の差（最大 2.4e−3）は fp32 の GPU の違い（9.5e−6）より 2 桁大きいが，選択（R3′ の候補ごとの最大・V2 の回帰）には効かない**：選択の境目（候補の間の差）がこの差より十分に大きい問ばかりだったため（H の同点 0）．得点の |差| のゲート（G-F32 の 1e−3）を fp16 にそのまま当てはめると不通過になるので，得点を変えるレバーでは |差| ではなく選択の一致と正誤の変化で判定する形（今回の H-F1）が適切である．
+- 600 秒の連続の負荷でも wafl502 は最大 79 °C で，Iteration 37（120 秒）の wafl502 と同じ水準だった．長い区間の測定でも wafl502 は熱の余裕がある．
+
 ## Iteration 37: cross-encoder の採点を複数の GPU に分けたときの処理の速さ
 
 **位置づけ**：レバー `d0009.B2_split_reranker` の値 `multi_gpu_scoring`（backlog B121 (3)）．B1 は wafl500 の冷却の人間の判断（B120 [needs-human]）まで保留し，**wafl500 に持続の負荷をかけない設計に限って** B2 に着手する．設計の判断は backlog B122．d0009 B2 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，smoke と本番の実機の実行より前に，実装とこの節を同じ commit に入れて push する**．
@@ -353,146 +398,6 @@ Iteration 35 の「主張できない範囲」に加えて，wafl500 の減速�
 - **同じ日の対照（D0）を本番の前に置いたことで，1 ラウンドで「仕組みの費用ではない」と言えた**：日を替えた過去の実行との比較だけでは，Iteration 35 の打ち切りを仕組みの費用と読みかねなかった．新しい仕組みを実機で測るときは，同じ日・同じ image の対照を先に流す．
 - **質問者の打ち切りがノードの委託と生成へ伝わらない作りは，1 台の減速をクラスタ全体の打ち切りに広げる**（B119 の提案 X3 の根拠が増えた．D0 で wafl500 の速さが戻った後の条件でも打ち切りが続いた）．
 - **chain の外部の確かめ（ssh・curl）は一時的な失敗を前提に再試行を入れておく**：今回は ssh の exit 255・curl の exit 7 で最初の chain が止まり，修正の commit が 3 つ要った．
-
-## Iteration 35: 停止した PC を問い合わせ先から外す仕組みの障害時の効果
-
-**位置づけ**：レバー `d0009.B1_drop_failed_peers` の値 `health_check_exclusion`（backlog B115 (2)・申し送り (a)〜(e)）．Iteration 30（`results/d0009_a6_failure_r{1,2,3}/`．外す仕組み無し．事前登録は `journal_archive.md` の Iteration 30）と同じ止め方・k・質問・締め切りで，質問者が生存確認で止まったと判定したノードを問い合わせ先から外す仕組みを on にして実機で流す．設計の判断は backlog B116．d0009 B1 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，smoke を除く本番の実機の実行より前に，実装とこの節を同じ commit に入れて push する**．
-
-### 調査で分かったこと
-
-- **今の質問者が止まったノードに当たる経路（コードの確認．`src/atrium/requester.py`・`failure_run.py`・`node.py`）**：
-  - failure-run の質問者は `tolerate_node_failures=True` で，probe の失敗（HTTP の失敗・接続の失敗）は問の失敗にせず，返事のあった受信箱から選ぶ（`_gather_requests`）．ただし `asyncio.gather` で**全ての probe の返事（か失敗）を待つ**．availability で止めた台は 503 をすぐ返すので待ちは生じず，その台の受信箱は選ばれない．container で止めた台は応答せず，probe は `RETRIEVE_TIMEOUT_S` 120 秒まで待つので，止めた台が 1 段目の D = 24 台に入った問は締め切り 30 秒で落ちる（Iteration 30 の container の時間切れ 3〜8 件と，8 本の流れが待ちで埋まって新しい問がほとんど聞かれない区間の原因）．
-  - 選んだ 3 つの受信箱への `/v1/answer` は `gather_or_cancel` で 1 つの失敗が問全体の失敗になる．CPU の専門家は質問者が渡す `delegate_url`（`placement.delegate_of`）の GPU の PC に生成を委託する．止める集合に入る GPU の PC は 15.106（k = 1・3・6・10）と 15.105（k = 6・10）で，それぞれ 14.102・14.103 と 14.100・14.101 の委託先である（`results/d0009_a6_failure_r1/placement.json`）．委託先が止まっていると，availability ではノードが 502 を返し（Iteration 30 の止めた間の失敗は全てこれ），container では委託の要求が応答せず `local_answer.timeout_s` 1,800 秒まで待つ（締め切り 30 秒で落ちる）．
-  - **既にある仕組み**：`Requester.visible_urls`（EQ7b のメンバー表．None なら全ノードが見える）を設定すると，`_routable_sources`（1 段目の候補）と `_probe`（probe の送り先）の両方から見えないノードの受信箱が除かれる．外す仕組みは，生存確認の結果でこの表を更新するだけで作れ，`requester.py` の経路は変えずに済む（`churn_live.py` の `_refresh_member_table` と同じ使い方）．
-  - **生存確認の送り先**：Iteration 30 の検出（`node_alive`）は `/v1/profile` を引く．`/v1/profile` は受信箱ごとの重心（1,024 次元）と公開情報（advert）を返すので重く，30 台を 1 秒ごとに引くと検出そのものがノードと質問者の負荷になりうる（推測．大きさは測っていない）．離脱中は 503・コンテナが止まれば接続の失敗という同じ意味で，本文の小さい `/v1/alive`（`up_only`）を追加だけで足す．`/healthz` は離脱中も 200 を返すので使えない．
-- **見込み（Iteration 30 の記録からの推測．判定に使わない）**：外すのが止めた台だけなら，(i) availability は止めた台が既に 503 で選ばれていないので変わらない（止めた間の失敗の全てが委託先の 502 で，外す仕組みはそれを防がない），(ii) container は probe の 120 秒の待ちが無くなり，止めた台の受信箱を避けて選ぶ，という availability と同じ形に近づく．ただし委託先が止まった CPU の台を選んだ問は，container では 502 ではなく締め切りまで待って落ち，流れを 30 秒ふさぐ．
-- **先行の仕組みの慣行（出典．間隔・打ち切り・戻す条件を決める参照点．判定には使わない）**：
-  - Envoy の能動の health check は，間隔（`interval`）・打ち切り（`timeout`）・外すまでの連続の失敗の数（`unhealthy_threshold`）・戻すまでの連続の成功の数（`healthy_threshold`）を cluster ごとに設定し，負荷分散は健全なホストだけを対象にする（Envoy Docs "Health checking"．https://www.envoyproxy.io/docs/envoy/v1.22.2/intro/arch_overview/upstream/health_checking ）．設定例は間隔 5〜10 秒・打ち切り 1 秒・閾値 2（envoy-guide "Outlier detection"．https://envoy-guide.vercel.app/learn/going-deeper/outlier-detection ・OneUptime 2026-02-09．https://oneuptime.com/blog/post/2026-02-09-envoy-outlier-detection/view ）．受け身の outlier detection は連続の 5xx でホストを一定時間外し，能動の health check の成功で戻す（Envoy Docs "Outlier detection"．https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/outlier ）．
-  - Envoy は健全なホストの割合が panic threshold（既定 50%）を下回ると健全さを無視して全ホストへ振り分ける（Envoy Docs "Panic threshold"．https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/panic_threshold ）．今回の最大 k = 10 は 30 台の 33% で，同じ規則でも panic には入らない．panic の規則は入れない．
-  - Elasticsearch の follower check は 1 秒ごと・打ち切り 10 秒・連続 3 回の失敗で外す（Iteration 34 の出典）．固定の打ち切りによる検出は，打ち切りを短くすると誤検出が増え，長くすると検出が遅れる（Hayashibara ら "The φ Accrual Failure Detector"，SRDS 2004．https://dspace.jaist.ac.jp/dspace/bitstream/10119/4784/1/IS-RR-2004-010.pdf ・Das, Gupta, Motivala "SWIM"，DSN 2002．https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf ）．今回は 30 台を質問者 1 台が直接確かめる小さな系なので，SWIM の間接の確認や φ の適応は入れず，固定の間隔・打ち切りにして，誤検出をゲート（G-FP）で測る．
-  - 一部の葉の応答で返す設計（Dean & Barroso "The Tail at Scale"，CACM 56(2)，2013．https://cacm.acm.org/research/the-tail-at-scale ）は，主構成の `gather_or_cancel`（3 候補の全てを要する）とは逆の設計で，委託先の失敗を防ぐ手段の候補になる（今回は変えない）．
-
-### 仮説
-
-外す仕組みを on にすると，container の止めた間に答えられた割合（終わった時刻の版）は，Iteration 30 の 0〜0.125 から，availability の値（再開の前に答えた割合 0.27〜0.58）に近い値へ上がる．残る失敗の主は「委託先が止まった CPU の台を選んだ問」で，container では締め切りまで待つので availability より少し低い（k = 1・3 で 0.35〜0.55，k = 6・10 で 0.15〜0.35 の見込み）．availability は止めた台が既に選ばれていないので変わらない（|差| ≤ 0.10）．生存確認は平常の割合を下げない．
-
-### 単一レバー
-
-**質問者の問い合わせ先の決め方**を，「全ノードを常に問い合わせ先とする（外す仕組み無し．今の挙動）」から，**「質問者が全ノードの生存を定期に確かめ，止まったと判定したノードを 1 段目の候補・probe・回答の要求の送り先から外し，生存が戻れば戻す」**へ替える．外すのは止まったと判定したノードそのもの（そのノードが持つ受信箱）だけで，委託先が止まった CPU の台の受信箱は外さず，委託先も替えない（申し送り (b) の前者．後者は下の記述 (D2) で数え，別の値の候補として申し送る）．
-
-- **生存確認（固定）**：送り先は新しい `GET /v1/alive`（`up_only`．本文は node_id だけ）．各ノードを独立に，間隔 1.0 秒・1 回の打ち切り 2.0 秒（Iteration 30 の `LIVENESS_TIMEOUT_S` と同じ．httpx と asyncio の両方で打ち切る）で確かめる．200 以外・接続の失敗・打ち切りを失敗とする．
-- **外す・戻す条件（固定）**：連続 1 回の失敗で外し，連続 1 回の成功で戻す（`fail_threshold` 1・`recover_threshold` 1．B1 の「2.01 秒で検出」に合わせ，誤検出は G-FP で測る）．確かめは failure-run の質問の流れより前に始め，最初の確認で全 30 台が生存のときだけ流し始める．
-- **設定**：追加だけのキー `experiment.peer_health`（既定 null ＝今の挙動）．値は `{interval_s: 1.0, timeout_s: 2.0, fail_threshold: 1, recover_threshold: 1}`．
-
-### 固定する構成
-
-Iteration 30 と同じ：EnronQA・`question_split: holdout`・`question_limit: 2`（H の 288 問．運用ルール 10．Iteration 30 と同じ集合）・`routing: bm25_probe`（D = 24・`bm25_weight` 2・`owner_score: fused_max`）・`owner_answer`・`owner_m: 3`・`answer.aggregate: cross_encoder`・`retrieval.ce_scores: table`（Iteration 30 で作り足した全 150 受信箱の表 `ce_table/holdout_owner.jsonl`．作り直さない．sha256 の一致を chain で確かめる）・`answer.save_candidates: true`・`retrieval.fusion: rrf`・`llm.answer_prompt_format: fill_in`・llama3.1:8b（wafl500〜509）・温度 0・種 12・質問者 1 台（wafl-ctrl5）・30 台の専門家・`cluster.node_admin: true`．config は `scripts/d0009/a6f_config.py` の出力に `experiment.peer_health` を足しただけにする．failure-run の引数は Iteration 30 と同じ `--baseline-s 15 --down-s 45 --post-s 30 --bin-s 5 --poll-interval-s 0.2 --stream-parallel 8 --answer-deadline-s 30 --central-questions 200`．止める集合（種 12）と各ラウンドの条件の順は Iteration 30 と同じ（r1：availability,container・1,3,10,6，r2：container,availability・6,3,1,10，r3：r1 と同じ）．live の選択は R3′（V2 は経路に無い．運用ルール 11）．
-
-**比べる相手**：Iteration 30 の 3 ラウンド（外す仕組み無し）．同じ時間帯の交互の対照は流さない（申し送り (a)．availability の割合は Iteration 30 の 3 ラウンドで 0〜0.009 しか揺れない決定的な系で，availability の条件そのものが日の違いの対照になる．下の H-B1b）．
-
-**実機・GPU の使用**：実機の全構成（質問者 1・専門家 30・生成は wafl500〜509 の GPU）．各ラウンドの前に `nvidia-smi` で空きを確かめ（Iteration 30 の chain と同じく自分たちの Ollama の blob を開いていないプロセスだけを他者の使用と数える．最大 2 時間待ち，空かなければ流して記録），他の研究者のプロセスには触れない（運用ルール 8・14）．止めるのは node のサービスだけ（データ・image・Ollama は止めない・消さない）．所要の見込みは smoke・deploy を含めて約 2〜2.5 時間（Iteration 30 と同じ）．
-
-### 主の指標
-
-止めた間（[0, 45)）に聞いた問のうち，締め切り 30 秒以内に失敗なく回答を返し，R3′ の選んだ候補の文脈に正解のメールがある問の割合．**終わった時刻の版**（終わった時刻 `t_s ＋ e2e_s` が止めた台の再開の確認 `start.acked_at_s` より前の問だけを「答えられた」とする．Iteration 30 の `posthoc_completion.json` と同じ分け方）を主にし，Iteration 30 の登録の**聞いた時刻の版**（`fault_hit_rate`）を併記する．
-
-### 判定の規則（`results/d0009_b1_exclusion/verdict.json`．`verdict_original` は書き換えない．集計は `scripts/d0009/b1_verdict.py`）
-
-記号：条件 (m, k) のラウンド r の主の指標 F_on(m, k, r)．Iteration 30 の同じ条件の値の 3 ラウンドの最大・最小・平均を F30_max・F30_min・F30_mean．
-
-- **H-B1a（主．container）**：container の各 k について，有効なラウンドの全てで F_on ≥ F30_max ＋ 0.15 なら「上がった」，全てで F_on ≤ F30_min − 0.15 なら「下がった」，それ以外は「決まらない」．幅 0.15 は止めた間の問 約 45 件の二項の標準誤差（p = 0.4 で約 0.07）の約 2 倍．Iteration 30 の F30_max は k = 1 が 0.125，k = 3・6・10 が 0（`posthoc_completion.json`）．**仮説の成立**は「container の 4 つの k のうち 3 つ以上で上がった」．
-- **H-B1b（主．availability．負の対照）**：availability の各 k について，有効なラウンドの全てで |F_on − F30_mean| ≤ 0.10（聞いた時刻の版と終わった時刻の版の両方）なら「変わらない」，それ以外は「変わった」（向きを書く）．
-- **記述（判定に使わない）**：
-  - (D1) 聞いた時刻の版の F と，Iteration 30 との差．(r) 回答を返した割合・(o) 持ち主の候補が入った割合・失敗の形（deadline・http・table_miss・other）の内訳．
-  - (D2) **委託先の止まり**：問の行に「選んだ受信箱のいずれかの委託先が，選んだ時点で外されていた」（`delegate_down`）を残し，止めた間の失敗のうち `delegate_down` の問の割合を出す．委託先も外す（または替える）値を足したときに上がりうる上限の目安として，止めた間の `delegate_down` でない問の答えられた割合も出す．
-  - (D3) 検出と戻し：止めた台ごとの外された時刻（止めた時刻 0 から）・戻された時刻（再開の確認から）の p50・最大．止めた間に聞いた問の数（Iteration 30 の container は 8〜17 件）．
-  - (D4) 窓の積分：Iteration 30 と同じ窓での I_P と，H-A6F1・H-A6F2 と同じ 3 値の規則の結果，Iteration 34 と同じ規則の境目 S*（`atrium.dynamics.first_time_integral_exceeds`．I_C は Iteration 30 の 28.33，R はこの実行の中央の再起動の実測）と，Iteration 34 の S* との差．
-  - (D5) 問の標本の幅：止めた間の問を復元抽出（2,000 回．種 12）した F の 2.5〜97.5 パーセンタイル（Iteration 34 の学び：決定的な系の境目は問の標本の幅で引用する）．
-
-### ゲート（本番の前に固定．満たさなければ判定の前に止まり，原因を記録する）
-
-- **G-T（互換）**：`mise run check`（pytest・ruff・mypy）が通る．`experiment.peer_health` が null のとき failure-run・start の挙動と出力が変わらない（既存の試験が変更なしで通る）．新しい試験：外す・戻す条件（連続の失敗・成功の数），打ち切りを失敗に数えること，`visible_urls` の更新で外したノードの受信箱が 1 段目の候補と probe の送り先から消えること，`delegate_down` の判定，`/v1/alive` が離脱中に 503 を返すこと．
-- **G-TB（表）**：本番の `table_miss` が 0（Iteration 30 の表がそのまま使えること）．1 件でもあれば止める．
-- **G-FP（誤検出．申し送り (e)）**：各ラウンドで，(i) 止める前（[−15, 0)）の問（全 8 条件の合計）の「答えられた」割合 ≥ 0.86（Iteration 30 の平常の最小 0.889 − 0.03），(ii) 止めていないノードが外された回数を数えて記録する．smoke で (ii) が 1 回以上あれば，本番の前に `fail_threshold` を 2 へ 1 回だけ上げて記録する（それ以上は変えずに止める）．本番で (ii) が 1 回以上あっても (i) を満たせば有効とし，回数を記述に書く．
-- **G-B（平常）・G-R（再開）**：Iteration 30 と同じ（止める前の問の D 以内に回答を返した割合 ≥ 0.95，各ラウンドの後に 30 台の node が全て動いている）．
-- **有効なラウンド**：G-FP (i)・G-B を満たし，失敗せずに 8 条件を流し終えたもの．
-
-### 成功条件（事前登録）
-
-(1) G-T・G-TB・G-R を通過し，(2) 有効なラウンドが 2 以上あり，(3) H-B1a・H-B1b を上の規則で判定し，記述 (D1)〜(D5) を `verdict.json`・`b1_summary.json`・`analysis_report.md` に書く．**採用**（仕組みに効果あり）は (1)〜(3) に加えて H-B1a の仮説が成立し（container の 3 つ以上の k で上がった），H-B1b で「下がった」向きの「変わった」が無いとき．(1)〜(3) を満たして H-B1a が成立しなければ**棄却**（効果は主の指標で示せない）．どちらでも値 `health_check_exclusion` は閉じる．既定は null のままにする（主構成の既定を替えるかは evaluator が backlog に書く）．
-
-**ノイズの目安**：availability の止めた間の割合はラウンドの間で 0〜0.009（Iteration 30）．container は止めた間の問が少なく（8〜17 件），Iteration 30 で 0.33〜0.64（聞いた時刻の版）揺れた．外す仕組みで問の数が 45 件前後に増えれば，二項の標準誤差は約 0.07 になる．
-
-### 期待効果（見込み．検証対象ではない）
-
-container の終わった時刻の版の F は，k = 1・3 で 0.35〜0.55，k = 6・10 で 0.15〜0.35（Iteration 30 は 0〜0.125）．止めた間の問の数は約 45 件に増える．availability は Iteration 30 と同じ（0.70・0.66・0.43・0.47．聞いた時刻の版）．(D2) では止めた間の失敗の大半が `delegate_down` の問になる．(D4) では container の H-A6F2（検出と同時の再起動）は k = 1・3 で「P2P が上」に変わりうる（境 0.648 に近いので「決まらない」もありうる）．
-
-### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
-
-- `src/atrium/config.py`：`PeerHealthConfig`（`interval_s: float = 1.0`・`timeout_s: float = 2.0`・`fail_threshold: int = 1`・`recover_threshold: int = 1`）と `ExperimentConfig.peer_health: PeerHealthConfig | None = None`．churn（同じ `visible_urls` を使う）・`extra_requesters` との併用は拒否する．`docs/d0002_configuration.md` に 1 項を足す．
-- `src/atrium/node.py`：`GET /v1/alive`（`up_only`．`{"node_id": ...}` を返す）を追加だけで足す．deploy で image を作り直す（運用ルール 7）．
-- 新しいモジュール（例 `src/atrium/peer_health.py`）：ノードごとに間隔・打ち切りで `/v1/alive` を確かめ，連続の失敗・成功の数で外す・戻すを決めて `Requester.visible_urls` を更新する非同期の監視．外す・戻すの事象（ホスト・時刻）を記録する．`requester.py` の経路は変えない．
-- `src/atrium/failure_run.py`：`cfg.experiment.peer_health` があれば，質問の流れの前に監視を始め（最初の確認で全台が生存を待つ），各条件の結果に事象の列（止めた時刻 0 からの秒）と誤検出の回数（止めていないノードが外された回数．止める前に外された止める台を含む）を足す．問の行に `n_visible` と `delegate_down`（`record["selected_sources"]` の受信箱を持つノードの `placement.delegate_of` の委託先が，その時点の `visible_urls` に無い）を足す．peer_health が null なら出力は今と同じ．`start` など failure-run 以外のコマンドで peer_health が設定されていれば，黙って無視せずにエラーで止める．
-- 実行：`scripts/d0009/b1_config.py`（`a6f_config.py` の出力 ＋ `experiment.peer_health`）・`scripts/d0009/b1_chain.sh`（`a6f_chain.sh` と同じ手順．smoke → r1〜r3．各ラウンドの前後の GPU の記録・表の sha256・`table_miss` = 0・G-R）．実行名は `results/d0009_b1_exclusion_smoke/`・`results/d0009_b1_exclusion_r{1,2,3}/`．smoke は Iteration 30 と同じ `--ks 1 --modes availability,container --down-s 15 --baseline-s 10 --post-s 10`．
-- 集計：`scripts/d0009/b1_verdict.py` → `results/d0009_b1_exclusion/{verdict.json,b1_summary.json,analysis_report.md}`．入力は今回の 3 ラウンドと `results/d0009_a6_failure/{verdict.json,posthoc_completion.json}`・`results/d0009_a6_failure_r{1,2,3}/failure.json`（読むだけ）．
-- `docs/d0003_experiment_workflow.md` §7.2（障害）に外す仕組みの実行と集計のコマンドを足す．既存の results（運用ルール 12 の記録・Iteration 30・34）は変えない．`config.yaml` は deploy の前に書き，後で `git checkout -- config.yaml` で戻す．
-
-### 主張できない範囲（事前に書く）
-
-委託先が止まった CPU の台を外す・委託先を替える仕組みの効果（(D2) の目安だけ），生存確認の間隔・打ち切り・閾値を変えた場合，質問者が複数の場合（A1），止める集合が GPU の PC を含まない場合，正答率（採点しない），V2 の選ぶ候補での割合，中央側の検出・切り替えの仕組みとの対称の比較，日を替えたときの Iteration 30 との差（同じ時間帯の交互の対照を流さない．H-B1b で確かめる範囲だけ）．
-
-### フェーズ 2 実行記録（rc-executor．2026-11-09）
-
-- 事前登録 commit：`2685095`（実装・試験・journal）．実機の実行の前に，`48ed798` を追加で push した．
-- **事前登録からのずれ**：「`visible_urls` の更新だけで足りる」は bm25_probe では成り立たなかった．最初の smoke で，外した後の全問が `ValueError: the sources differ from those the summary was built for` で落ちた（`SummaryProbeRouter` が配置の全データ源に対する要約を前提とする）．`SummaryProbeRouter.candidates_with_scores` に省略可能な引数 `visible` を足し（`48ed798`），質問者は全データ源を渡して，上位 D 台を選ぶ前に見えないデバイスを外す．`visible` が None なら従来と同じ．外した分だけ候補が減るのではなく，見えているデバイスの中の上位 D 台になる．
-- G-T：`mise run check`（pytest 1058 件・ruff・mypy）通過．`tests/test_failure_run.py::test_fault_lowers_the_answered_rate…` が負荷のかかる全体実行で 2 回落ちた（単体・ファイル単位では通る．peer_health が None の経路は通らず，止める直前の質問の競合に依る．原因は未確認）．G-TB：`table_miss` = 0．G-R：3 ラウンドとも 30 台が動いていた．smoke：誤検出 0，`failure_kind=other` 0．
-- **G-FP (i)（止める前に答えられた割合 ≥ 0.86）不通過**：r1 0.845・r2 0.834・r3 0.818．**G-B（止める前に回答を返した割合 ≥ 0.95）不通過**：r1 0.934・r2 0.920・r3 0.909．G-FP (ii)（止めていないノードが外された回数）：r1 10・r2 5・r3 7．**有効なラウンド 0**．`verdict.json` の `conditions` は空，`adopted` は false．事前登録の規則では H-B1a・H-B1b の判定に進めない．
-- 不通過の原因（未特定）：止める前の失敗の大半は，条件の開始直後 1 秒の最初の 8 本の問が deadline か http（25 秒台の 502）で落ちたもの（ラウンドあたり 12〜16 件．条件 2 以降）．該当の問の `n_visible` は 30 で，何も外れていない状態で起きている．Iteration 30 の同じ位置は miss（回答は返った）8 件だけだった．前の条件の後始末・生存確認の負荷・8 本の同時の開始のどれかは切り分けていない．止める前の問は条件あたり約 22 問で，1 件落ちると約 4.5 pt 下がる．
-- 参考の数値（無効なラウンドの記述．判定ではない）：止めた間の F（終わった時刻の版）は container k=1・3・6・10 が 0.38〜0.50・0.39〜0.41・0.27〜0.33・0.29〜0.45（Iteration 30 は 0.12〜0.13・0・0・0）．availability は k=1・3 が 0.45〜0.57・0.47〜0.55（Iteration 30 は 0.57・0.52），k=6・10 が 0.24・0.24（0.27〜0.28・0.32）．止めた間の失敗のうち `delegate_down` が占める割合は availability で多く（11/11，11/14，14/23，23/33），container で少ない（0/9〜2/10）．止めた台が外されるまでは container k=1 で 2.0〜2.1 秒．
-- 出力：`results/d0009_b1_exclusion_smoke/`・`results/d0009_b1_exclusion_r{1,2,3}/`・`results/d0009_b1_exclusion/{verdict.json,b1_summary.json,analysis_report.md}`．無効な smoke は `results/d0009_b1_exclusion_smoke_invalid_valueerror/`・`_stale_resync/` に別名で残した．GPU は 4 回とも nvidia-smi で他者のプロセスが 0 MiB と確認してから流した．`config.yaml` は chain 終了時の trap で戻した（差分なし）．
-
-### Iteration 35 実行済み：分析・考察（2026-11-09．research-cycle の phase 3．判定：**判定不能**〔採用でも棄却でもない〕．有効なラウンド 0 で事前登録の成功条件 (2) を満たさない．ゲートの値は変えない．値 `health_check_exclusion` は閉じず，Iteration 36 で原因を切り分けてから同じ規則で流し直す）
-
-**変更**：事前登録（commit 2685095）と本番の前の修正（commit 48ed798）のとおり，追加だけのキー `experiment.peer_health`（`GET /v1/alive` を 1 秒ごと・打ち切り 2 秒，1 回の失敗で外し 1 回の成功で戻す）で質問者の `visible_urls` を更新し，Iteration 30 と同じ 8 条件 × 3 ラウンドを実機で流した．phase 3 では `results/d0009_b1_exclusion/verdict.json` に `verdict_revised`（判定と注記）を足しただけで，既存のキー・スクリプト・`b1_summary.json`・`analysis_report.md` は変えていない．
-
-**結果**（`results/d0009_b1_exclusion/verdict.json`．基準は事前登録のまま）
-
-| ラウンド | G-FP (i) 止める前に答えられた割合（≥ 0.86） | G-B 止める前に回答を返した割合（≥ 0.95） | G-FP (ii) 止めていないノードが外された回数 | 止める前の未返答 | うち最初の 8 本の 7・8 本目 |
-|---|---|---|---|---|---|
-| r1 | 0.845 | 0.934 | 10 | 12 | 12 |
-| r2 | 0.834 | 0.920 | 5 | 14 | 14 |
-| r3 | 0.818 | 0.909 | 7 | 16 | 16 |
-| Iteration 30（r1〜r3．外す仕組み無し） | 0.913〜0.918 | 0.995〜1.000 | − | 0〜1 | 0 |
-
-- G-T（pytest 1,058 件・ruff・mypy）・G-TB（`table_miss` 0）・G-R（3 ラウンドとも 30 台）は通過．G-FP (i)・G-B は 3 ラウンドとも不通過で，有効なラウンドは 0．H-B1a・H-B1b は判定していない．
-
-**ノイズか信号か（ゲートの不通過の形）**
-- 止める前の割合の差（Iteration 30 の 0.913〜0.918 に対し 0.818〜0.845）は，ラウンドの間の揺れ（Iteration 30 で 0.005）の 10 倍以上で，ノイズではない．
-- 不通過は 1 つの決まった形で全て説明できる：**各条件の開始直後に同時に出す最初の 8 本のうち，7・8 本目の 2 本が応答の無いまま待ち，締め切り 30 秒で落ちる**．24 条件のうち 21 条件でちょうど 2 本ずつ起き（例外は r1 の 1・2 条件目と r2 の 4 条件目），smoke の 2 条件と Iteration 30 の 24 条件では 0 本．止める前の未返答の件数（12・14・16）はこの 2 本ずつの数と一致する．container k=6・10 では 1 本が止める操作の時刻（約 −0.3 秒）に RemoteProtocolError で落ちるが，それまで約 25 秒返事が無かったので同じ現象である．
-- 参考（判定に使わない）：この 2 本を除くと止める前の答えられた割合は 0.900〜0.907，回答を返した割合は 1.0 で，両ゲートを超える．つまり止める前の区間では，問の全体が劣化したのではなく，開始直後の 2 本だけが落ちた（止めた間・再開の後は次の項）．
-- 切り分けられたこと：r1 の 3 条件目では，最初の 8 本の probe 192 件が開始から 1 秒以内に全て 200 で返っている．待ちは probe の後（持ち主の回答の要求か生成）にある．`n_visible` は 30 で，外す処理そのものは働いていない．HTTP の池はノードごとに 64 接続（`http_pool: per_node`）で，接続の数の上限ではない．
-- **締め切りの打ち切りは開始直後に限らない**：availability の条件の打ち切り（`failure_kind=deadline`）は 1 条件あたり 9〜17 件で，Iteration 30 の availability の 12 条件では全て 0 件だった．止める前・止めた間・再開の後（t > 45 秒）のいずれにもある．r1 の 1 条件目（availability k=1）だけ 0 件で，2 条件目は t = 39.7 秒から始まる．r1 の 3 条件目と r2 の 8 条件目（どちらも availability k=10．ラウンドの中の位置は違う）では打ち切りの時刻の列が 0.1 秒の単位まで一致し，問ごとに決まった挙動に見える．したがって止めた間の参考値（下）も，availability・container ともにこの打ち切りを含む．
-- 切り分けていないこと：(a) 生存確認の監視（`src/atrium/peer_health.py`）が質問者と同じ httpx の client を使い，`asyncio.wait_for` で打ち切った確認が池か接続の状態を残す，(b) 打ち切った問の生成がノード・GPU に残り，後の問を待たせる（r1 の 3 条件目の前の条件にも打ち切りが 9 件ある），(c) 生存確認の負荷，(d) 48ed798 の `visible` の経路で，全ノードが見えていても選ぶ受信箱が Iteration 30 と違う問があり，その問の生成が長い，(e) 各条件は `itertools.cycle` で同じ順に問を流すので，同じ問に固有の経路．どれも確かめていない．
-
-**仮説との一致・不一致（参考．無効なラウンドの値で判定ではない）**
-- container の止めた間の F（終わった時刻の版）は k=1・3・6・10 で 0.38〜0.50・0.39〜0.41・0.27〜0.33・0.29〜0.45 で，Iteration 30（0.12〜0.13・0・0・0）からの上がり幅は H-B1a の基準（F30_max ＋ 0.15）を 4 つの k の全ラウンドで上回る向きだった．見込み（k=1・3 で 0.35〜0.55，k=6・10 で 0.15〜0.35）とも合う．
-- availability は k=1・3 が 0.45〜0.57・0.47〜0.55（Iteration 30 は 0.57・0.52），k=6・10 が 0.24・0.24（0.27〜0.28・0.32）で，同程度かやや下がる向き．k=10 の差 約 −0.08 は H-B1b の幅 0.10 に近い．
-- (D2) の見込み「止めた間の失敗の大半が `delegate_down`」は availability では合い（11/11〜23/33），container では外れた（0/9〜2/10）．container の残りの失敗の内訳は次の実行で見る．
-- これらは Iteration 30 に無かった締め切りの打ち切り（availability で 1 条件 9〜17 件）を含む実行の値なので，効果の大きさとしては引用しない．availability の「やや下がる向き」は，外す仕組みの効果ではなくこの打ち切りによる可能性がある．
-
-**判定**：**判定不能**（採用でも棄却でもない）．事前登録の成功条件 (1) G-T・G-TB・G-R は満たすが，(2) 有効なラウンド 2 以上を満たさず（0），(3) の H-B1a・H-B1b に進めない．ゲートの値（G-FP (i) 0.86・G-B 0.95）は後から変えない．`verdict.json` の既存のキー（`adopted: false` など）は書き換えず，`verdict_revised` に「判定不能で，棄却ではない」と書いた．事前登録の「どちらでも値は閉じる」は (1)〜(3) を満たした場合の規則なので，今回は値 `health_check_exclusion` を閉じない．
-
-**事前登録からの偏差**：journal の「`visible_urls` の更新だけで足りる（`requester.py` の経路は変えない）」は `bm25_probe` では成り立たず，`SummaryProbeRouter.candidates_with_scores` に省略可能な引数 `visible` を足した（commit 48ed798．本番の前に push．`visible` が None なら従来と同じ）．外したデバイスを除いた中の上位 D 台を選ぶ形で，単一レバー（止まったと判定したノードを 1 段目の候補・probe・回答の送り先から外す）の意味は変わらない．偏差として記録し，Iteration 36 の事前登録はこの経路を前提に書く．
-
-**主張できる範囲**：外す仕組みを on にした実行では，何も外れていない区間を含めて，Iteration 30 に無かった締め切りの打ち切りが起き（availability で 1 条件 9〜17 件），止める前には各条件の開始直後の 2 本として現れた（3 ラウンド・21/24 条件で再現．外す仕組み無しの Iteration 30 では 0）．それが外す仕組みの本質の費用か，実験の道具（同じ client の共有など）の副作用かは分からない．
-**主張できない範囲**：外す仕組みの効果の有無・大きさ（有効なラウンド 0），その他は事前登録の「主張できない範囲」のとおり．
-
-**学び**
-- **実機のゲートの不通過は，まず失敗した問の位置（条件の中の順・時刻）で並べる**：今回は「各条件の最初の 8 本の 7・8 本目」という決まった位置に全てが集まり，平常の全体の劣化ではないと数分で分かった．ゲートの集計（割合）だけでは誤検出か負荷かの区別が付かない．
-- **新しい常駐の監視を足すときは，質問者と HTTP の client・池を共有させない設計を先に検討する**：今回の監視は質問者と同じ client を使い，`asyncio.wait_for` で確認を打ち切る．打ち切りが池の状態に残るかは確かめておらず，原因の第一の候補になった（未確認）．
-- **smoke の条件数（2 条件）と確かめの項目では，今回の現象を捕まえられなかった**：今回の打ち切りは r1 の最初の条件では出ず，smoke（2 条件．止める時間も短い）でも出なかった．smoke の確かめは `failure_kind=other` の数だけで，`deadline` の数を Iteration 30 と比べていなかった．本番の前の smoke では，平常の区間の `deadline` の件数を外す仕組み無しの値と比べる．
-- **新しい仕組みの比べる相手が日を替えた過去の実行なら，失敗の形の内訳（deadline・http）を条件ごとに並べてから効果を読む**：割合の差だけを見ると，availability の「やや下がる向き」を外す仕組みの効果と読んでしまう．
-- `tests/test_failure_run.py::test_fault_lowers_the_answered_rate…` が負荷のかかる全体実行で 2 回落ちた件（peer_health が None の経路）は今回の現象とは別に扱う（backlog B118）．
 
 ## p0007 F-7：P2P-R3′ の候補数 m を 4 にした結果と判定（2026-10-24〜25．`results/p0007_f7_*`）
 

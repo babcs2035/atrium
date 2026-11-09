@@ -1,0 +1,18 @@
+{
+ "n_pairs": 4320,
+ "n_questions": 288,
+ "n_pairs_missing_in_table": 0,
+ "n_pairs_over_tolerance": 0,
+ "max_abs_diff": 9.506940841674805e-06,
+ "max_abs_diff_by_target": {
+  "0": 9.506940841674805e-06
+ },
+ "n_selection_mismatch": 0,
+ "n_selection_mismatch_tolerated_as_tie": 0,
+ "selection_mismatches": [],
+ "table_sha256": "da0a7a55c29abd773935b791137b7e5cab2776f5737c9bce2a7949921b1e6fa2",
+ "n_errors": 0,
+ "tolerance": 0.001,
+ "tie_gap": 0.002,
+ "pass": true
+}

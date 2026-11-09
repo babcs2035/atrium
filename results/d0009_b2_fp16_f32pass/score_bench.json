@@ -1,0 +1,22 @@
+{
+ "kind": "score_bench",
+ "git_head": "43a01529f132",
+ "scorers": [
+  "http://192.168.15.102:8200"
+ ],
+ "n_scorers": 1,
+ "concurrency": 30,
+ "one_pass": true,
+ "n_questions_input": 288,
+ "scorer_counts_total": {
+  "http://192.168.15.102:8200": {
+   "sent": 864,
+   "failed": 0,
+   "in_flight": 0
+  }
+ },
+ "n_request_errors_total": 0,
+ "duration_s": 433.51568722724915,
+ "n_questions_done": 288,
+ "n_errors": 0
+}
