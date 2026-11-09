@@ -3,6 +3,99 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 38: cross-encoder の採点を半精度にしたときの速さと選ぶ候補の一致
+
+**位置づけ**：レバー `d0009.B2_scoring_cost` の値 `fp16`（backlog B124 (3)．Iteration 37 の評価で levers の末尾に足した）．設計の判断は backlog B125．d0009 B2 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，実機の実行（G-ENV0 以降）より前に，実装とこの節を同じ commit に入れて push する**．wafl500・501・509 は使わない（B120・B122・B123）．
+
+### 調査で分かったこと
+
+**(1) 今の採点の経路（コードの確認．事実）**
+- `CrossEncoderReranker`（`src/atrium/requester.py`）は sentence-transformers 3.4.1 の `CrossEncoder(MODEL, device, revision)` を引数なしで作る．dtype の指定が無いので重みも計算も fp32，`max_length` は None で tokenizer の上限（bge-reranker-v2-m3 は 8,192）まで切らない，`predict(..., batch_size=4)`．torch 2.14.1・transformers 4.57.6（uv.lock）．
+- sentence-transformers 3.4.1 の `predict` は，モデルの出力の logits に活性化（num_labels 1 なので Sigmoid）を**モデルの dtype のまま**かけ，最後に `.float()` で fp32 にする（`.venv` の `cross_encoder/CrossEncoder.py` の 440〜454 行）．dtype は `automodel_args={"torch_dtype": ...}` で `from_pretrained` に渡る．→ fp16 のモデルをそのまま使うと Sigmoid の出力が fp16 に丸められ，[0.5, 1) では刻みが 2^−11 ≈ 4.9e−4 になる（IEEE binary16 の仕様から．事実）．R3′ は候補ごとの最大（ce_max）で選ぶので，0.9 を超える得点の多い問では丸めによる人工的な同点が増える（推測）．
+- 主構成の選択 V2（`results/d0009_b3_verify/answer_verifier_selector.json`）の特徴量には `ce_max`・`ce_top1` が入っている（係数 0.449・0.128．他は `probe_fused`・`bm25_max`・`rrf_max`・`avg_logprob`・`v` など）．H の 288 問の `v` は `results/d0009_b3v_h/verify_features.jsonl` にあり，候補の正誤（qwen3:8b）は `results/d0009_a3_p1/candidate_judgements.jsonl` にある．→ cross-encoder の得点を差し替えれば，R3′ と V2 の選択と正誤の変化をオフラインで出せる（新しい判定の呼び出しは要らない）．
+- Iteration 37 の G-S のダンプ（`results/d0009_b2_split_scoring_gs/scores.jsonl`．qid・candidate・doc_id・score）と同じ形で fp16 の得点を書き出せる．
+
+**(2) 外部の情報（tavily．出典付き．事実と推測を分ける）**
+- sentence-transformers の公式文書 "Speeding up Inference"（Cross Encoder．https://sbert.net/docs/cross_encoder/usage/efficiency.html ．2026 年 7 月に RTX 3090・torch 2.12 で測り直した値）：GPU では fp16（`model_kwargs={"torch_dtype": "float16"}` か `model.half()`）を既定の推奨とし，「大きい reranker では半精度は 2〜3 倍の効果がある」．比べた 4 モデルに `BAAI/bge-reranker-v2-m3`（568M．batch 2〜32）を含む．品質は NanoBEIR の MS MARCO・NQ の NDCG@10 を fp32 と比べている（図の値は本文に無く，bge-reranker-v2-m3 だけの値は読めていない）．Flash Attention 2 は分類の頭では入力の詰めが効かず，fp16 と同じか遅いので推奨しない，CPU の半精度は約 0.17 倍．→ 今回は SDPA などの attention の実装は変えない（dtype だけ）．
+- bge-reranker-v2-m3 の作者（BAAI）は Hugging Face の議論 #10 "bf16 vs fp16"（https://huggingface.co/BAAI/bge-reranker-v2-m3/discussions/10 ）で「fp16 で fine-tune したので fp16 が望ましい．時間を大きく節約でき，精度への影響は最小」と答えている．BGE documentation "BGE Reranker"（https://bge-model.com/tutorial/5_Reranking/5.2.html ）も fp16 は速いが性能がわずかに下がるとする（Iteration 37 の出典と同じ）．どちらも定量の値は無い．
+- 第三者の報告では，fp16 の速さの効果は tensor core の有無に依存し，無い GPU では約 20% にとどまる例がある（Stack Overflow "FP16 not even two times faster than using FP32 in TensorRT"．https://stackoverflow.com/questions/56554004 ）．RoBERTa-Base の分類で fp16 の推論が大きく速く，F0.5 の差が有意でなかった報告もある（GumGum Tech Blog, I. Shrivastava "Improving Inference Speeds of Transformer Models"．https://medium.com/gumgum-tech/improving-inference-speeds-of-transformer-models-e03944a018aa ）．→ RTX 3060（Ampere）は fp16 の tensor core を持つので，効果は 2 倍前後と見込む（推測．本基盤は batch 4・長いメールで，公式の測定と条件が違う）．
+- PyTorch はビット単位の一致を保証しない（Iteration 37 の出典）ので，fp32 の同じ日の 1 周（G-F32）を対照に置き，GPU の違い（9.5e−6）と dtype の違いを分ける．
+
+### 仮説
+
+bge-reranker-v2-m3 の採点を fp16 にすると，RTX 3060 1 枚の採点の処理量は fp32 の 1.5 倍以上になり（公式の 2〜3 倍の見込みより控えめに置く），得点の差は選択を変えるほど大きくない（R3′ と V2 で選ぶ候補が同点を除いて 288 問のうち 2 問以下しか変わらず，正誤の純の変化は −1 問以上）．
+
+### 単一レバー
+
+**cross-encoder の採点のモデルの dtype** を **fp32（今．`CrossEncoder` の既定）から fp16 へ**替える．
+- fp16 の値の定義（事前に固定）：重みと計算を `automodel_args={"torch_dtype": torch.float16}` で fp16 にし，`predict` には `activation_fct=torch.nn.Identity()` を渡して logits を受け取り，**Sigmoid は fp32 に直してから**質問者の側で計算する（上の (1) の丸めによる人工的な同点を避けるため．BAAI の FlagEmbedding の `FlagReranker` も logits を float にしてから正規化すると理解しているが，確かめていない）．fp32 の経路は今の呼び出しをそのまま残し，ビット単位で今と同じにする．
+- 変えないもの：モデル・revision・`batch_size` 4・最大長（切らない）・attention の実装（transformers の既定のまま．両 dtype で実際の `config._attn_implementation` を記録する）・文の作り（題 + 改行 + 本文）・候補ごとに 5 通ずつ 1 回の呼び出し・lock（1 GPU の上で直列）．
+
+### 固定する構成
+
+- 採点の入力・負荷の形は Iteration 37 のまま：H の 288 問（`holdout`・`question_limit: 2`）の 3 候補 × 上位 5 通（`results/d0009_a3_p1/results.jsonl` の `context_doc_ids`．計 4,320 組），閉じた系・同時の問 C = 30，`atrium score-bench`（制御点 wafl-ctrl5 の CPU）→ `atrium score-server`．
+- GPU は **wafl502 の 1 枚**（G = 1）．他の GPU の格子は流さない．生成・取得・probe は流さず，30 台の専門家は deploy しない．wafl502 の自分たちの Ollama の llama3.1:8b は各実行の前に `keep_alive: 0` で降ろす（Iteration 37 と同じ．取り消せる操作）．他の研究者のプロセスに触れない．gpu4 の GPU は使わない（運用ルール 14）．
+- config.yaml の実験の経路（`atrium run`）は変えない（Iteration 37 と同じく CLI の引数で dtype を渡す．B122 (7) と同じ扱い）．
+
+### 実行の手順と順序（事前に固定）
+
+1. **G-ENV0**：wafl502 で他の研究者の GPU のプロセスが 0（あれば最大 2 時間待つ），SW Thermal Slowdown・HW Slowdown が Not Active，温度 ≤ 60 °C．SW Thermal Slowdown の累計を記録する．
+2. **G-F32（新しいコードの fp32 の経路の退行の確かめ．同じ日の対照）**：fp32 の server で 288 問を 1 周（`--one-pass --dump-scores`）．全 4,320 組で表 `artifacts/enronqa/ce_table/holdout_owner.jsonl` との |差| ≤ 1e−3，R3′ の選択が同点（表の上位 2 候補の差 < 2e−3）を除いて 288 問で一致，ダンプから作り直した `ce_max`・`ce_top1` が `results/d0009_a3_p1/ce_features.jsonl` と |差| ≤ 1e−3 で一致（V2 の特徴量の作り直しの確かめ）．不通過なら本番を流さない．
+3. **fp16 の 1 周（H-F1 の材料）**：fp16 の server で 288 問を 1 周してダンプする．server の `/healthz` で dtype と attention の実装を記録し，**G-AT**：両 dtype で attention の実装と tokenizer の最大長が同じ．
+4. **smoke**：fp16・慣らし 10 秒・区間 30 秒で失敗の要求 0 件．
+5. **本番（H-F2 の材料）**：3 ラウンド．各ラウンドで fp32 と fp16 を 1 回ずつ，順は種 38 の無作為で決める．dtype を替えるたびに server を起動し直す．各実行は**慣らし 60 秒 + 測る区間 600 秒**（Iteration 37 の学び：G = 1 の完了は 30 問の塊に同期し，fp32 の周期は約 43.5 秒．600 秒は fp32 で約 14 周期）．各実行の前に温度 ≤ 60 °C・SW Thermal Slowdown が Not Active まで待つ（最大 15 分．冷ます時間を記録）．
+
+### 測るもの
+
+- **主（速さ）**：X_req＝測る区間に終わった採点の要求の数 ÷ 3 ÷ 600（問/秒に当たる．1 問は 3 要求）．同じラウンドの比 S_r = X_req(fp16) / X_req(fp32)．
+- 記述（速さ）：区間に終わった問の数で数えた X（Iteration 37 の数え方），塊の周期から求めた X_period，server の返す要求ごとの `duration_s`（GPU の上の 5 組の時間）の p50・p95，問の待ち時間 p50・p95，GPU の使用率，GPU メモリの最大（nvidia-smi．生成の llama3.1:8b 約 6.7 GB と 12 GB の GPU に共存できるかの見込みの材料．共存は測らない），温度の最大，SW Thermal Slowdown の累計の差，制御点の CPU．Iteration 37 と並べる見積もり（記述）：X_req(fp16) と Iteration 37 の E を使った分け合いの上限 min(1.32 × (10 − G)/10, G·E·X_req(fp16))．
+- **主（一致）**：fp16 の 1 周の 4,320 組について，(a) 表との |差| の中央値・p99・最大と，同じ日の fp32（G-F32）との |差| の同じ統計，(b) 非有限（NaN・inf）の組の数，(c) R3′ の選んだ候補の食い違い n_R3（表の上位 2 候補の差 < 2e−3 の問は同点として数えず，別に数を記録），(d) V2 の選んだ候補の食い違い n_V2（`ce_max`・`ce_top1` だけを fp16 の値に差し替え，他の特徴量と重みは `answer_verifier_selector.json` のまま．V2 の得点の上位 2 候補の差 < 1e−6 は同点として別に数える），(e) 選択が変わった問の正誤の純の変化 Δc_R3・Δc_V2（問の数．`candidate_judgements.jsonl` の印．新しい判定は行わない）．
+- 記述（一致）：問ごとの 15 組の順位の一致（Spearman の中央値），候補ごとの上位 1 通の一致の割合．
+
+### ゲートと有効な実行
+
+- **有効な実行**：失敗の要求 0 件，区間の SW Thermal Slowdown の累計の差 0 秒・温度の最大 < 83 °C・他の研究者の GPU のプロセス 0．**安全の打ち切り**：実行中に 83 °C 以上か SW Thermal Slowdown が Active になったら止めて無効にし，60 °C 以下に戻るまで次を流さない（B120・B122・B123 の熱の運用）．
+- **有効なラウンド**：同じラウンドの fp32 と fp16 の両方が有効．無効の実行は同じラウンドの最後に 1 回だけ流し直してよい．
+- **機を替える規則（事前に固定）**：wafl502 で 2 回無効になったら（600 秒の区間は Iteration 37 の 120 秒より長く熱が溜まりやすい），残りの本番の**全てのラウンドを wafl503**（Iteration 37 で温度の最大 69 °C）で最初から流し直し（G-ENV0 も wafl503 で取り直す．G-F32・fp16 の 1 周は wafl502 のものを使う），backlog に記録する．wafl503 でも 2 回無効なら判定不能．wafl500・501・509 では補わない．
+
+### 判定の規則
+
+- **H-F1（一致．主）**：
+  - 「一致する」：非有限 0，n_R3 ≤ 2 かつ n_V2 ≤ 2，かつ Δc_R3 ≥ −1 かつ Δc_V2 ≥ −1．
+  - 「一致しない」：非有限が 1 以上，または n_R3 ≥ 6，または n_V2 ≥ 6，または Δc_R3 ≤ −3，または Δc_V2 ≤ −3．
+  - それ以外は「決まらない」．
+- **H-F2（速さ．主）**：有効なラウンドの全てで S_r ≥ 1.5 なら「速くなる」，全てで S_r < 1.15 なら「速くならない」，それ以外は「決まらない」．
+
+**閾値の根拠とノイズの目安**：1 問の選択の変化は H の正答率で 1/288 ≈ 0.0035 で，Iteration 23 の同等の幅 ±0.005 に収まるのは純 1 問まで（Δc ≥ −1）．−3 問（≈ −0.010）は δ の根拠にした記録時点の流し直しの幅の最大 0.006（d0009 A3）を超える．fp32 の GPU の違いでは食い違い 0（Iteration 37 の G-S）なので，2 問以下を「GPU の違い程度」とみなした．速さは Iteration 37 の同じ G のラウンドの揺れが X で最大 4.3% で，比の揺れは約 ±6% の見込み（推測）．1.15 はその 2 倍以上の差として置いた．1.5 は，1 枚の fp16 が約 1.0〜1.1 問/秒になり，Iteration 37 の分け合いの見積もりの最大（G = 2 の約 1.06 問/秒）を 1 枚で得られる大きさとして置いた．
+
+### 成功条件（事前登録）
+
+(1) G-ENV0・G-F32・G-AT・smoke を通過し，(2) 有効なラウンドが 2 以上あり，(3) H-F1・H-F2 を判定し，`results/d0009_b2_scoring_cost_fp16/{verdict.json,fp16_summary.json,analysis_report.md}` に書く．
+- **採用**：(1)〜(3) を満たし，H-F2 が「速くなる」かつ H-F1 が「一致する」．値 `fp16` を閉じる（後の反復で採点に fp16 を使ってよい根拠とする．既定の挙動は変えない）．
+- **棄却**：(1)〜(3) を満たし，H-F2 が「速くならない」か H-F1 が「一致しない」．値を閉じる．
+- それ以外の組み合わせは「決まらない」で，採用でも棄却でもない記述として値を閉じる（ラウンドを足さない）．
+- (1) か (2) を満たさなければ判定不能で，値を閉じずに原因を backlog に残す．G-F32 が不通過なら本番を流さない．
+
+### 期待効果（見込み．検証対象ではない）
+
+S ≈ 1.8〜2.5（X_req(fp32) ≈ 0.69〜0.75，X_req(fp16) ≈ 1.3〜1.8 問/秒）．1 枚の fp16 で Iteration 29 の P2P の処理量 1.32 問/秒に届く見込み．GPU メモリの最大は fp32 の 7.0〜8.4 GB から 4〜5 GB 前後へ下がり，llama3.1:8b（約 6.7 GB）との共存が 12 GB に収まる見込みが出る（推測．共存は測らない）．得点の差は中央値 1e−4〜1e−3 程度，n_R3・n_V2 は 0〜2（推測）．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動は変えない）
+
+- `src/atrium/requester.py`：`CrossEncoderReranker.__init__` に省略可能な引数 `dtype: Literal["float32", "float16"] = "float32"`．float16 のときだけ `automodel_args={"torch_dtype": torch.float16}` を渡し，`scores` は `activation_fct=torch.nn.Identity()` で logits を受け取って fp32（numpy の float64 でも可）で Sigmoid をかける．float32 のときは今の `predict` の呼び出しをそのまま使う（ビット単位で今と同じ）．Sigmoid の関数は単体の試験を付ける．
+- `src/atrium/score_server.py`・`src/atrium/cli.py`：`atrium score-server --dtype {float32,float16}`（既定 float32）．`/healthz` に `dtype`・`attn_implementation`（`model.config._attn_implementation`）・tokenizer の最大長を足す．`scripts/remote/score_server.sh` に dtype を渡す引数か環境変数（既定 float32）を足す．image の atrium-full を publish し直す必要がある（運用ルール 7）．
+- 負荷の生成は今の `atrium score-bench`（`--warmup-s 60 --measure-s 600`）．X_req は `requests.jsonl` の終わった時刻から集計で出す（score-bench の変更は要らない見込み）．
+- chain：`scripts/d0009/b2c_chain.sh`（G-ENV0 → Ollama を降ろす → fp32 の server → G-F32 → fp16 の server → fp16 の 1 周・G-AT → smoke → 本番 3 ラウンド → server の停止 → 後の nvidia-smi）．実行名は `results/d0009_b2_fp16_{f32pass,f16pass,smoke,r<round>_<dtype>}/`．Iteration 37 の `b2_chain.sh`・`b2_gpu_snapshot.sh` の熱の待ち・打ち切り・記録をそのまま使う．
+- 集計：`scripts/d0009/b2c_verdict.py` → `results/d0009_b2_scoring_cost_fp16/`．V2 の当てはめは `atrium.answer_select_eval` の既存の関数を使い，`ce_max`・`ce_top1` の読み込みだけを差し替える．判定の規則（H-F1・H-F2）は単体の試験で境界（2・3・5・6 問，1.15・1.5）を確かめる．
+- B118・提案 X1〜X4 は混ぜない．
+
+### 主張できない範囲（事前に書く）
+
+- 最大長 1,024・大きい batch・TEI・Flash Attention・bf16 の値（別の値かレバー．次の値は `max_length_1024`）．
+- 複数の GPU での fp16 の効率（Iteration 37 の E を借りた見積もりだけ），生成と同じ GPU に共存させた場合の速さと可否（メモリの最大は記述するが共存は測らない）．
+- H の 288 問以外の質問集合での選択の一致，正答率の変化の検定（288 問の候補の上の記述で，McNemar の判定は行わない）．
+- RTX 3060（wafl502 か 503）以外の GPU の値，熱の減速の起きる状態の値．
+
 ## Iteration 37: cross-encoder の採点を複数の GPU に分けたときの処理の速さ
 
 **位置づけ**：レバー `d0009.B2_split_reranker` の値 `multi_gpu_scoring`（backlog B121 (3)）．B1 は wafl500 の冷却の人間の判断（B120 [needs-human]）まで保留し，**wafl500 に持続の負荷をかけない設計に限って** B2 に着手する．設計の判断は backlog B122．d0009 B2 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，smoke と本番の実機の実行より前に，実装とこの節を同じ commit に入れて push する**．

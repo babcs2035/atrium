@@ -133,6 +133,7 @@
   - 事後の確かめ（採否には使わない）：1 枚の GPU では同時の 30 問が同期して塊で終わり，120 秒の区間の数え方は 1 枚の処理量を約 9% 高くしていた．塊の間隔で数えると効率は全て 0.90 以上になる．同じ形の測定では区間を長くするか，終わった要求の数で数える．
   - GPU を生成と採点で分け合う場合（同じ GPU に載らない）の見積もりの上限は，採点に 2 枚を回すときに最大の約 1.06 問/秒．8 枚の 3 ラウンド目は wafl509 の熱（82〜83 °C）で 2 回打ち切った（`.claude/research/backlog.md` の B123）．
   - 続き（採点 1 回の費用を下げる．半精度・最大長 1,024）はレバー `d0009.B2_scoring_cost` で扱う（`.claude/research/backlog.md` の B124）．
+- 着手（採点 1 回の費用．半精度）：Iteration 38（事前登録は `.claude/research/journal.md` の Iteration 38．設計の判断は `.claude/research/backlog.md` の B125）．cross-encoder の重みと計算を fp32 から fp16 に替える（関連度の 0〜1 への変換は fp32 に直してから行う）．最大長・batch・attention の実装は変えない．GPU の PC wafl502 の 1 枚で，H の 288 問の得点を fp32 の表と比べ，主構成の選択（R3′ と V2）で選ぶ候補の変化と正誤の変化を数える．処理量は fp32 と fp16 を 3 ラウンド交互に流し，1 枚の同期の偏りを避けるため 600 秒の区間に終わった採点の要求の数で比べる．wafl500・501・509 は使わない．
 
 ### B3. 持ち主の特定と回答の選択の改良（研究の主課題）
 
@@ -213,7 +214,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 完了（Iteration 32．採用．委託は重複なしの露出を増やさず，37.6% は全体に等しい．50% 未満は約 2,900 問の質問集合での値．`results/d0009_a4_exposure/`） |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 索引への追加は完了（Iteration 33．採用．BM25 を含めても P2P は p50 0.47 秒で追従し，全体を作り直す中央の T0 は p50 31 秒．`results/d0009_a5_bm25_add/`）．中央の停止時間は完了（Iteration 34．採用．中央の停止 S ≥ 20 秒で全 8 条件 P2P が上，問の標本などの揺れを含めると約 34 秒．S ≤ 5 秒では availability k ≤ 3 だけ P2P が上．`results/d0009_a5_outage_sweep/`）．A5 は完了 |
 | 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 着手．Iteration 35 は判定不能（平常の区間のゲートが不通過で有効なラウンド 0．Iteration 30 に無かった締め切りの打ち切りが原因で，その原因は未特定．`results/d0009_b1_exclusion/`）．Iteration 36 で原因を切り分けて流し直す（`.claude/research/backlog.md` の B115〜B117）．着手：Iteration 36（B119．wafl500 の生成の減速が原因の候補．GPU のゲートを足して流し直す）．Iteration 36 は判定不能（外す仕組み無しでも wafl500 の減速で同じ打ち切り．`results/d0009_b1_exclusion_i36/`）．保留：wafl500 の冷却の人間の判断待ち（B120） |
-| 9 | B2 | レバー `d0009.B2_split_reranker`（続きは `d0009.B2_scoring_cost`） | 完了（Iteration 37．決まらない〔記述として値を閉じた〕．4 枚で 1.32 問/秒を超え，効率は 0.83〜0.88．1 枚の値の数え方の偏りを直すと 0.90 以上〔事後の記述〕．`results/d0009_b2_split_scoring/`）．続きの採点 1 回の費用（半精度・最大長 1,024）は `d0009.B2_scoring_cost` で扱う（`.claude/research/backlog.md` の B124） |
+| 9 | B2 | レバー `d0009.B2_split_reranker`（続きは `d0009.B2_scoring_cost`） | 完了（Iteration 37．決まらない〔記述として値を閉じた〕．4 枚で 1.32 問/秒を超え，効率は 0.83〜0.88．1 枚の値の数え方の偏りを直すと 0.90 以上〔事後の記述〕．`results/d0009_b2_split_scoring/`）．続きの採点 1 回の費用（半精度・最大長 1,024）は `d0009.B2_scoring_cost` で扱う（`.claude/research/backlog.md` の B124）．着手：Iteration 38（半精度．B125） |
 | − | C1 | 運用ルール 10：A1〜A6・B3 の判定は新しく分けた質問か別のデータセットで行う | 全イテレーションに適用 |
 | − | C2 | 運用ルール 11：選択まで実機で通す．オフラインならその旨と一致の確かめの範囲を併記する | 全イテレーションに適用 |
 | − | C3 | 運用ルール 12：C3 の記録の名前・置き場所を変えない | 全イテレーションに適用 |

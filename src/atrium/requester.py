@@ -29,7 +29,7 @@ from collections import Counter, defaultdict
 from collections.abc import Coroutine, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 import httpcore
 import httpx
@@ -304,6 +304,12 @@ class LiveMedcptEmbedder:
         return {self._name: self._encoder.encode_queries([question.question])[0]}
 
 
+def sigmoid_scores(logits: Sequence[float] | F32Array) -> list[float]:
+    """logits を float64 で Sigmoid にかけた得点の列（CrossEncoder の num_labels 1 の既定の活性化と同じ式）．"""
+    x = np.asarray(logits, dtype=np.float64).reshape(-1)
+    return [float(v) for v in 1.0 / (1.0 + np.exp(-x))]
+
+
 class CrossEncoderReranker:
     """bge-reranker-v2-m3 による再ランク（RAGRoute の既定の再ランク）．"""
 
@@ -311,23 +317,46 @@ class CrossEncoderReranker:
     # RAGRoute と同じ 4 組ずつの推論（12 GB の GPU で長い断片を扱うため）
     BATCH = 4
 
-    def __init__(self) -> None:
-        """モデルを読み込む．"""
+    def __init__(self, dtype: Literal["float32", "float16"] = "float32") -> None:
+        """モデルを読み込む．dtype が float16 のときだけ重みと計算を fp16 にする（d0009 B2 の採点の費用．既定は今までと同じ fp32）．"""
         import torch
         from sentence_transformers import CrossEncoder
 
+        self.dtype = dtype
+        # float32 は automodel_args が空（CrossEncoder の既定と同じ）で，今までの読み込みと同じ
         self._model = CrossEncoder(
             self.MODEL,
             device="cuda" if torch.cuda.is_available() else "cpu",
             revision=pinned_revision(self.MODEL),
+            automodel_args={"torch_dtype": torch.float16} if dtype == "float16" else {},
         )
         self._lock = threading.Lock()
+
+    def describe(self) -> dict[str, str | int]:
+        """読み込んだモデルの dtype・attention の実装・tokenizer の最大長（server の /healthz が返す．両 dtype で同じ条件かの確認用）．"""
+        return {
+            "dtype": self.dtype,
+            "attn_implementation": str(self._model.model.config._attn_implementation),
+            "tokenizer_max_length": int(self._model.tokenizer.model_max_length),
+        }
 
     def scores(self, query: str, texts: Sequence[str]) -> list[float]:
         """質問と各文（`<題>\\n<本文>`）の関連度（p0007 A5 の候補の特徴量も同じ得点を使う）．"""
         if not texts:
             return []
         pairs = [(query, text) for text in texts]
+        if self.dtype == "float16":
+            import torch
+
+            # fp16 のまま Sigmoid をかけると [0.5, 1) で 2^-11 刻みに丸まり人工的な同点が増えるので，logits を受け取り float64 で計算する
+            with self._lock:
+                logits = self._model.predict(
+                    pairs,
+                    batch_size=self.BATCH,
+                    convert_to_numpy=True,
+                    activation_fct=torch.nn.Identity(),
+                )
+            return sigmoid_scores(logits)
         with self._lock:
             out = self._model.predict(pairs, batch_size=self.BATCH, convert_to_numpy=True)
         return [float(s) for s in np.asarray(out).reshape(-1)]
@@ -388,10 +417,12 @@ class RemoteCandidateScorer:
             self._sent[target] += 1
             return target
 
-    def scores_with_target(self, query: str, texts: Sequence[str]) -> tuple[list[float], int]:
-        """（得点，送り先の番号）を返す．texts が空なら送らない．"""
+    def scores_with_target(
+        self, query: str, texts: Sequence[str]
+    ) -> tuple[list[float], int, float]:
+        """（得点，送り先の番号，server の返した採点の時間 duration_s）を返す．texts が空なら送らない（時間は 0）．"""
         if not texts:
-            return [], -1
+            return [], -1, 0.0
         target = self._acquire_target()
         try:
             response = self._client.post(
@@ -412,7 +443,7 @@ class RemoteCandidateScorer:
         finally:
             with self._lock:
                 self._in_flight[target] -= 1
-        return parsed.scores, target
+        return parsed.scores, target, parsed.duration_s
 
     def scores(self, query: str, texts: Sequence[str]) -> list[float]:
         """質問と各文の関連度を，文の順に返す（CandidateScorer）．"""

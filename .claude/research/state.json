@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 37,
-  "iteration_name": "cross-encoder の採点を複数の GPU に分けたときの処理の速さ",
-  "phase": "evaluate",
+  "iteration": 38,
+  "iteration_name": "cross-encoder の採点を半精度にしたときの速さと選ぶ候補の一致",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "d0009.B2_split_reranker=multi_gpu_scoring（採点だけ．wafl502〜509 の G ∈ {1, 2, 4, 8}）",
-  "experiment_dir": "results/d0009_b2_split_scoring",
-  "experiment_deadline": 1794290196,
-  "updated_at": 1794245091,
-  "last_slack_ts": "1794238778.761699",
-  "iteration_thread_ts": "1794239206.353139",
+  "current_lever": "d0009.B2_scoring_cost=fp16",
+  "experiment_dir": null,
+  "experiment_deadline": null,
+  "updated_at": 1794238350,
+  "last_slack_ts": "1794245582.816609",
+  "iteration_thread_ts": "1794246028.068229",
   "notion_toggle_created": true,
-  "last_commit": "155da73"
+  "last_commit": "3aa6a66"
 }

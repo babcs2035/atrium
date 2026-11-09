@@ -59,6 +59,8 @@ class RequestRecord:
     sent_at: float
     done_at: float
     error: str | None
+    # server の返した採点の時間（秒．GPU の上の 5 組．lock の待ちを含む．失敗は None）
+    server_duration_s: float | None = None
 
 
 @dataclass(frozen=True)
@@ -157,7 +159,7 @@ class ClosedLoop:
             for ci, candidate in enumerate(item.candidates):
                 req_sent = time.time()
                 try:
-                    values, target = self._scorer.scores_with_target(
+                    values, target, server_s = self._scorer.scores_with_target(
                         item.query, [text for _, text in candidate]
                     )
                 # 応答の形が壊れていたとき（pydantic の ValidationError は ValueError）も 1 要求の失敗として数え，流れは止めない
@@ -170,7 +172,7 @@ class ClosedLoop:
                     break
                 with self._lock:
                     self.requests.append(
-                        RequestRecord(item.qid, ci, target, req_sent, time.time(), None)
+                        RequestRecord(item.qid, ci, target, req_sent, time.time(), None, server_s)
                     )
                     self.pairs.setdefault(
                         (item.qid, ci),

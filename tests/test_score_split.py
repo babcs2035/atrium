@@ -7,11 +7,12 @@ import threading
 from collections.abc import Sequence
 
 import httpx
+import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
 from atrium.protocol import ScoreRequest
-from atrium.requester import RemoteCandidateScorer
+from atrium.requester import CrossEncoderReranker, RemoteCandidateScorer, sigmoid_scores
 from atrium.score_bench import ClosedLoop, QuestionInput
 from atrium.score_server import create_score_app
 
@@ -170,3 +171,85 @@ def test_a_failed_question_is_recorded_with_its_error_and_the_loop_continues() -
     by_qid = {q.qid: q for q in loop.questions}
     assert by_qid["q1"].error is not None and by_qid["q1"].error.startswith("HTTPStatusError")
     assert by_qid["q2"].error is None
+
+
+def test_healthz_includes_the_scorer_conditions_when_given() -> None:
+    """dtype・attention の実装・tokenizer の最大長（両 dtype で同じ条件かの確認）が /healthz に出る．"""
+    details: dict[str, str | int] = {
+        "dtype": "float16",
+        "attn_implementation": "sdpa",
+        "tokenizer_max_length": 8192,
+    }
+    client = TestClient(create_score_app(_LengthScorer(), "m", "rev", details))
+    assert client.get("/healthz").json() == {
+        "status": "ok",
+        "model": "m",
+        "revision": "rev",
+        **details,
+    }
+
+
+def test_scores_with_target_returns_the_server_duration() -> None:
+    remote = RemoteCandidateScorer(
+        ["http://s0"], client=httpx.Client(transport=httpx.MockTransport(_echo_handler))
+    )
+    assert remote.scores_with_target("q", ["t"]) == ([0.5], 0, 0.01)
+    assert remote.scores_with_target("q", []) == ([], -1, 0.0)
+
+
+def test_sigmoid_scores_keep_resolution_finer_than_fp16() -> None:
+    """fp16 の Sigmoid なら [0.5, 1) で 2^-11 の刻みになるが，fp32 以上で計算した得点は刻みに丸まらない．"""
+    logits = [2.0, 2.0001, -3.0, 0.0]
+    out = sigmoid_scores(np.asarray(logits, dtype=np.float32))
+    assert out[3] == 0.5
+    assert out[1] - out[0] == pytest.approx(0.1050 * 0.0001, rel=0.05)
+    assert out[2] == pytest.approx(0.04742587, abs=1e-7)
+    assert sigmoid_scores([]) == []
+
+
+class _FakeCrossEncoder:
+    """CrossEncoder の差し替え（読み込みの引数と predict の引数だけを記録する）．"""
+
+    last: _FakeCrossEncoder | None = None
+
+    def __init__(self, model: str, **kwargs: object) -> None:
+        self.kwargs = kwargs
+        self.predict_kwargs: dict[str, object] = {}
+        _FakeCrossEncoder.last = self
+
+    def predict(self, pairs: object, **kwargs: object) -> np.ndarray:
+        self.predict_kwargs = kwargs
+        activation = kwargs.get("activation_fct")
+        logits = np.zeros(len(pairs), dtype=np.float32)  # type: ignore[arg-type]
+        return logits if activation is not None else 1 / (1 + np.exp(-logits))
+
+
+def test_float32_reranker_loads_and_predicts_as_before(monkeypatch: pytest.MonkeyPatch) -> None:
+    """fp32（既定）は automodel_args が空（既定と同じ）で，predict に活性化の指定も足さない（今までの呼び出しと同じ）．"""
+    import sentence_transformers
+
+    monkeypatch.setattr(sentence_transformers, "CrossEncoder", _FakeCrossEncoder)
+    reranker = CrossEncoderReranker()
+    fake = _FakeCrossEncoder.last
+    assert fake is not None
+    assert fake.kwargs["automodel_args"] == {}
+    assert reranker.scores("q", ["a", "b"]) == [0.5, 0.5]
+    assert "activation_fct" not in fake.predict_kwargs
+    assert fake.predict_kwargs["batch_size"] == CrossEncoderReranker.BATCH
+
+
+def test_float16_reranker_loads_fp16_and_applies_sigmoid_itself(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """fp16 は重みを fp16 で読み，predict には Identity を渡して Sigmoid を質問者の側で計算する．"""
+    import sentence_transformers
+    import torch
+
+    monkeypatch.setattr(sentence_transformers, "CrossEncoder", _FakeCrossEncoder)
+    reranker = CrossEncoderReranker("float16")
+    fake = _FakeCrossEncoder.last
+    assert fake is not None
+    assert fake.kwargs["automodel_args"] == {"torch_dtype": torch.float16}
+    assert reranker.scores("q", ["a", "b", "c"]) == [0.5, 0.5, 0.5]
+    assert isinstance(fake.predict_kwargs["activation_fct"], torch.nn.Identity)
+    assert reranker.scores("q", []) == []
