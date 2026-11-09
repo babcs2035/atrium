@@ -6,7 +6,7 @@
         --pre results/<run_id>/gpu_gate_pre.json --since <epoch 秒> --until <epoch 秒>
 終了コード 0：ゲートを満たす／1：満たさない／2：pre で (a) だけを満たさない（b1_chain が Ollama の再起動を 1 回だけ許す場合の判別）．
 - pre：各機で (a) GPU の使用率が 5 秒おきの 3 回とも 0%，(b) Clocks Event Reasons の SW Thermal Slowdown・HW Slowdown が Not Active，
-  (c) Ollama（localhost:11434）へ `/api/generate`（llama3.1:8b・固定の短い英文・num_predict 128・温度 0・主構成と同じ num_ctx）を 1 回送り
+  (c) Ollama（container atrium-ollama-1 の 11434．host には公開されていないので container の IP へ）へ `/api/generate`（llama3.1:8b・固定の短い英文・num_predict 128・温度 0・主構成と同じ num_ctx）を 1 回送り
   `eval_count / eval_duration` ≥ 40 トークン/秒．
 - post：各機の Ollama の log（`docker logs -t atrium-ollama-1 --since --until`）から，1 分ごとの生成の速さ（その分の eval のトークン数 ÷ 秒数）を出し，
   生成が 1 件以上ある全ての分で ≥ 40 トークン/秒，かつ (a) が 0%．SW Thermal Slowdown の累計の前後の差（pre の JSON があれば）を記録する．
@@ -91,9 +91,11 @@ def generation_speed(host: str) -> float:
             "options": {"temperature": 0, "num_predict": NUM_PREDICT, "num_ctx": NUM_CTX},
         }
     )
+    # Ollama の port は host に公開されていない（compose の内部網だけ）ので，container の IP へ直接送る
     out = ssh_out(
         host,
-        f"curl -s --max-time 120 http://localhost:11434/api/generate -d '{body}'",
+        f'ip=$(docker inspect -f "{{{{range .NetworkSettings.Networks}}}}{{{{.IPAddress}}}}{{{{end}}}}" atrium-ollama-1); '
+        f"curl -s --max-time 120 http://$ip:11434/api/generate -d '{body}'",
     )
     reply = json.loads(out)
     return float(reply["eval_count"]) / (float(reply["eval_duration"]) / 1e9)
