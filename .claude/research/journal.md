@@ -3,6 +3,82 @@
 研究サイクル（research-cycle）の各イテレーションの記録．新しいイテレーションを先頭に追記する（逆時系列）．
 末尾の「準備段階の記録」は，サイクルを始める前に行った環境構築・データ準備・実機での検証の要約である．
 
+## Iteration 36: 停止した PC を外す仕組みで増えた打ち切りの原因の切り分けと再測定
+
+**位置づけ**：レバー `d0009.B1_drop_failed_peers` の値 `health_check_exclusion` の追加の反復（backlog B117 (2)・申し送り (a)〜(d)）．Iteration 35 は平常の区間のゲート（G-FP (i)・G-B）が 3 ラウンドとも不通過で判定不能だった．phase 1 で既存の記録を照合して打ち切りの原因の候補を絞り，外す仕組みの値・設定は Iteration 35 のまま，実行の環境を確かめるゲートを足して同じ規則で 3 ラウンドを流し直す．設計の判断は backlog B119．d0009 B1 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である（Iteration 35 の事前登録のうち，ここで書き換えない項目はそのまま引き継ぐ）．**rc-executor は，D0 と本番の実機の実行より前に，実装とこの節を同じ commit に入れて push する**．
+
+### 調査で分かったこと
+
+**(1) 打ち切りは決まった問に起き，Iteration 30 ではその問は数秒で答えていた（`results/d0009_b1_exclusion_r{1,2,3}/failure.json` と `results/d0009_a6_failure_r{1,2,3}/failure.json` の照合．phase 1 の診断で判定には使わない）**
+- failure-run は各条件で `itertools.cycle` により同じ順に問を流すので，聞いた時刻の順に並べた行の番号は問の番号に当たる．Iteration 35 の `failure_kind=deadline` の行の番号は条件・ラウンドをまたいでほぼ同じ集合だった（例：availability k=1・3 は r2・r3 とも 6, 7, 25, 29, 34, 37, 42, 51, 55, 67, 69, 70, 71, 83, 86）．Iteration 30 の同じ番号の問の所要時間は 0.1〜21 秒で，締め切り 30 秒に届いていない．つまり打ち切りは問ごとに決まった経路で起きる．
+- **始まりは r1 の 2 条件目の途中**だった．r1 の 1 条件目（availability k=1）は打ち切り 0 件，2 条件目（availability k=3）は t = 39.7 秒（番号 69）から始まり，その後の全ての条件と r2・r3（それぞれ別の質問者のプロセス）の最初の条件から起きている．質問者のプロセスをまたいで続くので，原因は質問者の中ではなくクラスタの側の状態にある．
+
+**(2) 原因の候補は GPU の PC wafl500（192.168.15.100）の生成の減速と待ち行列の溜まり（requester.log・wafl500 の Ollama の container の log・nvidia-smi の記録．事実）**
+- 回答の要求（`/v1/answer`）が 200 で返った数をノードごとに数えると，Iteration 30 r2 に対して Iteration 35 r1・r2 は 13.100 が 24 → 6・4，13.101 が 36 → 9・5，15.100 が 88 → 22・15 で，他の 27 台は同じ程度だった．13.100・13.101 の生成の委託先は 15.100（`placement.json` の `delegate_of`）で，3 台とも wafl500 の GPU で生成する．
+- wafl500 の Ollama 0.35.1（`OLLAMA_NUM_PARALLEL=1`・`OLLAMA_MAX_QUEUE=512`）の log の生成の速さ（`eval time` の 1 分ごとの平均）は，12:48〜12:56 UTC（21:48〜21:56 JST．smoke と r1 の 1 条件目）は 55〜57 トークン/秒，12:57 UTC に 32，12:58 UTC 以降は chain の終わり（13:53 UTC）まで 10〜14 トークン/秒だった（約 5.5 分の 1）．prompt の評価も約 2,000 → 400〜550 トークン/秒に落ちた．
+- chain の記録 `gpu_apps_{pre,post}.txt` では，wafl500 の GPU は r1 の前 0%・18 W，r1 の後 99%・60 W，r2・r3 の前（質問を流していない間）も 100%・49 W で，他の 9 台は全ての時点で 0% だった．Iteration 30 の記録では全ての時点で 0%．chain の終わりに Ollama を止めた時刻（13:53:52 UTC）に，wafl500 では待っていた `/api/chat` が所要 1 分〜11 分で 500 を返している．つまり減速の後，wafl500 の待ち行列が溜まったまま次のラウンドへ持ち越された．
+- 質問者が締め切りで問を打ち切っても，ノードの委託（`node.py` の `delegate`．打ち切り `local_answer.timeout_s` 1,800 秒）と Ollama の生成は止まらない（コードの確認．Ollama が接続の切れで生成を止めるかは確かめていない）．Iteration 30 と同じ作りで，速さが落ちたときに待ち行列が戻らない理由になる．
+- 減速の原因は分からない．wafl500 の nvidia-smi（23:13 JST．今は止まっていて 48 °C）の Clocks Event Reasons の累計は SW Thermal Slowdown 3,500 秒（約 58 分）で，wafl501 は 5,829 秒，wafl509 は 33 秒，他の 7 台は 0 である．NVIDIA の説明では SW Thermal Slowdown は「GPU の温度が Max Operating Temp を超えたため SW の温度の制御がクロックを要求より下げた時間」（NVIDIA "nvidia-smi Manual"．https://docs.nvidia.com/deploy/nvidia-smi/index.html ）．累計は起動（7 日前）からの値で，今回の時間帯に積まれたかは分からない（推測：99% の使用率で 49〜60 W という低い電力は，クロックが下がった状態と合う）．
+- 生存確認・48ed798 の `visible` の経路が原因である証拠は見つかっていない．ただし (iii) の照合（同じ問で `visible`＝全データ源と None の選択が一致するか）はまだ行っていないので，下の G-V で確かめる．
+
+**(3) 外部の情報**：NVIDIA の nvidia-smi の手引き（上の URL）で，clocks event reasons（SW Thermal Slowdown・HW Slowdown など）と，その累計の時間（Clocks Event Reasons Counters）を読めることを確かめた．同じ質問で gist の早見表（zhum "nvidia-smi cheatsheet"．https://gist.github.com/zhum/0cc1c3447bcf61fe5c36416056ac7c4a ）も同じ定義を示す．このほかに Ollama の切断時の挙動と，性能の測定で熱による減速を除く慣行を tavily で調べようとしたが，2 回目以降の `tvly search` の実行は権限の判定で拒否された（未調査．推測で補わない）．
+
+### 仮説
+
+Iteration 35 の打ち切りは外す仕組みの費用ではなく，wafl500 の生成の減速と，それによる待ち行列の溜まり（ラウンドをまたいで持ち越し）による．全ての GPU の PC が通常の速さで待ち行列が空のときに流せば，外す仕組みを on にしても止める前の区間は Iteration 30 と同じ程度（答えられた割合 0.90 以上・回答を返した割合 0.99 以上）になり，G-FP (i)・G-B を通る．そのうえで Iteration 35 の事前登録の H-B1a（container で上がった）・H-B1b（availability は変わらない）を判定できる．
+
+### 単一レバー
+
+Iteration 35 と同じ：**質問者の問い合わせ先の決め方**を，「全ノードを常に問い合わせ先とする（今の挙動．`experiment.peer_health: null`）」から，**「質問者が全ノードの生存を定期に確かめ，止まったと判定したノードを 1 段目の候補・probe・回答の要求の送り先から外し，生存が戻れば戻す」**（`experiment.peer_health: {interval_s: 1.0, timeout_s: 2.0, fail_threshold: 1, recover_threshold: 1}`．送り先 `GET /v1/alive`）へ替える．値・設定・実装（commit 2685095・48ed798）は変えない．今回足すのは実行の環境の確かめと記録だけ（下の「実装の要点」．全て追加だけで，質問者・ノードの経路は変えない）．B117 (a)(ii) の「生存確認だけ別の httpx の client にする」は，照合で原因の候補にならなかったので行わない（行うと Iteration 35 と違う仕組みを測ることになる）．
+
+### 固定する構成
+
+Iteration 35 の「固定する構成」と同じ（EnronQA・H の 288 問・`bm25_probe` D = 24・`owner_answer`・`owner_m: 3`・`answer.aggregate: cross_encoder`・`ce_scores: table`（`ce_table/holdout_owner.jsonl` の sha256 を確かめる）・`fusion: rrf`・`fill_in`・llama3.1:8b（wafl500〜509．`OLLAMA_NUM_PARALLEL=1`）・温度 0・種 12・質問者 1 台・30 台・`node_admin: true`．failure-run の引数 `--baseline-s 15 --down-s 45 --post-s 30 --bin-s 5 --poll-interval-s 0.2 --stream-parallel 8 --answer-deadline-s 30 --central-questions 200`．止める集合と各ラウンドの条件の順は Iteration 30・35 と同じ）．**比べる相手**も Iteration 30 の 3 ラウンド（判定）．
+
+### 実行の環境の確かめ（新しいゲート．本番の前に固定）
+
+- **G-GPU-pre（各ラウンドと D0 の前）**：wafl500〜509 の全てで，(a) 自分たちの llama-server の GPU の使用率が 5 秒おきの 3 回とも 0%（待ち行列が空），(b) nvidia-smi の Clocks Event Reasons で SW Thermal Slowdown・HW Slowdown が Not Active，(c) 各機の Ollama（`localhost:11434`）へ直接 `/api/generate`（llama3.1:8b・固定の短い英文のプロンプト・`num_predict` 128・温度 0・`num_ctx` は主構成と同じ）を 1 回送り，`eval_count / eval_duration` ≥ **40 トークン/秒**（通常 55〜57，Iteration 35 の減速時 10〜14 の間）．満たさない台があれば既存の GPU の待ち（最大 2 時間）と同じ枠で 5 分ごとに確かめ直し，2 時間で満たさなければ**流さずに止めて記録する**（既存の「他者の使用は流して記録」と違い，速さと空きは判定の前提なので流さない）．(a) が満たせないときに限り，自分たちの Ollama の container（`atrium-ollama-1`）を `docker compose restart ollama` で 1 回だけ再起動して待ち行列を空にしてよい（データ・モデル・image は消さない．他の研究者のプロセスには触れない）．
+- **G-GPU-post（各ラウンドの後．有効なラウンドの条件に足す）**：ラウンドの時間帯の各機の Ollama の log（`docker logs -t atrium-ollama-1 --since/--until`）から `eval time` の 1 分ごとの平均の生成の速さを出し，**全ての機・全ての分で ≥ 40 トークン/秒**（その分に生成が 1 件以上ある分だけ），かつラウンドの後の (a) が 0%．満たさないラウンドは無効（判定に使わない）で，速さの列を記録する．SW Thermal Slowdown の累計の前後の差も各機について記録する（記述）．
+- **D0（同じ日の外す仕組み無しの診断．B117 (a)(i)．判定には使わない）**：G-GPU-pre の後，r1 の前に，`experiment.peer_health: null` で r1 と同じ 8 条件・同じ順の 1 ラウンドを流す（`results/d0009_b1_exclusion_d0_null/`．約 20 分）．**G-ENV**：D0 が G-GPU-post を満たし，止める前の答えられた割合 ≥ 0.86・回答を返した割合 ≥ 0.95（G-FP (i)・G-B と同じ基準）で，availability の 4 条件の `deadline` の合計 ≤ 4．満たさなければ，GPU が通常でも外す仕組み無しで打ち切りが起きる（仮説の外の原因）ので，本番を流さずに止めて記録する．D0 の値は記述（同じ日の外す仕組み無しの値．Iteration 30 との日の違いの目安）にだけ使う．
+- **G-V（visible の経路の照合．B117 (a)(iii)．CPU だけ．本番の前）**：H の 288 問で `SummaryProbeRouter.candidates_with_scores` を `visible=None` と `visible`＝全データ源の集合で呼び，候補（上位 D 台の受信箱）と 1 段目の得点が全問で一致する．不一致が 1 問でもあれば本番を流さずに止める．
+- **smoke**：Iteration 35 と同じ形（`--ks 1 --modes availability,container --down-s 15 --baseline-s 10 --post-s 10`）．確かめは `failure_kind=other` 0 に加え，止める前の `deadline` 0 件（Iteration 35 の学び）．
+
+### 主の指標・判定の規則・記述
+
+Iteration 35 の事前登録と同じ（主の指標は止めた間 [0, 45) の答えられた割合の終わった時刻の版．H-B1a：container の各 k で有効なラウンドの全てで F_on ≥ F30_max ＋ 0.15 なら「上がった」，仮説の成立は 4 つの k のうち 3 つ以上．H-B1b：availability の各 k で |F_on − F30_mean| ≤ 0.10（両方の版）なら「変わらない」．記述 (D1)〜(D5)）．追加の記述：(D6) D0 と各ラウンドの条件ごとの失敗の形（deadline・http）の内訳を Iteration 30 と並べる，(D7) G-GPU の速さの列と SW Thermal Slowdown の累計の差，(D8) 問の行の `qid` で，打ち切った問の選んだ受信箱の委託先（打ち切った問は `selected_sources` が無いので，同じ `qid` の他の条件の行から引く）．集計は `scripts/d0009/b1_verdict.py` を流用し，出力先は `results/d0009_b1_exclusion_i36/`（Iteration 35 の `results/d0009_b1_exclusion/` は変えない）．
+
+### ゲートと有効なラウンド
+
+- G-T・G-TB・G-R・G-FP (i)（≥ 0.86）・G-FP (ii)（記録）・G-B（≥ 0.95）は Iteration 35 と同じ値．加えて上の G-V・G-ENV（本番の前に 1 回），G-GPU-pre・G-GPU-post（各ラウンド）．
+- **有効なラウンド**：G-FP (i)・G-B・G-GPU-post を満たし，失敗せずに 8 条件を流し終えたもの．
+- **ラウンドの追加（事前に固定）**：r1〜r3 のうち G-GPU-post だけで無効になったラウンドがあれば，その数だけ（最大 2 回．r4・r5）同じ条件の順（r4 は r2 の順，r5 は r1 の順）で追加してよい．G-FP (i)・G-B で無効になったラウンドは追加の理由にしない．
+
+### 成功条件（事前登録）
+
+(1) G-T・G-TB・G-R・G-V・G-ENV を通過し，(2) 有効なラウンドが 2 以上あり，(3) H-B1a・H-B1b を Iteration 35 の規則で判定し，記述 (D1)〜(D8) を `results/d0009_b1_exclusion_i36/{verdict.json,b1_summary.json,analysis_report.md}` に書く．**採用**は (1)〜(3) に加えて H-B1a の仮説が成立し（container の 3 つ以上の k で上がった），H-B1b で「下がった」向きの「変わった」が無いとき．(1)〜(3) を満たして H-B1a が成立しなければ**棄却**．どちらでも値 `health_check_exclusion` を閉じる．
+- G-ENV が不通過（GPU は通常なのに外す仕組み無しでも打ち切りが出る）なら本番を流さず，値を閉じずに原因を記録する．
+- G-GPU-post のゲートを通る有効なラウンドが 2 以上あるのに G-FP (i)・G-B が不通過なら，打ち切りは外す仕組み（生存確認の負荷など）の費用と読み，B117 (c) のとおり「平常の割合を下げる」を結果として記録して値を閉じる（棄却に当たる）．
+- 追加のラウンドを含めて G-GPU-post で有効なラウンドが 2 に届かなければ判定不能で，値を閉じずに GPU の PC の状態を backlog に [needs-human] で残す（共有の機材の冷却の確かめは人間の判断）．
+
+**ノイズの目安**：止める前の答えられた割合は Iteration 30 で 0.913〜0.918（ラウンドの間 0.005），止めた間の availability は 0〜0.009．止める前の問は条件あたり約 22 問で，1 件で約 4.5 pt 動く．
+
+### 期待効果（見込み．検証対象ではない）
+
+G-GPU を通るラウンドでは止める前の答えられた割合 0.90〜0.92・回答を返した割合 ≥ 0.99，availability の `deadline` は 0〜1 件/条件．止めた間の F は Iteration 35 の参考値（container k=1・3・6・10 が 0.38〜0.50・0.39〜0.41・0.27〜0.33・0.29〜0.45）と同じか少し高く，H-B1a は 4 つの k で「上がった」，H-B1b は「変わらない」の見込み．
+
+### 実装の要点（phase 2 への引き継ぎ．全て追加だけで，既定の挙動・質問者とノードの経路は変えない）
+
+- `src/atrium/failure_run.py`：新しい CLI の引数 `--record-qid`（既定 off．off なら出力は今と同じ）．on なら全ての問の行（打ち切りの行を含む）に `qid` を足し，答えた行には `selected_sources` も足す．peer_health の on・off のどちらでも使える．試験を 1 つ足す．
+- `scripts/d0009/b1_chain.sh`（または新しい `scripts/d0009/b1r_chain.sh`）：G-GPU-pre（使用率 3 回・clocks event reasons・`/api/generate` の速さ．結果を `gpu_gate_pre.json` に残す），G-GPU-post（Ollama の log の 1 分ごとの速さ・使用率・SW Thermal Slowdown の累計．`gpu_gate_post.json`），smoke → D0 → r1〜r3（必要なら r4・r5），各回に `--record-qid`．実行名は `results/d0009_b1_exclusion_i36_smoke/`・`_d0_null/`・`_r{1..5}/` の接頭辞 `d0009_b1_exclusion_i36_`．`config.yaml` は deploy の前に書き，後で `git checkout -- config.yaml` で戻す（D0 は peer_health を null にした config で，同じ image）．
+- `scripts/d0009/b1_gv_check.py`（G-V．CPU だけ．wafl-ctrl5 か gpu4 の CPU で H の 288 問）→ `results/d0009_b1_exclusion_i36/g_v.json`．
+- 集計：`scripts/d0009/b1_verdict.py` に入力と出力先を変える引数を足す（既定は Iteration 35 と同じ）か，薄い呼び出しを足す．`results/d0009_b1_exclusion/` と Iteration 30・34 の results は変えない．
+- deploy は failure-run の変更のために 1 回（運用ルール 7）．GPU は wafl500〜509 だけ（運用ルール 8・14．他の研究者のプロセスに触れない．gpu4 の GPU は使わない）．
+- backlog B118（`tests/test_failure_run.py` の全体実行での失敗）は今回の変更に混ぜない．
+
+### 主張できない範囲（事前に書く）
+
+Iteration 35 の「主張できない範囲」に加えて，wafl500 の減速の原因（温度・冷却・クロックのどれか），GPU の PC が減速した状況での外す仕組みの挙動（G-GPU でそのラウンドを除くので測らない），Ollama が接続の切れで生成を止めるか．
+
 ## Iteration 35: 停止した PC を問い合わせ先から外す仕組みの障害時の効果
 
 **位置づけ**：レバー `d0009.B1_drop_failed_peers` の値 `health_check_exclusion`（backlog B115 (2)・申し送り (a)〜(e)）．Iteration 30（`results/d0009_a6_failure_r{1,2,3}/`．外す仕組み無し．事前登録は `journal_archive.md` の Iteration 30）と同じ止め方・k・質問・締め切りで，質問者が生存確認で止まったと判定したノードを問い合わせ先から外す仕組みを on にして実機で流す．設計の判断は backlog B116．d0009 B1 に着手を書き，§E の表を直した（運用ルール 9）．この節が事前登録である．**rc-executor は，smoke を除く本番の実機の実行より前に，実装とこの節を同じ commit に入れて push する**．

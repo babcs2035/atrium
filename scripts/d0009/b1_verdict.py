@@ -1,8 +1,12 @@
-"""d0009 B1（Iteration 35）：質問者の生存確認で止まったノードを問い合わせ先から外す仕組みの，障害の測定 3 ラウンドの集計・ゲート・判定．
+"""d0009 B1（Iteration 35・36）：質問者の生存確認で止まったノードを問い合わせ先から外す仕組みの，障害の測定ラウンドの集計・ゲート・判定．
 
 使い方（リポジトリの直下．実機は使わない．実行の後，commit の前に sanitize_results.py を通す）:
     uv run python scripts/d0009/b1_verdict.py [--prefix results/d0009_b1_exclusion_r] [--out-dir results/d0009_b1_exclusion]
-- 入力：`<prefix>{1,2,3}/`（failure.json・g_r_not_serving_after.txt），`results/d0009_a6_failure/{verdict.json,posthoc_completion.json}`・
+    Iteration 36：uv run python scripts/d0009/b1_verdict.py --iteration 36 --prefix results/d0009_b1_exclusion_i36_r \
+        --out-dir results/d0009_b1_exclusion_i36 --rounds 1,2,3,4,5 --gpu-gate --d0-dir results/d0009_b1_exclusion_i36_d0_null
+    （既定の引数は Iteration 35 と同じ挙動．--gpu-gate はラウンドの有効の条件に G-GPU-post（`<prefix>N/gpu_gate_post.json` の pass）を足し，
+    --d0-dir は同じ日の外す仕組み無しの 1 ラウンド（D0）から G-ENV を計算する．`<out-dir>/g_v.json` があれば G-V として読む）
+- 入力：`<prefix>N/`（N は --rounds．failure.json・g_r_not_serving_after.txt・placement.json・gpu_gate_{pre,post}.json），`results/d0009_a6_failure/{verdict.json,posthoc_completion.json}`・
   `results/d0009_a6_failure_r{1,2,3}/failure.json`（Iteration 30．外す仕組み無し．読むだけ）．
 - 出力：`<out-dir>/{verdict.json,b1_summary.json,analysis_report.md}`．
 - 主の指標 F（journal の Iteration 35）：止めた間 [0, down_s) に聞いた問のうち，答えられた（`hit`）割合．終わった時刻の版は，終わった時刻
@@ -26,7 +30,7 @@ from a5s_verdict import three_way as three_way_integral
 
 from atrium.dynamics import integrate_rates
 
-ROUNDS = (1, 2, 3)
+ROUNDS = (1, 2, 3)  # Iteration 30 の 3 ラウンド（比べる相手）
 I30_PREFIX = "results/d0009_a6_failure_r"
 I30_DIR = Path("results/d0009_a6_failure")
 POST_S = 30.0
@@ -38,6 +42,7 @@ MARGIN_SAME = 0.10  # H-B1b：availability の「変わらない」の幅
 MIN_K_UP = 3  # H-B1a の仮説の成立：container の 4 つの k のうち上がった数の下限
 MIN_PRE_STOP_HIT = 0.86  # G-FP (i)
 MIN_BASELINE_RETURNED = 0.95  # G-B
+MAX_ENV_AVAILABILITY_DEADLINES = 4  # G-ENV：D0 の availability の 4 条件の deadline の合計の上限
 BOOTSTRAP_N = 2000
 BOOTSTRAP_SEED = 12
 PERCENTILES = (2.5, 97.5)
@@ -164,6 +169,96 @@ def round_gates(run_dir: Path, failure: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def failure_kind_counts(cond: Mapping[str, Any]) -> dict[str, int]:
+    """記述 (D6)：1 条件の全ての問（止める前・止めた間・再開の後）の失敗の形の内訳（成功は含めない）．"""
+    kinds: dict[str, int] = {}
+    for q in cond["questions"]:
+        kind = q.get("failure_kind")
+        if kind is not None:
+            kinds[kind] = kinds.get(kind, 0) + 1
+    return kinds
+
+
+def deadline_delegates(run_dir: Path, failure: Mapping[str, Any]) -> dict[str, Any] | None:
+    """記述 (D8)：打ち切った問（deadline）が選んでいた受信箱の委託先．
+
+    打ち切った問の行には selected_sources が無いので，同じ qid の他の条件の行（答えた行）から引く（--record-qid の実行だけ．無ければ None）．
+    """
+    placement_path = run_dir / "placement.json"
+    if not placement_path.exists():
+        return None
+    placement = json.loads(placement_path.read_text("utf-8"))
+    host_of_inbox = {i: n["host"] for n in placement["nodes"] for i in n["shard_ids"]}
+    delegate_of = placement["delegate_of"]
+    rows = [q for cond in failure["p2p"] for q in cond["questions"]]
+    selected_of: dict[str, list[str]] = {
+        q["qid"]: q["selected_sources"] for q in rows if q.get("selected_sources")
+    }
+    deadline_qids = [q["qid"] for q in rows if q.get("failure_kind") == "deadline" and "qid" in q]
+    by_delegate: dict[str, int] = {}
+    unresolved = 0
+    for qid in deadline_qids:
+        if qid not in selected_of:
+            unresolved += 1
+            continue
+        for delegate in {
+            delegate_of.get(host_of_inbox[i], host_of_inbox[i]) for i in selected_of[qid]
+        }:
+            by_delegate[delegate] = by_delegate.get(delegate, 0) + 1
+    return {
+        "n_deadline_rows": len(deadline_qids),
+        "n_distinct_qids": len(set(deadline_qids)),
+        "n_rows_without_selection_in_any_condition": unresolved,
+        "rows_by_delegate_host": dict(sorted(by_delegate.items(), key=lambda kv: -kv[1])),
+    }
+
+
+def read_gpu_gate(run_dir: Path, phase: str) -> dict[str, Any] | None:
+    """`gpu_gate_{pre,post}.json` を読む（無ければ None）．"""
+    path = run_dir / f"gpu_gate_{phase}.json"
+    return json.loads(path.read_text("utf-8")) if path.exists() else None
+
+
+def gpu_gate_summary(run_dir: Path) -> dict[str, Any]:
+    """記述 (D7) と G-GPU-post：各機の分ごとの最小の速さ・SW Thermal Slowdown の累計の前後の差・合否．"""
+    pre, post = read_gpu_gate(run_dir, "pre"), read_gpu_gate(run_dir, "post")
+    return {
+        "G_GPU_pre": None if pre is None else pre["pass"],
+        "G_GPU_post": None if post is None else post["pass"],
+        "min_tokens_per_s_by_host": None
+        if post is None
+        else {r["host"]: r["min_tokens_per_s"] for r in post["hosts"]},
+        "sw_thermal_delta_us_by_host": None
+        if post is None
+        else {r["host"]: r["sw_thermal_counter_delta_us"] for r in post["hosts"]},
+    }
+
+
+def env_gate(d0_dir: Path) -> dict[str, Any]:
+    """G-ENV：D0（外す仕組み無し）が G-GPU-post・止める前の割合（≥ 0.86・≥ 0.95）を満たし，availability の deadline の合計が上限以下か．"""
+    failure = json.loads((d0_dir / "failure.json").read_text("utf-8"))
+    gates = round_gates(d0_dir, failure)
+    availability_deadlines = sum(
+        failure_kind_counts(c).get("deadline", 0)
+        for c in failure["p2p"]
+        if c["mode"] == "availability"
+    )
+    post = read_gpu_gate(d0_dir, "post")
+    gpu_ok = post is not None and bool(post["pass"])
+    return {
+        "G_GPU_post": gpu_ok,
+        "pre_stop_hit_rate": gates["pre_stop_hit_rate"],
+        "G_FP_i": gates["G_FP_i"],
+        "baseline_returned_rate": gates["baseline_returned_rate"],
+        "G_B": gates["G_B"],
+        "availability_deadline_total": availability_deadlines,
+        "passed": gpu_ok
+        and gates["G_FP_i"]
+        and gates["G_B"]
+        and availability_deadlines <= MAX_ENV_AVAILABILITY_DEADLINES,
+    }
+
+
 def load_i30_reference() -> dict[tuple[str, int], dict[str, list[float]]]:
     """Iteration 30 の 3 ラウンドの条件ごとの F（終わった時刻の版・聞いた時刻の版）と，I_P・I_P の窓の境目 S*（同じ規則で出し直す）．"""
     posthoc = json.loads((I30_DIR / "posthoc_completion.json").read_text("utf-8"))
@@ -223,14 +318,16 @@ def judge_availability(
     return {"label": SAME if same else CHANGED, "direction": direction, "differences": diffs}
 
 
-def render_report(verdict: Mapping[str, Any], conditions: Sequence[Mapping[str, Any]]) -> str:
+def render_report(
+    verdict: Mapping[str, Any], conditions: Sequence[Mapping[str, Any]], d_extra: Mapping[str, Any]
+) -> str:
     """analysis_report.md（判定・主の指標・ゲートの一覧）．"""
 
     def fmt(v: float | None, nd: int = 3) -> str:
         return "—" if v is None else f"{v:.{nd}f}"
 
     lines = [
-        "# d0009 B1（Iteration 35）生存確認で止まったノードを外す仕組みの障害時の効果",
+        f"# d0009 B1（Iteration {verdict['iteration']}）生存確認で止まったノードを外す仕組みの障害時の効果",
         "",
         f"有効なラウンド：{', '.join(verdict['valid_rounds']) or 'なし'}．採用：{verdict['adopted']}．"
         f"H-B1a の仮説の成立（container の {MIN_K_UP} つ以上の k で上がった）：{verdict['H_B1a_hypothesis_holds']}．",
@@ -263,15 +360,38 @@ def render_report(verdict: Mapping[str, Any], conditions: Sequence[Mapping[str, 
             f"| {c['mode']} | {c['k']} | {', '.join(fmt(v, 2) for v in c['I_P'])} | {fmt(c['I_C'], 2)} | "
             f"{', '.join(fmt(v, 2) for v in c['S_star_on'])} | {', '.join(fmt(v, 2) for v in c['S_star_i30'])} |"
         )
+    if d_extra:
+        lines += [
+            "",
+            "## 記述 (D6)〜(D8)・G-V・G-ENV",
+            "",
+            f"```json\n{json.dumps(d_extra, indent=1, ensure_ascii=False)}\n```",
+        ]
     return "\n".join(lines) + "\n"
 
 
 def main() -> int:
-    """3 ラウンドを集計して verdict.json・b1_summary.json・analysis_report.md を書く．"""
+    """ラウンドを集計して verdict.json・b1_summary.json・analysis_report.md を書く．"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--prefix", default="results/d0009_b1_exclusion_r")
     parser.add_argument("--out-dir", default="results/d0009_b1_exclusion")
+    parser.add_argument("--iteration", type=int, default=35)
+    parser.add_argument("--rounds", default="1,2,3", help="集計するラウンドの番号（カンマ区切り）")
+    parser.add_argument("--gpu-gate", action="store_true", help="有効の条件に G-GPU-post を足す")
+    parser.add_argument(
+        "--d0-dir", default=None, help="D0（外す仕組み無しの 1 ラウンド）の結果の場所"
+    )
+    parser.add_argument(
+        "--env-check",
+        default=None,
+        help="D0 の結果の場所．G-ENV だけを出して終わる（終了コード 0：通過）",
+    )
     args = parser.parse_args()
+    if args.env_check is not None:
+        env = env_gate(Path(args.env_check))
+        print(json.dumps(env, indent=1, ensure_ascii=False))
+        return 0 if env["passed"] else 1
+    round_numbers = tuple(int(r) for r in args.rounds.split(","))
     out_dir = Path(args.out_dir)
     rng = np.random.default_rng(BOOTSTRAP_SEED)
     ref = load_i30_reference()
@@ -280,7 +400,7 @@ def main() -> int:
     )
 
     rounds: dict[str, Any] = {}
-    for r in ROUNDS:
+    for r in round_numbers:
         run_dir = Path(f"{args.prefix}{r}")
         path = run_dir / "failure.json"
         if not path.exists():
@@ -289,11 +409,13 @@ def main() -> int:
         failure = json.loads(path.read_text("utf-8"))
         gates = round_gates(run_dir, failure)
         restart_s = failure["central"]["restart"]["restart_to_answer_s"]
+        gpu = gpu_gate_summary(run_dir)
         valid = (
             gates["G_FP_i"]
             and gates["G_B"]
             and gates["G_R"]
             and gates["n_conditions"] == EXPECTED_CONDITIONS
+            and (not args.gpu_gate or gpu["G_GPU_post"] is True)
         )
         conds = []
         for cond in failure["p2p"]:
@@ -309,6 +431,11 @@ def main() -> int:
             "window_s": failure["window_s"],
             "central_restart_to_answer_s": restart_s,
             "deadline_s": failure["params"]["answer_deadline_s"],
+            "gpu_gate": gpu,
+            "D6_failure_kinds": {
+                f"{c['mode']}_k{c['k']}": failure_kind_counts(c) for c in failure["p2p"]
+            },
+            "D8_deadline_delegates": deadline_delegates(run_dir, failure),
             "conditions": conds,
         }
 
@@ -379,6 +506,40 @@ def main() -> int:
         },
         "n_valid_rounds": len(valid_runs),
     }
+    d_extra: dict[str, Any] = {}
+    if args.gpu_gate:
+        gv_path = out_dir / "g_v.json"
+        gates["G_V"] = (
+            json.loads(gv_path.read_text("utf-8"))["passed"] if gv_path.exists() else None
+        )
+        gates["G_GPU_post_by_round"] = {
+            k: v["gpu_gate"]["G_GPU_post"] for k, v in rounds.items() if "gpu_gate" in v
+        }
+        gates["G_GPU_pre_by_round"] = {
+            k: v["gpu_gate"]["G_GPU_pre"] for k, v in rounds.items() if "gpu_gate" in v
+        }
+    if args.d0_dir is not None:
+        d0_dir = Path(args.d0_dir)
+        gates["G_ENV"] = env_gate(d0_dir)
+        d0_failure = json.loads((d0_dir / "failure.json").read_text("utf-8"))
+        d_extra["D0_failure_kinds"] = {
+            f"{c['mode']}_k{c['k']}": failure_kind_counts(c) for c in d0_failure["p2p"]
+        }
+        d_extra["D0_pre_stop_hit_rate"] = gates["G_ENV"]["pre_stop_hit_rate"]
+    d_extra["D6_i30_failure_kinds"] = {
+        f"{r}": {
+            f"{c['mode']}_k{c['k']}": failure_kind_counts(c)
+            for c in json.loads(Path(f"{I30_PREFIX}{r}/failure.json").read_text("utf-8"))["p2p"]
+        }
+        for r in ROUNDS
+    }
+    d_extra["D6_D7_D8_by_round"] = {
+        k: {key: v[key] for key in ("D6_failure_kinds", "gpu_gate", "D8_deadline_delegates")}
+        for k, v in rounds.items()
+        if "gpu_gate" in v
+    }
+    if args.gpu_gate:
+        d_extra["G_V"] = json.loads(gv_path.read_text("utf-8")) if gv_path.exists() else None
     hypothesis_holds = len(container_up) >= MIN_K_UP
     adopted = (
         gates["G_TB_live_table_miss_total"] == 0
@@ -386,9 +547,11 @@ def main() -> int:
         and len(valid_runs) >= MIN_VALID_ROUNDS
         and hypothesis_holds
         and not availability_bad
+        and (not args.gpu_gate or gates["G_V"] is True)
+        and (args.d0_dir is None or gates["G_ENV"]["passed"])
     )
     verdict = {
-        "iteration": 35,
+        "iteration": args.iteration,
         "gates": gates,
         "valid_rounds": valid_runs,
         "adopted": adopted,
@@ -410,10 +573,16 @@ def main() -> int:
         json.dumps(verdict, indent=1, ensure_ascii=False), "utf-8"
     )
     (out_dir / "b1_summary.json").write_text(
-        json.dumps({"rounds": rounds, "conditions": conditions}, indent=1, ensure_ascii=False),
+        json.dumps(
+            {"rounds": rounds, "conditions": conditions, "extra": d_extra},
+            indent=1,
+            ensure_ascii=False,
+        ),
         "utf-8",
     )
-    (out_dir / "analysis_report.md").write_text(render_report(verdict, conditions), "utf-8")
+    (out_dir / "analysis_report.md").write_text(
+        render_report(verdict, conditions, d_extra), "utf-8"
+    )
     print(
         json.dumps(
             {

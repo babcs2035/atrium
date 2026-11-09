@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 35,
-  "iteration_name": "停止した PC を問い合わせ先から外す仕組みの障害時の効果",
-  "phase": "evaluate",
+  "iteration": 36,
+  "iteration_name": "停止した PC を外す仕組みで増えた打ち切りの原因の切り分けと再測定",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "d0009.B1_drop_failed_peers=health_check_exclusion",
-  "experiment_dir": "results/d0009_b1_exclusion_r{1,2,3}",
-  "experiment_deadline": 1794257499,
-  "updated_at": 1794232767,
-  "last_slack_ts": "1794225805.798279",
-  "iteration_thread_ts": "1794226279.830149",
+  "current_lever": "d0009.B1_drop_failed_peers=health_check_exclusion（再測定．G-GPU・D0・G-V を追加）",
+  "experiment_dir": null,
+  "experiment_deadline": null,
+  "updated_at": 1794233861,
+  "last_slack_ts": "1794233356.073309",
+  "iteration_thread_ts": "1794233898.586469",
   "notion_toggle_created": true,
-  "last_commit": "3c7539d"
+  "last_commit": "1c7f5f6"
 }

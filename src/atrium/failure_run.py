@@ -120,6 +120,8 @@ class FailureParams:
     central_questions: int = 200
     ready_timeout_s: float = 300.0
     seed: int = DEFAULT_SEED
+    # 全ての問の行に qid（答えた行は選んだ受信箱も）を残す（d0009 B1 の打ち切った問の照合用．既定 off では出力が変わらない）
+    record_qid: bool = False
 
 
 # ── 止め方 ────────────────────────────────────────────────────────────────────
@@ -534,6 +536,8 @@ async def run_fault(
                 if monitor is not None:
                     # 打ち切った問は選んだ受信箱が分からないので delegate_down は None
                     timeout_row |= {"n_visible": n_visible, "delegate_down": None}
+                if params.record_qid:
+                    timeout_row["qid"] = question.qid
                 rows.append(timeout_row)
                 continue
             gold_doc = ctx.gold_doc_of[question.qid]
@@ -561,6 +565,8 @@ async def run_fault(
                         monitor.excluded_hosts,
                     ),
                 }
+            if params.record_qid:
+                row |= {"qid": question.qid, "selected_sources": record.get("selected_sources", [])}
             rows.append(row)
 
     stream_tasks = [asyncio.create_task(stream()) for _ in range(params.stream_parallel)]
@@ -625,6 +631,8 @@ async def run_fault(
 OWNER_ROW_KEYS = ("returned", "owner_hit", "failure_kind", "error_type", "http_status")
 # 外す仕組み（d0009 B1）の on のときだけ問の行に付ける値
 PEER_ROW_KEYS = ("n_visible", "delegate_down")
+# `record_qid` のときだけ問の行に付ける値
+QID_ROW_KEYS = ("qid", "selected_sources")
 
 
 def delegate_is_excluded(
@@ -823,7 +831,9 @@ def summarize_fault(
                 "timed_out": bool(r["timed_out"]),
                 "gold_down": r["bank"] in down_inboxes,
                 "e2e_s": r["e2e_s"],
-                **{key: r[key] for key in OWNER_ROW_KEYS + PEER_ROW_KEYS if key in r},
+                **{
+                    key: r[key] for key in OWNER_ROW_KEYS + PEER_ROW_KEYS + QID_ROW_KEYS if key in r
+                },
             }
             for t, r in zip(rel, rows, strict=True)
         ],

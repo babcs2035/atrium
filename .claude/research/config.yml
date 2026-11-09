@@ -403,7 +403,9 @@ levers:
             Iteration 35 の結果（2026-11-09．判定不能〔採用でも棄却でもない〕．値は閉じない）：G-FP (i) 0.818〜0.845（基準 0.86）・G-B 0.909〜0.934（基準 0.95）が 3 ラウンドとも不通過で有効なラウンド 0．
             Iteration 30 に無かった締め切りの打ち切り（availability で 1 条件 9〜17 件．止める前は各条件の最初の 8 本の 7・8 本目）が原因で，その原因は未特定．
             結果は results/d0009_b1_exclusion/verdict.json（verdict_revised），記述は journal の Iteration 35「実行済み」．本番の前に SummaryProbeRouter に省略可能な引数 visible を足した（48ed798．偏差）．
-            次は Iteration 36 で同じ値の打ち切りの原因を切り分け，同じ規則・ゲートで 3 ラウンドを流し直す（backlog B117）．"}
+            次は Iteration 36 で同じ値の打ち切りの原因を切り分け，同じ規則・ゲートで 3 ラウンドを流し直す（backlog B117）．
+            着手：Iteration 36（事前登録は journal の Iteration 36．backlog B119）．照合で打ち切りは wafl500 の生成の減速（約 56 → 10 トークン/秒．r1 の 2 条件目から）と待ち行列の溜まりに合う．
+            値・設定は Iteration 35 のまま，GPU の PC の速さと空きのゲート（G-GPU）・同じ日の外す仕組み無しの診断（D0・G-ENV）・visible の経路の照合（G-V）を足して流し直す．"}
   - {name: d0009.B2_split_reranker, values: [multi_gpu_scoring],
      note: "d0009 B2（中）．cross-encoder の採点を複数の GPU に分ける．生成が速い条件では質問者の採点が律速になる（A1 と関連）．
             採点のモデルは 8B の生成モデルと同じ 12 GB の GPU に共存できなかった（journal の F-6）ので，採点を置く GPU の割り当ても合わせて設計する．

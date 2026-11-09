@@ -344,6 +344,7 @@ def cmd_failure_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         poll_interval_s=args.poll_interval_s,
         central_questions=args.central_questions,
         seed=DEFAULT_SEED,
+        record_qid=args.record_qid,
     )
 
     async def main() -> dict[str, Any]:
@@ -1624,6 +1625,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--poll-interval-s", type=float, default=0.2, help="生存の確認の間隔（秒）")
     p.add_argument(
         "--central-questions", type=int, default=200, help="中央の答えられた割合を測る質問の数"
+    )
+    p.add_argument(
+        "--record-qid",
+        action="store_true",
+        help="全ての問の行に qid（答えた行は選んだ受信箱も）を残す（既定は残さない）",
     )
     p.set_defaults(func=cmd_failure_run)
 

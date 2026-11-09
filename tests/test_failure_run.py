@@ -147,6 +147,29 @@ async def test_fault_lowers_the_answered_rate_to_the_offline_prediction_and_node
     assert await _alive_hosts(cluster) == ["node-0", "node-1"]
 
 
+async def test_record_qid_adds_qid_to_every_question_row_and_is_off_by_default(
+    cluster: MiniCluster,
+) -> None:
+    """`record_qid` が on なら全ての問の行に qid と選んだ受信箱が付き，既定（off）では付かない．"""
+    ctx = _context(cluster)
+    urls = ctx.url_of_host
+    off = await run_fault(
+        ctx, AvailabilityInjector(cluster.client, urls), ["node-0"], _params(), 1.6
+    )
+    assert all("qid" not in q and "selected_sources" not in q for q in off["questions"])
+    on = await run_fault(
+        ctx,
+        AvailabilityInjector(cluster.client, urls),
+        ["node-0"],
+        _params(record_qid=True),
+        1.6,
+    )
+    known_qids = {q.qid for q in cluster.questions}
+    assert all(q["qid"] in known_qids for q in on["questions"])
+    answered = [q for q in on["questions"] if q["hit"]]
+    assert answered and all(q["selected_sources"] for q in answered)
+
+
 async def test_stopped_nodes_are_resumed_when_the_measurement_is_cancelled(
     cluster: MiniCluster,
 ) -> None:
