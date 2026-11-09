@@ -103,6 +103,7 @@
 | GET | `/healthz` | － | `{"status", "node_id", "shards", "process_cpu_s", "cgroup_cpu_s", "pid", "workers", "host_cpu"}`．`process_cpu_s` はノードのプロセスの CPU 時間の累計（秒）で，質問者が測定の区間の前後に読んで専門家の側の CPU 使用率を求める（Iteration 8）．`host_cpu` はデバイス全体の `/proc/stat` の累計 `{"busy", "total", "softirq"}`（jiffies）と論理 CPU の数 `n_cpu`（Linux 以外では `null`．負荷試験 `atrium node-bench` が使う．Iteration 9）．`cgroup_cpu_s` はコンテナの cgroup（v2）の全プロセスの CPU 時間の累計（秒．v2 でなければ `null`），`pid` は答えたプロセスの番号，`workers` は `experiment.node_workers`（Iteration 10．複数のプロセスのノードでは答えるプロセスが要求ごとに違いうるので，ノードの全体の CPU は `cgroup_cpu_s` で測る） |
 | GET | `/.well-known/agent-card.json` | － | A2A の Agent Card．シャード 1 個を 1 個の skill として名乗る |
 | GET | `/v1/profile` | － | シャードごとの `source`・`n_docs`・`dim`・`encoder`・`centroid`・`description` |
+| GET | `/v1/alive` | － | `{"node_id"}` だけ（d0009 B1．質問者の生存確認．離脱中は 503） |
 | POST | `/v1/retrieve` | `{"shard_id", "k", "embedding"?, "query_id"?}` | `{"shard_id", "docs": [{"doc_id","title","content","score"}], "duration_s"}` |
 | POST | `/v1/probe` | `{"shard_ids", "embedding"}`（bm25_probe は `bm25`，`routing.owner_score` が `vote`・`learned` のときは `topk` も） | `{"node_id", "scores": {shard_id: 最高スコア}, "duration_s"}`（`bm25` を付けると `bm25` も，`topk` を付けると `dense_topk`・`bm25_topk`（シャード ID → 降順の上位 topk 個の得点）も返す．`topk` が無い要求の応答は従来と同じ本文）．本文は返さない（flood_score の 1 段目．p0004） |
 | POST | `/v1/generate` | `{"dataset", "question", "options", "docs", "allow_unknown"?}` | `{"node_id", "answer", "llm"}`．B4（`delegate_gpu`）で GPU の専門家が受け取った断片から答える（p0004） |

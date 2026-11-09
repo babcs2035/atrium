@@ -17,6 +17,18 @@
 
 ---
 
+## B116 [auto-decided 2026-11-09] Iteration 35（d0009 B1・外す仕組み）の設計：質問者の生存確認で止まったノードだけを visible_urls から外し，Iteration 30 と同じ条件で 3 ラウンド実機．委託先が止まった CPU の台は外さず数える
+- 状況: B115 の申し送り (a)〜(e) に従い，rc-researcher が事前登録を決めた．コードの確認で，(i) availability で止めた台は probe に 503 をすぐ返すので既に選ばれず，Iteration 30 の止めた間の失敗は全て委託先が止まった CPU の台の 502 だった，(ii) container では probe の `asyncio.gather` が止めた台の応答を 120 秒待つので問が締め切りで落ちる，(iii) `Requester.visible_urls`（EQ7b のメンバー表）を更新すれば 1 段目の候補と probe の送り先から外せ，`requester.py` の経路を変えずに済む，(iv) `/v1/profile` は重心と公開情報を返して重い，と分かった．
+- 自動選択:
+  (1) 外すのは止まったと判定したノードだけ（申し送り (b) の前者）．委託先が止まった CPU の台は外さず，委託先も替えない．問の行の `delegate_down` で記述 (D2) として数える．
+  (2) 生存確認は追加の `GET /v1/alive`（`up_only`）を 1 秒ごと・打ち切り 2 秒，1 回の失敗で外し 1 回の成功で戻す．追加だけのキー `experiment.peer_health`（既定 null）．
+  (3) 比べる相手は Iteration 30 の 3 ラウンド（同じ時間帯の交互の対照は流さない）．availability を負の対照（H-B1b．|差| ≤ 0.10）にする．
+  (4) 主の指標は止めた間の「答えられた」割合の終わった時刻の版（Iteration 30 の事後の学び）．聞いた時刻の版を併記．H-B1a は container の各 k で全ラウンド Iteration 30 の最大 ＋0.15 以上．
+  (5) 誤検出は G-FP（止める前の割合 ≥ 0.86 と，止めていないノードが外された回数）．smoke で誤検出があれば `fail_threshold` を 2 へ 1 回だけ上げる．
+- 根拠: (1) 単一レバーを保つため．(i) から，外す対象を止まったノードだけにすると availability は変わらない見込みで，container だけに効く．これにより「外す仕組み」と「委託の依存」の効果を切り分けられる．(2) Envoy の能動の health check（間隔・打ち切り・閾値）と Elasticsearch の follower check（1 秒）が参照点．B1 の「2.01 秒で検出」に合わせて閾値 1．(3) availability はラウンドの間で 0〜0.009 しか揺れない決定的な系で，日の違いの対照になる．
+- 不可逆・人間の判断を要する事項: 無い．追加だけのキーと endpoint で，既定は今の挙動．実機の操作は Iteration 30 と同じ研究用クラスタの止め方で，データ・image・Ollama は止めない・消さない．`config.yaml` は deploy の後に戻す．
+- 要レビュー: (a) 委託先が止まった CPU の台を外す（または委託先を替える）値は試さない．(D2) の結果で効果の上限の目安が出るので，B1 に値を足すかは evaluator が判断する．(b) 外した後の割合は「止まったノードだけを外す」形の値で，生存確認の間隔・閾値の感度は測らない．(c) Iteration 30 から日を替えた比較で，同じ時間帯の対照は無い．
+
 ## B115 [auto-decided 2026-11-09] Iteration 34（d0009 A5・中央の停止時間）は採用．値 `central_outage_sweep` を閉じて A5 を完了にし，Iteration 35 のレバーは `d0009.B1_drop_failed_peers` の値 `health_check_exclusion`
 - 状況: Iteration 34 の phase 3．ゲート G-T・G-R0・G-M を通過し，有効なラウンド 3．S* は availability k=1・3 が 0，k=6・10 が 6.0〜7.8 秒，container が 8.6〜18.8 秒，S_robust 18.8 秒（T_robust 32.5 秒）．記述の全ての版（復元抽出の 97.5 %・終わった時刻の版・R = 1.44 秒）を含めると約 34 秒．詳細は journal の Iteration 34「実行済み」．
 - 自動選択:

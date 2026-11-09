@@ -72,6 +72,7 @@ from atrium.live_common import (
     write_json,
 )
 from atrium.paths import dataset_paths
+from atrium.peer_health import EVENT_DROP, EVENT_RESTORE, PeerEvent, PeerHealthMonitor
 from atrium.requester import RETRIEVE_TIMEOUT_S, Requester
 from atrium.routing.central import CentralIndex
 from atrium.verdict import write_verdict
@@ -443,6 +444,10 @@ class FailureContext:
     inboxes_of_host: dict[str, list[str]]
     # answer_mode=owner_answer（d0009 A6）：「答えられた」を，選んだ候補の文脈に正解のメールがあること（失敗なし）で数え，失敗の形を残す
     owner_answer: bool = False
+    # experiment.peer_health（d0009 B1）：生存確認の監視．None なら従来どおり（出力も変わらない）．
+    # delegate_of_host：ホスト → 回答を委託する GPU のホスト（`placement.delegate_of`）．delegate_down の判定に使う
+    peer_monitor: PeerHealthMonitor | None = None
+    delegate_of_host: dict[str, str] = field(default_factory=dict)
 
 
 def classify_failure(error: str | None) -> tuple[str | None, str | None, int | None]:
@@ -488,6 +493,8 @@ async def run_fault(
     """
     cycle = itertools.cycle(ctx.questions)
     rows: list[dict[str, Any]] = []
+    monitor = ctx.peer_monitor
+    events_from = len(monitor.events) if monitor is not None else 0
     running = asyncio.Event()
     running.set()
 
@@ -495,6 +502,12 @@ async def run_fault(
         while running.is_set():
             question = next(cycle)
             asked = time.perf_counter()
+            # 外す仕組みの on のとき，聞いた時点で見えていたノードの数を残す
+            n_visible = (
+                len(ctx.requester.visible_urls)
+                if monitor is not None and ctx.requester.visible_urls is not None
+                else None
+            )
             try:
                 record = await asyncio.wait_for(
                     ctx.requester.process(question), params.answer_deadline_s
@@ -518,6 +531,9 @@ async def run_fault(
                         "error_type": None,
                         "http_status": None,
                     }
+                if monitor is not None:
+                    # 打ち切った問は選んだ受信箱が分からないので delegate_down は None
+                    timeout_row |= {"n_visible": n_visible, "delegate_down": None}
                 rows.append(timeout_row)
                 continue
             gold_doc = ctx.gold_doc_of[question.qid]
@@ -534,6 +550,17 @@ async def run_fault(
             }
             if ctx.owner_answer:
                 row |= owner_row_fields(record, question.bank, gold_doc)
+            if monitor is not None:
+                # 終わった時点で外していたノードに，選んだ受信箱の委託先があったか（選んだ直後の状態の近似）
+                row |= {
+                    "n_visible": n_visible,
+                    "delegate_down": delegate_is_excluded(
+                        record.get("selected_sources", []),
+                        ctx.inboxes_of_host,
+                        ctx.delegate_of_host,
+                        monitor.excluded_hosts,
+                    ),
+                }
             rows.append(row)
 
     stream_tasks = [asyncio.create_task(stream()) for _ in range(params.stream_parallel)]
@@ -581,11 +608,88 @@ async def run_fault(
             # 途中で失敗しても止めたノードは再開する（データ・image は消えていない．compose start で戻る）
             await injector.start(hosts)
     return summarize_fault(
-        rows, t0, stop, start, detect_s, ready_s, hosts, params, window_s, ctx.inboxes_of_host
+        rows,
+        t0,
+        stop,
+        start,
+        detect_s,
+        ready_s,
+        hosts,
+        params,
+        window_s,
+        ctx.inboxes_of_host,
+        peer_events=None if monitor is None else monitor.events[events_from:],
     )
 
 
 OWNER_ROW_KEYS = ("returned", "owner_hit", "failure_kind", "error_type", "http_status")
+# 外す仕組み（d0009 B1）の on のときだけ問の行に付ける値
+PEER_ROW_KEYS = ("n_visible", "delegate_down")
+
+
+def delegate_is_excluded(
+    selected_sources: Sequence[str],
+    inboxes_of_host: Mapping[str, Sequence[str]],
+    delegate_of_host: Mapping[str, str],
+    excluded_hosts: frozenset[str],
+) -> bool:
+    """選んだ受信箱のいずれかを持つノードの委託先（GPU のノード）が，外されているか．
+
+    EnronQA では受信箱（データ源）の名前がシャード ID と同じで，ノードの `shard_ids` から持ち主のホストを引く．
+    """
+    host_of_inbox = {i: h for h, inboxes in inboxes_of_host.items() for i in inboxes}
+    for source in selected_sources:
+        host = host_of_inbox.get(source)
+        delegate = delegate_of_host.get(host) if host is not None else None
+        if delegate is not None and delegate in excluded_hosts:
+            return True
+    return False
+
+
+def summarize_peer_events(
+    events: Sequence[PeerEvent],
+    t0: float,
+    stop: InjectionResult,
+    start: InjectionResult,
+    hosts: Sequence[str],
+) -> dict[str, Any]:
+    """外す・戻す事象（時刻は t0 からの秒）と，止めた台ごとの外した時刻・戻した時刻と，誤検出の回数をまとめる．
+
+    誤検出 = 止めていないノードを外した回数 ＋ 止める操作の前に止める台を外した回数（止める操作の途中・後の止める台は正しい検出）．
+    外した時刻は止める操作の頼みの後の最初の drop（t0 から），戻した時刻は再開の頼みの後の最初の restore（再開の確認 start.acked_at_s から）．
+    """
+    stop_begin_s = stop.requested_at - t0
+    start_begin_s = start.requested_at - t0
+    start_acked_s = start.acked_at - t0
+    rows: list[dict[str, Any]] = [
+        {"host": e.host, "kind": e.kind, "t_s": e.at - t0} for e in events
+    ]
+    stopped = set(hosts)
+    false_drops = sum(
+        r["kind"] == EVENT_DROP and (r["host"] not in stopped or r["t_s"] < stop_begin_s)
+        for r in rows
+    )
+    dropped_s: dict[str, float | None] = {}
+    restored_s: dict[str, float | None] = {}
+    for h in hosts:
+        drops = [
+            r["t_s"]
+            for r in rows
+            if r["host"] == h and r["kind"] == EVENT_DROP and r["t_s"] >= stop_begin_s
+        ]
+        restores = [
+            r["t_s"] - start_acked_s
+            for r in rows
+            if r["host"] == h and r["kind"] == EVENT_RESTORE and r["t_s"] >= start_begin_s
+        ]
+        dropped_s[h] = drops[0] if drops else None
+        restored_s[h] = restores[0] if restores else None
+    return {
+        "events": rows,
+        "false_positive_drops": false_drops,
+        "dropped_at_s": dropped_s,
+        "restored_after_start_ack_s": restored_s,
+    }
 
 
 def summarize_owner_rows(
@@ -654,6 +758,7 @@ def summarize_fault(
     params: FailureParams,
     window_s: float,
     inboxes_of_host: Mapping[str, Sequence[str]],
+    peer_events: Sequence[PeerEvent] | None = None,
 ) -> dict[str, Any]:
     """質問の記録から，止める前・止めている間の答えられた割合と，時間積分（窓 [0, window_s]）・検出・再開をまとめる．
 
@@ -718,7 +823,7 @@ def summarize_fault(
                 "timed_out": bool(r["timed_out"]),
                 "gold_down": r["bank"] in down_inboxes,
                 "e2e_s": r["e2e_s"],
-                **{key: r[key] for key in OWNER_ROW_KEYS if key in r},
+                **{key: r[key] for key in OWNER_ROW_KEYS + PEER_ROW_KEYS if key in r},
             }
             for t, r in zip(rel, rows, strict=True)
         ],
@@ -731,6 +836,11 @@ def summarize_fault(
         if base_rate > 0 and window_s > 0
         else None,
         **owner_extra,
+        **(
+            {}
+            if peer_events is None
+            else {"peer_health": summarize_peer_events(peer_events, t0, stop, start, hosts)}
+        ),
     }
 
 
@@ -912,6 +1022,10 @@ async def run_failure_command(
             url_of_host=url_of_host,
             inboxes_of_host={n.host: list(n.shard_ids) for n in placement.nodes},
             owner_answer=cfg.experiment.answer_mode == "owner_answer",
+            peer_monitor=None
+            if cfg.experiment.peer_health is None
+            else PeerHealthMonitor(client, requester, url_of_host, cfg.experiment.peer_health),
+            delegate_of_host=dict(placement.delegate_of),
         )
         injectors: dict[str, FailureInjector] = {
             "availability": AvailabilityInjector(client, url_of_host),
@@ -930,6 +1044,9 @@ async def run_failure_command(
             },
         )
         central.start()
+        if ctx.peer_monitor is not None:
+            # 質問の流れの前に始め，最初の確認で全ノードが生存のときだけ流す
+            await ctx.peer_monitor.start()
         try:
             return await run_failure(
                 ctx,
@@ -942,6 +1059,8 @@ async def run_failure_command(
                 cfg.retrieval.fusion == "rrf",
             )
         finally:
+            if ctx.peer_monitor is not None:
+                await ctx.peer_monitor.stop()
             central.stop()
             # 全てのノードを動いている状態にして終える（止めたまま終わらない）
             for injector in injectors.values():

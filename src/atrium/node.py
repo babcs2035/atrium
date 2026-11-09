@@ -8,7 +8,7 @@
 - flood_score の 1 段目（/v1/probe）: 各シャードの最高の検索スコアだけを返す（本文は返さない．p0004）．routing=bm25_probe（p0007 A4）では，
   要求の `bm25`（質問の語ごとの IDF・長さの平均）で採点した，受信箱の中の本文の BM25 の最大も返す．
 - 参加・離脱の再生（/v1/admin/availability．EQ7b）: experiment.churn を指定した実験でだけ有効になり，離脱中は
-  /healthz 以外の要求を 503 で拒否する．
+  /healthz 以外の要求（生存確認の /v1/alive を含む）を 503 で拒否する．
 - 管理 API（p0007 I5．cluster.node_admin の実験でだけ有効）: メールの非表示（/v1/admin/docs/hide）・追加（/v1/admin/docs/add．
   ノードがその場で埋め込みを作り索引に足す）・取り出し（/v1/admin/docs/export）・埋め込みモデルの読み込み（/v1/admin/embedder/load）・
   公開情報（hybrid_probe の要約）の作成（/v1/admin/summary．p0007 I7．デバイスの CPU で自分のメールだけから作る）．
@@ -382,6 +382,11 @@ def create_app(
                 "n_cpu": os.cpu_count(),
             },
         }
+
+    # d0009 B1：質問者の生存確認．本文は小さく，離脱中は 503（/healthz は離脱中も 200 を返すので生存確認に使えない）
+    @app.get("/v1/alive", dependencies=up_only)
+    def alive() -> dict[str, str]:
+        return {"node_id": node_id}
 
     @app.get(AGENT_CARD_PATH)
     def agent_card(request: Request) -> dict[str, object]:

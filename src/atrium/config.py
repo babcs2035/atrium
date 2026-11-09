@@ -85,6 +85,19 @@ class ChurnConfig(_Strict):
     mean_up_steps: int = Field(default=200, ge=2)
 
 
+class PeerHealthConfig(_Strict):
+    """質問者の生存確認（d0009 B1．failure-run だけが使う）．止まったと判定したノードを問い合わせ先から外し，生存が戻れば戻す．
+
+    ノードごとに interval_s ごとに `/v1/alive` を確かめ（1 回の打ち切りは timeout_s），連続 fail_threshold 回の失敗で外し，
+    連続 recover_threshold 回の成功で戻す．
+    """
+
+    interval_s: float = Field(default=1.0, gt=0)
+    timeout_s: float = Field(default=2.0, gt=0)
+    fail_threshold: int = Field(default=1, ge=1)
+    recover_threshold: int = Field(default=1, ge=1)
+
+
 class ExperimentConfig(_Strict):
     """実験の種類と条件．"""
 
@@ -129,6 +142,15 @@ class ExperimentConfig(_Strict):
     # p0007 D（準集権）．routing=central_local の生成の置き場所．requester：質問者の LLM で答える（従来．中央）／
     # gpu_nodes：質問者の索引の上位 k 通と質問を，GPU の専門家（placement.delegate_of の委託先）の /v1/generate へラウンドロビンで 1 台に送って答えさせる
     central_generation: Literal["requester", "gpu_nodes"] = "requester"
+    # d0009 B1．指定すると failure-run の質問者が生存確認で止まったノードを問い合わせ先（visible_urls）から外す．null は従来どおり（全ノードを常に問い合わせ先とする）
+    peer_health: PeerHealthConfig | None = None
+
+    @model_validator(mode="after")
+    def _check_peer_health(self) -> ExperimentConfig:
+        """peer_health は churn と同じメンバー表（visible_urls）を書き換えるので，churn とは併用できない．"""
+        if self.peer_health is not None and self.churn is not None:
+            raise ValueError("experiment.peer_health cannot be combined with experiment.churn")
+        return self
 
     @model_validator(mode="after")
     def _check_requester_procs(self) -> ExperimentConfig:
@@ -522,6 +544,10 @@ class AtriumConfig(_Strict):
         if n_extra == 0:
             return self
         exp = self.experiment
+        if exp.peer_health is not None:
+            raise ValueError(
+                "experiment.peer_health cannot be combined with cluster.extra_requesters"
+            )
         if (
             exp.requester_procs != 1
             or exp.churn is not None

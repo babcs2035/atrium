@@ -200,8 +200,15 @@ def cmd_rerun_variance(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def reject_peer_health(cfg: AtriumConfig, command: str) -> None:
+    """experiment.peer_health（d0009 B1）は failure-run だけが使う．他の実行では黙って無視せずに止める．"""
+    if cfg.experiment.peer_health is not None:
+        raise ValueError(f"experiment.peer_health is only used by failure-run (got: {command})")
+
+
 def cmd_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """質問者として実験を行う．1 問でも失敗すれば終了コード 2 を返す（結果は残す）．"""
+    reject_peer_health(cfg, "run")
     from atrium.experiment import run_experiment
 
     failures = asyncio.run(
@@ -254,6 +261,8 @@ def cmd_freshness_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium.dynamics import DEFAULT_SEED, HELD_BACK_FRACTION, parse_interval
     from atrium.freshness_run import FreshnessParams, run_freshness_command
 
+    reject_peer_health(cfg, "freshness-run")
+
     params = FreshnessParams(
         intervals=tuple(parse_interval(t) for t in args.intervals.split(",")),
         n_arrivals=args.n_arrivals,
@@ -284,6 +293,8 @@ def cmd_join_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     from atrium.dynamics import DEFAULT_SEED
     from atrium.join_run import JoinParams, parse_delays, run_join_command
     from atrium.live_common import install_sigterm_cancel
+
+    reject_peer_health(cfg, "join-run")
 
     params = JoinParams(
         n_devices=args.n_devices,

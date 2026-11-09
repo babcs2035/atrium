@@ -340,6 +340,9 @@ uv run python scripts/d0009/a5s_verdict.py
   （`answer.save_candidates: true` が要る．正誤は採点しない）．`p2p[].owner` に，回答を返した割合・持ち主の候補が入った割合・締め切りの半分以内の割合と，失敗の形
   （deadline・http・table_miss・other）を残す．`retrieval.ce_scores: table` の表（`ce_table/holdout_owner.jsonl`）に無い組は KeyError（table_miss）の失敗になるので，
   止めた台を避けて別の受信箱が選ばれる測定の前に，`scripts/d0009/a6f_owner_table_all.py` で全受信箱の上位 5 通へ表を作り足す．流し方は `scripts/d0009/a6f_chain.sh`．
+- 止まったノードを外す仕組み（d0009 B1．`experiment.peer_health`）：質問者が `/v1/alive` で全ノードの生存を確かめ，止まったノードを問い合わせ先から外す（設定の意味は [d0002](d0002_configuration.md)）．
+  実行は `scripts/d0009/b1_chain.sh`（`b1_config.py` で a6f の条件に `peer_health` を足して deploy → smoke → r1〜r3．smoke で止めていないノードが外されたら `fail_threshold` を 2 へ 1 回だけ上げて流し直す）．
+  結果は `results/d0009_b1_exclusion_{smoke,r1,r2,r3}/`，集計は `uv run python scripts/d0009/b1_verdict.py`（`results/d0009_b1_exclusion/{verdict.json,b1_summary.json,analysis_report.md}`．Iteration 30 との比較を含む）．
 - 失敗時：`ctl/ack` が出ずに `TimeoutError` なら `failure_run.sh` の watcher が動いていない（`results/<run_id>/start.log`）．`node_admin` でなければ管理 API が無く availability が 404．
 
 ### 7.3 参加（`join-run`．E2）
