@@ -1190,8 +1190,12 @@ class Requester:
             if missing:
                 raise ValueError(f"device_probe needs single-shard sources: {missing[:5]}")
             if isinstance(router, SummaryProbeRouter):
+                # 要約は全データ源に対して作ってあるので，メンバー表（visible_urls）は全データ源のまま渡し，ルーターの中で外す
                 candidates, first_stage = router.candidates_with_scores(
-                    query, sources, self._device_of_source
+                    query,
+                    self.sources,
+                    self._device_of_source,
+                    None if self.visible_urls is None else {s.source for s in sources},
                 )
             else:
                 candidates = router.candidates(query, sources, self._device_of_source)

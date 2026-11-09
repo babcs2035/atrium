@@ -159,6 +159,10 @@ deadline=$DEADLINE_S
 for tag in "${ORDER[@]}"; do
   run_one "$tag" "$deadline"
   if [ "$tag" = smoke ]; then
+    # 質問者のコードの例外（failure_kind=other．ノードの失敗ではない）が 1 件でもあれば，本番へ進まずに止める
+    other=$(jq '[.p2p[].questions[] | select(.failure_kind == "other")] | length' "results/d0009_b1_exclusion_smoke/failure.json")
+    echo "[$(date +%T)] smoke failure_kind=other count=$other" >> "$LOG"
+    if [ "$other" != 0 ]; then echo "[$(date +%T)] smoke SANITY FAILED (requester exceptions); inspect results/d0009_b1_exclusion_smoke/requester.log" >> "$LOG"; exit 1; fi
     fp=$(false_positive_drops "d0009_b1_exclusion_smoke")
     echo "[$(date +%T)] smoke false_positive_drops=$fp (fail_threshold=$FAIL_THRESHOLD)" >> "$LOG"
     if [ "$fp" != 0 ] && [ "$FAIL_THRESHOLD" = 1 ]; then

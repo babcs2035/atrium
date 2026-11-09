@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping, Sequence
+from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -204,8 +205,14 @@ class SummaryProbeRouter:
         query: RoutingQuery,
         sources: Sequence[SourceProfile],
         device_of_source: Mapping[str, str],
+        visible: AbstractSet[str] | None = None,
     ) -> tuple[list[str], dict[str, float]]:
-        """`candidates` と，候補のデータ源 → 載るデバイスの 1 段目の得点（bm25_probe の learned が特徴量に使う．d0009 B3）．"""
+        """`candidates` と，候補のデータ源 → 載るデバイスの 1 段目の得点（bm25_probe の learned が特徴量に使う．d0009 B3）．
+
+        visible（d0009 B1．質問者の生存確認が外したノードを除く）：見えているデータ源の集合．要約は配置の全データ源に対して作ってあるので
+        sources は全データ源のまま渡し，見えているデータ源を 1 つも持たないデバイスを，上位 D 台を選ぶ前に候補から外す
+        （外したデバイスの分だけ候補が減るのではなく，見えているデバイスの中の上位 D 台になる）．None は全て見える（従来どおり）．
+        """
         from atrium.frontier_methods import aggregate_max, cori_scores, multi_scores, zscore_rows
 
         names = [s.source for s in sources]
@@ -221,8 +228,15 @@ class SummaryProbeRouter:
             emb = np.asarray(query.embeddings[self._encoder], dtype=np.float32)[None, :]
             centroid = aggregate_max(multi_scores(emb, self._artifact.centers), index)
             scores = zscore_rows(terms) + self._weight * zscore_rows(centroid)
-        top = np.argsort(-scores[0], kind="stable")[: self.probe_d]
-        chosen = set(top.tolist())
+        ranking = np.argsort(-scores[0], kind="stable")
+        if visible is not None:
+            visible_devices = {
+                d for n, d in zip(names, index.tolist(), strict=True) if n in visible
+            }
+            ranking = np.asarray(
+                [d for d in ranking.tolist() if d in visible_devices], dtype=np.int64
+            )
+        chosen = set(ranking[: self.probe_d].tolist())
         picked = [(n, d) for n, d in zip(names, index.tolist(), strict=True) if d in chosen]
         return [n for n, _ in picked], {n: float(scores[0, d]) for n, d in picked}
 

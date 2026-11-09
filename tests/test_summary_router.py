@@ -86,3 +86,23 @@ def test_a_summary_built_for_another_placement_is_rejected(tmp_path: Path) -> No
     query = RoutingQuery("q", "", {ENCODER: np.zeros(DIM, np.float32)}, tokens=("word0",))
     with pytest.raises(ValueError, match="different placement"):
         router.candidates(query, _profiles(data.names), one_device)
+
+
+def test_invisible_devices_leave_the_first_stage_before_the_top_d_is_taken(tmp_path: Path) -> None:
+    """d0009 B1：外したデバイスの分だけ候補が減るのではなく，見えているデバイスの中の上位 D 台になる．"""
+    data, _, _, artifact = _artifact(tmp_path)
+    router = SummaryProbeRouter("hybrid", 2, 2, artifact, ENCODER, 0.5)
+    query = RoutingQuery(
+        "q0", "", {ENCODER: data.q_emb["test"][0]}, tokens=tuple(data.q_tokens["test"][0])
+    )
+    profiles, urls = _profiles(data.names), _device_urls(data)
+    full = router.candidates(query, profiles, urls)
+    dropped = full[0]
+    visible = {n for n in data.names if urls[n] != urls[dropped]}
+    got, _ = router.candidates_with_scores(query, profiles, urls, visible)
+    assert dropped not in got
+    assert set(got) <= visible
+    # 外したデバイスが 1 台だけでも，上位 D = 2 台は見えているデバイスの中から埋まる
+    assert len({urls[n] for n in got}) == 2
+    # 全て見えるなら従来と同じ
+    assert router.candidates_with_scores(query, profiles, urls, set(data.names))[0] == full
