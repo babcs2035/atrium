@@ -74,6 +74,7 @@
 
 - 新規メール：測ったのは転送の間隔と密ベクトルの追加時間だけである．BM25 を含む構成での索引への追加のコストを測る．
 - 障害：中央集約型が 45 秒間停止するという仮定に依存した比較である（中央の積分 22.8 = 再起動後の回答できる割合 0.76 × 30 秒）．別の停止時間でも大小が変わらないかを確かめる．
+- 着手（新規メール）：Iteration 33（事前登録は `.claude/research/journal.md` の Iteration 33．設計の判断は `.claude/research/backlog.md` の B111）．`atrium freshness-run` を，p0007 C の `hybrid_probe`・`fusion: none`・test から，主構成の取得（`bm25_probe` D = 24・`fusion: rrf`）・H の質問へ替え，H の正解のメールの 10% を間隔 0.5 秒で届けて，ノードの受信箱の BM25 の作り直しと中央の全体の BM25 の作り直しの費用，答えられるまでの時間（T ∈ {0, 60, 600, ∞}．中央はまとめ足し）を実機で 3 ラウンド測る．`retrieval_only` で GPU は使わない．
 
 ### A6. 負荷・障害・参加の主構成での再測定（優先度：中）
 
@@ -186,7 +187,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は完了（Iteration 30．採用．45 秒の仮定で全 8 条件 P2P が上だが止めた間の割合に依らない．検出と同時の再起動では availability k ≤ 3 以外は中央が上．`results/d0009_a6_failure/`）．参加は完了（Iteration 31．条件付きの採用．事後に改めたゲート G-A′ で E2 成立〔P2P は中央の 1.14〜1.18 倍・転送量は約半分〕．ただし中央の埋め込みが GPU の無い制御点の CPU であることに依る．`results/d0009_a6_join/`）．A6 は完了 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 完了（Iteration 32．採用．委託は重複なしの露出を増やさず，37.6% は全体に等しい．50% 未満は約 2,900 問の質問集合での値．`results/d0009_a4_exposure/`） |
-| 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 未着手 |
+| 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 索引への追加は着手（Iteration 33）．中央の停止時間は未着手 |
 | 8 | B1 | レバー `d0009.B1_drop_failed_peers` | 未着手 |
 | 9 | B2 | レバー `d0009.B2_split_reranker` | 未着手 |
 | − | C1 | 運用ルール 10：A1〜A6・B3 の判定は新しく分けた質問か別のデータセットで行う | 全イテレーションに適用 |

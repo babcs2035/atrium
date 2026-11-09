@@ -48,7 +48,7 @@ from atrium.dynamics import (
     summarize_times,
     times_or_censored,
 )
-from atrium.live_common import is_hit, load_test_questions, sleep_until, write_json
+from atrium.live_common import is_hit, load_split_questions, sleep_until, write_json
 from atrium.node import DocEmbedder
 from atrium.paths import DatasetPaths
 from atrium.protocol import (
@@ -98,6 +98,9 @@ class FreshnessParams:
     routed: bool = True
     fraction: float = HELD_BACK_FRACTION
     seed: int = DEFAULT_SEED
+    # 中央の転送の時点で，届いていて未転送のメールを全て 1 回でまとめて足す（d0009 A5．BM25 の作り直しが 1 通ごとに積み上がるのを避ける）．
+    # off なら予定の時刻ごとに，その時刻に転送されるメールだけを足す（p0007 C の挙動）
+    central_coalesce: bool = False
 
 
 @dataclass(frozen=True)
@@ -380,6 +383,8 @@ async def flush_to_central(
         "transfer_s": transfer_s,
         "embed_s": embed_s,
         "add_s": add_s,
+        # add_s のうち BM25 の作り直し（fusion=none なら 0）．足した直後の値
+        "bm25_s": central.bm25_s,
     }
 
 
@@ -397,6 +402,7 @@ async def measure_central(
 
     メールが届く時刻と転送の時刻は，開始を 0 とする予定の時刻（central_flush_offsets）で動かす．
     central_requester があれば，届いてから ask_delay_s 後の質問を設定の answer_mode で流し，結果を残す．
+    params.central_coalesce が真なら，転送の時点で届いていて未転送のメールを全て 1 回で足し，足すものが無い予定は飛ばす．
     """
     n_base = central.n_docs
     arrival_offsets = [a.offset_s for a in arrivals]
@@ -413,12 +419,21 @@ async def measure_central(
     answered: list[float | None] = [None] * len(arrivals)
     probe_hits: list[bool | None] = [None] * len(arrivals)
     flushes: list[dict[str, Any]] = []
+    flushed: set[int] = set()
     origin = time.perf_counter()
     for at, _, kind, payload in events:
         await sleep_until(origin, at)
         if kind == "flush":
-            # 予定の時刻までに届いたメールで，この時刻に転送されるもの
-            pending = [i for i, t in enumerate(flush_at) if t == payload]
+            if params.central_coalesce:
+                # 前の転送が予定の時刻を過ぎて続いた間に届いた分も，今の転送に含める
+                now = time.perf_counter() - origin
+                pending = [i for i, t in enumerate(flush_at) if t <= now and i not in flushed]
+                if not pending:
+                    continue
+                flushed.update(pending)
+            else:
+                # 予定の時刻までに届いたメールで，この時刻に転送されるもの
+                pending = [i for i, t in enumerate(flush_at) if t == payload]
             cost = await flush_to_central(ctx, central, embedder, [arrivals[i] for i in pending])
             done = time.perf_counter() - origin
             flushes.append({"scheduled_s": payload, "finished_s": done, **cost})
@@ -444,6 +459,9 @@ async def measure_central(
     times = times_or_censored(arrival_offsets, answered)
     return {
         "interval_s": None if math.isinf(interval_s) else interval_s,
+        # 条件の後に索引が元の文書数へ戻ったことの記録（d0009 A5 の G-B）
+        "n_docs_base": n_base,
+        "n_docs_after_truncate": central.n_docs,
         "times_s": [None if math.isinf(t) else t for t in times],
         "summary": summarize_times(times),
         "hit_at_delay": probe_hits,
@@ -558,6 +576,7 @@ async def run_freshness(
             "poll_timeout_s": params.poll_timeout_s,
             "fraction": params.fraction,
             "seed": params.seed,
+            "central_coalesce": params.central_coalesce,
         },
         "preparation": preparation,
         "p2p": {
@@ -604,6 +623,13 @@ def freshness_accuracy(run_dir: Path) -> dict[str, Any]:
     return out
 
 
+def load_freshness_questions(
+    cfg: AtriumConfig, paths: DatasetPaths
+) -> tuple[list[Question], dict[str, dict[str, Any]]]:
+    """測る質問（experiment.question_split の全問．test なら従来どおり）と正解の情報を読む．クエリ埋め込みは build_requester が同じ分割で読む．"""
+    return load_split_questions(paths, cfg.experiment.question_split, None)
+
+
 async def run_freshness_command(
     cfg: AtriumConfig,
     data_dir: Path,
@@ -621,7 +647,7 @@ async def run_freshness_command(
 
     paths: DatasetPaths = dataset_paths(data_dir, "enronqa")
     placement = read_placement(placement_path)
-    questions, gold = load_test_questions(paths)
+    questions, gold = load_freshness_questions(cfg, paths)
     held, arrivals = plan_arrivals(questions, gold, params)
     out_dir.mkdir(parents=True, exist_ok=True)
     async with build_http_client(
@@ -666,6 +692,8 @@ async def run_freshness_command(
                 "routing": cfg.experiment.routing,
                 "answer_mode": cfg.experiment.answer_mode,
                 "retrieval_fusion": cfg.retrieval.fusion,
+                "question_split": cfg.experiment.question_split,
+                "central_coalesce": params.central_coalesce,
                 "central_index": {"n_docs": central.n_docs, **{"load_s": central.load.total_s}},
                 "config": cfg.model_dump(mode="json"),
             },

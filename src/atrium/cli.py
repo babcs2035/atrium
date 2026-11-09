@@ -263,6 +263,7 @@ def cmd_freshness_run(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         routed=not args.no_routed,
         fraction=HELD_BACK_FRACTION,
         seed=DEFAULT_SEED,
+        central_coalesce=args.central_coalesce,
     )
     verdict = asyncio.run(
         run_freshness_command(
@@ -1509,6 +1510,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--no-routed", action="store_true", help="設定の routing を通した質問の時間を測らない"
+    )
+    p.add_argument(
+        "--central-coalesce",
+        action="store_true",
+        help="中央の転送の時点で届いていて未転送のメールを 1 回でまとめて足す（省略は転送の予定ごと）",
     )
     p.set_defaults(func=cmd_freshness_run)
 

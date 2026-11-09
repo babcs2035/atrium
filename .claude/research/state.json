@@ -1,15 +1,15 @@
 {
   "repo": "atrium",
-  "iteration": 32,
-  "iteration_name": "主構成で生成の委託に送る文書を含めた露出の全体の算出",
-  "phase": "evaluate",
+  "iteration": 33,
+  "iteration_name": "新しいメールを BM25 の索引へ加える費用の測定",
+  "phase": "execute",
   "status": "running",
-  "current_lever": "d0009.A4_exposure_total=with_generation_delegation",
+  "current_lever": "d0009.A5_extend_measurements=bm25_index_add",
   "experiment_dir": null,
   "experiment_deadline": null,
   "updated_at": 1794217071,
-  "last_slack_ts": "1794218151.150379",
-  "iteration_thread_ts": "1794217904.950389",
+  "last_slack_ts": "1794218454.817739",
+  "iteration_thread_ts": "1794218883.098939",
   "notion_toggle_created": true,
-  "last_commit": "54ba988"
+  "last_commit": "79fc5f1"
 }

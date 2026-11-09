@@ -378,7 +378,10 @@ levers:
   - {name: d0009.A5_extend_measurements, values: [bm25_index_add, central_outage_sweep],
      note: "d0009 A5（中）．(1) bm25_index_add：BM25 を含む構成で新規メールを索引へ加える費用を測る（p0007 C は転送の間隔と密ベクトルの追加だけ）．
             (2) central_outage_sweep：中央の停止 45 秒の仮定（中央の積分 22.8 = 0.76 × 30 秒）を変えて，障害の比較の大小が変わらないかを確かめる．
-            1 イテレーションに値を 1 つずつ"}
+            1 イテレーションに値を 1 つずつ．
+            着手：Iteration 33（値 bm25_index_add．事前登録は journal の Iteration 33．backlog B111）．freshness-run を bm25_probe D = 24・fusion: rrf・H の質問・retrieval_only にし，
+            H の正解のメールの 10%（種 12）を間隔 0.5 秒で届けて，ノードの受信箱の BM25 と中央の全体の BM25 の作り直しの費用と答えられるまでの時間（T 0・60・600・∞．中央は追加だけの --central-coalesce）を実機で 3 ラウンド．
+            GPU は使わない．主の判定は H-A5B1（P2P の node_bm25_s・direct の p50 < 1 秒）・H-A5B2（中央の bm25_s・T0 の p50 ≥ 5 秒）・H-A5B3（P2P 対 中央 T0 の符号検定）"}
   - {name: d0009.B1_drop_failed_peers, values: [health_check_exclusion],
      note: "d0009 B1（中）．停止した PC を問い合わせ先から外す仕組み．10 台を強制停止すると回答できる割合が 0.747 → 0.028 に下がった．
             生存確認で 2.01 秒で検出できるので，検出した PC を質問者が問い合わせ先から外す．既定は今の挙動（追加だけの設定キー）．

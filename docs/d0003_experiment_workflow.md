@@ -279,6 +279,8 @@ bash scripts/tasks/live_run.sh freshness_run p0007_c_freshness --intervals 0,60,
 bash scripts/tasks/live_run.sh freshness_run p0007_c_smoke --intervals 0,5,inf --n-arrivals 20
 # 測定の道具の負荷を抑えた本番（p0007 C の測り直し．下の注意）．routed を含めて，繰り返しを 2 秒で打ち切る
 bash scripts/tasks/live_run.sh freshness_run p0007_c_freshness_quiet --intervals 0,60,600,inf --arrival-gap-s 0.5 --poll-timeout-s 2
+# 主構成の取得（bm25_probe・RRF）・H の質問で BM25 の追加の費用を測る（d0009 A5．question_split は config.yaml．中央の転送は届いて未転送のメールをまとめて足す）
+bash scripts/tasks/live_run.sh freshness_run d0009_a5b_r1 --intervals 0,60,600,inf --arrival-gap-s 0.5 --poll-timeout-s 2 --central-coalesce
 ```
 
 - **`--poll-timeout-s`（既定 30 秒）に注意**：答えられないメール（持ち主の上位 5 通に入らない 11%，routed では 30%）は，上限まで間隔 0 で検索を繰り返す．

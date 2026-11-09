@@ -8,18 +8,25 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pytest
 
+from atrium.arrays import F32Array
+from atrium.benchmarks import Question, write_questions
 from atrium.config import AtriumConfig
-from atrium.data_enronqa import read_inbox
+from atrium.data_enronqa import QUESTION_FILES, read_inbox
+from atrium.experiment import _make_embedder
 from atrium.freshness_run import (
     FreshnessContext,
     FreshnessParams,
+    flush_to_central,
+    load_freshness_questions,
     plan_arrivals,
     run_freshness,
 )
 from atrium.routing.central import CentralIndex
-from tests.live_fixtures import ENCODER, MiniCluster, build_cluster
+from tests.conftest import with_experiment
+from tests.live_fixtures import ENCODER, HashEmbedder, MiniCluster, build_cluster
 
 N_ARRIVALS = 4
 
@@ -200,3 +207,115 @@ def test_accuracy_counts_every_asked_question_and_skips_unjudged_conditions(tmp_
         "accuracy": pytest.approx(1 / 3),
     }
     assert json.loads((tmp_path / "accuracy.json").read_text("utf-8")) == result
+
+
+def _context(cluster: MiniCluster, arrivals: list[Any]) -> FreshnessContext:
+    """cluster のノードと質問者から，measure_central・flush_to_central が使う文脈を組み立てる．"""
+    url_of_shard = cluster.placement.url_of_shard()
+    return FreshnessContext(
+        cfg=cluster.cfg,
+        requester=cluster.requester,
+        client=cluster.client,
+        questions={q.qid: q for q in cluster.questions},
+        mails={
+            d["id"]: d
+            for inbox in {a.inbox for a in arrivals}
+            for d in read_inbox(cluster.paths, inbox)
+        },
+        url_of_inbox={s.source: url_of_shard[s.shard_ids[0]] for s in cluster.sources},
+        encoder_name=ENCODER,
+    )
+
+
+def test_questions_and_query_embeddings_are_read_from_the_configured_split(
+    cluster: MiniCluster,
+) -> None:
+    """question_split: holdout なら，holdout の質問と queries/holdout/ のクエリ埋め込みを読む（test の質問は混ざらない）．"""
+    source = cluster.questions[0]
+    inbox = cluster.gold[source.qid]["inbox"]
+    holdout = Question(f"h-{source.qid}", inbox, "holdout question", {}, "answer")
+    write_questions(cluster.paths.questions.parent / QUESTION_FILES["holdout"], [holdout])
+    gold_path = cluster.paths.questions.parent / "gold.jsonl"
+    gold_path.write_text(
+        gold_path.read_text("utf-8")
+        + json.dumps({"qid": holdout.qid, "inbox": inbox, "path": "x"})
+        + "\n",
+        encoding="utf-8",
+    )
+    vector: F32Array = HashEmbedder().encode_texts(["holdout question"])
+    queries = cluster.paths.split_queries("holdout")
+    queries.mkdir(parents=True)
+    np.save(cluster.paths.split_query_embeddings("holdout", ENCODER), vector)
+    cluster.paths.split_query_ids("holdout").write_text(json.dumps([holdout.qid]), "utf-8")
+
+    cfg = with_experiment(cluster.cfg, question_split="holdout")
+    questions, gold = load_freshness_questions(cfg, cluster.paths)
+    assert [q.qid for q in questions] == [holdout.qid]
+    assert gold[holdout.qid]["inbox"] == inbox
+    embedded = _make_embedder(cfg, cluster.paths.root.parent, []).embed(holdout)
+    assert embedded[ENCODER] == pytest.approx(vector[0])
+    # 既定（test）は従来どおり test の全質問
+    assert len(load_freshness_questions(cluster.cfg, cluster.paths)[0]) == len(cluster.questions)
+
+
+class _SlowEmbedder(HashEmbedder):
+    """転送の間に次のメールが届くよう，埋め込みに固定の時間をかける．"""
+
+    def encode_texts(self, texts: Any) -> F32Array:
+        """HashEmbedder と同じ埋め込みを，0.3 秒かけて返す．"""
+        import time
+
+        time.sleep(0.3)
+        return super().encode_texts(texts)
+
+
+async def test_central_coalesce_flushes_all_mails_that_arrived_during_the_previous_flush_once(
+    cluster: MiniCluster, tmp_path: Path
+) -> None:
+    """--central-coalesce：T = 0 で先頭の転送の間（0.3 秒）に届いた 3 通は，次の転送 1 回で足され，足すものの無い予定は飛ばされる．"""
+    from atrium.freshness_run import measure_central
+
+    params = _params(intervals=(0.0,), central_coalesce=True)
+    held, arrivals = plan_arrivals(cluster.questions, cluster.gold, params)
+    ctx = _context(cluster, arrivals)
+    central = CentralIndex.from_corpus(cluster.cfg, cluster.paths, exclude_doc_ids=held)
+
+    row = await measure_central(
+        ctx, central, _SlowEmbedder(), arrivals, 0.0, params, None, tmp_path / "out"
+    )
+
+    assert [f["n_mails"] for f in row["flushes"]] == [1, N_ARRIVALS - 1]
+    assert row["n_docs_after_truncate"] == row["n_docs_base"] == central.n_docs
+    assert row["summary"]["n_censored"] == 0
+
+    # 既定（まとめ足しなし）は予定ごとに 1 通ずつ転送する
+    separate = await measure_central(
+        ctx,
+        central,
+        cluster.embedder,
+        arrivals,
+        0.0,
+        _params(intervals=(0.0,)),
+        None,
+        tmp_path / "separate",
+    )
+    assert [f["n_mails"] for f in separate["flushes"]] == [1] * N_ARRIVALS
+
+
+async def test_flush_reports_the_bm25_rebuild_seconds_only_with_rrf_fusion(
+    cluster: MiniCluster,
+) -> None:
+    """flushes[] の bm25_s は中央の BM25 の作り直しの秒数（fusion: rrf で > 0，fusion: none では 0）．"""
+    params = _params()
+    held, arrivals = plan_arrivals(cluster.questions, cluster.gold, params)
+    ctx = _context(cluster, arrivals)
+    rrf_cfg = cluster.cfg.model_copy(
+        update={"retrieval": cluster.cfg.retrieval.model_copy(update={"fusion": "rrf"})}
+    )
+    for cfg, positive in ((rrf_cfg, True), (cluster.cfg, False)):
+        central = CentralIndex.from_corpus(cfg, cluster.paths, exclude_doc_ids=held)
+        cost = await flush_to_central(ctx, central, cluster.embedder, arrivals[:2])
+        assert cost["n_mails"] == 2
+        assert (cost["bm25_s"] > 0) is positive
+        if not positive:
+            assert cost["bm25_s"] == 0.0
