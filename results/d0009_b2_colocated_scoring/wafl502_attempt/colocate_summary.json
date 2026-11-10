@@ -1,0 +1,152 @@
+{
+ "host": "wafl502",
+ "gates": {
+  "G_GEN": true,
+  "G_S16": true,
+  "G_CO_feasible": true,
+  "G_CO_scores_match": true,
+  "smoke": true,
+  "all_passed": true
+ },
+ "valid_rounds": [
+  1
+ ],
+ "rounds": {
+  "1": {
+   "r_g": 0.45793780936469036,
+   "r_s": 0.5404147270418959,
+   "E_co": 0.9983525364065862,
+   "n_common_candidates": 124,
+   "gen_G": {
+    "run": "d0009_b2_co_r1_g_retry",
+    "x_gen_cps": 0.4716666666666667,
+    "n_ok": 283,
+    "decode_tps_median": 59.47043861735804,
+    "prefill_tps_median": 2234.8613567419147,
+    "latency_p50_s": 3.9704082012176514,
+    "latency_p95_s": 5.60576958656311,
+    "request_errors": 0
+   },
+   "gen_B": {
+    "run": "d0009_b2_co_r1_b",
+    "x_gen_cps": 0.23166666666666666,
+    "n_ok": 139,
+    "decode_tps_median": 23.73204151920664,
+    "prefill_tps_median": 1126.016033071702,
+    "latency_p50_s": 7.88277268409729,
+    "latency_p95_s": 15.045481419563291,
+    "request_errors": 0
+   },
+   "score_S": {
+    "run": "d0009_b2_co_r1_s",
+    "x_req_qps": 2.6255555555555556,
+    "x_count_qps": 2.611666666666667,
+    "x_period_qps": null,
+    "n_ok_questions": 1567,
+    "latency_p50_s": 11.484979629516602,
+    "latency_p95_s": 12.218110609054564,
+    "little_ratio": 0.994965490354432,
+    "server_duration_s": {
+     "p50": 3.8118053389480338,
+     "p95": 4.176887669716962
+    },
+    "gpu_util_mean_pct": 94.28839590443685,
+    "gpu_mem_max_mib": 1968.0,
+    "gpu_temp_max_c": 78.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.012342053585221825,
+    "generator_process_cpu_util": 0.03136864833333333,
+    "cool_wait_s": 0
+   },
+   "score_B": {
+    "run": "d0009_b2_co_r1_b",
+    "x_req_qps": 1.4188888888888889,
+    "x_count_qps": 1.425,
+    "x_period_qps": 1.4220979914565672,
+    "n_ok_questions": 855,
+    "latency_p50_s": 21.342488765716553,
+    "latency_p95_s": 22.496214699745178,
+    "little_ratio": 1.005070105155309,
+    "server_duration_s": {
+     "p50": 7.037481429986656,
+     "p95": 7.870670465845615
+    },
+    "gpu_util_mean_pct": 99.51277683134583,
+    "gpu_mem_max_mib": 8845.0,
+    "gpu_temp_max_c": 79.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.011503289437066556,
+    "generator_process_cpu_util": 0.01793666166666667,
+    "cool_wait_s": 0
+   },
+   "answer_match_rate_G_vs_B": 1.0,
+   "facts_B": {
+    "oom_scorer": 0,
+    "oom_ollama": 0,
+    "score_request_errors": 0,
+    "gen_request_errors": 0,
+    "ps_pre": {
+     "readable": true,
+     "n_models": 1,
+     "all_on_gpu": true,
+     "spilled": false,
+     "context_lengths": [
+      16384
+     ],
+     "names": [
+      "llama3.1:8b"
+     ]
+    },
+    "ps_post": {
+     "readable": true,
+     "n_models": 1,
+     "all_on_gpu": true,
+     "spilled": false,
+     "context_lengths": [
+      16384
+     ],
+     "names": [
+      "llama3.1:8b"
+     ]
+    },
+    "gpu_mem_max_mib": 8845.0
+   }
+  }
+ },
+ "E_co_by_round": {
+  "1": 0.9983525364065862
+ },
+ "invalid_runs": {
+  "d0009_b2_co_r1_g": [
+   "wafl502: slowdown Active samples 1/0"
+  ],
+  "d0009_b2_co_r2_g": [
+   "wafl502: slowdown Active samples 1/0"
+  ]
+ },
+ "H_C0_not_fit_reasons": {
+  "copass": [],
+  "d0009_b2_co_r1_b": [],
+  "d0009_b2_co_r2_b": []
+ },
+ "H_C0_gpu_mem_max_mib": {
+  "copass": 8809.0,
+  "d0009_b2_co_r1_b": 8845.0,
+  "d0009_b2_co_r2_b": 8825.0
+ },
+ "H_C0": "fits",
+ "H_C1": "small_loss",
+ "thresholds": {
+  "gpu_mem_max_mib": 11776,
+  "small_loss": 0.9,
+  "large_loss": 0.8
+ },
+ "balance_estimates_description_only": {
+  "E_co_median": 0.9983525364065862,
+  "X_gen_G_median_cps": 0.4716666666666667,
+  "X_req_S_median_qps": 2.6255555555555556,
+  "dedicated_one_scoring_only": 1.415,
+  "colocated_one": 1.48313264877948
+ },
+ "first_attempt_description_only": null
+}

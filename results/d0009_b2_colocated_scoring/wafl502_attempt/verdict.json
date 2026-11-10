@@ -1,0 +1,8 @@
+{
+ "H_C0": "fits",
+ "H_C1": "small_loss",
+ "success_condition_1_gates_passed": true,
+ "success_condition_2_enough_valid_rounds": false,
+ "mechanical_outcome": "undetermined_not_closed",
+ "note": "mechanical application of the pre-registered rules; adoption is decided by rc-evaluator"
+}

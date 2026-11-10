@@ -1,0 +1,38 @@
+{
+ "kind": "score_bench",
+ "git_head": "8e4c9e0c6090",
+ "scorers": [
+  "http://192.168.15.102:8200"
+ ],
+ "n_scorers": 1,
+ "concurrency": 30,
+ "one_pass": false,
+ "n_questions_input": 288,
+ "scorer_counts_total": {
+  "http://192.168.15.102:8200": {
+   "sent": 243,
+   "failed": 0,
+   "in_flight": 0
+  }
+ },
+ "n_request_errors_total": 0,
+ "warmup_s": 10.0,
+ "measure_s": 30.0,
+ "window_start": 1794259556.0976508,
+ "window_end": 1794259586.0976508,
+ "n_ok": 51,
+ "n_errors": 0,
+ "error_examples": [],
+ "throughput_qps": 1.7,
+ "latency_s": {
+  "p50": 19.117822885513306,
+  "p95": 22.313037991523743
+ },
+ "latency_mean_s": 18.856999925538606,
+ "little_ratio": 1.0685633291138543,
+ "requests_per_target_in_window": [
+  125
+ ],
+ "control_cpu_busy": 0.010800278357689631,
+ "generator_process_cpu_util": 0.017936033333333334
+}

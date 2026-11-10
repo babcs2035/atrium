@@ -1,0 +1,489 @@
+[2026-11-10_07:50:34] BEGIN stages: env0 ggen co prod stop host=wafl503 (git 3109856334b9)
+[2026-11-10_07:50:35] env0 passed on wafl503 (waited 0s): ts=1794264634 gpu=42,0,32,NotActive,NotActive counter_us=0 other_procs=0 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_07:50:53] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_07:50:55] w503_ggen BEGIN host=wafl503 kind=g warmup=0 measure=0 --gen-limit 30
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+837e40cf8920da0dfdb35dde886940c2e132f01356f2940432751f61bec25f11
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+{
+ "n_requests": 30,
+ "n_errors": 0,
+ "n_prompt_tokens_mismatch": 0,
+ "prompt_tokens_mismatches": [],
+ "ps_pre": {
+  "readable": true,
+  "n_models": 1,
+  "all_on_gpu": true,
+  "spilled": false,
+  "context_lengths": [
+   16384
+  ],
+  "names": [
+   "llama3.1:8b"
+  ]
+ },
+ "llm_config": {
+  "remote": {
+   "num_ctx": 16384,
+   "num_predict": 2048,
+   "temperature": 0.0,
+   "think": false,
+   "answer_prompt_format": null
+  },
+  "local": {
+   "num_ctx": 16384,
+   "num_predict": 2048,
+   "temperature": 0.0,
+   "think": false,
+   "answer_prompt_format": null
+  },
+  "differences": []
+ },
+ "pass": true
+}
+[2026-11-10_07:52:11] G-GEN passed
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_07:52:50] scorer started on 192.168.15.103 fp16 1024 (colocated)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_07:52:53] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_07:52:55] w503_copass BEGIN host=wafl503 kind=b warmup=0 measure=0 --one-pass --dump-scores
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+89f03fd8993c9bae0104c34ab181295aeabdbeb4749139b278b3639740b3957f
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+{
+ "facts": {
+  "oom_scorer": 0,
+  "oom_ollama": 0,
+  "score_request_errors": 0,
+  "gen_request_errors": 0,
+  "ps_pre": {
+   "readable": true,
+   "n_models": 1,
+   "all_on_gpu": true,
+   "spilled": false,
+   "context_lengths": [
+    16384
+   ],
+   "names": [
+    "llama3.1:8b"
+   ]
+  },
+  "ps_post": {
+   "readable": true,
+   "n_models": 1,
+   "all_on_gpu": true,
+   "spilled": false,
+   "context_lengths": [
+    16384
+   ],
+   "names": [
+    "llama3.1:8b"
+   ]
+  },
+  "gpu_mem_max_mib": 8843.0
+ },
+ "not_fit_reasons": [],
+ "feasible": true,
+ "scores_match": true,
+ "scores": {
+  "n_pairs": 4320,
+  "n_pairs_missing_vs_reference": 0,
+  "abs_diff_vs_iter38_fp16": {
+   "n": 4320,
+   "median": 0.0,
+   "p99": 0.0,
+   "max": 0.0,
+   "n_nonfinite": 0
+  },
+  "selection_R3p": {
+   "n_mismatch": 0,
+   "n_mismatch_tie": 0,
+   "delta_correct": 0,
+   "delta_correct_excluding_ties": 0,
+   "mismatch_qids": []
+  },
+  "selection_V2": {
+   "n_mismatch": 0,
+   "n_mismatch_tie": 0,
+   "delta_correct": 0,
+   "delta_correct_excluding_ties": 0,
+   "mismatch_qids": []
+  },
+  "tolerance": 0.001
+ },
+ "pass": true
+}
+[2026-11-10_07:56:42] G-CO passed
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_07:57:25] scorer started on 192.168.15.103 fp16 1024 (colocated)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_07:57:31] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_07:57:33] w503_r1_b BEGIN host=wafl503 kind=b warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+45bafec4c4786f5b58083aeeb2952535fc952e4672ed5d27a363b8423c0061c4
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_08:09:00] w503_r1_b valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:09:10] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:09:12] w503_r1_g BEGIN host=wafl503 kind=g warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+fa355089bca83a58c3ad0aab50fd74ba4d7782734f8bf1f5ba35b6027e15e3f6
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_08:20:28] w503_r1_g valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:21:06] scorer started on 192.168.15.103 fp16 1024 (alone)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:21:08] w503_r1_s BEGIN host=wafl503 kind=s warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+a59bdcb329c9a8841a6fc48fa6a0e04f396e4ed796b9cd685e717b7d65b0a2e3
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_08:32:29] w503_r1_s valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:33:03] scorer started on 192.168.15.103 fp16 1024 (colocated)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:33:06] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:33:09] w503_r2_b BEGIN host=wafl503 kind=b warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+ed3956a04dfa10f9a89eabaaddfa11f597863a998bd53fcd894794fc24e75519
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_08:44:30] w503_r2_b valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:44:34] w503_r2_s BEGIN host=wafl503 kind=s warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+c850a67bbbd8c909539a903aac26bd70ad70044a5863b60bd353e25411c5322e
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_08:55:55] w503_r2_s valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:56:09] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_08:56:11] w503_r2_g BEGIN host=wafl503 kind=g warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+36048a8b643860e053e3027491b678cb5ed93a09e171c0a3b4fc1b6c37ef1f21
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_09:07:27] w503_r2_g valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_09:08:05] scorer started on 192.168.15.103 fp16 1024 (alone)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_09:08:07] w503_r3_s BEGIN host=wafl503 kind=s warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+b187e5c6ba59945d057a41fb203db70564ddcc4d38d1337e27ada242295f5b64
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_09:19:28] w503_r3_s valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_09:19:35] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_09:19:37] w503_r3_g BEGIN host=wafl503 kind=g warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+c3f0a2f250f0b52eb59f829ac165b94b164f07ac274ba6b555fc786a32f3c572
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_09:30:52] w503_r3_g valid
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_09:31:31] scorer started on 192.168.15.103 fp16 1024 (colocated)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_09:31:34] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_09:31:37] w503_r3_b BEGIN host=wafl503 kind=b warmup=60 measure=600 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+5895b521280e72933d3beed35f9f1b010b27fc7ec71f74a868a7a473f2a19e82
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"valid": true, "reasons": []}
+[2026-11-10_09:43:03] w503_r3_b valid
+{
+ "host": "wafl503",
+ "gates": {
+  "G_GEN": true,
+  "G_S16": true,
+  "G_CO_feasible": true,
+  "G_CO_scores_match": true,
+  "smoke": true,
+  "all_passed": true
+ },
+ "valid_rounds": [
+  1,
+  2,
+  3
+ ],
+ "rounds": {
+  "1": {
+   "r_g": 0.4583368905884512,
+   "r_s": 0.5452969224100563,
+   "E_co": 1.0036338129985074,
+   "n_common_candidates": 123,
+   "gen_G": {
+    "run": "d0009_b2_co_w503_r1_g",
+    "x_gen_cps": 0.4666666666666667,
+    "n_ok": 280,
+    "decode_tps_median": 59.368358071184275,
+    "prefill_tps_median": 2199.1606582306267,
+    "latency_p50_s": 4.004335641860962,
+    "latency_p95_s": 5.701749956607822,
+    "request_errors": 0
+   },
+   "gen_B": {
+    "run": "d0009_b2_co_w503_r1_b",
+    "x_gen_cps": 0.22833333333333333,
+    "n_ok": 137,
+    "decode_tps_median": 23.555223539071385,
+    "prefill_tps_median": 1115.7099154219904,
+    "latency_p50_s": 7.9561767578125,
+    "latency_p95_s": 15.249197864532471,
+    "request_errors": 0
+   },
+   "score_S": {
+    "run": "d0009_b2_co_w503_r1_s",
+    "x_req_qps": 2.5633333333333335,
+    "x_count_qps": 2.55,
+    "x_period_qps": 0.2137458069497316,
+    "n_ok_questions": 1530,
+    "latency_p50_s": 11.759360313415527,
+    "latency_p95_s": 12.500490462779998,
+    "little_ratio": 0.994435001876619,
+    "server_duration_s": {
+     "p50": 3.9038038715953007,
+     "p95": 4.2717846046434715
+    },
+    "gpu_util_mean_pct": 94.56047700170357,
+    "gpu_mem_max_mib": 2002.0,
+    "gpu_temp_max_c": 68.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.012502087624561599,
+    "generator_process_cpu_util": 0.03073191,
+    "cool_wait_s": 0
+   },
+   "score_B": {
+    "run": "d0009_b2_co_w503_r1_b",
+    "x_req_qps": 1.3977777777777778,
+    "x_count_qps": 1.3933333333333333,
+    "x_period_qps": 1.3975395218030215,
+    "n_ok_questions": 836,
+    "latency_p50_s": 21.54969298839569,
+    "latency_p95_s": 23.0159894824028,
+    "little_ratio": 0.9960093937582439,
+    "server_duration_s": {
+     "p50": 7.146740722586401,
+     "p95": 7.992569631896913
+    },
+    "gpu_util_mean_pct": 99.4061433447099,
+    "gpu_mem_max_mib": 8807.0,
+    "gpu_temp_max_c": 69.0,
+    "sw_thermal_counter_delta_us": 0,
+    "control_cpu_busy": 0.011165053271942237,
+    "generator_process_cpu_util": 0.01783125333333333,
+    "cool_wait_s": 0
+   },
+   "answer_match_rate_G_vs_B": 1.0,
+   "facts_B": {
+    "oom_scorer": 0,
+    "oom_ollama": 0,
+    "score_request_errors": 0,
+    "gen_request_errors": 0,
+    "ps_pre": {
+     "readable": true,
+     "n_models": 1,
+     "all_on_gpu": true,
+     "spilled": false,
+     "context_lengths": [
+      16384
+     ],
+     "names": [
+      "llama3.1:8b"
+     ]
+    },
+    "ps_post": {
+     "readable": true,
+     "n_models": 1,
+     "all_on_gpu": true,
+     "spilled": false,
+     "context_lengths": [
+      16384
+     ],
+     "names": [
+      "llama3.1:8b"
+     ]
+    },
+    "gpu_mem_max_mib": 8807.0
+   }
+  },
+  "2": {
+   "r_g": 0.45732856611508416,
+   "r_s": 0.5446660884648743,
+   "E_co": 1.0019946545799585,
+   "n_common_candidates": 121,
+   "gen_G": {
+    "run": "d0009_b2_co_w503_r2_g",
+    "x_gen_cps": 0.4666666666666667,
+    "n_ok": 280,
+    "decode_tps_median": 59.39946996016086,
+    "prefill_tps_median": 2199.154004321993,
+    "latency_p50_s": 4.004011631011963,
+    "latency_p95_s": 5.675000047683719,
+    "request_errors": 0
+   },
+   "gen_B": {
+    "run": "d0009_b2_co_w503_r2_b",
+    "x_gen_cps": 0.22666666666666666,
+    "n_ok": 136,
+    "decode_tps_median": 23.490587324426023,
+    "prefill_tps_median": 1112.5598812193248,
+    "latency_p50_s": 8.078633666038513,
+    "latency_p95_s": 15.261471450328827,
+    "request_errors": 0
+   },
+   "score_S": {
+    "run": "d0009_b2_co_w503_r2_s",
+    "x_req_qps": 2.562222222222222,
+    "x_count_qps": 2.55,
+    "x_period_qps": 0.21361644687127745,
+    "n_ok_questions": 1530,
+    "latency_p50_s": 11.76870083808899,
+    "latency_p95_s": 12.511237335205077,
+    "little_ratio": 0.9948634739584393,
+    "server_duration_s": {
+     "p50": 3.905644968501292,
+    
+[2026-11-10_09:43:04] prod done; summary written to results/d0009_b2_colocated_scoring
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_09:43:16] scorer and generation containers restored; post-stop snapshot in results/d0009_b2_colocated_scoring/after_stop
+[2026-11-10_09:43:16] ALL DONE

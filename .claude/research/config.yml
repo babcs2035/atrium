@@ -483,7 +483,11 @@ levers:
             生成の負荷の形（Ollama の num_parallel・同時の要求の数・入力）・判定の規則・閾値は rc-researcher が事前登録で決める．追加だけの CLI か script で既定の挙動は変えない．
             着手：Iteration 40（事前登録は journal の Iteration 40．backlog B129）．wafl502 で採点（fp16・1,024・C_s 30）の server を先に起動し，llama3.1:8b（num_ctx 16,384・OLLAMA_NUM_PARALLEL=1）を後から読み込む．
             生成は H の 864 候補を node の /v1/generate へ C_g 2 で送る．G（生成だけ）・S（採点だけ）・B（両方）を 3 ラウンド（種 40）．H-C0（OOM・失敗・Ollama の溢れ 0 で載せられる），
-            H-C1（E_co = r_g + r_s．r_s は X_req の比，r_g は同じ候補の prefill+decode の時間の比．全て ≥ 0.90 で損が小さい，全て < 0.80 で損が大きい）．採用は H-C0 載せられる かつ H-C1 損が小さい"}
+            H-C1（E_co = r_g + r_s．r_s は X_req の比，r_g は同じ候補の prefill+decode の時間の比．全て ≥ 0.90 で損が小さい，全て < 0.80 で損が大きい）．採用は H-C0 載せられる かつ H-C1 損が小さい．
+            完了：Iteration 40（2026-11-10．採用）．wafl502 は本番の r1_g・r2_g が SW Thermal Slowdown の Active の標本 1 つ（累計の差 0）で無効になり，規則で全ラウンドを wafl503 で流し直した（wafl502 の記録は記述だけ）．
+            結果は results/d0009_b2_colocated_scoring/（verdict.json・colocate_summary.json・analysis_report.md），実行は results/d0009_b2_co_{w503_ggen,s16pass,w503_copass,smoke,w503_r<round>_{g,s,b}}/，記述は journal の Iteration 40「実行済み」．
+            H-C0：G-CO と B の 3 実行で OOM・失敗・溢れ 0，GPU メモリの最大 8,785〜8,843 MiB．H-C1：r_g 0.457〜0.458・r_s 0.541〜0.545，E_co 1.0036・1.0020・0.9999（時間の分け合いと同じ効率）．
+            生成の要求の待ち時間 p95 は 5.7 → 15.2 秒，decode 0.40 倍．既定の挙動（score_server.sh は llama3.1:8b を降ろす）は変えない．このレバーの値は全て閉じた．次は調査・計画のフェーズから（backlog B130）"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

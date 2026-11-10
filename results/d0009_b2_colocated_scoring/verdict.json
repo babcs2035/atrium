@@ -1,0 +1,15 @@
+{
+ "H_C0": "fits",
+ "H_C1": "small_loss",
+ "success_condition_1_gates_passed": true,
+ "success_condition_2_enough_valid_rounds": true,
+ "mechanical_outcome": "adopt",
+ "note": "mechanical application of the pre-registered rules; adoption is decided by rc-evaluator",
+ "adoption": {
+  "decision": "adopt",
+  "decided_by": "rc-evaluator (Iteration 40 phase 3, 2026-11-10)",
+  "basis": "pre-registered rule: success conditions (1)-(3) met on wafl503 (3 valid rounds, 0 invalid runs); H-C0 fits (OOM 0, failed requests 0, llama3.1:8b 100% GPU before/after, GPU memory max 8,785-8,843 MiB <= 11,776) and H-C1 small_loss (E_co 1.0036, 1.0020, 0.9999 >= 0.90). Round-to-round spread of E_co 0.4% vs margin ~10% to the threshold.",
+  "machine_switch": "wafl502 had 2 invalid runs (r1_g, r2_g: one SW Thermal Slowdown Active sample each, counter delta 0), so all production rounds were rerun on wafl503 per the pre-registered rule; wafl502 values are description only",
+  "scope": "single RTX 3060 (wafl503), both workloads saturated, scorer loaded first, fp16 / max_length 1024 / batch 4, llama3.1:8b num_ctx 16384 OLLAMA_NUM_PARALLEL=1, H 288 questions. Default behaviour unchanged."
+ }
+}

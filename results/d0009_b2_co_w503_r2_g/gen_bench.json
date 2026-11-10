@@ -1,0 +1,22 @@
+{
+ "kind": "gen_bench",
+ "git_head": "8e4c9e0c6090",
+ "gen_url": "http://192.168.15.103:8100",
+ "gen_concurrency": 2,
+ "n_requests_total": 313,
+ "n_request_errors_total": 0,
+ "error_examples": [],
+ "n_ok": 280,
+ "n_errors": 0,
+ "decode_tps_median": 59.39946996016086,
+ "prefill_tps_median": 2199.154004321993,
+ "latency_s": {
+  "p50": 4.004011631011963,
+  "p95": 5.675000047683719
+ },
+ "gpu_time_s_sum": 544.458044991,
+ "window_start": 1794268636.7288382,
+ "window_end": 1794269236.7288382,
+ "measure_s": 600.0,
+ "x_gen_cps": 0.4666666666666667
+}

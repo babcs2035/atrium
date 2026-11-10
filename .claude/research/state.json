@@ -2,14 +2,14 @@
   "repo": "atrium",
   "iteration": 40,
   "iteration_name": "cross-encoder の採点を生成と同じ GPU に載せたときの速さと可否",
-  "phase": "execute",
+  "phase": "evaluate",
   "status": "running",
   "current_lever": "d0009.B2_colocated_scoring=colocate_with_generator",
-  "experiment_dir": null,
-  "experiment_deadline": null,
-  "updated_at": 1794257415,
-  "last_slack_ts": "1794258134.957529",
+  "experiment_dir": "results/d0009_b2_colocated_scoring",
+  "experiment_deadline": 1794286234,
+  "updated_at": 1794271405,
+  "last_slack_ts": "1794271442.016889",
   "iteration_thread_ts": "1794258126.729949",
   "notion_toggle_created": true,
-  "last_commit": "ed0f546"
+  "last_commit": "3109856"
 }

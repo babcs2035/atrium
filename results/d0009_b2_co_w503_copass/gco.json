@@ -1,0 +1,63 @@
+{
+ "facts": {
+  "oom_scorer": 0,
+  "oom_ollama": 0,
+  "score_request_errors": 0,
+  "gen_request_errors": 0,
+  "ps_pre": {
+   "readable": true,
+   "n_models": 1,
+   "all_on_gpu": true,
+   "spilled": false,
+   "context_lengths": [
+    16384
+   ],
+   "names": [
+    "llama3.1:8b"
+   ]
+  },
+  "ps_post": {
+   "readable": true,
+   "n_models": 1,
+   "all_on_gpu": true,
+   "spilled": false,
+   "context_lengths": [
+    16384
+   ],
+   "names": [
+    "llama3.1:8b"
+   ]
+  },
+  "gpu_mem_max_mib": 8843.0
+ },
+ "not_fit_reasons": [],
+ "feasible": true,
+ "scores_match": true,
+ "scores": {
+  "n_pairs": 4320,
+  "n_pairs_missing_vs_reference": 0,
+  "abs_diff_vs_iter38_fp16": {
+   "n": 4320,
+   "median": 0.0,
+   "p99": 0.0,
+   "max": 0.0,
+   "n_nonfinite": 0
+  },
+  "selection_R3p": {
+   "n_mismatch": 0,
+   "n_mismatch_tie": 0,
+   "delta_correct": 0,
+   "delta_correct_excluding_ties": 0,
+   "mismatch_qids": []
+  },
+  "selection_V2": {
+   "n_mismatch": 0,
+   "n_mismatch_tie": 0,
+   "delta_correct": 0,
+   "delta_correct_excluding_ties": 0,
+   "mismatch_qids": []
+  },
+  "tolerance": 0.001
+ },
+ "pass": true
+}

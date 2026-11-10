@@ -1,0 +1,323 @@
+# atrium の実験設定（唯一の情報源）．
+# mise の各タスク（setup / deploy / start / analyze）と，各ノードで動くコンテナが共通に読む．
+# research-cycle は原則としてこのファイルの値を 1 か所だけ変えて実験する（単一レバー原則）．
+# 各項目の意味は docs/d0002_configuration.md を参照．
+
+experiment:
+  # e0_measure: 実機の性能実測（E0）／ e1_routing: 連合 RAG の実行（E1 以降）
+  kind: e1_routing
+  # medrag: MIRAGE ＋ MedRAG コーパス ／ feb4rag: FeB4RAG（13 エンジン）
+  dataset: enronqa
+  # ragroute / all / random / none（RAGRoute の 4 方式）．そのほかの方式は docs/d0002_configuration.md を参照
+  # （central_local：質問者が全メールの 1 つの索引を持ち，ノードに問い合わせない．p0007．answer_mode は snippet_return）
+  # （bm25_probe：hybrid_probe と同じ要約の上位 D 台へ probe を送り，probe の得点を密ベクトルと本文の BM25 にする．p0007 A4）
+  routing: bm25_probe
+  # snippet_return: 断片返却型 ／ local_answer: 宿る型 ／ retrieval_only: LLM を呼ばず検索まで ／
+  # owner_answer: 選んだ各受信箱が自分の上位 5 通だけで答えて統合（p0007．answer 節を参照）
+  answer_mode: owner_answer
+  # 動作確認用に各データセットの先頭 N 問へ絞る（null で全問）
+  question_limit: 2
+  # 流す質問の分割．test：従来（questions.jsonl）／dev：設定の選択用（dev_questions.jsonl．EnronQA のみ．p0007 A1）．
+  # question_limit は選んだ分割の中で各受信箱の先頭からの数
+  question_split: holdout
+  # 質問者が同時に処理する質問数
+  parallel: 30
+  # 乱数の種（random ルーティング・学習の分割で使う）
+  seed: 12
+  # 質問者の HTTP 接続の持ち方．shared：全ノードで 1 つの池（上限 512）／shared_unlimited：1 つの池のまま上限なし／
+  # per_node：ノードの origin ごとに別の池（上限 64）．負荷の実験（Iteration 5）で切り分けるためのキーで，既定は従来の shared
+  http_pool: per_node
+  # 質問者のデバイスの上で問を分けて同時に流すプロセスの数（Iteration 8）．parallel は全プロセスの合計で，各プロセスへほぼ均等に割る．
+  # 1 は従来どおり 1 プロセス
+  requester_procs: 1
+  # 専門家ノード 1 台を動かすプロセスの数（Iteration 10）．2 以上では各プロセスがシャードを読み込み，SO_REUSEPORT で同じポートを開く．
+  # 1 は従来どおり 1 プロセス
+  node_workers: 1
+  # probe の本文の作り方（Iteration 11）．per_request：ノードごとに作る（従来）／pre_encoded：問ごとに埋め込みの JSON を 1 回だけ作って使い回す．
+  # ノードが受け取る本文はバイト単位で同じ
+  probe_body: per_request
+  # sniffio の import の扱い（Iteration 12）．search：従来（httpcore が要求のたびに import を試みて失敗し，sys.path を探す）／
+  # blocked：sniffio が入っていなければ質問者のプロセスの始めに sys.modules["sniffio"] = None を置いて探索を省く．要求の内容と選択は変わらない
+  sniffio_lookup: search
+  # httpcore の接続の池の割り当て（Iteration 13）．stock：従来（要求の開始と終了のたびに池の全接続を走査し，待機中の接続ごとに anyio の属性の辞書を作る）／
+  # lean：質問者のプロセスの始めに掃除を 1 回の走査にし，生存の確かめを生のソケットへ直接問う．割り当ての結果は変わらない（httpcore 1.0.9・anyio 4.15.1 のみ）
+  pool_assign: stock
+  # /v1/retrieve の本文の作り方（Iteration 14）．per_request：シャードごとに作る（従来）／pre_encoded：問ごとに埋め込みの JSON を 1 回だけ作り
+  # （probe_body: pre_encoded なら probe と共有），faiss のシャードの本文を bytes の連結で作る．ノードが受け取る本文はバイト単位で同じ
+  retrieve_body: per_request
+  # EQ7b（実機の参加・離脱の再生）．null なら離脱を起こさない．指定の書式は docs/d0002_configuration.md
+  churn: null
+  # routing=central_local の生成の置き場所（p0007 D）．requester：質問者の LLM で答える（中央）／
+  # gpu_nodes：質問者の索引の上位 5 通と質問を，GPU の専門家（wafl500〜509）の /v1/generate へラウンドロビンで送って答えさせる（準集権）
+  central_generation: requester
+
+retrieval:
+  # 各データ源（シャードではなくデータ源）から取得する件数（RAGRoute の K）
+  k_ret: 50
+  # 統合後に LLM へ渡す件数（RAGRoute の K_RERANK）
+  k_rerank: 15
+  # score: 検索スコアで統合 ／ cross_encoder: bge-reranker-v2-m3 で再ランク ／
+  # qrels_oracle: FeB4RAG の結果統合用ラベルの順に並べる（RAGRoute で再ランクを無効にした場合と同じ）
+  merge: score
+  # 受信箱（シャード）の中の検索（p0007 A2）．none：密ベクトルの内積の上位 k 通（従来）／rrf：BM25（その受信箱だけの統計）と密ベクトルの
+  # RRF（k = 60）の上位 k 通．routing=central_local では全体の BM25 と密ベクトルの RRF（中央にも同じ改良を入れる）．EnronQA の faiss のシャードだけ
+  fusion: rrf
+  # rrf で順位を付ける，密ベクトル・BM25 それぞれの上位の件数
+  fusion_depth: 50
+  # medrag ではクエリ埋め込みを質問者がその場で計算する（live）．
+  # feb4rag は検索器が 8 種類（5.8B を含む）あるため，中継点で事前計算したものを使う（cached）．
+  query_embedding:
+    medrag: live
+    feb4rag: cached
+    enronqa: cached
+  ce_scores: table
+
+routing:
+  # random で選ぶデータ源の数（RAGRoute: medrag 3 / feb4rag 9）
+  random_k:
+    medrag: 3
+    feb4rag: 9
+    enronqa: 2
+  # ragroute の判定閾値（RAGRoute の推論コードと同じ 0.5）
+  ragroute_threshold: 0.5
+  # 公開情報を使う方式（card_sim・term_sketch・centroid_sim・multi_centroid）と flood_score が問い合わせる
+  # データ源の数 m（p0004 の RQ-A）．EQ2 で事前登録の規則で選んだ値（results/20261009_eq2_advert_eval）
+  # medrag は p0003 S5 の card_sim（E2 の desc_sim）用．4 源の train・val で F1 が最大の k（S4 と同じ規則）
+  top_m:
+    enronqa: 2
+    medrag: 3
+  # centroid_probe が probe を送る候補の数 K（multi_centroid の上位 K 個）．atrium cascade-eval の dev で
+  # 事前登録の規則（dev の hit@2 が flood_score の 0.95 倍以上になる最小の K．届かなければ 75）で選ぶ．
+  # 評価の前の値は届かない場合の 75 を仮置きしたもので，評価の入力にはならない
+  probe_k:
+    enronqa: 75
+  # device_probe が probe を送るデバイスの数 D（multi_centroid の得点をデバイスごとに最大値でまとめた上位 D 台）．
+  # atrium device-probe-eval の dev で事前登録の規則（Iteration 7）で選ぶ．評価の前の値は全 30 台（flood_score と同じ選択）の仮置き
+  probe_d:
+    enronqa: 30
+  # term_probe・hybrid_probe（p0006 P4）が probe を送るデバイスの数 D．frontier-eval（P2 反復 2）の dev の規則
+  # （dev の hit@2 が 0.78 以上になる最小の要求数）で選んだ値．要約は atrium build-summary で作った <data_dir>/enronqa/summary/ を読む
+  term_probe_d:
+    enronqa: 24
+  hybrid_probe_d:
+    enronqa: 16
+  # hybrid_probe の併用の重み（本文の重心側）
+  summary_weight: 0.5
+  # bm25_probe（p0007 A4）が probe を送るデバイスの数 D（A3 の事前登録の規則で dev から選んだ値．要約は hybrid_probe と同じ
+  # <data_dir>/enronqa/summary/．BM25 の統計の追加ファイルは atrium build-summary が作る）と，probe の得点
+  # z(密ベクトル) + w × z(BM25) の BM25 側の重み w
+  bm25_probe_d:
+    enronqa: 24
+  bm25_weight: 2.0
+
+llm:
+  # 各ノードで使う Ollama のバージョン（イメージは制御点の registry の mirror/ から取得する）
+  ollama_version: "0.35.1"
+  # 断片返却型で回答を生成する質問者側の LLM（Ollama のモデル名）
+  requester_model: "llama3.1:8b"
+  # 宿る型で各専門家が使う LLM
+  expert_model: "qwen3:0.6b"
+  # GPU を持つ専門家（wafl500〜509）が宿る型で使う LLM（p0004 の RQ-B．質問者と同じ 8B 級）
+  expert_model_gpu: "llama3.1:8b"
+  # 生成の上限トークン数と文脈長（Ollama の num_predict / num_ctx）
+  num_predict: 2048
+  num_ctx: 16384
+  # qwen3 系の思考モードを使うか（Ollama の think）
+  think: false
+  # 生成の温度．0 で貪欲な復号にし，同じ入力に同じ回答を返す（.claude/research/backlog.md の B3）
+  temperature: 0.0
+  # 質問者の Ollama が同時に処理する要求の数（OLLAMA_NUM_PARALLEL）．8B と文脈長 16384 では 2 件分の
+  # KV キャッシュまでが RTX 3060（12 GB）に収まる
+  requester_num_parallel: 2
+  # 1 回の生成の打ち切り時間（秒）．宿る型では専門家の CPU の生成が 600 秒を超える問があり
+  # （2026-10-12 の S6 の smoke で 10 問中 2 問が 502），local_answer.timeout_s と同じ 1800 にする
+  timeout_s: 1800
+
+local_answer:
+  # 宿る型で各専門家が自分のシャードから使う断片数
+  k_context: 15
+  # 複数の専門家の回答の統合方法（vote: 選択肢の多数決）
+  aggregate: vote
+  # 1 台の専門家への回答の要求の打ち切り時間（秒）．専門家の Ollama（CPU）は要求を順番に処理するので，
+  # experiment.parallel 件の要求が同じ専門家で待つ時間も含む
+  timeout_s: 1800
+
+# answer_mode: owner_answer（p0007 I2）の設定．他の answer_mode では使われない
+answer:
+  # 候補にする受信箱の数 m．Router がこの数だけ選ぶ（routing.top_m の代わり）．各候補が自分の上位 5 通だけで 8B で答える
+  owner_m: 3
+  # 候補の回答の統合の規則．max_score：検索の最高得点の候補／abstain：UNKNOWN を許し，UNKNOWN でない回答のうち得点最高（全て UNKNOWN なら max_score）／
+  # agree：正規化した文字列の一致の票数（同票は得点）／llm_select：質問者の LLM が 1 つを選ぶ
+  aggregate: cross_encoder
+  # p0007 A5：true なら全候補の回答と候補ごとの選び方の特徴量（密ベクトル・probe・受信箱の中の BM25 と RRF の最大・生成の対数確率の平均・
+  # 文脈の文書 ID）を results の owner_answer.candidates に残す（commit の前に sanitize_results.py を通す）．false は従来どおり
+  save_candidates: true
+
+e0:
+  # 実測の対象ホスト（GPU なしの専門家の代表）と，RTT・スループットを測る相手
+  # MedRAG の配置（先頭の 16 台）で使われない専門家にする．E0 の資材（イメージ・GGUF で約 33 GB）と
+  # PubMed のシャード（約 15 GB）を同じ台に置くとディスクが埋まるため．2026-10-06 の E0 は 13.100・13.101 で測った
+  hosts: ["192.168.14.108", "192.168.14.109"]
+  iperf_pairs: [["192.168.14.108", "192.168.14.109"], ["192.168.14.108", "192.168.13.100"]]
+  # llama-bench で測る GGUF（Hugging Face のリポジトリ/ファイル名）
+  gguf_models:
+    - {name: "qwen3-0.6b", repo: "unsloth/Qwen3-0.6B-GGUF", file: "Qwen3-0.6B-Q4_K_M.gguf"}
+    - {name: "qwen3-1.7b", repo: "unsloth/Qwen3-1.7B-GGUF", file: "Qwen3-1.7B-Q4_K_M.gguf"}
+    - {name: "qwen3-4b", repo: "unsloth/Qwen3-4B-GGUF", file: "Qwen3-4B-Q4_K_M.gguf"}
+    - {name: "qwen3-8b", repo: "unsloth/Qwen3-8B-GGUF", file: "Qwen3-8B-Q4_K_M.gguf"}
+  # FAISS（fp16 平坦索引）の検索時間を測るベクトル数
+  faiss_vectors: [1000000, 2000000, 3000000]
+  faiss_queries: 20
+
+cluster:
+  # 制御点：操作端末から `ssh <control>` で入る GPU PC．データ中継点（コーパス取得・埋め込み・
+  # ラベル計算・ルーター学習）を兼ね，各ノードへの SSH・イメージ配布・シャード配布もここから行う
+  control: wafl-ctrl5
+  # 制御点から各ノードへ SSH するユーザー
+  ssh_user: denjo
+  # 制御点と全ノード（質問者・専門家・GPU PC）で本リポジトリの成果物を置く絶対パス．全ホスト共通で，
+  # deploy・start・clean など全てのスクリプトがこの値だけを参照する
+  remote_dir: /home/denjo/workspace/ktakahashi/atrium
+  # 制御点のデータディレクトリ（atrium.paths の構成）
+  data_dir: /home/denjo/atrium-data
+  # 制御点のローカル registry のポート．wafl500〜509 には制御点の 127.0.0.1:5000 への SSH 転送
+  # （ssh -L 5000:127.0.0.1:5000）が既に張られているので，それを使えるよう 5000 にする
+  registry_port: 5000
+  # 専門家ノードの HTTP ポート
+  node_port: 8100
+  # 1 台の専門家に載せる索引の目安（fp16 の埋め込みのバイト数）
+  shard_budget_gb: 6.0
+
+  # ── デバイス．1 台のデバイスが持つ役割は 1 つだけで，役割はどのリストに置くかで決まる．
+  # 各要素は host（必須）と ssh_user（省略時は上の ssh_user）を持つ．
+  # 質問者：ベンチマークの質問を投げ，断片返却型では回答も生成する．制御点（wafl-ctrl5．RTX 3060）が兼ねる．
+  # 制御点は本リポジトリの REMOTE_DIR を作業ディレクトリにも使うので，質問者の資材（data/・hf-cache/・ollama/ など）も同じ場所に置かれる
+  requester: {host: "wafl-ctrl5"}
+  # 追加の質問者（d0009 A1．既定は空＝質問者は上の 1 台）．要素は requester と同じ書式．ここに置いたデバイスは requester と合わせて N 台の質問者になり，
+  # 問を並べた順の i mod N で分けて流す（experiment.parallel は N 台の合計）．experts に載せたデバイスも置ける（専門家と質問者を兼ねる）
+  extra_requesters: []
+  # 質問者の LLM（Ollama）は，cluster.requester_llm を省略して質問者と同じ wafl-ctrl5 の GPU で動かす（p0004 §8.1）
+  # 専門家：シャードの検索と宿る型の回答を担う．シャード数だけ先頭から使い，足りなければ巡回して重ねる．
+  # 13.x は wafl300〜309，14.x は wafl400〜409（i5-8350U，16 GB，GPU なし）
+  experts:
+    - {host: "192.168.13.100"}
+    - {host: "192.168.13.101"}
+    - {host: "192.168.13.102"}
+    - {host: "192.168.13.103"}
+    - {host: "192.168.13.104"}
+    - {host: "192.168.13.105"}
+    - {host: "192.168.13.106"}
+    - {host: "192.168.13.107"}
+    - {host: "192.168.13.108"}
+    - {host: "192.168.13.109"}
+    - {host: "192.168.14.100"}
+    - {host: "192.168.14.101"}
+    - {host: "192.168.14.102"}
+    - {host: "192.168.14.103"}
+    - {host: "192.168.14.104"}
+    - {host: "192.168.14.105"}
+    - {host: "192.168.14.106"}
+    - {host: "192.168.14.107"}
+    - {host: "192.168.14.108"}
+    - {host: "192.168.14.109"}
+  # GPU の専門家（wafl500〜509．RTX 3060）．CPU 20 台の後ろに置くので，先頭からシャード数だけ使う
+  # MedRAG（16 台）・FeB4RAG（13 台）の配置は変わらない．EnronQA は 30 台全てを使う（p0004 §8.1）
+    - {host: "192.168.15.100"}
+    - {host: "192.168.15.101"}
+    - {host: "192.168.15.102"}
+    - {host: "192.168.15.103"}
+    - {host: "192.168.15.104"}
+    - {host: "192.168.15.105"}
+    - {host: "192.168.15.106"}
+    - {host: "192.168.15.107"}
+    - {host: "192.168.15.108"}
+    - {host: "192.168.15.109"}
+  # データ準備で埋め込みを分担する GPU PC（制御点の GPU に加えて使う）．wafl500〜509．
+  # experts の GPU の専門家と同じ PC だが，データ準備・実験・採点で時間を分けて使う（docs/d0002 の役割の規則）
+  gpu_workers:
+    - {host: "192.168.15.100"}
+    - {host: "192.168.15.101"}
+    - {host: "192.168.15.102"}
+    - {host: "192.168.15.103"}
+    - {host: "192.168.15.104"}
+    - {host: "192.168.15.105"}
+    - {host: "192.168.15.106"}
+    - {host: "192.168.15.107"}
+    - {host: "192.168.15.108"}
+    - {host: "192.168.15.109"}
+  node_admin: true
+
+data:
+  medrag:
+    # 4 データ源（RAGRoute と同じ順序．ルーターの one-hot の順序にもなる）
+    sources: [pubmed, statpearls, textbooks, wikipedia]
+    article_encoder: "ncbi/MedCPT-Article-Encoder"
+    query_encoder: "ncbi/MedCPT-Query-Encoder"
+    # RTX 3060（12 GB）で 512 トークンの断片を fp32 で処理しても収まる大きさ
+    embed_batch_size: 128
+    # 文書とクエリの埋め込みの計算精度（fp32 / fp16_autocast）．fp16_autocast は fp32 の 2.6 倍速く，
+    # 上位 15 件の集合の一致率は 97%（.claude/research/backlog.md の B2）
+    embed_precision: fp16_autocast
+    # 上流のコミットを固定して再現性を保つ
+    medrag_commit: "7599a728a28789fd601728c08d313b1148051f41"
+    mirage_url: "https://raw.githubusercontent.com/Teddy-XiongGZ/MIRAGE/main/benchmark.json"
+    statpearls_url: "https://ftp.ncbi.nlm.nih.gov/pub/litarch/3d/12/statpearls_NBK430685.tar.gz"
+    # 自己紹介文（Agent Card の description）．MedRAG 論文の記述に基づく
+    descriptions:
+      pubmed: "PubMed abstracts: titles and abstracts of biomedical research articles."
+      statpearls: "StatPearls: clinical decision support articles for medical professionals."
+      textbooks: "Medical textbooks widely used by USMLE examinees (18 books)."
+      wikipedia: "General-domain Wikipedia articles."
+  feb4rag:
+    # RAGRoute と同じ 13 エンジン（signal1m・robust04・trec-news は BEIR で自由に入手できないため除く）
+    sources: [arguana, climate-fever, dbpedia-entity, fever, fiqa, hotpotqa, msmarco, nfcorpus, nq, scidocs, scifact, trec-covid, webis-touche2020]
+    feb4rag_commit: "b0fe9e19eddac3586fd54d30aebbb5d3d0d72118"
+    # BEIR のコーパスの取得元（Hugging Face のデータセット．配布元の zip と同じ内容）
+    beir_hf_repo: "BeIR/{name}"
+    # 重心の推定に使う文書数（全文書の埋め込みは重いため無作為抽出で近似する）
+    centroid_sample: 2000
+    # 5.8B の SGPT は CPU で動かすため抽出数を減らす
+    centroid_sample_overrides:
+      trec-covid: 500
+  enronqa:
+    # 150 人の受信箱（EnronQA．p0004）．1 個の受信箱が 1 個のデータ源で，順序はルーターの one-hot の順序にもなる
+    sources: [allen-p, arnold-j, arora-h, badeer-r, bailey-s, bass-e, baughman-d, beck-s, benson-r, blair-l,
+      brawner-s, buy-r, campbell-l, carson-m, cash-m, causholli-m, corman-s, crandell-s, cuilla-m,
+      dasovich-j, davis-d, dean-c, delainey-d, derrick-j, dickson-s, donoho-l, donohoe-t, dorland-c, ermis-f,
+      farmer-d, fischer-m, forney-j, fossum-d, gang-l, gay-r, geaccone-t, germany-c, gilbertsmith-d, giron-d,
+      griffith-j, grigsby-m, guzman-m, haedicke-m, hain-m, harris-s, hayslett-r, heard-m, hendrickson-s,
+      hernandez-j, hodge-j, holst-k, horton-s, hyatt-k, hyvl-d, jones-t, kaminski-v, kean-s, keavey-p,
+      keiser-k, king-j, kitchen-l, kuykendall-t, lavorato-j, lay-k, lenhart-m, lewis-a, linder-e, lokay-m,
+      lokey-t, love-p, lucci-p, maggi-m, mann-k, martin-t, may-l, mccarty-d, mcconnell-m, mckay-b, mckay-j,
+      mclaughlin-e, merriss-s, meyers-a, mims-thurston-p, motley-m, neal-s, nemec-g, panus-s, parks-j,
+      pereira-s, perlingiere-d, phanis-s, pimenov-v, platter-p, presto-k, quenet-j, quigley-d, rapp-b,
+      reitmeyer-j, richey-c, ring-a, ring-r, rodrique-r, rogers-b, ruscitti-k, sager-e, saibi-e, salisbury-h,
+      sanchez-m, sanders-r, scholtes-d, schoolcraft-d, schwieger-j, scott-s, semperger-c, shackleton-s,
+      shankman-j, shapiro-r, shively-h, skilling-j, slinger-r, smith-m, solberg-g, south-s, staab-t,
+      stclair-c, steffes-j, stepenovitch-j, stokley-c, storey-g, sturm-f, swerzbin-m, symes-k, taylor-m,
+      tholt-j, thomas-p, townsend-j, tycholiz-b, ward-k, watson-k, weldon-c, whalley-g, whalley-l, white-s,
+      whitt-m, williams-j, williams-w3, wolfe-j, ybarbo-p, zipper-a, zufferli-j]
+    hf_repo: "MichaelR207/enron_qa_0922"
+    hf_revision: "c0b3a9190fd970e83cfbe7d399a08860e43e221e"
+    encoder: "Snowflake/snowflake-arctic-embed-m-v1.5"
+    embed_batch_size: 64
+    # 評価のテスト質問（受信箱あたり最大 20 問），公開情報の大きさを選ぶ dev，中央の分類器の学習用の train
+    test_per_inbox: 20
+    dev_per_inbox: 20
+    train_per_inbox: 40
+    # 他の受信箱にほぼ同じメール（Jaccard 0.9 以上）がある質問は主評価から除く
+    duplicate_jaccard: 0.9
+    # 回答に使うメールの数（EnronQA の原論文と同じ 5）
+    k_context: 5
+    owner_probe_per_inbox: 10
+    # 公開情報の大きさ（Agent Card の件名の数・語のスケッチの語数 T・重心の数 C）．EQ2 で dev の MRR が最大の値
+    # （results/20261009_eq2_advert_eval．journal の事前登録の規則）
+    card_subjects: 40
+    term_sketch_size: 200
+    n_centroids: 32
+    ragroute_negatives: 10
+    # 自由記述の回答の判定モデル（質問者の llama3.1:8b と別系統）と，一致を測る参照モデル（p0004 §8.6）
+    judge_model: "qwen3:8b"
+    judge_reference_model: "qwen3:14b"
+    judge_validate_n: 500
+    judge_kappa_n: 300

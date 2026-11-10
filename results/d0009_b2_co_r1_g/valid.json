@@ -1,0 +1,17 @@
+{
+ "valid": false,
+ "reasons": [
+  "wafl502: slowdown Active samples 1/0"
+ ],
+ "hosts": {
+  "wafl502": {
+   "counter_delta_us": 0,
+   "other_procs_pre": 0,
+   "other_procs_post": 0,
+   "n_gpu_samples": 663,
+   "max_temp_c": 79.0,
+   "sw_thermal_active_samples": 1,
+   "hw_slowdown_active_samples": 0
+  }
+ }
+}

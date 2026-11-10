@@ -1,0 +1,453 @@
+++ dirname scripts/d0009/b2co_chain.sh
++ source scripts/d0009/../tasks/lib.sh
+++ set -euo pipefail
+++++ dirname scripts/d0009/../tasks/lib.sh
++++ cd scripts/d0009/../tasks/../..
++++ pwd
+++ REPO_ROOT=/home/ktakahashi/workspace/atrium
+++ cd /home/ktakahashi/workspace/atrium
+++ mkdir -p artifacts results
+++ uv run --quiet atrium config get cluster.control
++++ uv run --quiet python src/atrium/shell_config.py config.yaml
+++ eval $'CONTROL=wafl-ctrl5\nSSH_USER=denjo\nREMOTE_DIR=/home/denjo/workspace/ktakahashi/atrium\nDATA_DIR=/home/denjo/atrium-data\nREGISTRY_PORT=5000\nNODE_PORT=8100\nSSH_USERS=\'wafl-ctrl5=denjo 192.168.13.100=denjo 192.168.13.101=denjo 192.168.13.102=denjo 192.168.13.103=denjo 192.168.13.104=denjo 192.168.13.105=denjo 192.168.13.106=denjo 192.168.13.107=denjo 192.168.13.108=denjo 192.168.13.109=denjo 192.168.14.100=denjo 192.168.14.101=denjo 192.168.14.102=denjo 192.168.14.103=denjo 192.168.14.104=denjo 192.168.14.105=denjo 192.168.14.106=denjo 192.168.14.107=denjo 192.168.14.108=denjo 192.168.14.109=denjo 192.168.15.100=denjo 192.168.15.101=denjo 192.168.15.102=denjo 192.168.15.103=denjo 192.168.15.104=denjo 192.168.15.105=denjo 192.168.15.106=denjo 192.168.15.107=denjo 192.168.15.108=denjo 192.168.15.109=denjo 192.168.15.100=denjo 192.168.15.101=denjo 192.168.15.102=denjo 192.168.15.103=denjo 192.168.15.104=denjo 192.168.15.105=denjo 192.168.15.106=denjo 192.168.15.107=denjo 192.168.15.108=denjo 192.168.15.109=denjo\'\nREQUESTER=wafl-ctrl5\nEXTRA_REQUESTERS=\'\'\nREQUESTER_LLM=\'\'\nEXPERTS=\'192.168.13.100 192.168.13.101 192.168.13.102 192.168.13.103 192.168.13.104 192.168.13.105 192.168.13.106 192.168.13.107 192.168.13.108 192.168.13.109 192.168.14.100 192.168.14.101 192.168.14.102 192.168.14.103 192.168.14.104 192.168.14.105 192.168.14.106 192.168.14.107 192.168.14.108 192.168.14.109 192.168.15.100 192.168.15.101 192.168.15.102 192.168.15.103 192.168.15.104 192.168.15.105 192.168.15.106 192.168.15.107 192.168.15.108 192.168.15.109\'\nGPU_WORKERS=\'192.168.15.100 192.168.15.101 192.168.15.102 192.168.15.103 192.168.15.104 192.168.15.105 192.168.15.106 192.168.15.107 192.168.15.108 192.168.15.109\'\nNODE_ADMIN=\'\'\nKIND=e1_routing\nDATASET=medrag\nROUTING=all\nANSWER_MODE=retrieval_only\nCENTRAL_GENERATION=requester\nOLLAMA_TAG=0.35.1\nREQUESTER_MODEL=llama3.1:8b\nREQUESTER_NUM_PARALLEL=2\nLLM_NUM_CTX=16384\nEXPERT_MODEL=qwen3:0.6b\nEXPERT_MODEL_GPU=llama3.1:8b\nE0_HOSTS=\'192.168.14.108 192.168.14.109\'\nE0_PAIRS=\'192.168.14.108,192.168.14.109 192.168.14.108,192.168.13.100\'\nE0_GGUF=\'qwen3-0.6b|unsloth/Qwen3-0.6B-GGUF|Qwen3-0.6B-Q4_K_M.gguf qwen3-1.7b|unsloth/Qwen3-1.7B-GGUF|Qwen3-1.7B-Q4_K_M.gguf qwen3-4b|unsloth/Qwen3-4B-GGUF|Qwen3-4B-Q4_K_M.gguf qwen3-8b|unsloth/Qwen3-8B-GGUF|Qwen3-8B-Q4_K_M.gguf\''
++++ CONTROL=wafl-ctrl5
++++ SSH_USER=denjo
++++ REMOTE_DIR=/home/denjo/workspace/ktakahashi/atrium
++++ DATA_DIR=/home/denjo/atrium-data
++++ REGISTRY_PORT=5000
++++ NODE_PORT=8100
++++ SSH_USERS='wafl-ctrl5=denjo 192.168.13.100=denjo 192.168.13.101=denjo 192.168.13.102=denjo 192.168.13.103=denjo 192.168.13.104=denjo 192.168.13.105=denjo 192.168.13.106=denjo 192.168.13.107=denjo 192.168.13.108=denjo 192.168.13.109=denjo 192.168.14.100=denjo 192.168.14.101=denjo 192.168.14.102=denjo 192.168.14.103=denjo 192.168.14.104=denjo 192.168.14.105=denjo 192.168.14.106=denjo 192.168.14.107=denjo 192.168.14.108=denjo 192.168.14.109=denjo 192.168.15.100=denjo 192.168.15.101=denjo 192.168.15.102=denjo 192.168.15.103=denjo 192.168.15.104=denjo 192.168.15.105=denjo 192.168.15.106=denjo 192.168.15.107=denjo 192.168.15.108=denjo 192.168.15.109=denjo 192.168.15.100=denjo 192.168.15.101=denjo 192.168.15.102=denjo 192.168.15.103=denjo 192.168.15.104=denjo 192.168.15.105=denjo 192.168.15.106=denjo 192.168.15.107=denjo 192.168.15.108=denjo 192.168.15.109=denjo'
++++ REQUESTER=wafl-ctrl5
++++ EXTRA_REQUESTERS=
++++ REQUESTER_LLM=
++++ EXPERTS='192.168.13.100 192.168.13.101 192.168.13.102 192.168.13.103 192.168.13.104 192.168.13.105 192.168.13.106 192.168.13.107 192.168.13.108 192.168.13.109 192.168.14.100 192.168.14.101 192.168.14.102 192.168.14.103 192.168.14.104 192.168.14.105 192.168.14.106 192.168.14.107 192.168.14.108 192.168.14.109 192.168.15.100 192.168.15.101 192.168.15.102 192.168.15.103 192.168.15.104 192.168.15.105 192.168.15.106 192.168.15.107 192.168.15.108 192.168.15.109'
++++ GPU_WORKERS='192.168.15.100 192.168.15.101 192.168.15.102 192.168.15.103 192.168.15.104 192.168.15.105 192.168.15.106 192.168.15.107 192.168.15.108 192.168.15.109'
++++ NODE_ADMIN=
++++ KIND=e1_routing
++++ DATASET=medrag
++++ ROUTING=all
++++ ANSWER_MODE=retrieval_only
++++ CENTRAL_GENERATION=requester
++++ OLLAMA_TAG=0.35.1
++++ REQUESTER_MODEL=llama3.1:8b
++++ REQUESTER_NUM_PARALLEL=2
++++ LLM_NUM_CTX=16384
++++ EXPERT_MODEL=qwen3:0.6b
++++ EXPERT_MODEL_GPU=llama3.1:8b
++++ E0_HOSTS='192.168.14.108 192.168.14.109'
++++ E0_PAIRS='192.168.14.108,192.168.14.109 192.168.14.108,192.168.13.100'
++++ E0_GGUF='qwen3-0.6b|unsloth/Qwen3-0.6B-GGUF|Qwen3-0.6B-Q4_K_M.gguf qwen3-1.7b|unsloth/Qwen3-1.7B-GGUF|Qwen3-1.7B-Q4_K_M.gguf qwen3-4b|unsloth/Qwen3-4B-GGUF|Qwen3-4B-Q4_K_M.gguf qwen3-8b|unsloth/Qwen3-8B-GGUF|Qwen3-8B-Q4_K_M.gguf'
++++ git rev-parse --short=12 HEAD
+++ GIT_HEAD=8e4c9e0c6090
++++ git status --porcelain -- . ':!results'
+++ '[' -n ' M .claude/research/state.json' ']'
+++ GIT_HEAD=8e4c9e0c6090-dirty
+++ LOCAL_REGISTRY_PORT=15000
+++ PUSH_RETRY_WAIT_S=300
+++ TUNNEL_SOCKET=/home/ktakahashi/workspace/atrium/artifacts/registry-tunnel.sock
++ set +e
++ set -u
++ cd /home/ktakahashi/workspace/atrium
++ LOG=results/d0009_b2_colocated_scoring/chain_dbg.log
++ shift
++ D=scripts/d0009
++ BASE=d0009_b2_co
++ RESULT_DIR=results/d0009_b2_colocated_scoring
++ HOST=wafl502
++ SCORER_PORT=8200
++ NODE_PORT=8100
++ GEN_MODEL=llama3.1:8b
++ GEN_NUM_CTX=16384
++ IMAGE_FULL=localhost:5000/atrium-full:latest
++ HOT_C=60
++ ABORT_C=83
++ COOL_MAX_S=900
++ COOL_POLL_S=20
++ ENV0_MAX_WAIT_S=7200
++ ENV0_POLL_S=60
++ WATCH_POLL_S=5
++ BENCH_GRACE_S=300
++ ONE_PASS_EXTRA_WAIT_S=1800
++ UP_WAIT_S=300
++ UNLOAD_WAIT_S=120
++ CONCURRENCY=30
++ GEN_CONCURRENCY=2
++ GEN_LIMIT=30
++ PROD_WARMUP=60
++ PROD_MEASURE=600
++ MAX_INVALID_PER_HOST=2
++ SSH_B=(-o BatchMode=yes -o ConnectTimeout=15)
++ CONTROL_SSH=(ssh -n "${SSH_B[@]}" "$CONTROL")
++ STAGES=(env0 ggen s16 co smoke prod stop)
++ '[' 1 -gt 0 ']'
++ STAGES=("$@")
++ mkdir -p results/d0009_b2_colocated_scoring
+++ ip_of wafl502
+++ echo 192.168.15.102
++ HOST_IP=192.168.15.102
++ SCORER_UP=unknown
++ STOPPED=false
++ BAD_COUNT=0
++ trap cleanup EXIT
+++ git rev-parse --short=12 HEAD
++ say 'BEGIN stages: ggen host=wafl502 (git 8e4c9e0c6090)'
+++ date +%F_%T
++ echo '[2026-11-10_06:14:16] BEGIN stages: ggen host=wafl502 (git 8e4c9e0c6090)'
++ for stage in "${STAGES[@]}"
++ stage_ggen
++ local rdir=results/d0009_b2_co_ggen
++ '[' -f results/d0009_b2_co_ggen/ggen.json ']'
++ set_state g
++ case "$1" in
++ scorer_stop
++ bash scripts/tasks/remote.sh score_server stop 192.168.15.102
++ SCORER_UP=no
++ gen_up
++ '[' '!' -f results/d0009_b2_colocated_scoring/gen_initial_state.txt ']'
++ local waited=0
++ ssh_retry wafl502 'docker start atrium-ollama-1 atrium-node-1 > /dev/null'
++ local i rc
++ for i in 1 2 3
++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl502 'docker start atrium-ollama-1 atrium-node-1 > /dev/null'
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
++ rc=0
++ '[' 0 -ne 255 ']'
++ return 0
++ exit_if_failed 0 'docker start of the generation containers FAILED on wafl502'
++ '[' 0 -ne 0 ']'
++ ssh_retry wafl502 'curl -fsS -m 5 http://localhost:8100/healthz'
++ sleep 5
++ waited=5
++ '[' 5 -ge 300 ']'
++ ssh_retry wafl502 'curl -fsS -m 5 http://localhost:8100/healthz'
++ ollama_curl /api/ps
++ model_load
++ ollama_curl /api/generate '{"model":"llama3.1:8b","keep_alive":-1,"options":{"num_ctx":16384}}'
++ exit_if_failed 0 'model load FAILED on wafl502'
++ '[' 0 -ne 0 ']'
+++ ollama_curl /api/ps
+++ jq -c '[.models[] | {name, size, size_vram, context_length}]'
++ say 'model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]'
+++ date +%F_%T
++ echo '[2026-11-10_06:14:27] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]'
++ mkdir -p results/d0009_b2_co_ggen
++ ssh_retry wafl502 'cat /home/denjo/workspace/ktakahashi/atrium/config.yaml'
++ RUN_NAME=ggen
++ KIND=g
++ WARMUP=0
++ MEASURE=0
++ EXTRA=(--gen-limit "$GEN_LIMIT")
++ run_bench
++ mode_args=()
++ local name=ggen rdir=results/d0009_b2_co_ggen cname=atrium-colocate-bench-d0009_b2_co-ggen state t_end temp sw hw oom_ollama_pre mode_args
++ mkdir -p results/d0009_b2_co_ggen
++ rm -f results/d0009_b2_co_ggen/aborted.txt
++ case "$KIND" in
++ mode_args=(--mode gen --gen-url "http://$HOST_IP:$NODE_PORT" --gen-concurrency "$GEN_CONCURRENCY")
++ wait_cool results/d0009_b2_co_ggen/cool_wait_s.txt
++ local out=results/d0009_b2_co_ggen/cool_wait_s.txt waited=0 temp sw hw
++ true
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 47 '!=' '?' ']'
++ '[' 47 -le 60 ']'
++ '[' NotActive = NotActive ']'
++ '[' NotActive = NotActive ']'
++ echo 0
++ return 0
++ '[' g = g ']'
++ ollama_curl /api/ps
+++ oom_count atrium-ollama-1
+++ ssh_retry wafl502 'docker logs atrium-ollama-1 2>&1 | grep -ci '\''out of memory'\'''
+++ tr -d '\n'
+++ grep -E '^[0-9]+$'
+++ echo 0
++ oom_ollama_pre=$'0\n0'
++ snap wafl502 results/d0009_b2_co_ggen/snap_wafl502_pre.txt
++ local i
++ for i in 1 2 3
++ ssh -o BatchMode=yes -o ConnectTimeout=15 wafl502 bash -s
++ grep -q '^other_procs=' results/d0009_b2_co_ggen/snap_wafl502_pre.txt
++ return 0
++ gpu_log_start ggen
++ ssh_retry wafl502 'mkdir -p /home/denjo/workspace/ktakahashi/atrium/b2 && rm -f /home/denjo/workspace/ktakahashi/atrium/b2/ggen.gpu.csv &&     (setsid nohup bash -c '\''echo $$ > /home/denjo/workspace/ktakahashi/atrium/b2/ggen.pid; while :; do echo "$(date +%s.%N),$(nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits | tr -d " ")"; sleep 1; done'\'' > /home/denjo/workspace/ktakahashi/atrium/b2/ggen.gpu.csv 2> /dev/null < /dev/null &) > /dev/null 2>&1'
++ local i rc
++ for i in 1 2 3
++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl502 'mkdir -p /home/denjo/workspace/ktakahashi/atrium/b2 && rm -f /home/denjo/workspace/ktakahashi/atrium/b2/ggen.gpu.csv &&     (setsid nohup bash -c '\''echo $$ > /home/denjo/workspace/ktakahashi/atrium/b2/ggen.pid; while :; do echo "$(date +%s.%N),$(nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits | tr -d " ")"; sleep 1; done'\'' > /home/denjo/workspace/ktakahashi/atrium/b2/ggen.gpu.csv 2> /dev/null < /dev/null &) > /dev/null 2>&1'
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
++ rc=0
++ '[' 0 -ne 255 ']'
++ return 0
++ say 'ggen BEGIN host=wafl502 kind=g warmup=0 measure=0 --gen-limit 30'
+++ date +%F_%T
++ echo '[2026-11-10_06:14:29] ggen BEGIN host=wafl502 kind=g warmup=0 measure=0 --gen-limit 30'
++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'mkdir -p /home/denjo/workspace/ktakahashi/atrium/results/d0009_b2_co_ggen && docker rm -f atrium-colocate-bench-d0009_b2_co-ggen > /dev/null 2>&1;     docker run -d --name atrium-colocate-bench-d0009_b2_co-ggen --network host --user $(id -u):$(id -g) -e HOME=/tmp -v /home/denjo/atrium-data:/data:ro     -v /home/denjo/workspace/ktakahashi/atrium/results:/results -v /home/denjo/workspace/ktakahashi/atrium/config.yaml:/app/config.yaml:ro localhost:5000/atrium-full:latest     atrium --config /app/config.yaml colocate-bench --data-dir /data --out-dir /results/d0009_b2_co_ggen     --run-results /results/d0009_a3_p1/results.jsonl --concurrency 30 --warmup-s 0 --measure-s 0     --mode gen --gen-url http://192.168.15.102:8100 --gen-concurrency 2 --gen-limit 30'
+++ date +%s
++ t_end=1794259172
++ printf '%s\n' --gen-limit 30
++ grep -q -- --one-pass
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 46 '!=' '?' ']'
++ '[' 46 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258872 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 66 '!=' '?' ']'
++ '[' 66 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258878 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 72 '!=' '?' ']'
++ '[' 72 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258883 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 74 '!=' '?' ']'
++ '[' 74 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258889 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 75 '!=' '?' ']'
++ '[' 75 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258894 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 74 '!=' '?' ']'
++ '[' 74 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258900 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 74 '!=' '?' ']'
++ '[' 74 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258905 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 76 '!=' '?' ']'
++ '[' 76 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258911 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 76 '!=' '?' ']'
++ '[' 76 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258917 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 76 '!=' '?' ']'
++ '[' 76 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258922 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=true
++ '[' true = false ']'
++ read -r temp sw hw
+++ gpu_state wafl502
+++ ssh_retry wafl502 'nvidia-smi --query-gpu=temperature.gpu,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_slowdown --format=csv,noheader,nounits'
+++ tr -d ' '
+++ tr , ' '
+++ grep -E '^[0-9]+ '
++ '[' 77 '!=' '?' ']'
++ '[' 77 -ge 83 ']'
++ '[' NotActive = Active ']'
++ '[' '!' -f results/d0009_b2_co_ggen/aborted.txt ']'
+++ date +%s
++ '[' 1794258928 -ge 1794259172 ']'
++ '[' -f results/d0009_b2_co_ggen/aborted.txt ']'
++ sleep 5
++ true
+++ ssh -n -o BatchMode=yes -o ConnectTimeout=15 wafl-ctrl5 'docker inspect -f '\''{{.State.Running}}'\'' atrium-colocate-bench-d0009_b2_co-ggen'
++ state=false
++ '[' false = false ']'
++ break
++ sleep 2
++ snap wafl502 results/d0009_b2_co_ggen/snap_wafl502_post.txt
++ local i
++ for i in 1 2 3
++ ssh -o BatchMode=yes -o ConnectTimeout=15 wafl502 bash -s
++ grep -q '^other_procs=' results/d0009_b2_co_ggen/snap_wafl502_post.txt
++ return 0
++ ollama_curl /api/ps
+++ oom_count atrium-scorer
+++ ssh_retry wafl502 'docker logs atrium-scorer 2>&1 | grep -ci '\''out of memory'\'''
+++ tr -d '\n'
+++ grep -E '^[0-9]+$'
+++ echo 0
+++ oom_count atrium-ollama-1
+++ ssh_retry wafl502 'docker logs atrium-ollama-1 2>&1 | grep -ci '\''out of memory'\'''
+++ tr -d '\n'
+++ grep -E '^[0-9]+$'
+++ echo 0
+scripts/d0009/b2co_chain.sh: line 265: 0
+0 - oom_ollama_pre: arithmetic syntax error in expression (error token is "0 - oom_ollama_pre")
++ say 'ALL DONE'
+++ date +%F_%T
++ echo '[2026-11-10_06:15:37] ALL DONE'
++ cleanup
++ '[' false = false ']'
++ '[' -f results/d0009_b2_colocated_scoring/host.txt ']'
++ set +e
++ stage_stop
++ scorer_stop
++ bash scripts/tasks/remote.sh score_server stop 192.168.15.102
++ SCORER_UP=no
++ '[' -f results/d0009_b2_colocated_scoring/gen_initial_state.txt ']'
++ container_running atrium-ollama-1
+++ ssh_retry wafl502 'docker inspect -f '\''{{.State.Running}}'\'' atrium-ollama-1 2> /dev/null'
++ '[' true = true ']'
++ grep -q ollama_running=no results/d0009_b2_colocated_scoring/gen_initial_state.txt
++ model_unload
++ local waited=0
++ ollama_curl /api/generate '{"model":"llama3.1:8b","keep_alive":0}'
+++ ollama_curl /api/ps
+++ jq '.models | length'
++ '[' 0 = 0 ']'
++ ssh_retry wafl502 'docker stop atrium-node-1 atrium-ollama-1 > /dev/null'
++ mkdir -p results/d0009_b2_colocated_scoring/after_stop
++ snap wafl502 results/d0009_b2_colocated_scoring/after_stop/snap_wafl502_post.txt
++ local i
++ for i in 1 2 3
++ ssh -o BatchMode=yes -o ConnectTimeout=15 wafl502 bash -s
++ grep -q '^other_procs=' results/d0009_b2_colocated_scoring/after_stop/snap_wafl502_post.txt
++ return 0
++ STOPPED=true
++ say 'scorer and generation containers restored; post-stop snapshot in results/d0009_b2_colocated_scoring/after_stop'
+++ date +%F_%T
++ echo '[2026-11-10_06:15:41] scorer and generation containers restored; post-stop snapshot in results/d0009_b2_colocated_scoring/after_stop'

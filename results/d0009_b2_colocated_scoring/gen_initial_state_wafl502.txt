@@ -1,0 +1,1 @@
+ollama_running=no model_loaded=no

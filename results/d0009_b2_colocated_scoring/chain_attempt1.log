@@ -1,0 +1,32 @@
+[2026-11-10_06:11:51] BEGIN stages: publish env0 ggen s16 co smoke prod stop host=wafl502 (git 8e4c9e0c6090)
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_06:12:05] published atrium-full 8e4c9e0c6090
+[2026-11-10_06:12:05] env0 passed on wafl502 (waited 0s): ts=1794258725 gpu=48,0,32,NotActive,NotActive counter_us=0 other_procs=0 
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_06:12:23] model loaded: [{"name":"llama3.1:8b","size":7024945397,"size_vram":7024945397,"context_length":16384}]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_06:12:25] ggen BEGIN host=wafl502 kind=g warmup=0 measure=0 --gen-limit 30
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+71faa0f73cea114b1db81f3cd5763c0d264833c48fe0637ad4879b84df9685b2
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_06:13:33] ALL DONE
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[2026-11-10_06:13:37] scorer and generation containers restored; post-stop snapshot in results/d0009_b2_colocated_scoring/after_stop

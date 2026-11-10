@@ -1,0 +1,8 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+   "p95": 12.19253158569336
+  },
+  "gpu_time_s_sum": 201.258061998
+ }
+}

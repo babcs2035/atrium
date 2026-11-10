@@ -1,0 +1,36 @@
+{
+ "n_requests": 30,
+ "n_errors": 0,
+ "n_prompt_tokens_mismatch": 0,
+ "prompt_tokens_mismatches": [],
+ "ps_pre": {
+  "readable": true,
+  "n_models": 1,
+  "all_on_gpu": true,
+  "spilled": false,
+  "context_lengths": [
+   16384
+  ],
+  "names": [
+   "llama3.1:8b"
+  ]
+ },
+ "llm_config": {
+  "remote": {
+   "num_ctx": 16384,
+   "num_predict": 2048,
+   "temperature": 0.0,
+   "think": false,
+   "answer_prompt_format": null
+  },
+  "local": {
+   "num_ctx": 16384,
+   "num_predict": 2048,
+   "temperature": 0.0,
+   "think": false,
+   "answer_prompt_format": null
+  },
+  "differences": []
+ },
+ "pass": true
+}
