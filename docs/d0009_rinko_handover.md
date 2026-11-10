@@ -183,6 +183,7 @@
   - 増分のうち v を足した分（V2 − S3）は Q で +0.0049（区間の下端 +0.0023）で，Iteration 25 の特徴量だけ（S3）の +0.0026 は 0 と区別できない．
   - **以降の d0009 の主構成の最終回答の選択は V2 とする**（`.claude/research/backlog.md` の B102）．選択は gpu4 でのオフラインの当てはめで，実機の経路には載せていない（質問者に GPU が無く，Gemma 4 12B は 12 GB の GPU で生成の llama3.1:8b と同時に載らない見積もり）．検証の費用は候補 1 件 約 1.6 秒（RTX 5090），検証を GPU の PC へ委託すると 1 問あたり最大 15 通の文書が委託先へ渡る．正答率を R3′ の過去の値と並べるときは選択の違いを併記する．
   - 追加だけの CLI `atrium verify-features` と `atrium answer-select-eval --verify-features` を残してある．
+- 着手（受信箱の中の文脈．生成の側）：Iteration 41（事前登録は `.claude/research/journal.md` の Iteration 41．設計の判断は `.claude/research/backlog.md` の B131）．レバーは `d0009.B3_inbox_context`（値 `dev_selected`）．候補の受信箱の中で生成へ渡す 5 通を，今の RRF の上位 5 通から，dev の持ち主の受信箱の中の Recall@5 で選んだ規則（BM25 だけ，または RRF の上位 10・20・50 通の cross-encoder による並べ替え）へ替える．dev のゲート（Recall@5 +0.010 以上）を通れば，H と H2 の保存した候補のうち文脈が変わる候補だけを両腕で作り直し，V2 の正答率の対応ありの差で判定する（オフラインの再生．wafl502〜508）．
 
 ## C. 手続き上の注意
 
@@ -227,7 +228,7 @@ A・B の各項目は `.claude/research/config.yml` の `levers` の「d0009」�
 | 1 | A2 | レバー `d0009.A2_fabrication` | 完了（Iteration 21．採用．`results/d0009_a2_fabrication/`） |
 | 2 | A3 | レバー `d0009.A3_rerun_variance` | 完了（Iteration 22．採用．`results/d0009_a3_rerun_variance/`） |
 | 3 | A1 | レバー `d0009.A1_multi_requester` | 完了（Iteration 23．採用．`results/d0009_a1_multi_requester/`） |
-| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`） |
+| 4 | B3 | レバー `d0009.B3_owner_and_selection`（持ち主の特定・回答の選択・回答の検証を 1 つずつ） | 持ち主の特定は完了（Iteration 24．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_owner/`）．回答の選択は完了（Iteration 25．棄却〔オフラインのゲートで止めた〕．`results/d0009_b3_select/`）．回答の検証（LLM）は完了（Iteration 28．採用．以降の主構成の選択は V2．`results/d0009_b3_verify/`）．生成の側の回答のプロンプトの形（レバー `llm.answer_prompt_format`）は完了（Iteration 27．棄却〔実機の smoke のゲートで止めた〕．`results/d0009_pf_prompt/`）．受信箱の中の文脈の選び方（レバー `d0009.B3_inbox_context`）は着手：Iteration 41（`.claude/research/backlog.md` の B131） |
 | 5 | A6 | レバー `d0009.A6_remeasure_main`（負荷・障害・参加を 1 つずつ） | 負荷は完了（Iteration 29．採用．P2P は中央の約 3.1 倍・準集権は P2P の約 2.3 倍．`results/d0009_a6_load/`）．障害は完了（Iteration 30．採用．45 秒の仮定で全 8 条件 P2P が上だが止めた間の割合に依らない．検出と同時の再起動では availability k ≤ 3 以外は中央が上．`results/d0009_a6_failure/`）．参加は完了（Iteration 31．条件付きの採用．事後に改めたゲート G-A′ で E2 成立〔P2P は中央の 1.14〜1.18 倍・転送量は約半分〕．ただし中央の埋め込みが GPU の無い制御点の CPU であることに依る．`results/d0009_a6_join/`）．A6 は完了 |
 | 6 | A4 | レバー `d0009.A4_exposure_total` | 完了（Iteration 32．採用．委託は重複なしの露出を増やさず，37.6% は全体に等しい．50% 未満は約 2,900 問の質問集合での値．`results/d0009_a4_exposure/`） |
 | 7 | A5 | レバー `d0009.A5_extend_measurements`（索引への追加・中央の停止時間を 1 つずつ） | 索引への追加は完了（Iteration 33．採用．BM25 を含めても P2P は p50 0.47 秒で追従し，全体を作り直す中央の T0 は p50 31 秒．`results/d0009_a5_bm25_add/`）．中央の停止時間は完了（Iteration 34．採用．中央の停止 S ≥ 20 秒で全 8 条件 P2P が上，問の標本などの揺れを含めると約 34 秒．S ≤ 5 秒では availability k ≤ 3 だけ P2P が上．`results/d0009_a5_outage_sweep/`）．A5 は完了 |

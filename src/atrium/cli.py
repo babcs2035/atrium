@@ -36,6 +36,7 @@
     central-eval              中央集約ベースラインの検索の精度と C1 の実機との一致（EnronQA．p0006 P1．制御点のコンテナ）
     central-local-eval        routing=central_local の索引と C1 の上位文書 ID の一致（EnronQA．p0007 I4．制御点のコンテナ）
     fusion-eval               受信箱の中と中央の，密ベクトル・BM25・RRF の Recall と A2 のゲートの判定（EnronQA．p0007 A2．制御点のコンテナ）
+    inbox-context-eval        候補の受信箱の中で生成へ渡す文脈 5 通を RRF から dev で選んだ規則へ替える評価（EnronQA．d0009 B3 Iteration 41．操作端末）
     exposure-eval             条件ごとの，デバイスの外に出た文書の重複なしの数と H-B の判定（EnronQA．p0007 B．制御点のコンテナ）
     newcomer-eval             150 人での新参者の評価（EnronQA．p0005 T3．制御点のコンテナ）
     owner-eval                持ち主推定の入力を揃えた評価（EnronQA．p0005 T2．制御点のコンテナ）
@@ -75,6 +76,9 @@ from atrium.manifest import (
 )
 from atrium.paths import dataset_paths
 from atrium.verdict import BOOTSTRAP_SAMPLES, BOOTSTRAP_SEED, NON_INFERIORITY_MARGIN
+
+# verify-features の Ollama の既定の URL（gpu4 の判定の container．`--url` を省略したとき）
+DEFAULT_VERIFY_URL = "http://127.0.0.1:11436"
 
 MEDRAG_STEPS = ("benchmark", "corpus", "embed", "shards", "queries", "labels", "split", "train")
 FEB4RAG_STEPS = ("fetch", "beir", "shards", "queries", "split", "train")
@@ -1169,6 +1173,27 @@ def cmd_compare(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     return 0
 
 
+def cmd_inbox_context_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
+    """受信箱の中の文脈 5 通の選び方の評価の段階（d0009 B3 Iteration 41）を 1 つ実行し，要約を標準出力へ出す．"""
+    from atrium import inbox_context_eval
+
+    summary = inbox_context_eval.run_stage(
+        args.stage,
+        cfg,
+        dataset_paths(Path(args.data_dir), "enronqa"),
+        Path(args.dev_dir),
+        Path(args.plan_dir),
+        args.arm_prefix,
+        Path(args.verdict_dir),
+        args.scorer_url,
+        args.node_url,
+        args.limit,
+        args.arm,
+    )
+    print(json.dumps(summary, indent=1, ensure_ascii=False)[:12000])
+    return 0
+
+
 def cmd_select_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
     """owner_answer の候補ごとの cross-encoder の得点を <run_dir>/ce_features.jsonl に書く（p0007 A5）．"""
     from atrium.analysis import read_results
@@ -1236,7 +1261,7 @@ def cmd_verify_features(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         Path(args.run_dir),
         Path(args.out_dir),
         args.model,
-        args.url,
+        args.url or [DEFAULT_VERIFY_URL],
         args.resume,
         args.limit,
     )
@@ -2278,6 +2303,57 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_compare)
 
     p = sub.add_parser(
+        "inbox-context-eval",
+        help="候補の受信箱の中で生成へ渡す文脈 5 通を RRF から dev で選んだ規則へ替える評価の段階（EnronQA．d0009 B3 Iteration 41）",
+    )
+    p.add_argument(
+        "--stage",
+        choices=[
+            "dev-ce",
+            "dev-gate",
+            "q-rrf",
+            "q-ce",
+            "q-plan",
+            "q-generate",
+            "g-gen",
+            "q-build",
+        ],
+        required=True,
+    )
+    p.add_argument("--data-dir", default="artifacts", help="enronqa/ を含むデータの置き場所")
+    p.add_argument("--dev-dir", default="results/d0009_b3ic_dev_gate", help="dev の段階の出力先")
+    p.add_argument(
+        "--plan-dir", default="results/d0009_b3ic_plan", help="Q の段階（計画・生成の記録）の出力先"
+    )
+    p.add_argument(
+        "--arm-prefix",
+        default="results/d0009_b3ic_q_",
+        help="q-build の出力先の前置き（<前置き>base・<前置き>new の実行のディレクトリ）",
+    )
+    p.add_argument(
+        "--verdict-dir",
+        default="results/d0009_b3_inbox_context",
+        help="dev-gate が G-D 不通過の verdict.json を書く先",
+    )
+    p.add_argument(
+        "--scorer-url",
+        action="append",
+        default=[],
+        help="cross-encoder の採点の server の URL（dev-ce・q-ce・q-build．複数）",
+    )
+    p.add_argument(
+        "--node-url",
+        action="append",
+        default=[],
+        help="生成の送り先の node の URL（q-generate．POST /v1/generate．複数）",
+    )
+    p.add_argument(
+        "--limit", type=int, default=None, help="先頭の N 件だけ（G-CE・G-GEN・smoke 用）"
+    )
+    p.add_argument("--arm", choices=["base", "new"], default=None, help="q-generate で送る腕")
+    p.set_defaults(func=cmd_inbox_context_eval)
+
+    p = sub.add_parser(
         "select-features",
         help="owner_answer の候補ごとの cross-encoder の得点を ce_features.jsonl に書く（p0007 A5）",
     )
@@ -2300,7 +2376,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out-dir", required=True, help="verify_features.jsonl の出力先")
     p.add_argument("--data-dir", default="artifacts", help="enronqa/ を含むデータの置き場所")
     p.add_argument("--model", default="gemma4-12b-it-qat", help="検証の LLM の Ollama でのモデル名")
-    p.add_argument("--url", default="http://127.0.0.1:11436", help="Ollama の URL")
+    p.add_argument(
+        "--url",
+        action="append",
+        default=None,
+        help="Ollama の URL（既定 http://127.0.0.1:11436．複数指定で候補を順に振り分ける）",
+    )
     p.add_argument("--resume", action="store_true", help="得点のある候補を飛ばして続ける")
     p.add_argument("--limit", type=int, default=None, help="先頭の N 問の候補だけ（smoke 用）")
     p.set_defaults(func=cmd_verify_features)

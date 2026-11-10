@@ -488,6 +488,15 @@ levers:
             結果は results/d0009_b2_colocated_scoring/（verdict.json・colocate_summary.json・analysis_report.md），実行は results/d0009_b2_co_{w503_ggen,s16pass,w503_copass,smoke,w503_r<round>_{g,s,b}}/，記述は journal の Iteration 40「実行済み」．
             H-C0：G-CO と B の 3 実行で OOM・失敗・溢れ 0，GPU メモリの最大 8,785〜8,843 MiB．H-C1：r_g 0.457〜0.458・r_s 0.541〜0.545，E_co 1.0036・1.0020・0.9999（時間の分け合いと同じ効率）．
             生成の要求の待ち時間 p95 は 5.7 → 15.2 秒，decode 0.40 倍．既定の挙動（score_server.sh は llama3.1:8b を降ろす）は変えない．このレバーの値は全て閉じた．次は調査・計画のフェーズから（backlog B130）"}
+  # ---- Iteration 41 の調査・計画で追加（2026-11-10．backlog B131 [auto-decided]）：levers 使い切りの申し送り（B130）による調査から ----
+  - {name: d0009.B3_inbox_context, values: [dev_selected],
+     note: "仮称．d0009 B3（研究の主課題）の生成の側：候補の受信箱の中で生成へ渡す文脈 5 通の選び方を，今の RRF（密ベクトルと受信箱の BM25．各上位 50．k = 60）の上位 5 通から，
+            dev で事前登録の規則で選んだ 1 つ（受信箱の BM25 だけの上位 5 通，または RRF の上位 N 通〔N ∈ {10, 20, 50}〕を bge-reranker-v2-m3〔fp16・最大長 1,024〕で並べ替えた上位 5 通）へ替える．
+            根拠：d0007 §4.1 の「持ち主の回答を採った問でも中央の再ランクした文脈の方が良い」「受信箱の中に再ランクを入れた上限は測っていない」と，
+            A2 のオフライン（results/20261019_p0007_a2_offline）の受信箱の中の Recall@5（dev：RRF 0.921・BM25 0.947・密 0.854）．
+            Iteration 38〜40 で採点 1 回の費用と GPU メモリが下がり，生成と同じ GPU に置ける（委託先の GPU の PC で並べ替える配置を想定し，委託先へ渡る文書は 5 → N 通に増えうる）．
+            判定はオフラインの再生：dev の Recall@5 のゲート（G-D）→ Q = H ∪ H2 の保存した候補のうち文脈が変わる候補だけを base（保存した文脈）と new の両方で wafl502〜508 の node の /v1/generate で作り直し，
+            V2 の選択の正答率の対応ありの差で判定する．config.yaml の実験の経路は変えない（追加だけの CLI・script）．wafl500・501・509 と gpu4 の GPU は使わない．事前登録は journal の Iteration 41"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

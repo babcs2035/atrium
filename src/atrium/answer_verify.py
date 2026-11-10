@@ -14,7 +14,7 @@ user の 1 通．system なし）で検証の LLM に問い，最初の 1 トー
 `prompt_eval_count`・`total_duration_s`・`error`）．回答の本文は書かない（メールの本文も書かない）．
 `--resume` は，得点のある行と再び試しても同じ結果の行（文脈長の超過など）を飛ばし，その他の失敗を再び試す（同じ (qid, index) の後の行が前の行に優先する）．
 
-使い方（gpu4．判定の container．127.0.0.1:11436）:
+使い方（gpu4．判定の container．127.0.0.1:11436．`--url` は複数指定でき，候補を順に振り分ける）:
     uv run atrium verify-features --run-dir results/d0009_b3s_dev --out-dir results/d0009_b3v_dev \\
         --data-dir artifacts --model gemma4-12b-it-qat --url http://127.0.0.1:11436 [--resume] [--limit N]
 """
@@ -218,17 +218,22 @@ async def verify_job(
 
 
 async def run_jobs(
-    jobs: Sequence[VerifyJob], url: str, model: str, llm_cfg: LlmConfig, out_path: Path
+    jobs: Sequence[VerifyJob],
+    urls: Sequence[str],
+    model: str,
+    llm_cfg: LlmConfig,
+    out_path: Path,
 ) -> int:
-    """VERIFY_PARALLEL 並列で検証し，1 件ずつ out_path へ追記する．失敗（得点なし）の件数を返す．"""
-    semaphore = asyncio.Semaphore(VERIFY_PARALLEL)
+    """URL ごとに VERIFY_PARALLEL 並列で検証し（候補は番号の順に URL へ振り分ける），1 件ずつ out_path へ追記する．失敗（得点なし）の件数を返す．"""
+    semaphores = {url: asyncio.Semaphore(VERIFY_PARALLEL) for url in urls}
     failed = done = 0
     async with httpx.AsyncClient() as client:
         with out_path.open("a", encoding="utf-8") as f:
 
-            async def one(job: VerifyJob) -> None:
+            async def one(i: int, job: VerifyJob) -> None:
                 nonlocal failed, done
-                async with semaphore:
+                url = urls[i % len(urls)]
+                async with semaphores[url]:
                     row = await verify_job(client, url, model, llm_cfg, job)
                 f.write(json.dumps(row) + "\n")
                 f.flush()
@@ -237,7 +242,7 @@ async def run_jobs(
                 if done % PROGRESS_EVERY == 0:
                     logger.info("verified %d / %d (no score so far: %d)", done, len(jobs), failed)
 
-            await asyncio.gather(*(one(j) for j in jobs))
+            await asyncio.gather(*(one(i, j) for i, j in enumerate(jobs)))
     return failed
 
 
@@ -247,11 +252,14 @@ def verify_run(
     run_dir: Path,
     out_dir: Path,
     model: str,
-    url: str,
+    urls: Sequence[str],
     resume: bool,
     limit: int | None = None,
 ) -> dict[str, Any]:
-    """run_dir の全候補（limit なら先頭の limit 問の候補）を検証し out_dir/verify_features.jsonl に書く．要約を返す．"""
+    """run_dir の全候補（limit なら先頭の limit 問の候補）を検証し out_dir/verify_features.jsonl に書く．要約を返す．
+
+    urls は Ollama の URL（複数なら候補を順に振り分ける．Iteration 41 で GPU の PC 7 台へ分けるために追加）．
+    """
     from atrium.analysis import read_results
     from atrium.data_enronqa import read_inbox
     from atrium.judge import question_texts
@@ -287,7 +295,7 @@ def verify_run(
         len(done),
         len(todo),
     )
-    failed = asyncio.run(run_jobs(todo, url, model, verify_llm_config(cfg.llm), out_path))
+    failed = asyncio.run(run_jobs(todo, urls, model, verify_llm_config(cfg.llm), out_path))
     final = read_verify_rows(out_path)
     return {
         "run": run_dir.name,
