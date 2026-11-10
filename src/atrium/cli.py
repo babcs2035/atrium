@@ -1190,6 +1190,9 @@ def cmd_inbox_context_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         args.limit,
         args.arm,
         args.max_failed,
+        args.rule,
+        [Path(d) for d in args.gen_cache],
+        [Path(d) for d in args.verify_seed_dir],
     )
     print(json.dumps(summary, indent=1, ensure_ascii=False)[:12000])
     return 0
@@ -2317,6 +2320,7 @@ def build_parser() -> argparse.ArgumentParser:
             "q-plan",
             "q-ce-features",
             "q-generate",
+            "g-gen-generate",
             "g-gen",
             "q-build",
         ],
@@ -2358,6 +2362,24 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=0,
         help="q-build が許す，生成が失敗した候補の数（失敗した候補は両腕とも不正解として数える）",
+    )
+    p.add_argument(
+        "--rule",
+        choices=["bm25", "ce10", "ce20", "ce50"],
+        default=None,
+        help="Q の段階の規則．指定すると dev_gate.json の paired_vs_rrf が G-D と同じ基準（G-D′）を満たすことを確かめて使う（省略は dev_gate.json の選んだ X）",
+    )
+    p.add_argument(
+        "--gen-cache",
+        action="append",
+        default=[],
+        help="過去の計画のディレクトリ（plan.jsonl・gen_records.jsonl）．q-generate が同じ入力の生成を写し，g-gen が prompt_tokens の照合に使う（複数）",
+    )
+    p.add_argument(
+        "--verify-seed-dir",
+        action="append",
+        default=[],
+        help="過去の腕の実行のディレクトリ（results.jsonl・verify_features.jsonl）．q-build が同じ（質問・候補・文脈・回答）の検証の得点を種にする（複数）",
     )
     p.set_defaults(func=cmd_inbox_context_eval)
 

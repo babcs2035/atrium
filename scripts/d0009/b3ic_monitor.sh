@@ -7,7 +7,7 @@ OUT=${1:?usage: b3ic_monitor.sh <out.csv> <pkill pattern>}
 PATTERN=${2:?usage: b3ic_monitor.sh <out.csv> <pkill pattern>}
 POLL_S=15
 ABORT_C=83
-# 見る機（環境変数 B3IC_HOSTS．既定は wafl502〜508 の全て．止める対象の判定にも使う）
+# 見る機（環境変数 B3IC_HOSTS．既定は wafl502〜508 の全て．止める対象の判定にも使う）．Iteration 42 は wafl500〜509 の 10 台，B3IC_ACTIVE_FILE=<計画のディレクトリ>/active_hosts.txt
 read -r -a HOSTS <<< "${B3IC_HOSTS:-wafl502 wafl503 wafl504 wafl505 wafl506 wafl507 wafl508}"
 [ -s "$OUT" ] || echo "ts,host,temp_c,util_pct,mem_mib,sw_thermal,hw_slowdown" > "$OUT"
 while :; do
@@ -17,6 +17,8 @@ while :; do
     [ -n "$row" ] || continue
     echo "$now,$h,$row" >> "$OUT"
     temp=${row%%,*}
+    # B3IC_ACTIVE_FILE（b3ic_run.sh が各回に書く，使っている機の一覧）があれば，使っていない機の高温では止めない（記録だけ残す）
+    if [ -n "${B3IC_ACTIVE_FILE:-}" ] && [ -s "$B3IC_ACTIVE_FILE" ] && ! grep -qw "$h" "$B3IC_ACTIVE_FILE"; then continue; fi
     if [ "$temp" -ge "$ABORT_C" ]; then
       echo "$now,$h,ABORT,$temp" >> "$OUT"
       pkill -f "$PATTERN"

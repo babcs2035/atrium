@@ -18,10 +18,17 @@
 - `q-ce`：Q の候補の RRF の上位 N 通を採点する（X が ce のとき）．
 - `q-plan`：Q の候補ごとの新しい文脈と，作り直す候補の一覧（`plan.jsonl`・`plan.json`）．
 - `q-ce-features`：new 腕の作り直す候補の `ce_features`（新しい文脈の 5 通から．`select-features` と同じ関数）を求める（`ce_features_new.jsonl`）．
-- `q-generate`：作り直す候補を base・new の両方で node へ送って回答を作る（`gen_records.jsonl`．`--limit`・`--arm` は G-GEN 用）．
-- `g-gen`：base 腕の作り直す候補の先頭 30 件の失敗の数と `prompt_tokens` の一致（`g_gen.json`）．
+- `q-generate`：作り直す候補を base・new の両方で node へ送って回答を作る（`gen_records.jsonl`．`--limit`・`--arm` は Iteration 41 の G-GEN 用）．
+  `--gen-cache` があれば，入力（質問 ID・候補の番号・順を含む文脈の doc ID の列）が同じ過去の生成の記録を先に写し，足りない件だけ送る．
+- `g-gen-generate`：（Iteration 42）作り直す候補の先頭 30 件の base 腕を，キャッシュを使わずに新しく生成して `g_gen_records.jsonl` に書く（腕には使わない）．
+- `g-gen`：base 腕の作り直す候補の先頭 30 件の失敗の数と `prompt_tokens` の一致（`g_gen.json`）．`--gen-cache` があれば `g_gen_records.jsonl` を読み，
+  照合の相手を過去の生成の記録の `prompt_tokens` にする（Iteration 42）．
 - `q-build`：base・new の実行のディレクトリ（`results.jsonl`・`ce_features.jsonl`・`verify_features.jsonl` の種）を書く（採点の server は使わない）．
   採点（`atrium judge`）・検証（`atrium verify-features`）・選択（`atrium answer-select-eval`）は既存の CLI がこのディレクトリを読む．
+  `--verify-seed-dir`（過去の腕の実行のディレクトリ）があれば，（質問・候補の番号・文脈・回答）が同じ候補の検証の得点も種として写す（Iteration 42）．
+
+Q の段階の規則は，既定では `dev_gate.json` の選んだ X．`--rule` を指定すると，その規則が G-D と同じ基準（G-D′）を満たすことを `dev_gate.json` の
+`paired_vs_rrf` から確かめて使う（Iteration 42．dev は再計算しない）．
 
 回答の本文を含む出力は `gen_records.jsonl` と実行のディレクトリの `results.jsonl` だけで，commit の前に `scripts/tasks/sanitize_results.py` を通す．
 統計は既存の実装：対応ありのブートストラップ `atrium.verdict.paired_bootstrap_ci`（10,000 回・種 41）．
@@ -35,7 +42,7 @@ import logging
 import queue
 import threading
 import time
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Collection, Iterator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -89,6 +96,8 @@ CE_CACHE = "ce_scores.jsonl"
 GEN_RECORDS = "gen_records.jsonl"
 PLAN = "plan.jsonl"
 CE_FEATURES_NEW = "ce_features_new.jsonl"
+# G-GEN の新しい生成の記録（腕には使わない．Iteration 42）
+G_GEN_RECORDS = "g_gen_records.jsonl"
 VERIFY_FEATURES = "verify_features.jsonl"
 # 質問の集合 Q：（実行のディレクトリ，質問の分割の名前，検証の得点）．H・H2 の順
 Q_SOURCES: tuple[tuple[str, str, str], ...] = (
@@ -408,6 +417,25 @@ def evaluate_dev_gate(flags: Mapping[str, F64Array]) -> dict[str, Any]:
     }
 
 
+def gate_d_for_rule(dev_gate: Mapping[str, Any], rule: str) -> dict[str, Any]:
+    """G-D′：dev_gate.json の `paired_vs_rrf[rule]`（Recall@k の RRF との対応ありの差）が G-D と同じ基準（+G_D_MIN_GAIN 以上かつ下端 > 0）を満たすか．
+
+    dev の Recall は再計算しない（Iteration 41 に記録した値を読むだけ）．
+    """
+    paired = dev_gate["paired_vs_rrf"][rule]
+    delta = float(paired["delta"])
+    low, high = (float(x) for x in paired["bootstrap_ci95"])
+    return {
+        "rule": rule,
+        "rrf_recall": float(dev_gate["recall"]["rrf"]),
+        "rule_recall": float(dev_gate["recall"][rule]),
+        "delta": delta,
+        "bootstrap_ci95": [low, high],
+        "min_gain": G_D_MIN_GAIN,
+        "passed": bool(delta >= G_D_MIN_GAIN - FLOAT_EPS and low > 0),
+    }
+
+
 def gate_d_verdict(result: Mapping[str, Any]) -> dict[str, Any] | None:
     """G-D 不通過なら verdict_original（棄却．Q の生成を流さない）を返す．通過なら None．"""
     g_d = result["G_D"]
@@ -644,6 +672,65 @@ def read_gen_records(path: Path) -> dict[str, dict[str, Any]]:
         return {j["key"]: j for j in map(json.loads, f) if j}
 
 
+GenerationInput = tuple[str, int, tuple[str, ...]]
+
+
+def read_generation_cache(
+    cache_dirs: Sequence[Path],
+) -> dict[GenerationInput, dict[str, Any]]:
+    """過去の計画のディレクトリの生成の記録を，入力（質問 ID・候補の番号・順を含む文脈の doc ID の列）から引ける形にする．
+
+    `gen_records.jsonl` は key（腕・質問 ID・候補の番号）だけで文脈を持たないので，同じディレクトリの `plan.jsonl` の
+    `base_ids`（base 腕）・`new_ids`（new 腕）と結ぶ．error の記録は入れない．腕は区別しない（入力が同じなら同じ生成）．
+    同じ入力が複数あれば先のディレクトリの記録を使う．
+    """
+    cache: dict[GenerationInput, dict[str, Any]] = {}
+    for cache_dir in cache_dirs:
+        records = read_gen_records(cache_dir / GEN_RECORDS)
+        for p in read_jsonl(cache_dir / PLAN):
+            for arm, ids in (("base", p["base_ids"]), ("new", p["new_ids"])):
+                rec = records.get(f"{arm}|{p['qid']}|{p['index']}")
+                if rec is not None and rec["error"] is None:
+                    cache.setdefault(
+                        (p["qid"], int(p["index"]), tuple(ids)),
+                        {**rec, "cache_dir": str(cache_dir)},
+                    )
+    return cache
+
+
+def generation_input(item: GenItem) -> GenerationInput:
+    """生成 1 件の入力（質問 ID・候補の番号・順を含む文脈の doc ID の列）．"""
+    return (item.qid, item.index, tuple(d.doc_id for d in item.docs))
+
+
+def seed_generation_records(
+    items: Sequence[GenItem],
+    cache: Mapping[GenerationInput, Mapping[str, Any]],
+    out_path: Path,
+) -> dict[str, int]:
+    """記録の済んでいない件のうち，キャッシュに同じ入力の生成がある件を腕の記録として out_path へ追記する（由来を cache_from に残す）．
+
+    戻り値は腕ごとに写した件数．再実行しても同じ件を二重に写さない．
+    """
+    done = {k for k, v in read_gen_records(out_path).items() if v["error"] is None}
+    seeded = {arm: 0 for arm in ARMS}
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("a", encoding="utf-8") as out:
+        for item in items:
+            hit = cache.get(generation_input(item))
+            if item.key in done or hit is None:
+                continue
+            record = {k: v for k, v in hit.items() if k != "cache_dir"}
+            record.update(
+                key=item.key,
+                arm=item.arm,
+                cache_from={"dir": hit["cache_dir"], "key": hit["key"]},
+            )
+            out.write(json.dumps(record, ensure_ascii=False) + "\n")
+            seeded[item.arm] += 1
+    return seeded
+
+
 def _post_generation(client: httpx.Client, url: str, item: GenItem) -> dict[str, Any]:
     """1 件を node へ送り，記録（応答の計測値・回答・対数確率．失敗は error）を返す．"""
     body = GenerateRequest(
@@ -747,14 +834,17 @@ def g_gen(
     plan: Sequence[Mapping[str, Any]],
     records: Mapping[str, Mapping[str, Any]],
     q_rows: Sequence[Mapping[str, Any]],
+    cache: Mapping[GenerationInput, Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """G-GEN：base 腕の作り直す候補の先頭 GATE_SAMPLE 件で，失敗 0・`prompt_tokens` が保存値（node_answers）と一致．
+    """G-GEN：base 腕の作り直す候補の先頭 GATE_SAMPLE 件で，失敗 0・`prompt_tokens` が照合の相手と一致．
 
-    回答の文字列が保存値と一致する割合は記述（生成の揺れの目安）．
+    照合の相手は，cache が無ければ保存値（node_answers．Iteration 41），あれば過去の生成の記録（Iteration 42．同じ入力の base）．
+    cache のときに該当の記録が無い件は一致しない扱い（n_reference_missing）．回答の文字列が保存値と一致する割合は記述（生成の揺れの目安）．
     """
     row_of = {r["qid"]: r for r in q_rows}
     first = [p for p in plan if p["changed"]][:GATE_SAMPLE]
     failures = missing = token_match = answer_match = 0
+    token_match_saved = answer_match_cache = reference_missing = 0
     mismatched: list[dict[str, Any]] = []
     for p in first:
         rec = records.get(f"base|{p['qid']}|{p['index']}")
@@ -769,10 +859,23 @@ def g_gen(
             na["prompt_tokens"] for na in row["node_answers"] if na["source"] == p["source"]
         )
         saved_answer = row["owner_answer"]["candidates"][p["index"]]["answer"]
-        token_match += rec["prompt_tokens"] == saved_tokens
-        if rec["prompt_tokens"] != saved_tokens and len(mismatched) < 10:
+        token_match_saved += rec["prompt_tokens"] == saved_tokens
+        reference_tokens = saved_tokens
+        if cache is not None:
+            hit = cache.get((p["qid"], int(p["index"]), tuple(p["base_ids"])))
+            if hit is None:
+                reference_missing += 1
+                reference_tokens = -1
+            else:
+                reference_tokens = hit["prompt_tokens"]
+                answer_match_cache += prompts.extract_free_answer(
+                    rec["answer"]
+                ) == prompts.extract_free_answer(hit["answer"])
+        token_match += rec["prompt_tokens"] == reference_tokens
+        if rec["prompt_tokens"] != reference_tokens and len(mismatched) < 10:
+            reference_name = "saved" if cache is None else "reference"
             mismatched.append(
-                {"key": rec["key"], "saved": saved_tokens, "now": rec["prompt_tokens"]}
+                {"key": rec["key"], reference_name: reference_tokens, "now": rec["prompt_tokens"]}
             )
         answer_match += prompts.extract_free_answer(rec["answer"]) == saved_answer
     n = len(first)
@@ -780,8 +883,12 @@ def g_gen(
         "n_checked": n,
         "n_missing": missing,
         "n_failures": failures,
+        "reference": "saved_node_answers" if cache is None else "gen_cache",
         "n_prompt_tokens_match": token_match,
+        "n_prompt_tokens_match_saved": token_match_saved,
+        "n_reference_missing": reference_missing,
         "n_answer_identical": answer_match,
+        "n_answer_identical_to_cache": answer_match_cache,
         "mismatched_prompt_tokens": mismatched,
         "passed": bool(n == GATE_SAMPLE and missing == 0 and failures == 0 and token_match == n),
     }
@@ -821,6 +928,12 @@ def failed_generation_keys(
             for arm in ARMS
         )
     }
+
+
+def require_failed_within(failed: Collection[tuple[str, int]], max_failed: int) -> None:
+    """生成が失敗した候補の数が max_failed を超えたら止める（事前登録の成功条件 (2)．境界の max_failed 件は許す）．"""
+    if len(failed) > max_failed:
+        raise SystemExit(f"{len(failed)} candidates have failed generations (max {max_failed})")
 
 
 def arm_rows(
@@ -886,14 +999,41 @@ def new_context_rows(
     return out
 
 
+VerifyInput = tuple[str, int, tuple[str, ...], str]
+
+
+def previous_verify_index(arm_dirs: Sequence[Path]) -> dict[VerifyInput, Mapping[str, Any]]:
+    """過去の腕の実行のディレクトリの検証の得点を，（質問 ID・候補の番号・文脈の doc ID の列・回答）から引ける形にする．
+
+    `verify_features.jsonl` は文脈・回答を持たないので，同じディレクトリの `results.jsonl` の候補と結ぶ．error の行は入れない．
+    入力が同じ（温度 0 の同じ検証の入力）なら腕・ディレクトリを区別しない．
+    """
+    index: dict[VerifyInput, Mapping[str, Any]] = {}
+    for arm_dir in arm_dirs:
+        verify = {
+            (v["qid"], int(v["index"])): v
+            for v in read_jsonl(arm_dir / VERIFY_FEATURES)
+            if v.get("error") is None
+        }
+        for row in read_jsonl(arm_dir / "results.jsonl"):
+            for i, cand in enumerate((row.get("owner_answer") or {}).get("candidates") or []):
+                v = verify.get((row["qid"], i))
+                if v is not None:
+                    key = (row["qid"], i, tuple(cand["context_doc_ids"]), cand["answer"])
+                    index.setdefault(key, v)
+    return index
+
+
 def seed_verify_rows(
     arm_rows_: Sequence[Mapping[str, Any]],
     saved_rows: Sequence[Mapping[str, Any]],
     saved_verify: Mapping[tuple[str, int], Mapping[str, Any]],
+    previous: Mapping[VerifyInput, Mapping[str, Any]] | None = None,
 ) -> list[Mapping[str, Any]]:
     """保存した検証の得点のうち，（文脈，回答）が保存した候補と同じ候補の行．`verify-features --resume` が飛ばす．
 
     検証の入力は文脈・質問・回答だけなので，どれも変わらない候補の得点は温度 0 の同じ入力の結果として使い回せる．
+    previous（`previous_verify_index`）があれば，保存した候補と違う候補でも，（質問・候補の番号・文脈・回答）が同じ過去の腕の得点を使う．
     """
     seeded: list[Mapping[str, Any]] = []
     for new_row, old_row in zip(arm_rows_, saved_rows, strict=True):
@@ -908,6 +1048,11 @@ def seed_verify_rows(
             saved = saved_verify.get((new_row["qid"], index))
             if same and saved is not None:
                 seeded.append(saved)
+                continue
+            if previous is not None:
+                key = (new_row["qid"], index, tuple(nc["context_doc_ids"]), nc["answer"])
+                if key in previous:
+                    seeded.append(previous[key])
     return seeded
 
 
@@ -991,6 +1136,7 @@ STAGES = (
     "q-plan",
     "q-ce-features",
     "q-generate",
+    "g-gen-generate",
     "g-gen",
     "q-build",
 )
@@ -1004,6 +1150,20 @@ def _require_chosen_rule(dev_dir: Path) -> str:
     if not gate["G_D"]["passed"]:
         raise SystemExit("G-D was not passed; the Q stages must not run (see verdict.json)")
     return str(gate["selection"]["chosen"])
+
+
+def _resolve_rule(dev_dir: Path, rule: str | None) -> tuple[str, dict[str, Any] | None]:
+    """Q の段階で使う規則と G-D′ の値．rule 未指定は dev_gate.json の選んだ X（G-D 通過が条件．G-D′ は None）．
+
+    rule 指定は `dev_gate.json` の `paired_vs_rrf[rule]` が G-D と同じ基準を満たすことを確かめ，満たさなければ止める（Q の生成を流さない）．
+    """
+    if rule is None:
+        return _require_chosen_rule(dev_dir), None
+    gate = json.loads((dev_dir / "dev_gate.json").read_text(encoding="utf-8"))
+    g_d_prime = gate_d_for_rule(gate, rule)
+    if not g_d_prime["passed"]:
+        raise SystemExit(f"G-D' was not passed for {rule}: {json.dumps(g_d_prime)}")
+    return rule, g_d_prime
 
 
 def _read_plan(plan_dir: Path) -> list[dict[str, Any]]:
@@ -1027,11 +1187,16 @@ def run_stage(
     limit: int | None,
     arm: str | None,
     max_failed: int = 0,
+    rule_override: str | None = None,
+    gen_cache_dirs: Sequence[Path] = (),
+    verify_seed_dirs: Sequence[Path] = (),
 ) -> dict[str, Any]:
     """段階 stage を実行し，要約（標準出力に出す JSON）を返す．詳しい出力は各ディレクトリのファイルに書く．
 
     verdict_dir は dev-gate が G-D 不通過の verdict.json（棄却）を書く先（最終の判定の置き場所）．
     max_failed は q-build が許す，生成が失敗した候補の数（既定 0．失敗した候補は両腕とも不正解として数える）．
+    rule_override は Q の段階の規則（G-D′ を確かめて使う．省略は dev_gate.json の選んだ X）．
+    gen_cache_dirs は q-generate が写す・g-gen が照合する過去の計画のディレクトリ，verify_seed_dirs は q-build が検証の得点の種にする過去の腕のディレクトリ．
     """
     from atrium.judge import question_texts
 
@@ -1039,11 +1204,19 @@ def run_stage(
     depth = cfg.retrieval.fusion_depth
     if stage in ("dev-ce", "q-ce", "q-ce-features") and not scorer_urls:
         raise SystemExit(f"--stage {stage} requires --scorer-url")
-    if stage in ("q-generate",) and not node_urls:
-        raise SystemExit("--stage q-generate requires --node-url")
+    if stage in ("q-generate", "g-gen-generate") and not node_urls:
+        raise SystemExit(f"--stage {stage} requires --node-url")
     if stage == "g-gen":
         plan = _read_plan(plan_dir)
-        result = g_gen(plan, read_gen_records(plan_dir / GEN_RECORDS), read_q_rows())
+        if gen_cache_dirs:
+            result = g_gen(
+                plan,
+                read_gen_records(plan_dir / G_GEN_RECORDS),
+                read_q_rows(),
+                read_generation_cache(gen_cache_dirs),
+            )
+        else:
+            result = g_gen(plan, read_gen_records(plan_dir / GEN_RECORDS), read_q_rows())
         write_stage_json(plan_dir / "g_gen.json", result)
         return result
     views = load_inbox_views(cfg, paths)
@@ -1096,10 +1269,12 @@ def run_stage(
             write_rejection(verdict_dir, rejection)
         return {key: result[key] for key in ("n", "recall", "selection", "G_D")}
     if stage == "q-rrf":
+        if rule_override is not None:
+            _resolve_rule(dev_dir, rule_override)
         result = g_rrf(cfg, paths, views)
         write_stage_json(plan_dir / "g_rrf.json", result)
         return result
-    rule = _require_chosen_rule(dev_dir)
+    rule, g_d_prime = _resolve_rule(dev_dir, rule_override)
     if stage == "q-ce":
         if rule == "bm25":
             return {"rule": rule, "note": "bm25 needs no cross-encoder scores"}
@@ -1116,6 +1291,8 @@ def run_stage(
         plan = plan_q(cfg, paths, views, rule, cache)
         (plan_dir / PLAN).write_text("".join(json.dumps(p) + "\n" for p in plan), encoding="utf-8")
         result = {"rule": rule, **summarize_plan(plan)}
+        if g_d_prime is not None:
+            result["G_D_prime"] = g_d_prime
         write_stage_json(plan_dir / "plan.json", result)
         return result
     plan = _read_plan(plan_dir)
@@ -1139,28 +1316,42 @@ def run_stage(
             for a, b in zip(new_ce, saved_ce, strict=True)
         )
         return {"n_candidates": len(new_ce), "n_ce_features_changed": n_changed}
+    if stage == "g-gen-generate":
+        # G-GEN 専用：キャッシュを使わず，作り直す候補の先頭 GATE_SAMPLE 件の base 腕だけを新しく生成する
+        items = [i for i in generation_items(plan, views, questions_of) if i.arm == "base"]
+        return run_generation(items[:GATE_SAMPLE], node_urls, plan_dir / G_GEN_RECORDS)
     if stage == "q-generate":
         items = generation_items(plan, views, questions_of)
         if arm is not None:
             items = [i for i in items if i.arm == arm]
         items = items if limit is None else items[:limit]
-        return run_generation(items, node_urls, plan_dir / GEN_RECORDS)
+        cache_seeded = (
+            seed_generation_records(
+                items, read_generation_cache(gen_cache_dirs), plan_dir / GEN_RECORDS
+            )
+            if gen_cache_dirs
+            else None
+        )
+        return {
+            **run_generation(items, node_urls, plan_dir / GEN_RECORDS),
+            "n_cache_seeded": cache_seeded,
+        }
     if stage == "q-build":
         records = read_gen_records(plan_dir / GEN_RECORDS)
         failed = failed_generation_keys(plan, records)
-        if len(failed) > max_failed:
-            raise SystemExit(f"{len(failed)} candidates have failed generations (max {max_failed})")
+        require_failed_within(failed, max_failed)
         if not (plan_dir / CE_FEATURES_NEW).exists():
             raise SystemExit(f"{plan_dir / CE_FEATURES_NEW} is missing; run --stage q-ce-features")
         new_ce = read_jsonl(plan_dir / CE_FEATURES_NEW)
         saved_verify = {
             (j["qid"], int(j["index"])): j for _, _, v in Q_SOURCES for j in read_jsonl(Path(v))
         }
+        previous = previous_verify_index(verify_seed_dirs) if verify_seed_dirs else None
         summary: dict[str, Any] = {}
         for name in ARMS:
             rows = arm_rows(saved_rows, plan, records, name, frozenset(failed))
             ce_rows = saved_ce if name == "base" else new_ce
-            seeded = seed_verify_rows(rows, saved_rows, saved_verify)
+            seeded = seed_verify_rows(rows, saved_rows, saved_verify, previous)
             write_arm_dir(Path(f"{arm_prefix}{name}"), rows, ce_rows, seeded)
             summary[name] = {
                 "n_rows": len(rows),

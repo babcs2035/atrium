@@ -10,6 +10,8 @@
 #   bash scripts/d0009/b3ic_hosts.sh tunnels-open <scorer|node|ollama> / tunnels-close   SSH の転送（gpu4 の localhost から各機へ）
 #   bash scripts/d0009/b3ic_hosts.sh urls <scorer|node|ollama>   転送の URL を --scorer-url などの引数の形で出す
 # 環境変数 B3IC_HOSTS（空白区切り）で使う機を絞れる（例: B3IC_HOSTS="wafl502 wafl503" bash ... urls scorer）．
+# Iteration 42（B132．人間の指示 2026-11-10）は wafl500〜509 の 10 台を使う（B3IC_HOSTS="wafl500 wafl501 ... wafl509"．既定は変えない）．
+# 83 °C 以上の機に新しい要求を送らない規則は b3ic_run.sh（各回の前に外す）と b3ic_monitor.sh（process を止める）が持つ．
 # 転送の port：採点 182NN，node 181NN，Ollama 115NN（NN は機の番号の下 2 桁．wafl502 なら 18202・18102・11502）．
 # 各機の container は Iteration 40 までに作ったもの（image・モデルは各機の ~/.cache/huggingface と ~/workspace/ktakahashi/atrium）．
 set -uo pipefail

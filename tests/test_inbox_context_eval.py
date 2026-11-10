@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -17,6 +18,7 @@ from atrium.inbox_context_eval import (
     InboxView,
     Retrieval,
     _post_generation,
+    _resolve_rule,
     arm_rows,
     bm25_context,
     ce_context,
@@ -24,11 +26,17 @@ from atrium.inbox_context_eval import (
     failed_generation_keys,
     g_gen,
     gate_d,
+    gate_d_for_rule,
     gate_d_verdict,
     generation_items,
     new_context_rows,
+    previous_verify_index,
+    read_gen_records,
+    read_generation_cache,
+    require_failed_within,
     retrieve,
     rrf_context,
+    seed_generation_records,
     seed_verify_rows,
     select_context_rule,
     summarize_plan,
@@ -481,3 +489,193 @@ async def test_verify_run_jobs_round_robins_candidates_over_the_urls(
         ("http://u1", 1),
         ("http://u1", 3),
     ]
+
+
+# ── Iteration 42：規則の指定（G-D′）・生成のキャッシュ・検証の種・失敗の許容 ─────────────
+
+
+def dev_gate_doc(delta: float, low: float) -> dict[str, Any]:
+    """bm25 の paired_vs_rrf だけを持つ dev_gate.json の代わり（G-D は不通過の X = ce50 を選んだ形）．"""
+    return {
+        "recall": {"rrf": 0.92, "bm25": 0.92 + delta},
+        "paired_vs_rrf": {"bm25": {"delta": delta, "bootstrap_ci95": [low, delta + 0.01]}},
+        "selection": {"chosen": "ce50"},
+        "G_D": {"passed": True},
+    }
+
+
+@pytest.mark.parametrize(
+    ("delta", "low", "passed"),
+    [(0.010, 0.0001, True), (0.0265, 0.018, True), (0.0099, 0.005, False), (0.02, 0.0, False)],
+)
+def test_gate_d_for_rule_requires_gain_of_0_010_and_a_positive_lower_bound(
+    delta: float, low: float, passed: bool
+) -> None:
+    result = gate_d_for_rule(dev_gate_doc(delta, low), "bm25")
+
+    assert result["passed"] is passed
+    assert result["rule"] == "bm25" and result["delta"] == delta
+
+
+def test_resolve_rule_with_override_checks_g_d_prime_and_without_uses_the_chosen_x(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "dev_gate.json").write_text(json.dumps(dev_gate_doc(0.0265, 0.018)))
+
+    assert _resolve_rule(tmp_path, None) == ("ce50", None)
+    rule, g_d_prime = _resolve_rule(tmp_path, "bm25")
+
+    assert rule == "bm25" and g_d_prime is not None and g_d_prime["passed"] is True
+
+
+def test_resolve_rule_stops_when_g_d_prime_is_not_passed(tmp_path: Path) -> None:
+    (tmp_path / "dev_gate.json").write_text(json.dumps(dev_gate_doc(0.004, 0.001)))
+
+    with pytest.raises(SystemExit, match="G-D'"):
+        _resolve_rule(tmp_path, "bm25")
+
+
+def write_cache_dir(path: Path, plan: list[dict[str, Any]], records: list[dict[str, Any]]) -> Path:
+    """過去の計画のディレクトリ（plan.jsonl・gen_records.jsonl）．"""
+    path.mkdir(parents=True)
+    (path / "plan.jsonl").write_text("".join(json.dumps(p) + "\n" for p in plan))
+    (path / "gen_records.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records))
+    return path
+
+
+def test_generation_cache_matches_on_the_ordered_context_and_ignores_the_arm(
+    tmp_path: Path,
+) -> None:
+    plan = [plan_entry("q1", 1, True)]
+    old = write_cache_dir(
+        tmp_path / "old",
+        plan,
+        [record("base", "q1", 1, "Answer: B"), record("new", "q1", 1, "Answer: N")],
+    )
+    cache = read_generation_cache([old])
+    swapped = plan_entry("q1", 1, True)
+    # 同じ並びの文脈なら，腕をまたいで使える（今回の base 腕の入力が過去の new 腕の入力と同じ場合）．並びが違えば使えない
+    new_ids, base_ids = swapped["new_ids"], swapped["base_ids"]
+    same_as_old_new = GenItem("new", "q1", 1, "Who?", docs_of(new_ids))
+    base_with_old_new_ids = GenItem("base", "q1", 1, "Who?", docs_of(new_ids))
+    base_with_old_base_ids = GenItem("base", "q1", 1, "Who?", docs_of(base_ids))
+    reordered = GenItem("new", "q1", 2, "Who?", docs_of(list(reversed(new_ids))))
+
+    out_cross = tmp_path / "cross.jsonl"
+    seeded_cross = seed_generation_records(
+        [same_as_old_new, base_with_old_new_ids], cache, out_cross
+    )
+    out_base = tmp_path / "base.jsonl"
+    seeded_base = seed_generation_records([base_with_old_base_ids], cache, out_base)
+    out_none = tmp_path / "none.jsonl"
+    seeded_none = seed_generation_records([reordered], cache, out_none)
+
+    assert seeded_cross == {"base": 1, "new": 1}
+    assert read_gen_records(out_cross)["base|q1|1"]["answer"] == "Answer: N"
+    assert read_gen_records(out_base)["base|q1|1"]["answer"] == "Answer: B"
+    assert seeded_base == {"base": 1, "new": 0} and seeded_none == {"base": 0, "new": 0}
+    record_new = read_gen_records(out_cross)["new|q1|1"]
+    assert record_new["cache_from"] == {"dir": str(old), "key": "new|q1|1"}
+
+
+def docs_of(ids: list[str]) -> list[DocOut]:
+    """doc ID だけが意味を持つ文脈の文書．"""
+    return [DocOut(doc_id=d, title="t", content="c", score=0.0) for d in ids]
+
+
+def test_generation_cache_skips_failed_records_and_seeding_is_idempotent(tmp_path: Path) -> None:
+    plan = [plan_entry("q1", 0, True), plan_entry("q1", 1, True)]
+    old = write_cache_dir(
+        tmp_path / "old",
+        plan,
+        [
+            record("base", "q1", 0, "", error="HTTPStatusError: 500"),
+            record("base", "q1", 1, "Answer: ok"),
+        ],
+    )
+    cache = read_generation_cache([old])
+    items = [
+        GenItem("base", "q1", 0, "Who?", docs_of(plan[0]["base_ids"])),
+        GenItem("base", "q1", 1, "Who?", docs_of(plan[1]["base_ids"])),
+    ]
+    out = tmp_path / "gen_records.jsonl"
+
+    first = seed_generation_records(items, cache, out)
+    second = seed_generation_records(items, cache, out)
+
+    assert first == {"base": 1, "new": 0} and second == {"base": 0, "new": 0}
+    assert list(read_gen_records(out)) == ["base|q1|1"]
+
+
+def test_g_gen_with_a_cache_compares_prompt_tokens_with_the_past_record() -> None:
+    n = GATE_SAMPLE
+    rows = [saved_row(f"q{i}", ["Answer0", "A1", "A2"]) for i in range(n)]
+    plan = [plan_entry(f"q{i}", 0, True) for i in range(n)]
+    cache = {
+        (f"q{i}", 0, tuple(plan[i]["base_ids"])): {
+            **record("base", f"q{i}", 0, "Answer: Answer0"),
+            "prompt_tokens": 555,
+        }
+        for i in range(n)
+    }
+    records = {
+        f"base|q{i}|0": {**record("base", f"q{i}", 0, "Answer: Answer0"), "prompt_tokens": 555}
+        for i in range(n)
+    }
+
+    ok = g_gen(plan, records, rows, cache)
+    # 保存値（100）とは違っても，照合の相手は過去の記録
+    assert ok["passed"] is True and ok["n_prompt_tokens_match_saved"] == 0
+    assert ok["reference"] == "gen_cache" and ok["n_answer_identical_to_cache"] == n
+
+    records["base|q2|0"]["prompt_tokens"] = 556
+    del cache[("q5", 0, tuple(plan[5]["base_ids"]))]
+    broken = g_gen(plan, records, rows, cache)
+
+    assert broken["passed"] is False
+    assert broken["n_prompt_tokens_match"] == n - 2 and broken["n_reference_missing"] == 1
+
+
+def test_seed_verify_rows_also_uses_previous_arm_scores_for_the_same_context_and_answer(
+    tmp_path: Path,
+) -> None:
+    saved = [saved_row("q1", ["A0", "A1", "A2"])]
+    plan = [plan_entry("q1", 0, True), plan_entry("q1", 1, True), plan_entry("q1", 2, False)]
+    records = {
+        "base|q1|0": record("base", "q1", 0, "Answer: A0"),
+        "new|q1|0": record("new", "q1", 0, "Answer: N0"),
+        "base|q1|1": record("base", "q1", 1, "Answer: B1"),
+        "new|q1|1": record("new", "q1", 1, "Answer: N1"),
+    }
+    # 過去の new 腕：候補 0 は今回の new 腕と同じ（文脈・回答），候補 1 は回答が違う．error の行は種にしない
+    previous_new = arm_rows(
+        saved, plan, {**records, "new|q1|1": record("new", "q1", 1, "Answer: X")}, "new"
+    )
+    prev_dir = tmp_path / "prev_new"
+    prev_dir.mkdir()
+    (prev_dir / "results.jsonl").write_text("".join(json.dumps(r) + "\n" for r in previous_new))
+    verify = [
+        {"qid": "q1", "index": 0, "v": 10.0, "error": None},
+        {"qid": "q1", "index": 1, "v": 11.0, "error": None},
+        {"qid": "q1", "index": 2, "v": 12.0, "error": "boom"},
+    ]
+    (prev_dir / "verify_features.jsonl").write_text("".join(json.dumps(v) + "\n" for v in verify))
+    saved_verify = {("q1", 2): {"qid": "q1", "index": 2, "v": 2.0}}
+
+    previous = previous_verify_index([prev_dir])
+    new_seed = seed_verify_rows(
+        arm_rows(saved, plan, records, "new"), saved, saved_verify, previous
+    )
+
+    assert [(r["index"], r["v"]) for r in new_seed] == [(0, 10.0), (2, 2.0)]
+
+
+@pytest.mark.parametrize(("n_failed", "ok"), [(0, True), (3, True), (4, False)])
+def test_require_failed_within_allows_up_to_max_failed_candidates(n_failed: int, ok: bool) -> None:
+    failed = {(f"q{i}", 0) for i in range(n_failed)}
+
+    if ok:
+        require_failed_within(failed, 3)
+    else:
+        with pytest.raises(SystemExit, match="4 candidates"):
+            require_failed_within(failed, 3)

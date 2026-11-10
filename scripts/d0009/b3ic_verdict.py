@@ -1,4 +1,4 @@
-"""d0009 B3（Iteration 41）：受信箱の中の文脈 5 通を dev で選んだ規則 X に替えたときの正答率（H-IC）と作り話の増分（守り）の集計と判定．
+"""d0009 B3（Iteration 41・42）：受信箱の中の文脈 5 通を規則（Iteration 41 は dev で選んだ X，Iteration 42 は bm25）に替えたときの正答率（H-IC・H-IC42）と作り話の増分（守り）の集計と判定．
 
 使い方（リポジトリの直下．`atrium inbox-context-eval --stage q-build` と，両腕の `atrium judge --with-candidates`・
 `atrium verify-features --resume` の後．GPU は使わない）:
@@ -13,12 +13,23 @@
 - 両腕とも，作り直した候補の回答・採点・特徴量・検証の得点で V2（`results/d0009_b3_verify/answer_verifier_selector.json`．学習し直さない）を当てはめる．
   判定に使う正誤は，保存した判定（`atrium judge --with-candidates`．同じ (質問，回答) は温度 0 の同じ判定）．
 統計は既存の実装を使う：`atrium.answer_select_eval`（V2・R3′・区分）・`atrium.select_eval`（天井）・`atrium.fabrication_eval`（3 分類）．
+
+環境変数（全て省略可．既定は Iteration 41 の値．Iteration 42 は `scripts/d0009/b3ic_post.sh` の先頭の例を参照）:
+  B3IC_ARM_PREFIX      腕の実行のディレクトリの前置き（<前置き>{base,new}[_V2,_R3p]）．既定 results/d0009_b3ic_q_
+  B3IC_OUT             判定の出力先．既定 results/d0009_b3_inbox_context（`labels/` の棄権の判定もここ）
+  B3IC_PLAN_DIR        計画・生成の記録のディレクトリ．既定 results/d0009_b3ic_plan（plan.json の rule・G_D_prime を読む）
+  B3IC_SEED            bootstrap の種．既定 41
+  B3IC_LABEL           analysis_report.md の見出しの識別（既定 Iteration 41）
+  B3IC_HYPOTHESIS      仮説の名前（既定 H-IC．Iteration 42 は H-IC42）
+  B3IC_COMPARE_PREFIX  比べる過去の実行（Iteration 41 の ce50）の腕の前置き．あれば V2 の対応ありの差などを記述に加える（判定には使わない）
+  B3IC_COMPARE_PLAN_DIR  その計画のディレクトリ（持ち主の受信箱の中の Recall・委託先へ渡る文書の見積もり用）
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -41,14 +52,19 @@ from atrium.select_eval import (
 from atrium.verdict import BOOTSTRAP_SAMPLES, make_verdict, paired_bootstrap_ci, write_verdict
 
 RESULTS = Path("results")
-ARM_PREFIX = RESULTS / "d0009_b3ic_q_"
+ARM_PREFIX = Path(os.environ.get("B3IC_ARM_PREFIX", str(RESULTS / "d0009_b3ic_q_")))
 ARMS = ("base", "new")
-OUT = RESULTS / "d0009_b3_inbox_context"
+OUT = Path(os.environ.get("B3IC_OUT", str(RESULTS / "d0009_b3_inbox_context")))
 DEV_DIR = RESULTS / "d0009_b3ic_dev_gate"
-PLAN_DIR = RESULTS / "d0009_b3ic_plan"
+PLAN_DIR = Path(os.environ.get("B3IC_PLAN_DIR", str(RESULTS / "d0009_b3ic_plan")))
 V2_SELECTOR = RESULTS / "d0009_b3_verify" / "answer_verifier_selector.json"
 RULES = ("R3p", "V2")
-BOOTSTRAP_SEED = 41
+BOOTSTRAP_SEED = int(os.environ.get("B3IC_SEED", "41"))
+LABEL = os.environ.get("B3IC_LABEL", "Iteration 41")
+HYPOTHESIS = os.environ.get("B3IC_HYPOTHESIS", "H-IC")
+# 比べる過去の実行（Iteration 42 の ce50 との比較．あれば記述に加える．判定には使わない）
+COMPARE_PREFIX = os.environ.get("B3IC_COMPARE_PREFIX")
+COMPARE_PLAN_DIR = os.environ.get("B3IC_COMPARE_PLAN_DIR")
 FABRICATION_INCREASE_LIMIT = 0.005
 # 露出の割合の分母を読む実行（run_meta.json の sources の文書数の合計）
 TOTAL_DOCS_RUN = RESULTS / "d0009_a3_p1"
@@ -94,7 +110,7 @@ def decide_overall(h_ic: str, guard_ok: bool, gates_passed: bool) -> str:
 
 
 def paired_accuracy(new: Sequence[bool], base: Sequence[bool]) -> dict[str, Any]:
-    """new − base の正答率の差・対応ありの bootstrap の 95% 区間（種 41）・McNemar（b = new だけ正解，c = base だけ正解）．"""
+    """new − base の正答率の差・対応ありの bootstrap の 95% 区間（種 BOOTSTRAP_SEED．既定 41）・McNemar（b = new だけ正解，c = base だけ正解）．"""
     y_new, y_base = np.asarray(new, dtype=np.float64), np.asarray(base, dtype=np.float64)
     diff = y_new - y_base
     low, high = paired_bootstrap_ci(diff, BOOTSTRAP_SAMPLES, BOOTSTRAP_SEED)
@@ -116,23 +132,33 @@ def paired_accuracy(new: Sequence[bool], base: Sequence[bool]) -> dict[str, Any]
 # ── 両腕の選択 ────────────────────────────────────────────────────────────────
 
 
+def dir_questions(directory: Path) -> list[ase.QuestionCandidates]:
+    """実行のディレクトリの全問の候補の特徴量（検証の得点 v を含む）．"""
+    return ase.load_questions(
+        directory,
+        need_answer_features=False,
+        verify_features=directory / ice.VERIFY_FEATURES,
+    )
+
+
+def dir_outcomes(directory: Path) -> dict[str, list[QuestionOutcome]]:
+    """実行のディレクトリの R3′・V2 の選んだ結果（全問．問の順は results.jsonl）．"""
+    _, selector = ase.load_selector(V2_SELECTOR)
+    questions = dir_questions(directory)
+    return {
+        "R3p": ase.existing_r3p_outcomes(directory, questions),
+        "V2": ase.outcomes_of(questions, ase.choose_for("V2", questions, selector)),
+    }
+
+
 def arm_questions(arm: str) -> list[ase.QuestionCandidates]:
     """腕の実行の全問の候補の特徴量（検証の得点 v を含む）．"""
-    return ase.load_questions(
-        arm_dir(arm),
-        need_answer_features=False,
-        verify_features=arm_dir(arm) / ice.VERIFY_FEATURES,
-    )
+    return dir_questions(arm_dir(arm))
 
 
 def arm_outcomes(arm: str) -> dict[str, list[QuestionOutcome]]:
     """腕の R3′・V2 の選んだ結果（全問．問の順は results.jsonl）．"""
-    _, selector = ase.load_selector(V2_SELECTOR)
-    questions = arm_questions(arm)
-    return {
-        "R3p": ase.existing_r3p_outcomes(arm_dir(arm), questions),
-        "V2": ase.outcomes_of(questions, ase.choose_for("V2", questions, selector)),
-    }
+    return dir_outcomes(arm_dir(arm))
 
 
 def derive() -> dict[str, int]:
@@ -314,29 +340,47 @@ def regeneration_agreement(
     }
 
 
+def delegated_depth_estimate(cache_path: Path, rule: str, total_docs: int) -> dict[str, Any] | None:
+    """並べ替えを委託先の GPU の PC に置いた場合に委託先へ渡る文書の見積もり（cross-encoder の得点の cache の文書．無ければ None）．"""
+    cache = ice.read_ce_cache(cache_path)
+    if not cache:
+        return None
+    per_question: dict[str, set[str]] = {}
+    for (qid, _), (doc_ids, _) in cache.items():
+        per_question.setdefault(qid, set()).update(doc_ids)
+    union = set().union(*per_question.values())
+    sizes = [len(v) for v in per_question.values()]
+    return {
+        "rule": rule,
+        "docs_per_question_median": float(np.median(sizes)),
+        "docs_per_question_max": int(max(sizes)),
+        "unique_docs_sent": len(union),
+        "share_of_all_docs": len(union) / total_docs,
+        "note": "並べ替えを委託先の GPU の PC に置いた場合の追加の露出の見積もり（判定に使わない）",
+    }
+
+
 def exposure_report(rule: str) -> dict[str, Any]:
-    """質問者へ渡る文書 E_any（腕ごと．N = 1）と，並べ替えを委託先に置いたときに委託先へ渡る文書 N 通の見積もり（記述）．"""
+    """質問者へ渡る文書 E_any（腕ごと．N = 1）と，並べ替えを委託先に置いたときに委託先へ渡る文書 N 通の見積もり（記述）．
+
+    rule が cross-encoder の規則なら今回の計画の cache から，COMPARE_PLAN_DIR があれば比べる実行（ce50）の cache から見積もる．
+    """
     total_docs = mre.total_docs_of(TOTAL_DOCS_RUN)
     out: dict[str, Any] = {"E_any": {}}
     for arm in ARMS:
         rows = read_results(arm_dir(arm) / "results.jsonl")
         host_of = {r["qid"]: "requester" for r in rows}
         out["E_any"][arm] = mre.exposure(rows, host_of, {}, total_docs)
-    cache = ice.read_ce_cache(PLAN_DIR / ice.CE_CACHE)
-    if rule != "bm25" and cache:
-        per_question: dict[str, set[str]] = {}
-        for (qid, _), (doc_ids, _) in cache.items():
-            per_question.setdefault(qid, set()).update(doc_ids)
-        union = set().union(*per_question.values())
-        sizes = [len(v) for v in per_question.values()]
-        out["delegated_rerank_depth"] = {
-            "rule": rule,
-            "docs_per_question_median": float(np.median(sizes)),
-            "docs_per_question_max": int(max(sizes)),
-            "unique_docs_sent": len(union),
-            "share_of_all_docs": len(union) / total_docs,
-            "note": "並べ替えを委託先の GPU の PC に置いた場合の追加の露出の見積もり（判定に使わない）",
-        }
+    if rule != "bm25":
+        estimate = delegated_depth_estimate(PLAN_DIR / ice.CE_CACHE, rule, total_docs)
+        if estimate is not None:
+            out["delegated_rerank_depth"] = estimate
+    if COMPARE_PLAN_DIR:
+        reference = delegated_depth_estimate(
+            Path(COMPARE_PLAN_DIR) / ice.CE_CACHE, "ce50", total_docs
+        )
+        if reference is not None:
+            out["delegated_rerank_depth_reference"] = reference
     return out
 
 
@@ -346,7 +390,7 @@ def read_json(path: Path) -> dict[str, Any] | None:
 
 
 def gate_summary() -> dict[str, Any]:
-    """G-RRF・G-CE・G-D・G-GEN の通否（ファイルが無ければ passed = None）．"""
+    """G-RRF・G-CE・G-D（規則を指定した計画は G-D′）・G-GEN の通否（ファイルが無ければ passed = None）．"""
     dev_gate = read_json(DEV_DIR / "dev_gate.json")
     files = {
         "G-RRF": read_json(PLAN_DIR / "g_rrf.json"),
@@ -355,7 +399,79 @@ def gate_summary() -> dict[str, Any]:
     }
     gates: dict[str, Any] = {k: None if v is None else bool(v["passed"]) for k, v in files.items()}
     gates["G-D"] = None if dev_gate is None else bool(dev_gate["G_D"]["passed"])
+    # 規則を指定した計画（Iteration 42）は，dev の選んだ X の G-D ではなく，その規則の G-D′ を見る
+    plan_doc = read_json(PLAN_DIR / "plan.json")
+    if plan_doc is not None and "G_D_prime" in plan_doc:
+        del gates["G-D"]
+        gates["G-D'"] = bool(plan_doc["G_D_prime"]["passed"])
     return {"passed_by_gate": gates, "all_passed": all(v is True for v in gates.values())}
+
+
+def sensitivity_excluding_failed(
+    outcomes: Mapping[str, Mapping[str, Sequence[QuestionOutcome]]],
+    plan: Sequence[Mapping[str, Any]],
+    records: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    """生成が失敗した候補（両腕とも不正解として数えた）を持つ問を除いたときの V2 の new − base（感度の記述）．"""
+    failed = ice.failed_generation_keys(plan, records)
+    failed_qids = {qid for qid, _ in failed}
+    qids = [o.qid for o in outcomes["base"]["V2"]]
+    keep = [i for i, q in enumerate(qids) if q not in failed_qids]
+    new, base = correct_of(outcomes["new"]["V2"]), correct_of(outcomes["base"]["V2"])
+    return {
+        "n_failed_candidates": len(failed),
+        "failed_candidates": sorted(f"{qid}#{index}" for qid, index in failed),
+        "n_questions_kept": len(keep),
+        "V2": paired_accuracy([new[i] for i in keep], [base[i] for i in keep]),
+    }
+
+
+def generation_provenance(records: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """腕ごとの生成の記録の由来：過去の生成を写した件数と，今回新しく生成した件数．"""
+    out: dict[str, Any] = {}
+    for arm in ARMS:
+        mine = [r for r in records.values() if r["arm"] == arm and r["error"] is None]
+        cached = [r for r in mine if "cache_from" in r]
+        out[arm] = {
+            "n_records": len(mine),
+            "n_from_cache": len(cached),
+            "n_generated_now": len(mine) - len(cached),
+            # sanitize_results.py が本文の繰り返しを省略した記録（写した回答の整形が元の回答と異なりうる）
+            "n_from_cache_with_omitted_text": sum("[omitted:" in str(r["answer"]) for r in cached),
+        }
+    return out
+
+
+def reference_comparison(
+    outcomes: Mapping[str, Mapping[str, Sequence[QuestionOutcome]]],
+    q_rows: Sequence[Mapping[str, Any]],
+) -> dict[str, Any] | None:
+    """比べる過去の実行（Iteration 41 の ce50）との V2 の対応ありの差（記述．判定に使わない）．
+
+    base の作り直しの揺れを含む．new は今回の new − 過去の new，base は今回の base − 過去の base．
+    """
+    if not COMPARE_PREFIX:
+        return None
+    ref = {arm: dir_outcomes(Path(f"{COMPARE_PREFIX}{arm}"))["V2"] for arm in ARMS}
+    qids = [o.qid for o in outcomes["base"]["V2"]]
+    if [o.qid for o in ref["base"]] != qids or [o.qid for o in ref["new"]] != qids:
+        raise ValueError("the reference run has different questions")
+    new, base = correct_of(outcomes["new"]["V2"]), correct_of(outcomes["base"]["V2"])
+    ref_new, ref_base = correct_of(ref["new"]), correct_of(ref["base"])
+    ref_delta = float(np.mean(ref_new) - np.mean(ref_base))
+    delta = float(np.mean(new) - np.mean(base))
+    out: dict[str, Any] = {
+        "reference_prefix": COMPARE_PREFIX,
+        "new_vs_reference_new": paired_accuracy(new, ref_new),
+        "base_vs_reference_base": paired_accuracy(base, ref_base),
+        "reference_delta_v2_Q": ref_delta,
+        "share_of_reference_gain": delta / ref_delta if ref_delta else None,
+    }
+    if COMPARE_PLAN_DIR:
+        out["recall_in_q_reference"] = recall_in_q(
+            ice.read_jsonl(Path(COMPARE_PLAN_DIR) / ice.PLAN), q_rows
+        )
+    return out
 
 
 def build_report() -> dict[str, Any]:
@@ -367,7 +483,9 @@ def build_report() -> dict[str, Any]:
     plan = ice.read_jsonl(PLAN_DIR / ice.PLAN)
     q_rows = ice.read_q_rows()
     dev_gate = json.loads((DEV_DIR / "dev_gate.json").read_text(encoding="utf-8"))
-    rule = dev_gate["selection"]["chosen"]
+    plan_doc = read_json(PLAN_DIR / "plan.json") or {}
+    rule = plan_doc.get("rule") or dev_gate["selection"]["chosen"]
+    records = ice.read_gen_records(PLAN_DIR / ice.GEN_RECORDS)
     h_ic = decide_h_ic(accuracy["V2"]["Q"]["bootstrap_ci95"])
     guard_ok = fabrication["increase_within_limit"]
     overall = decide_overall(h_ic, guard_ok, gates["all_passed"])
@@ -375,22 +493,26 @@ def build_report() -> dict[str, Any]:
         "rule": rule,
         "gates": gates,
         "dev_gate": {k: dev_gate[k] for k in ("n", "recall", "selection", "G_D")},
+        "g_d_prime": plan_doc.get("G_D_prime"),
+        "dev_paired_vs_rrf": dev_gate["paired_vs_rrf"],
+        "bootstrap": {"samples": BOOTSTRAP_SAMPLES, "seed": BOOTSTRAP_SEED, "paired": True},
         "accuracy": accuracy,
         "fabrication": fabrication,
         **segments_and_ceilings(outcomes),
         "completeness": completeness(),
         "plan": read_json(PLAN_DIR / "plan.json"),
         "recall_in_q": recall_in_q(plan, q_rows),
-        "regeneration": regeneration_agreement(
-            ice.read_gen_records(PLAN_DIR / ice.GEN_RECORDS), q_rows
-        ),
+        "regeneration": regeneration_agreement(records, q_rows),
+        "generation_provenance": generation_provenance(records),
+        "sensitivity_excluding_failed": sensitivity_excluding_failed(outcomes, plan, records),
+        "reference_comparison": reference_comparison(outcomes, q_rows),
         "exposure": exposure_report(rule),
         "runs": {
             "dev_ce": read_json(DEV_DIR / "dev_ce_run.json"),
             "q_ce": read_json(PLAN_DIR / "q_ce_run.json"),
         },
         "verdict_original": {
-            "hypothesis": "H-IC（候補の受信箱の中の文脈 5 通を dev で選んだ規則 X に替えると，Q の V2 の最終回答の正答率が上がる）",
+            "hypothesis": f"{HYPOTHESIS}（候補の受信箱の中の文脈 5 通を規則 {rule} に替えると，Q の V2 の最終回答の正答率が上がる）",
             "h_ic": h_ic,
             "delta_v2_Q": accuracy["V2"]["Q"]["delta"],
             "ci95": accuracy["V2"]["Q"]["bootstrap_ci95"],
@@ -411,9 +533,9 @@ def render_report(report: Mapping[str, Any]) -> str:
     fab = report["fabrication"]
     v = report["verdict_original"]
     lines = [
-        "# d0009 B3 Iteration 41：受信箱の中の文脈 5 通の選び方（RRF → X）",
+        f"# d0009 B3 {LABEL}：受信箱の中の文脈 5 通の選び方（RRF → {report['rule']}）",
         "",
-        f"選んだ X：`{report['rule']}`．判定：**{v['verdict']}**（H-IC：{v['h_ic']}，守り：{'満たす' if v['guard_within_limit'] else '満たさない'}，"
+        f"規則：`{report['rule']}`．判定：**{v['verdict']}**（H-IC：{v['h_ic']}，守り：{'満たす' if v['guard_within_limit'] else '満たさない'}，"
         f"ゲート：{'全て通過' if v['gates_all_passed'] else '不通過あり'}）．",
         "",
         "## ゲート",
@@ -425,7 +547,7 @@ def render_report(report: Mapping[str, Any]) -> str:
         "",
         "## 主（H-IC）：V2 の最終回答の正答率",
         "",
-        "| 集合 | n | acc(base) | acc(new) | Δ | 95% 区間（bootstrap 10,000・種 41） | b : c | McNemar p |",
+        f"| 集合 | n | acc(base) | acc(new) | Δ | 95% 区間（bootstrap 10,000・種 {BOOTSTRAP_SEED}） | b : c | McNemar p |",
         "|---|---|---|---|---|---|---|---|",
     ]
     for rule_name, block in report["accuracy"].items():
@@ -460,8 +582,26 @@ def render_report(report: Mapping[str, Any]) -> str:
         f"- 作り直した base の回答が保存値と一致する割合：{report['regeneration']['answer_identical_share']:.4f}"
         f"（prompt_tokens の一致 {report['regeneration']['prompt_tokens_identical_share']:.4f}）",
         f"- dev の Recall@5：{json.dumps(report['dev_gate']['recall'])}",
-        "",
     ]
+    prov = report["generation_provenance"]
+    sens = report["sensitivity_excluding_failed"]
+    lines += [
+        "- 生成の記録の由来（過去の生成を写した件数 / 今回新しく生成した件数）："
+        + "，".join(
+            f"{arm} {p['n_from_cache']} / {p['n_generated_now']}" for arm, p in prov.items()
+        ),
+        f"- 生成が失敗した候補：{sens['n_failed_candidates']} 件．それを持つ問を除いた V2 の Δ = {sens['V2']['delta']:+.4f}"
+        f"（n = {sens['n_questions_kept']}，95% 区間 [{sens['V2']['bootstrap_ci95'][0]:+.4f}, {sens['V2']['bootstrap_ci95'][1]:+.4f}]）",
+    ]
+    ref = report.get("reference_comparison")
+    if ref is not None:
+        nv, bv = ref["new_vs_reference_new"], ref["base_vs_reference_base"]
+        lines += [
+            f"- 比べる実行（`{ref['reference_prefix']}`）との V2 の対応ありの差（記述．判定に使わない）：new − 過去の new = {nv['delta']:+.4f}"
+            f"（95% 区間 [{nv['bootstrap_ci95'][0]:+.4f}, {nv['bootstrap_ci95'][1]:+.4f}]，b : c = {nv['b_only_new']} : {nv['c_only_base']}），"
+            f"base − 過去の base = {bv['delta']:+.4f}．過去の Δ = {ref['reference_delta_v2_Q']:+.4f}，今回の取れた割合 = {ref['share_of_reference_gain']}",
+        ]
+    lines.append("")
     return "\n".join(lines)
 
 
