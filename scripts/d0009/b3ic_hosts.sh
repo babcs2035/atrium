@@ -9,10 +9,13 @@
 #   bash scripts/d0009/b3ic_hosts.sh all-down            採点の server・node・Ollama を止める（始めの状態．削除・image・モデルの削除はしない）
 #   bash scripts/d0009/b3ic_hosts.sh tunnels-open <scorer|node|ollama> / tunnels-close   SSH の転送（gpu4 の localhost から各機へ）
 #   bash scripts/d0009/b3ic_hosts.sh urls <scorer|node|ollama>   転送の URL を --scorer-url などの引数の形で出す
+# 環境変数 B3IC_HOSTS（空白区切り）で使う機を絞れる（例: B3IC_HOSTS="wafl502 wafl503" bash ... urls scorer）．
 # 転送の port：採点 182NN，node 181NN，Ollama 115NN（NN は機の番号の下 2 桁．wafl502 なら 18202・18102・11502）．
 # 各機の container は Iteration 40 までに作ったもの（image・モデルは各機の ~/.cache/huggingface と ~/workspace/ktakahashi/atrium）．
 set -uo pipefail
-HOSTS=(wafl502 wafl503 wafl504 wafl505 wafl506 wafl507 wafl508)
+# 使う機（環境変数 B3IC_HOSTS に空白区切りで指定．既定は wafl502〜508 の全て）．wafl505 は 100% の負荷で数分のうちに 83 °C に達した（Iteration 41 の記録）
+# ので，採点・生成・判定の本番では B3IC_HOSTS から外す．
+read -r -a HOSTS <<< "${B3IC_HOSTS:-wafl502 wafl503 wafl504 wafl505 wafl506 wafl507 wafl508}"
 SSH_B=(-q -o BatchMode=yes -o ConnectTimeout=15)
 SCORER_PORT=8200
 NODE_PORT=8100

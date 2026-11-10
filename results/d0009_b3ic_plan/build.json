@@ -1,0 +1,16 @@
+{
+ "base": {
+  "n_rows": 5669,
+  "n_rebuilt_candidates": 16975,
+  "n_failed_generation_candidates": 1,
+  "n_verify_seeded": 16177,
+  "n_candidates": 17007
+ },
+ "new": {
+  "n_rows": 5669,
+  "n_rebuilt_candidates": 16975,
+  "n_failed_generation_candidates": 1,
+  "n_verify_seeded": 32,
+  "n_candidates": 17007
+ }
+}

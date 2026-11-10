@@ -1,0 +1,9 @@
+{
+ "rule": "ce50",
+ "n_candidates": 17007,
+ "n_changed": 16975,
+ "share_changed": 0.9981184218263068,
+ "n_set_changed": 16603,
+ "n_questions": 5669,
+ "n_questions_with_changed": 5669
+}

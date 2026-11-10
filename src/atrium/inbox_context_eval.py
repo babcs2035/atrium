@@ -17,9 +17,10 @@
 - `q-rrf`：Q の候補の RRF の上位 k 通が保存した `context_doc_ids` と並びまで一致する割合（G-RRF．`g_rrf.json`）．
 - `q-ce`：Q の候補の RRF の上位 N 通を採点する（X が ce のとき）．
 - `q-plan`：Q の候補ごとの新しい文脈と，作り直す候補の一覧（`plan.jsonl`・`plan.json`）．
+- `q-ce-features`：new 腕の作り直す候補の `ce_features`（新しい文脈の 5 通から．`select-features` と同じ関数）を求める（`ce_features_new.jsonl`）．
 - `q-generate`：作り直す候補を base・new の両方で node へ送って回答を作る（`gen_records.jsonl`．`--limit`・`--arm` は G-GEN 用）．
 - `g-gen`：base 腕の作り直す候補の先頭 30 件の失敗の数と `prompt_tokens` の一致（`g_gen.json`）．
-- `q-build`：base・new の実行のディレクトリ（`results.jsonl`・`ce_features.jsonl`・`verify_features.jsonl` の種）を書く．
+- `q-build`：base・new の実行のディレクトリ（`results.jsonl`・`ce_features.jsonl`・`verify_features.jsonl` の種）を書く（採点の server は使わない）．
   採点（`atrium judge`）・検証（`atrium verify-features`）・選択（`atrium answer-select-eval`）は既存の CLI がこのディレクトリを読む．
 
 回答の本文を含む出力は `gen_records.jsonl` と実行のディレクトリの `results.jsonl` だけで，commit の前に `scripts/tasks/sanitize_results.py` を通す．
@@ -87,6 +88,7 @@ GEN_ERROR_BACKOFF_S = 5.0
 CE_CACHE = "ce_scores.jsonl"
 GEN_RECORDS = "gen_records.jsonl"
 PLAN = "plan.jsonl"
+CE_FEATURES_NEW = "ce_features_new.jsonl"
 VERIFY_FEATURES = "verify_features.jsonl"
 # 質問の集合 Q：（実行のディレクトリ，質問の分割の名前，検証の得点）．H・H2 の順
 Q_SOURCES: tuple[tuple[str, str, str], ...] = (
@@ -806,32 +808,80 @@ def apply_regenerated_candidate(
         cand["top_score"] = new_context["new_top_score"]
 
 
+def failed_generation_keys(
+    plan: Sequence[Mapping[str, Any]], records: Mapping[str, Mapping[str, Any]]
+) -> set[tuple[str, int]]:
+    """作り直す候補のうち，どちらかの腕の生成が成功していない候補（質問 ID，候補の番号）．両腕とも不正解として数える（事前登録の成功条件 (2)）．"""
+    return {
+        (p["qid"], p["index"])
+        for p in plan
+        if p["changed"]
+        and any(
+            records.get(f"{arm}|{p['qid']}|{p['index']}", {"error": "missing"})["error"] is not None
+            for arm in ARMS
+        )
+    }
+
+
 def arm_rows(
     saved_rows: Sequence[Mapping[str, Any]],
     plan: Sequence[Mapping[str, Any]],
     records: Mapping[str, Mapping[str, Any]],
     arm: str,
+    failed: frozenset[tuple[str, int]] = frozenset(),
 ) -> list[dict[str, Any]]:
     """腕（base・new）の results.jsonl の行．作り直す候補だけ回答（new 腕は文脈も）を上書きする．
 
     行の final_answer・node_answers・answer は保存した値のまま（選択は candidates から行い，使わない）．上書きした候補の番号を `b3ic_rebuilt` に残す．
+    failed の候補は，両腕とも回答を空文字（判定は不正解になる）にして番号を `b3ic_failed` に残す（片方の腕だけが失敗した候補を非対称に扱わないため）．
     """
     changed = {(p["qid"], p["index"]): p for p in plan if p["changed"]}
     out: list[dict[str, Any]] = []
     for saved in saved_rows:
         row = copy.deepcopy(dict(saved))
         rebuilt: list[int] = []
+        failed_here: list[int] = []
         for index, cand in enumerate(row["owner_answer"]["candidates"]):
             p = changed.get((row["qid"], index))
             if p is None:
+                continue
+            if (row["qid"], index) in failed:
+                cand["answer"] = ""
+                cand["unknown"] = False
+                cand["avg_logprob"] = None
+                cand["n_logprob_tokens"] = 0
+                if arm == "new":
+                    cand["context_doc_ids"] = list(p["new_ids"])
+                    cand["top_score"] = p["new_top_score"]
+                failed_here.append(index)
+                rebuilt.append(index)
                 continue
             record = records[f"{arm}|{row['qid']}|{index}"]
             if record["error"] is not None:
                 raise ValueError(f"{record['key']} has no successful generation")
             apply_regenerated_candidate(cand, record, p if arm == "new" else None)
             rebuilt.append(index)
+        row["b3ic_failed"] = failed_here
         row["b3ic_rebuilt"] = rebuilt
         row["b3ic_arm"] = arm
+        out.append(row)
+    return out
+
+
+def new_context_rows(
+    saved_rows: Sequence[Mapping[str, Any]], plan: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """new 腕の文脈だけを反映した行（回答は保存のまま．生成の前に ce_features を求めるため）．作り直す候補の番号を `b3ic_rebuilt` に残す．"""
+    changed = {(p["qid"], p["index"]): p for p in plan if p["changed"]}
+    out: list[dict[str, Any]] = []
+    for saved in saved_rows:
+        row = copy.deepcopy(dict(saved))
+        row["b3ic_rebuilt"] = []
+        for index, cand in enumerate(row["owner_answer"]["candidates"]):
+            p = changed.get((row["qid"], index))
+            if p is not None:
+                cand["context_doc_ids"] = list(p["new_ids"])
+                row["b3ic_rebuilt"].append(index)
         out.append(row)
     return out
 
@@ -939,6 +989,7 @@ STAGES = (
     "q-rrf",
     "q-ce",
     "q-plan",
+    "q-ce-features",
     "q-generate",
     "g-gen",
     "q-build",
@@ -975,16 +1026,18 @@ def run_stage(
     node_urls: Sequence[str],
     limit: int | None,
     arm: str | None,
+    max_failed: int = 0,
 ) -> dict[str, Any]:
     """段階 stage を実行し，要約（標準出力に出す JSON）を返す．詳しい出力は各ディレクトリのファイルに書く．
 
     verdict_dir は dev-gate が G-D 不通過の verdict.json（棄却）を書く先（最終の判定の置き場所）．
+    max_failed は q-build が許す，生成が失敗した候補の数（既定 0．失敗した候補は両腕とも不正解として数える）．
     """
     from atrium.judge import question_texts
 
     k = cfg.data.require_enronqa().k_context
     depth = cfg.retrieval.fusion_depth
-    if stage in ("dev-ce", "q-ce", "q-build") and not scorer_urls:
+    if stage in ("dev-ce", "q-ce", "q-ce-features") and not scorer_urls:
         raise SystemExit(f"--stage {stage} requires --scorer-url")
     if stage in ("q-generate",) and not node_urls:
         raise SystemExit("--stage q-generate requires --node-url")
@@ -1067,6 +1120,25 @@ def run_stage(
         return result
     plan = _read_plan(plan_dir)
     questions_of = question_texts(paths)
+    saved_rows = read_q_rows()
+    saved_ce = [r for run, _, _ in Q_SOURCES for r in read_jsonl(Path(run) / CE_FEATURES)]
+    if stage == "q-ce-features":
+        new_ce = recompute_ce_features(
+            new_context_rows(saved_rows, plan),
+            saved_ce,
+            plan,
+            views,
+            questions_of,
+            RemoteCandidateScorer(scorer_urls),
+        )
+        (plan_dir / CE_FEATURES_NEW).write_text(
+            "".join(json.dumps(r) + "\n" for r in new_ce), encoding="utf-8"
+        )
+        n_changed = sum(
+            a["ce_max"] != b["ce_max"] or a["ce_top1"] != b["ce_top1"]
+            for a, b in zip(new_ce, saved_ce, strict=True)
+        )
+        return {"n_candidates": len(new_ce), "n_ce_features_changed": n_changed}
     if stage == "q-generate":
         items = generation_items(plan, views, questions_of)
         if arm is not None:
@@ -1075,25 +1147,25 @@ def run_stage(
         return run_generation(items, node_urls, plan_dir / GEN_RECORDS)
     if stage == "q-build":
         records = read_gen_records(plan_dir / GEN_RECORDS)
-        saved_rows = read_q_rows()
-        saved_ce = [r for run, _, _ in Q_SOURCES for r in read_jsonl(Path(run) / CE_FEATURES)]
+        failed = failed_generation_keys(plan, records)
+        if len(failed) > max_failed:
+            raise SystemExit(f"{len(failed)} candidates have failed generations (max {max_failed})")
+        if not (plan_dir / CE_FEATURES_NEW).exists():
+            raise SystemExit(f"{plan_dir / CE_FEATURES_NEW} is missing; run --stage q-ce-features")
+        new_ce = read_jsonl(plan_dir / CE_FEATURES_NEW)
         saved_verify = {
             (j["qid"], int(j["index"])): j for _, _, v in Q_SOURCES for j in read_jsonl(Path(v))
         }
-        scorer = RemoteCandidateScorer(scorer_urls)
         summary: dict[str, Any] = {}
         for name in ARMS:
-            rows = arm_rows(saved_rows, plan, records, name)
-            ce_rows = (
-                saved_ce
-                if name == "base"
-                else recompute_ce_features(rows, saved_ce, plan, views, questions_of, scorer)
-            )
+            rows = arm_rows(saved_rows, plan, records, name, frozenset(failed))
+            ce_rows = saved_ce if name == "base" else new_ce
             seeded = seed_verify_rows(rows, saved_rows, saved_verify)
             write_arm_dir(Path(f"{arm_prefix}{name}"), rows, ce_rows, seeded)
             summary[name] = {
                 "n_rows": len(rows),
                 "n_rebuilt_candidates": sum(len(r["b3ic_rebuilt"]) for r in rows),
+                "n_failed_generation_candidates": len(failed),
                 "n_verify_seeded": len(seeded),
                 "n_candidates": sum(len(r["owner_answer"]["candidates"]) for r in rows),
             }

@@ -1189,6 +1189,7 @@ def cmd_inbox_context_eval(args: argparse.Namespace, cfg: AtriumConfig) -> int:
         args.node_url,
         args.limit,
         args.arm,
+        args.max_failed,
     )
     print(json.dumps(summary, indent=1, ensure_ascii=False)[:12000])
     return 0
@@ -2314,6 +2315,7 @@ def build_parser() -> argparse.ArgumentParser:
             "q-rrf",
             "q-ce",
             "q-plan",
+            "q-ce-features",
             "q-generate",
             "g-gen",
             "q-build",
@@ -2339,7 +2341,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--scorer-url",
         action="append",
         default=[],
-        help="cross-encoder の採点の server の URL（dev-ce・q-ce・q-build．複数）",
+        help="cross-encoder の採点の server の URL（dev-ce・q-ce・q-ce-features．複数）",
     )
     p.add_argument(
         "--node-url",
@@ -2351,6 +2353,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--limit", type=int, default=None, help="先頭の N 件だけ（G-CE・G-GEN・smoke 用）"
     )
     p.add_argument("--arm", choices=["base", "new"], default=None, help="q-generate で送る腕")
+    p.add_argument(
+        "--max-failed",
+        type=int,
+        default=0,
+        help="q-build が許す，生成が失敗した候補の数（失敗した候補は両腕とも不正解として数える）",
+    )
     p.set_defaults(func=cmd_inbox_context_eval)
 
     p = sub.add_parser(

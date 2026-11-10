@@ -1,0 +1,17 @@
+{
+ "verdict_original": {
+  "hypothesis": "H-IC（候補の受信箱の中の文脈 5 通を dev で選んだ規則 X に替えると，Q の V2 の最終回答の正答率が上がる）",
+  "h_ic": "improved",
+  "delta_v2_Q": 0.03228082554242371,
+  "ci95": [
+   0.02222614217675075,
+   0.042163520903157455
+  ],
+  "guard_fabrication_increase": -0.027341682836479097,
+  "guard_within_limit": true,
+  "gates_all_passed": true,
+  "verdict": "adopted",
+  "rule": "ce50"
+ },
+ "verdict_revised": null
+}

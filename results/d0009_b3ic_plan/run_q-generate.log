@@ -1,0 +1,26 @@
+[2026-11-10_11:57:15] cool after 0s
+[2026-11-10_11:57:15] attempt 1: q-generate
+[2026-11-10_16:27:11] attempt 1: exit 0, n_missing=1
+[2026-11-10_16:27:34] cool after 20s
+[2026-11-10_16:27:34] attempt 2: q-generate
+[2026-11-10_16:28:17] attempt 2: exit 0, n_missing=1
+[2026-11-10_16:28:19] cool after 0s
+[2026-11-10_16:28:19] attempt 3: q-generate
+[2026-11-10_16:29:01] attempt 3: exit 0, n_missing=1
+[2026-11-10_16:29:03] cool after 0s
+[2026-11-10_16:29:03] attempt 4: q-generate
+[2026-11-10_16:29:46] attempt 4: exit 0, n_missing=1
+[2026-11-10_16:29:47] cool after 0s
+[2026-11-10_16:29:47] attempt 5: q-generate
+[2026-11-10_16:30:29] attempt 5: exit 0, n_missing=1
+[2026-11-10_16:30:31] cool after 0s
+[2026-11-10_16:30:31] attempt 6: q-generate
+[2026-11-10_16:31:13] attempt 6: exit 0, n_missing=1
+[2026-11-10_16:31:14] cool after 0s
+[2026-11-10_16:31:14] attempt 7: q-generate
+[2026-11-10_16:31:56] attempt 7: exit 0, n_missing=1
+[2026-11-10_16:31:57] cool after 0s
+[2026-11-10_16:31:57] attempt 8: q-generate
+[2026-11-10_16:32:40] attempt 8: exit 0, n_missing=1
+[2026-11-10_16:32:42] cool after 0s
+[2026-11-10_16:32:42] attempt 9: q-generate

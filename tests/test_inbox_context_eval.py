@@ -21,10 +21,12 @@ from atrium.inbox_context_eval import (
     bm25_context,
     ce_context,
     context_for_rule,
+    failed_generation_keys,
     g_gen,
     gate_d,
     gate_d_verdict,
     generation_items,
+    new_context_rows,
     retrieve,
     rrf_context,
     seed_verify_rows,
@@ -287,6 +289,20 @@ def test_arm_rows_overwrite_only_rebuilt_candidates_and_the_new_arm_also_changes
     assert saved[0]["owner_answer"]["candidates"][1]["answer"] == "A1"
 
 
+def test_new_context_rows_change_only_the_context_of_rebuilt_candidates() -> None:
+    saved = [saved_row("q1", ["A0", "A1", "A2"])]
+    plan = [plan_entry("q1", 0, False), plan_entry("q1", 1, True), plan_entry("q1", 2, False)]
+
+    rows = new_context_rows(saved, plan)
+
+    cands = rows[0]["owner_answer"]["candidates"]
+    assert rows[0]["b3ic_rebuilt"] == [1]
+    assert cands[1]["context_doc_ids"] == ["b/1", "b/0", "b/2", "b/3", "b/4"]
+    assert cands[1]["answer"] == "A1"
+    assert cands[0] == saved[0]["owner_answer"]["candidates"][0]
+    assert saved[0]["owner_answer"]["candidates"][1]["context_doc_ids"][0] == "b/0"
+
+
 def test_arm_rows_reject_a_failed_generation() -> None:
     saved = [saved_row("q1", ["A0", "A1", "A2"])]
     plan = [plan_entry("q1", 1, True)]
@@ -294,6 +310,36 @@ def test_arm_rows_reject_a_failed_generation() -> None:
 
     with pytest.raises(ValueError, match="no successful generation"):
         arm_rows(saved, plan, records, "base")
+
+
+def test_failed_generation_in_either_arm_is_counted_incorrect_in_both_arms() -> None:
+    saved = [saved_row("q1", ["A0", "A1", "A2"])]
+    plan = [plan_entry("q1", 0, True), plan_entry("q1", 1, True), plan_entry("q1", 2, False)]
+    records = {
+        "base|q1|0": record("base", "q1", 0, "Answer: ok"),
+        "new|q1|0": record("new", "q1", 0, "Answer: ok"),
+        "base|q1|1": record("base", "q1", 1, "Answer: base ok"),
+        "new|q1|1": record("new", "q1", 1, "", error="HTTPStatusError: 502"),
+    }
+
+    failed = failed_generation_keys(plan, records)
+    base = arm_rows(saved, plan, records, "base", frozenset(failed))[0]
+    new = arm_rows(saved, plan, records, "new", frozenset(failed))[0]
+
+    assert failed == {("q1", 1)}
+    for row in (base, new):
+        assert row["b3ic_failed"] == [1]
+        cand = row["owner_answer"]["candidates"][1]
+        assert (cand["answer"], cand["unknown"], cand["avg_logprob"]) == ("", False, None)
+    assert base["owner_answer"]["candidates"][1]["context_doc_ids"][0] == "b/0"
+    assert new["owner_answer"]["candidates"][1]["context_doc_ids"][0] == "b/1"
+    assert base["owner_answer"]["candidates"][0]["answer"] == "ok"
+
+
+def test_missing_generation_record_counts_as_failed() -> None:
+    plan = [plan_entry("q1", 0, True)]
+
+    assert failed_generation_keys(plan, {}) == {("q1", 0)}
 
 
 def test_seed_verify_rows_keep_only_candidates_whose_context_and_answer_are_unchanged() -> None:

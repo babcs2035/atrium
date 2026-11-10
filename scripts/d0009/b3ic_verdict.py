@@ -259,6 +259,10 @@ def completeness() -> dict[str, Any]:
             "n_unparsed_candidates": sum(q.unparsed for q in questions),
             "n_candidates_without_v": int(sum(np.isnan(q.raw[:, v_col]).sum() for q in questions)),
         }
+    build = read_json(PLAN_DIR / "build.json")
+    out["n_failed_generation_candidates"] = (
+        None if build is None else build["base"]["n_failed_generation_candidates"]
+    )
     return out
 
 

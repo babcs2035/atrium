@@ -1,0 +1,2 @@
+{"run": "d0009_b3ic_q_base", "n_candidates": 17007, "n_verified_now": 830, "n_no_score": 0, "n_failed_now": 0, "prompt_sha256": "26ec41b634b6a15b2d0abbeff9e4e67c03840f305bae8f71a76577bfda182688"}
+{"run": "d0009_b3ic_q_new", "n_candidates": 17007, "n_verified_now": 16975, "n_no_score": 0, "n_failed_now": 0, "prompt_sha256": "26ec41b634b6a15b2d0abbeff9e4e67c03840f305bae8f71a76577bfda182688"}

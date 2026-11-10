@@ -1,0 +1,35 @@
+## wafl502 2026-11-10T10:11:25
+ts=1794273085
+gpu=48,0,32,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl503 2026-11-10T10:11:26
+ts=1794273086
+gpu=41,0,32,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl504 2026-11-10T10:11:26
+ts=1794273086
+gpu=31,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl505 2026-11-10T10:11:26
+ts=1794273087
+gpu=31,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl506 2026-11-10T10:11:27
+ts=1794273087
+gpu=30,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl507 2026-11-10T10:11:27
+ts=1794273087
+gpu=55,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl508 2026-11-10T10:11:28
+ts=1794273088
+gpu=31,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0

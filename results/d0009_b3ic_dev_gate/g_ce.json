@@ -1,0 +1,124 @@
+{
+ "n_questions": 30,
+ "n_cached": 30,
+ "conditions": [
+  {
+   "url": "http://127.0.0.1:18202",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18203",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18204",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18205",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18206",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18207",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18208",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  }
+ ],
+ "run": {
+  "n_jobs": 30,
+  "n_already": 0,
+  "n_failed": 0,
+  "n_nonfinite": 0,
+  "n_pairs_now": 1500,
+  "gpu_time_s_sum": 99.50541732623242,
+  "wall_s": 6.794047357980162,
+  "counts_by_server": {
+   "http://127.0.0.1:18202": {
+    "sent": 4,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18203": {
+    "sent": 4,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18204": {
+    "sent": 4,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18205": {
+    "sent": 5,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18206": {
+    "sent": 4,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18207": {
+    "sent": 4,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18208": {
+    "sent": 5,
+    "failed": 0,
+    "in_flight": 0
+   }
+  }
+ },
+ "all_finite": true,
+ "passed": true
+}
