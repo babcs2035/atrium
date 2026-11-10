@@ -1,0 +1,17 @@
+{
+ "verdict_original": {
+  "hypothesis": "H-IC42（候補の受信箱の中の文脈 5 通を規則 bm25 に替えると，Q の V2 の最終回答の正答率が上がる）",
+  "h_ic": "improved",
+  "delta_v2_Q": 0.0336920091726936,
+  "ci95": [
+   0.023813723760804376,
+   0.043746692538366556
+  ],
+  "guard_fabrication_increase": -0.02857646851296525,
+  "guard_within_limit": true,
+  "gates_all_passed": true,
+  "verdict": "adopted",
+  "rule": "bm25"
+ },
+ "verdict_revised": null
+}

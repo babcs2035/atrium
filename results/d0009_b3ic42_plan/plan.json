@@ -1,0 +1,21 @@
+{
+ "rule": "bm25",
+ "n_candidates": 17007,
+ "n_changed": 16959,
+ "share_changed": 0.9971776327394603,
+ "n_set_changed": 16223,
+ "n_questions": 5669,
+ "n_questions_with_changed": 5669,
+ "G_D_prime": {
+  "rule": "bm25",
+  "rrf_recall": 0.9206241519674355,
+  "rule_recall": 0.9470827679782904,
+  "delta": 0.026458616010854818,
+  "bootstrap_ci95": [
+   0.01797829036635007,
+   0.03494742198100395
+  ],
+  "min_gain": 0.01,
+  "passed": true
+ }
+}

@@ -21,6 +21,8 @@ while :; do
     if [ -n "${B3IC_ACTIVE_FILE:-}" ] && [ -s "$B3IC_ACTIVE_FILE" ] && ! grep -qw "$h" "$B3IC_ACTIVE_FILE"; then continue; fi
     if [ "$temp" -ge "$ABORT_C" ]; then
       echo "$now,$h,ABORT,$temp" >> "$OUT"
+      # B3IC_DROPPED_FILE があれば，その段階の残りでこの機に新しい要求を送らないよう，b3ic_run.sh が読む一覧へ書く（Iteration 42 の事前登録 (d)）
+      if [ -n "${B3IC_DROPPED_FILE:-}" ]; then grep -qw "$h" "$B3IC_DROPPED_FILE" 2> /dev/null || echo "$h" >> "$B3IC_DROPPED_FILE"; fi
       pkill -f "$PATTERN"
     fi
   done

@@ -1,0 +1,13 @@
+{
+ "n_checked": 30,
+ "n_missing": 0,
+ "n_failures": 0,
+ "reference": "gen_cache",
+ "n_prompt_tokens_match": 30,
+ "n_prompt_tokens_match_saved": 30,
+ "n_reference_missing": 0,
+ "n_answer_identical": 25,
+ "n_answer_identical_to_cache": 28,
+ "mismatched_prompt_tokens": [],
+ "passed": true
+}

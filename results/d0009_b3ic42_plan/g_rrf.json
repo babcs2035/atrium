@@ -1,0 +1,17 @@
+{
+ "n_candidates": 17007,
+ "n_identical_order": 17001,
+ "n_identical_set": 17002,
+ "agreement": 0.9996472040924326,
+ "threshold": 0.98,
+ "passed": true,
+ "top_score_abs_diff_max": 2.384185791015625e-07,
+ "mismatched_examples": [
+  "enronqa/holdout/25205-1#1",
+  "enronqa/holdout/1171-0#2",
+  "enronqa/holdout/2612-0#0",
+  "enronqa/holdout/5731-0#2",
+  "enronqa/holdout/5784-0#2",
+  "enronqa/holdout2/23996-0#2"
+ ]
+}

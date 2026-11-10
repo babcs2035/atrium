@@ -1,0 +1,50 @@
+## wafl500 2026-11-11T04:28:53
+ts=1794338933
+gpu=55,0,74,NotActive,NotActive
+counter_us=4502334461
+other_procs=0
+## wafl501 2026-11-11T04:28:54
+ts=1794338934
+gpu=43,0,1,NotActive,NotActive
+counter_us=12190360991
+other_procs=0
+## wafl502 2026-11-11T04:28:54
+ts=1794338934
+gpu=47,0,32,NotActive,NotActive
+counter_us=664091298
+other_procs=0
+## wafl503 2026-11-11T04:28:54
+ts=1794338934
+gpu=37,0,32,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl504 2026-11-11T04:28:55
+ts=1794338935
+gpu=34,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl505 2026-11-11T04:28:55
+ts=1794338935
+gpu=34,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl506 2026-11-11T04:28:55
+ts=1794338935
+gpu=33,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl507 2026-11-11T04:28:56
+ts=1794338936
+gpu=49,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl508 2026-11-11T04:28:56
+ts=1794338936
+gpu=32,0,1,NotActive,NotActive
+counter_us=0
+other_procs=0
+## wafl509 2026-11-11T04:28:56
+ts=1794338936
+gpu=49,0,1,NotActive,NotActive
+counter_us=33052862
+other_procs=0

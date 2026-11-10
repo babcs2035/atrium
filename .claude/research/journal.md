@@ -95,6 +95,14 @@ dev の Recall@5 の増分 +0.026 を Iteration 41 の比（Q の Recall の増�
 - ce50 との比較は対応ありだが，ce50 の腕は Iteration 41 の生成（別の日・別の機）なので記述にとどめる．
 - Q は設計に使った集合（運用ルール 10）．test・dev 以外のデータセットや判定モデルを替えた場合の大きさ．
 
+### 実行済み（phase 2．rc-executor．判定・考察は phase 3）
+
+- 実装と事前登録を commit 8d7ecac で push してから new 腕を生成した（G-GEN の base 30 件も commit の後）．出力：計画 `results/d0009_b3ic42_plan/`，腕 `results/d0009_b3ic42_q_{base,new}[_V2,_R3p]/`，集計 `results/d0009_b3_inbox_context_bm25/{verdict.json,inbox_context.json,analysis_report.md,labels/}`．
+- ゲート：G-RRF 17,001 / 17,007（0.9996）通過，G-D′ +0.0265〔+0.0180, +0.0349〕通過（`dev_gate.json` の値を読んだだけ），G-GEN 30 / 30（失敗 0，prompt_tokens は Iteration 41 の base の記録と 30 / 30 一致，回答の文字列は保存値と 25 / 30・過去の記録と 28 / 30 一致），G-CE は dev の既存の値．
+- 計画：作り直す候補 16,959 / 17,007（集合が変わる候補 16,223）．生成の使い回し：base は過去の記録 16,933 件を写し 26 件を新しく生成，new は 62 件を写し 16,897 件を新しく生成．失敗した候補 0 件（`--max-failed 3`）．q-ce-features で new 腕の ce_features が変わった候補 16,901．検証の種：base 16,975 / new 110．
+- 熱（B132 の規則）：wafl500 が各段階の始めの 1〜2 分で 83 °C を超えた（q-generate 86・採点 88・検証 84・棄権 89 °C），wafl509 が q-generate と採点で 83 °C．監視が process を止め，その段階の残りでその機を外して続きから流した（`dropped_hosts.txt`）．記録は `gpu_monitor.csv` の ABORT の行．熱の減速（Slowdown）は記録のみで実行は無効にしていない．wafl500・501 には atrium-scorer の container が無く，q-ce-features は wafl502〜509 の 8 台で採点した．
+- 主な値（判定は phase 3）：V2 の Q の Δ = +0.0337〔+0.0238, +0.0437〕（種 42，b : c = 503 : 312）．R3′ の Δ = +0.0348．作り話の増分 −0.0286．Q の持ち主の受信箱の中の Recall@5：RRF 0.9313 → bm25 0.9556（ce50 は 0.9646）．ce50 との差（記述）：new − 過去の new = +0.0009〔−0.0081, +0.0102〕．
+
 ## Iteration 41: 受信箱の中の文脈 5 通の選び方を替えたときの正答率
 
 **位置づけ**：config の levers は B1（B120 待ち）以外を使い切り，backlog B130 の申し送り（levers 使い切り，tavily-search で関連研究・代替アプローチを重点調査すること）で調査・計画から始めた．調査から新しいレバー `d0009.B3_inbox_context`（値 `dev_selected`）を levers の末尾に足した（backlog B131 [auto-decided]）．d0009 B3（研究の主課題）の生成の側の項目として，d0009 の B3 節と §E の表に着手を書いた（運用ルール 9）．この節が事前登録である．**rc-executor は，dev の CE の得点の計算（数問の smoke を除く）より前に，実装とこの節を同じ commit に入れて push する**．GPU は wafl502〜508 だけを使い，wafl500・501・509 と gpu4 の GPU は使わない（B120・B122・B123，運用ルール 14）．

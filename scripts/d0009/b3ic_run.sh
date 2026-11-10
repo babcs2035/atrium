@@ -13,7 +13,10 @@ STAGE=${1:?usage: b3ic_run.sh <q-ce|q-generate> [args...]}
 shift
 PLAN_DIR=${B3IC_PLAN_DIR:-results/d0009_b3ic_plan}
 HOSTS_SH=scripts/d0009/b3ic_hosts.sh
-read -r -a HOSTS <<< "${B3IC_HOSTS:-wafl502 wafl503 wafl504 wafl505 wafl506 wafl507 wafl508}"
+read -r -a ALL_HOSTS <<< "${B3IC_HOSTS:-wafl502 wafl503 wafl504 wafl505 wafl506 wafl507 wafl508}"
+# b3ic_monitor.sh（B3IC_DROPPED_FILE）が 83 °C 以上の標本の機を書く一覧．その段階（この script の 1 回の実行）の残りで，その機には新しい要求を送らない
+DROPPED_FILE=$PLAN_DIR/dropped_hosts.txt
+[ "${B3IC_KEEP_DROPPED:-0}" = 1 ] && [ -f "$DROPPED_FILE" ] || : > "$DROPPED_FILE" # B3IC_KEEP_DROPPED=1：同じ段階の続きで，外した機の一覧を引き継ぐ
 HOT_C=60
 DROP_C=83
 COOL_MAX_S=900
@@ -40,6 +43,11 @@ active_hosts() { # 83 °C 未満で温度が読める機（空白区切り）．
   [ "${#dropped[@]}" -gt 0 ] && say "dropped from this attempt: ${dropped[*]}"
   echo "${keep[*]}"
 }
+refresh_hosts() { # ALL_HOSTS から，その段階で外した機を除いて HOSTS にする
+  local h
+  HOSTS=()
+  for h in "${ALL_HOSTS[@]}"; do grep -qw "$h" "$DROPPED_FILE" 2> /dev/null || HOSTS+=("$h"); done
+}
 wait_cool() {
   local waited=0 hot
   while true; do
@@ -57,6 +65,8 @@ case "$STAGE" in
   *) echo "unsupported stage $STAGE" >&2; exit 2 ;;
 esac
 for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
+  refresh_hosts
+  say "hosts dropped for the rest of the stage: $(tr '\n' ' ' < "$DROPPED_FILE")"
   wait_cool
   ACTIVE=$(active_hosts)
   if [ -z "$ACTIVE" ]; then say "no usable host; waiting"; sleep "$COOL_POLL_S"; continue; fi

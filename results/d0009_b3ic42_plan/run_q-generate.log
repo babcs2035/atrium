@@ -1,0 +1,12 @@
+[2026-11-10_22:52:56] cool after 0s
+[2026-11-10_22:52:58] attempt 1: q-generate
+[2026-11-10_22:54:05] attempt 1: exit 143, n_missing=unknown
+[2026-11-10_22:55:38] hosts dropped for the rest of the stage: wafl500 
+[2026-11-10_22:55:40] cool after 0s
+[2026-11-10_22:55:42] attempt 1: q-generate
+[2026-11-10_23:11:07] attempt 1: exit 143, n_missing=unknown
+[2026-11-10_23:11:07] hosts dropped for the rest of the stage: wafl500 wafl509 
+[2026-11-10_23:11:53] cool after 40s
+[2026-11-10_23:11:55] attempt 2: q-generate
+[2026-11-11_00:32:59] attempt 2: exit 0, n_missing=0
+[2026-11-11_00:32:59] DONE

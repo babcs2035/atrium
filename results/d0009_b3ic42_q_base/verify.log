@@ -1,0 +1,39 @@
+2026-11-11 02:25:57,877 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-11-11 02:25:57,877 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-11-11 02:25:57,877 INFO faiss.loader: Loading faiss.
+2026-11-11 02:25:57,888 INFO faiss.loader: Successfully loaded faiss.
+2026-11-11 02:25:59,003 INFO atrium.answer_verify: results/d0009_b3ic42_q_base: 17007 candidates, 16975 already verified, 32 to verify
+2026-11-11 02:26:00,300 INFO httpx: HTTP Request: POST http://127.0.0.1:11507/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:01,095 INFO httpx: HTTP Request: POST http://127.0.0.1:11508/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:01,141 INFO httpx: HTTP Request: POST http://127.0.0.1:11504/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:01,222 INFO httpx: HTTP Request: POST http://127.0.0.1:11509/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:01,494 INFO httpx: HTTP Request: POST http://127.0.0.1:11505/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:01,620 INFO httpx: HTTP Request: POST http://127.0.0.1:11502/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:01,647 INFO httpx: HTTP Request: POST http://127.0.0.1:11506/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:01,727 INFO httpx: HTTP Request: POST http://127.0.0.1:11500/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:01,947 INFO httpx: HTTP Request: POST http://127.0.0.1:11503/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:02,057 INFO httpx: HTTP Request: POST http://127.0.0.1:11501/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:02,701 INFO httpx: HTTP Request: POST http://127.0.0.1:11507/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:03,949 INFO httpx: HTTP Request: POST http://127.0.0.1:11504/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:04,015 INFO httpx: HTTP Request: POST http://127.0.0.1:11509/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:04,593 INFO httpx: HTTP Request: POST http://127.0.0.1:11500/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:04,803 INFO httpx: HTTP Request: POST http://127.0.0.1:11505/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:04,929 INFO httpx: HTTP Request: POST http://127.0.0.1:11502/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:05,048 INFO httpx: HTTP Request: POST http://127.0.0.1:11503/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:05,081 INFO httpx: HTTP Request: POST http://127.0.0.1:11506/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:05,249 INFO httpx: HTTP Request: POST http://127.0.0.1:11508/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:05,655 INFO httpx: HTTP Request: POST http://127.0.0.1:11501/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:05,882 INFO httpx: HTTP Request: POST http://127.0.0.1:11507/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:06,320 INFO httpx: HTTP Request: POST http://127.0.0.1:11509/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:06,346 INFO httpx: HTTP Request: POST http://127.0.0.1:11504/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:07,474 INFO httpx: HTTP Request: POST http://127.0.0.1:11502/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:07,517 INFO httpx: HTTP Request: POST http://127.0.0.1:11506/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:07,760 INFO httpx: HTTP Request: POST http://127.0.0.1:11500/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:08,352 INFO httpx: HTTP Request: POST http://127.0.0.1:11503/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:09,098 INFO httpx: HTTP Request: POST http://127.0.0.1:11508/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:09,222 INFO httpx: HTTP Request: POST http://127.0.0.1:11505/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:10,777 INFO httpx: HTTP Request: POST http://127.0.0.1:11500/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:12,621 INFO httpx: HTTP Request: POST http://127.0.0.1:11501/api/chat "HTTP/1.1 200 OK"
+2026-11-11 02:26:16,151 INFO httpx: HTTP Request: POST http://127.0.0.1:11501/api/chat "HTTP/1.1 200 OK"
+{"run": "d0009_b3ic42_q_base", "n_candidates": 17007, "n_verified_now": 32, "n_no_score": 0, "n_failed_now": 0, "prompt_sha256": "26ec41b634b6a15b2d0abbeff9e4e67c03840f305bae8f71a76577bfda182688"}

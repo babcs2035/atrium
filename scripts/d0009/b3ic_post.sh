@@ -21,7 +21,17 @@ export B3IC_OUT=${B3IC_OUT:-results/d0009_b3_inbox_context}
 export B3IC_PLAN_DIR=${B3IC_PLAN_DIR:-results/d0009_b3ic_plan}
 ARM_PREFIX=$B3IC_ARM_PREFIX
 OUT=$B3IC_OUT
-OLLAMA_URLS=$(bash $HOSTS urls ollama)
+# b3ic_monitor.sh（B3IC_DROPPED_FILE）が 83 °C 以上の標本の機を書く一覧．その段階（この script の 1 回の実行）の残りで，その機には新しい要求を送らない
+# （B3IC_KEEP_DROPPED=1 なら同じ段階の続きとして一覧を引き継ぐ）．失敗して繰り返すたびに，外した機を除いた URL に作り直す
+DROPPED_FILE=$B3IC_PLAN_DIR/dropped_hosts.txt
+[ "${B3IC_KEEP_DROPPED:-0}" = 1 ] && [ -f "$DROPPED_FILE" ] || : > "$DROPPED_FILE"
+read -r -a ALL_HOSTS <<< "${B3IC_HOSTS:-wafl502 wafl503 wafl504 wafl505 wafl506 wafl507 wafl508}"
+refresh_urls() {
+  local h keep=()
+  for h in "${ALL_HOSTS[@]}"; do grep -qw "$h" "$DROPPED_FILE" 2> /dev/null || keep+=("$h"); done
+  OLLAMA_URLS=$(B3IC_HOSTS="${keep[*]}" bash $HOSTS urls ollama)
+}
+refresh_urls
 JUDGE_MODEL=qwen3:8b
 VERIFY_MODEL=gemma4-12b-it-qat
 RETRY_WAIT_S=60
@@ -34,8 +44,10 @@ case "$STAGE" in
       until uv run atrium judge --data-dir artifacts $OLLAMA_URLS --run-dir ${ARM_PREFIX}$arm --resume --with-candidates "${share[@]}"; do
         rc=$?
         echo "judge $arm exit $rc; retry in ${RETRY_WAIT_S}s"
-        [ "$rc" -ne 3 ] && exit "$rc"
+        # 3 は一部の判定が未完了，143 は monitor が高温で止めた（再実行で続きから）
+        [ "$rc" -ne 3 ] && [ "$rc" -ne 143 ] && exit "$rc"
         sleep "$RETRY_WAIT_S"
+        refresh_urls
       done
     done
     ;;
@@ -45,6 +57,7 @@ case "$STAGE" in
         --model "$VERIFY_MODEL" ${OLLAMA_URLS//--ollama-url/--url} --resume > "${ARM_PREFIX}$arm/verify.log" 2>&1; do
         echo "verify-features $arm failed; retry in ${RETRY_WAIT_S}s ($(date +%s))"
         sleep "$RETRY_WAIT_S"
+        refresh_urls
       done
       tail -1 "${ARM_PREFIX}$arm/verify.log"
     done
@@ -57,8 +70,9 @@ case "$STAGE" in
       --out-dir $OUT/labels --resume; do
       rc=$?
       echo "abstain-judge exit $rc; retry in ${RETRY_WAIT_S}s"
-      [ "$rc" -ne 3 ] && exit "$rc"
+      [ "$rc" -ne 3 ] && [ "$rc" -ne 143 ] && exit "$rc"
       sleep "$RETRY_WAIT_S"
+      refresh_urls
     done
     ;;
   report)
