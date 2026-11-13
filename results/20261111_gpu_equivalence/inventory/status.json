@@ -1,0 +1,52 @@
+[
+  {
+    "host": "wafl500",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:00.427410+00:00"
+  },
+  {
+    "host": "wafl501",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:00.143698+00:00"
+  },
+  {
+    "host": "wafl502",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:00.219289+00:00"
+  },
+  {
+    "host": "wafl503",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:00.255256+00:00"
+  },
+  {
+    "host": "wafl504",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:00.292649+00:00"
+  },
+  {
+    "host": "wafl505",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:00.780048+00:00"
+  },
+  {
+    "host": "wafl506",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:01.007778+00:00"
+  },
+  {
+    "host": "wafl507",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:01.138729+00:00"
+  },
+  {
+    "host": "wafl508",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:01.052671+00:00"
+  },
+  {
+    "host": "wafl509",
+    "returncode": 0,
+    "collected_at": "2026-11-11T06:28:01.217147+00:00"
+  }
+]

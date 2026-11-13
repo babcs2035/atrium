@@ -1,0 +1,52 @@
+localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f: Pulling from atrium-full
+37fb86c2a767: Pulling fs layer
+2dc99d2d0a39: Pulling fs layer
+68bced9e0afa: Pulling fs layer
+05e0eee5572e: Pulling fs layer
+25a0f885cf51: Pulling fs layer
+3287861377b2: Pulling fs layer
+95932c01aff1: Pulling fs layer
+d5f3a0d621b2: Pulling fs layer
+d84a7d20aa87: Pulling fs layer
+fd97a3dda698: Pulling fs layer
+5117f5fd548b: Pulling fs layer
+c56a76e547ee: Pulling fs layer
+f8ad0f3b9f09: Pulling fs layer
+9baaa473e1b0: Pulling fs layer
+ae21a453c8f2: Pulling fs layer
+61278f77ca58: Pulling fs layer
+f19b0f0ce177: Pulling fs layer
+2dc99d2d0a39: Already exists
+68bced9e0afa: Already exists
+95932c01aff1: Already exists
+d84a7d20aa87: Already exists
+05e0eee5572e: Already exists
+d5f3a0d621b2: Already exists
+25a0f885cf51: Already exists
+3287861377b2: Already exists
+44136fa355b3: Already exists
+37fb86c2a767: Already exists
+c56a76e547ee: Download complete
+9baaa473e1b0: Download complete
+5117f5fd548b: Download complete
+ae21a453c8f2: Download complete
+61278f77ca58: Download complete
+f19b0f0ce177: Download complete
+f833543d5d78: Download complete
+fd97a3dda698: Download complete
+f8ad0f3b9f09: Download complete
+fd97a3dda698: Pull complete
+5117f5fd548b: Pull complete
+c56a76e547ee: Pull complete
+f8ad0f3b9f09: Pull complete
+9baaa473e1b0: Pull complete
+ae21a453c8f2: Pull complete
+61278f77ca58: Pull complete
+f19b0f0ce177: Pull complete
+Digest: sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f
+Status: Downloaded newer image for localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f
+localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f
+sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f ["localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f"]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html

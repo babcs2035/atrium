@@ -1,0 +1,41 @@
+{
+ "n_jobs": 17007,
+ "n_already": 2500,
+ "n_failed": 0,
+ "n_nonfinite": 0,
+ "n_pairs_now": 723653,
+ "gpu_time_s_sum": 62881.10401652474,
+ "wall_s": 3507.0745210039895,
+ "counts_by_server": {
+  "http://127.0.0.1:18202": {
+   "sent": 2462,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://127.0.0.1:18203": {
+   "sent": 2427,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://127.0.0.1:18204": {
+   "sent": 2409,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://127.0.0.1:18206": {
+   "sent": 2398,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://127.0.0.1:18207": {
+   "sent": 2388,
+   "failed": 0,
+   "in_flight": 0
+  },
+  "http://127.0.0.1:18208": {
+   "sent": 2423,
+   "failed": 0,
+   "in_flight": 0
+  }
+ }
+}

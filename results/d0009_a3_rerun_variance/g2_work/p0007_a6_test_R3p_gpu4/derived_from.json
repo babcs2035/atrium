@@ -1,0 +1,5 @@
+{
+ "run": "results/d0009_a3_rerun_variance/g2_work/p0007_a6_test",
+ "select_rule": "R3",
+ "ignore_unknown": true
+}

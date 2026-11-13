@@ -1,0 +1,7 @@
+{
+ "runs": [
+  "results/d0009_a3_p1"
+ ],
+ "select_rule": "R3",
+ "ignore_unknown": true
+}

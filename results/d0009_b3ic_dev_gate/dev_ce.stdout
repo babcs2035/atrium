@@ -1,0 +1,125 @@
+{
+ "n_questions": 2948,
+ "n_cached": 2948,
+ "conditions": [
+  {
+   "url": "http://127.0.0.1:18202",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18203",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18204",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18205",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18206",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18207",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  },
+  {
+   "url": "http://127.0.0.1:18208",
+   "status": "ok",
+   "model": "BAAI/bge-reranker-v2-m3",
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "dtype": "float16",
+   "attn_implementation": "sdpa",
+   "tokenizer_max_length": 8192,
+   "max_length": 1024
+  }
+ ],
+ "run": {
+  "n_jobs": 2948,
+  "n_already": 30,
+  "n_failed": 0,
+  "n_nonfinite": 0,
+  "n_pairs_now": 142157,
+  "gpu_time_s_sum": 12105.902374405414,
+  "wall_s": 580.5643424219452,
+  "counts_by_server": {
+   "http://127.0.0.1:18202": {
+    "sent": 428,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18203": {
+    "sent": 419,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18204": {
+    "sent": 417,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18205": {
+    "sent": 412,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18206": {
+    "sent": 414,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18207": {
+    "sent": 410,
+    "failed": 0,
+    "in_flight": 0
+   },
+   "http://127.0.0.1:18208": {
+    "sent": 418,
+    "failed": 0,
+    "in_flight": 0
+   }
+  }
+ },
+ "all_finite": true,
+ "passed": true
+}
+dev-ce exit 0

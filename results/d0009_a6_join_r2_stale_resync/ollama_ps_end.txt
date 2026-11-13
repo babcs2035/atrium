@@ -1,0 +1,21 @@
+# 2026-11-09T14:56:32
+== wafl500
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl501
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl502
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl503
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl504
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl505
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl506
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl507
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl508
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    
+== wafl509
+llama3.1:8b    46e0c10c039e    7.0 GB    100% GPU     16384      Forever    

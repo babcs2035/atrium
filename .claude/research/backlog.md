@@ -17,6 +17,14 @@
 
 ---
 
+## B136 [auto-decided 2026-11-13] docs/d0010_feedback_response.md を research-cycle の levers（「d0010」節）と運用ルール 16〜20 に登録した．d0009.B3_inbox_context_live（Iteration 43）は d0009 の順のまま先に扱う
+- 状況: 輪講の質疑・コメント（約 36 件，主題 A〜F）への回答の作業を，research-cycle で進められる形にする依頼．
+- 自動選択: d0010 §G.2・§H の案をそのまま config.yml に反映した（levers 15 件，運用ルール 16〜20）．実施の順は d0010 §G.1．d0010 E3 は d0009.B3_inbox_context_live の H3 の実機を共有するため，その直後に置く．
+  d0010 C2・C3・D2 は levers に入れない（d0010 §I の U1・U2 の人間の判断まで）．state.json は変えていない（Iteration 43 は research フェーズのまま）．
+- 根拠: d0010 §G.3 と運用ルール 16 が，着手・完了の書き込み先を d0010 の各項目と §G.1 の表と定めている．ID は d0009 と同じ記号を使うので，journal・backlog では「d0010」を前に付ける．
+- 要レビュー: (1) 人間の判断が要る事項 U1〜U5（d0010 §I）．U5（閲覧権限の単純化）は既定で「受け入れて進め，限界に書く」としたので，不可なら d0010.F1 を止める．U3・U4 は既存の backlog B133 (ii)・B135・B120 と同じ．
+  (2) d0010 A2・F1・D1 は config.yaml に追加だけの設定キーを要する（experiment.acl_filter，cluster.nodes_per_host など）．既存の public な設定形式の変更なので，着手時に確認すること．
+
 ## B135 [auto-decided 2026-11-11] Iteration 42（d0009 B3_inbox_context・値 bm25）は採用で値を閉じる．levers を B1（B120 待ち）以外使い切ったので新しいレバー `d0009.B3_inbox_context_live`（値 `bm25_h3`）を足し，Iteration 43 とする
 - 状況: Iteration 42 の phase 3．成功条件 (1)〜(3) を満たした（G-RRF 0.9996・G-D′ +0.0265 [+0.0180, +0.0349]・G-GEN 30/30，Q の全 5,669 問で両腕の V2 が揃い，生成の失敗 0）．H-IC42：V2 の Q 0.7326 → 0.7663，Δ +0.0337 [+0.0238, +0.0437]（b : c = 503 : 312）で「改善」．守り：作り話の増分 −0.0286．ce50 との対応ありの差 +0.0009 [−0.0081, +0.0102]．詳細は journal の Iteration 42「実行済み」．
 - 自動選択:

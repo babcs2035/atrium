@@ -1,0 +1,8 @@
+2026-11-10 16:29:48,048 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-11-10 16:29:48,048 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-11-10 16:29:48,048 INFO faiss.loader: Loading faiss.
+2026-11-10 16:29:48,060 INFO faiss.loader: Successfully loaded faiss.
+2026-11-10 16:30:02,603 INFO httpx: HTTP Request: POST http://127.0.0.1:18107/v1/generate "HTTP/1.1 502 Bad Gateway"
+2026-11-10 16:30:13,619 INFO httpx: HTTP Request: POST http://127.0.0.1:18107/v1/generate "HTTP/1.1 502 Bad Gateway"
+2026-11-10 16:30:24,624 INFO httpx: HTTP Request: POST http://127.0.0.1:18107/v1/generate "HTTP/1.1 502 Bad Gateway"

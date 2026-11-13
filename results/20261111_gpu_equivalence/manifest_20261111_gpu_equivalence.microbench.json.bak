@@ -1,0 +1,84 @@
+{
+  "run_id": "20261111_gpu_equivalence",
+  "created_at": "2026-11-11T08:28:56.735102+00:00",
+  "hosts": [
+    "wafl500",
+    "wafl501",
+    "wafl502",
+    "wafl503",
+    "wafl504",
+    "wafl505",
+    "wafl506",
+    "wafl507",
+    "wafl508",
+    "wafl509"
+  ],
+  "image": "localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f",
+  "seed": 20261111,
+  "rounds": 10,
+  "metrics": {
+    "fp32": {
+      "matrix_size": 4096,
+      "dtype": "float32",
+      "tf32": false
+    },
+    "fp16": {
+      "matrix_size": 4096,
+      "dtype": "float16",
+      "tf32": false
+    },
+    "vram_bandwidth": {
+      "copy_bytes": 268435456
+    },
+    "h2d": {
+      "copy_bytes": 268435456,
+      "pinned": true
+    },
+    "d2h": {
+      "copy_bytes": 268435456,
+      "pinned": true
+    },
+    "vram_check": {
+      "vram_bytes": 1073741824
+    },
+    "embed": {
+      "model": "Snowflake/snowflake-arctic-embed-m-v1.5",
+      "revision": "e58a8f756156a1293d763f17e3aae643474e9b8a",
+      "batch": 16,
+      "length": 512
+    },
+    "score": {
+      "model": "BAAI/bge-reranker-v2-m3",
+      "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "batch": 8,
+      "length": 1024,
+      "dtype": "float16"
+    }
+  },
+  "warmup_s": 180,
+  "duration_s": 20,
+  "tolerance": {
+    "main_ratio": [
+      0.95,
+      1.05
+    ],
+    "p95_ratio": [
+      0.9,
+      1.1
+    ],
+    "sustained_min": 0.95
+  },
+  "abort": {
+    "temperature_c": 80,
+    "thermal_slowdown": true,
+    "xid": true,
+    "verification_mismatch": true
+  },
+  "source_hashes": {
+    "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+    "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+    "monitor.py": "9bc92cb81f88d3634ad76d1795a6ddcd72782f2ecc465ef6163b65c6e33956b5",
+    "run_host.py": "ae74e6fbbbafd310f7248f227b29a3c4c46999654feaf9e0238ad5c872756a2e"
+  },
+  "python": "3.12.9"
+}

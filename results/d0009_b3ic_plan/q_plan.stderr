@@ -1,0 +1,22 @@
+2026-11-10 10:37:11,040 INFO faiss.loader: Loading faiss with AVX2 support.
+2026-11-10 10:37:11,040 INFO faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-11-10 10:37:11,040 INFO faiss.loader: Loading faiss.
+2026-11-10 10:37:11,055 INFO faiss.loader: Successfully loaded faiss.
+Traceback (most recent call last):
+  File "/home/ktakahashi/workspace/atrium/.venv/bin/atrium", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ktakahashi/workspace/atrium/src/atrium/cli.py", line 2491, in main
+    code: int = args.func(args, cfg)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/src/atrium/cli.py", line 1180, in cmd_inbox_context_eval
+    summary = inbox_context_eval.run_stage(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/src/atrium/inbox_context_eval.py", line 1084, in run_stage
+    plan = plan_q(cfg, paths, views, rule, cache)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ktakahashi/workspace/atrium/src/atrium/inbox_context_eval.py", line 559, in plan_q
+    cached_ids, scores = cache[(cand.qid, cand.source)]
+                         ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: ('enronqa/holdout/2888-0', 'sanders-r')

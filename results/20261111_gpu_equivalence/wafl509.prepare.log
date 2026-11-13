@@ -1,0 +1,34 @@
+localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f: Pulling from atrium-full
+37fb86c2a767: Already exists
+68bced9e0afa: Already exists
+2dc99d2d0a39: Already exists
+05e0eee5572e: Already exists
+3287861377b2: Already exists
+d5f3a0d621b2: Already exists
+25a0f885cf51: Already exists
+d84a7d20aa87: Already exists
+95932c01aff1: Already exists
+fd97a3dda698: Already exists
+5117f5fd548b: Already exists
+c56a76e547ee: Already exists
+f8ad0f3b9f09: Already exists
+9baaa473e1b0: Already exists
+ae21a453c8f2: Pulling fs layer
+61278f77ca58: Pulling fs layer
+f19b0f0ce177: Pulling fs layer
+f19b0f0ce177: Verifying Checksum
+f19b0f0ce177: Download complete
+ae21a453c8f2: Verifying Checksum
+ae21a453c8f2: Download complete
+ae21a453c8f2: Pull complete
+61278f77ca58: Verifying Checksum
+61278f77ca58: Download complete
+61278f77ca58: Pull complete
+f19b0f0ce177: Pull complete
+Digest: sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f
+Status: Downloaded newer image for localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f
+localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f
+sha256:a1cce7764b12f971e893c3a9d93b2dc425d45816a543dde4956a23431f735556 ["localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f"]
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html

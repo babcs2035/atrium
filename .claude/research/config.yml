@@ -75,6 +75,19 @@
 #      p0007_a5_verdict・p0007_a6_verdict・p0007_f7_verdict（各 verdict.json），p0007_a5_verdict_oracle_vs_c1rrf_ce/verdict.json，
 #      p0007_a6_live/a6_report_vs_c1_rrf_ce.json，p0006_p2_iter2/{frontier,metrics}.json，
 #      20261019_155617_p0007_b_exposure/exposure.json，p0007_f6_verdict/f6_summary.json．
+#  16. （d0010 の使い方）docs/d0010_feedback_response.md の項目（levers の「d0010」節）を進めるときは，rc-researcher が
+#      着手時にその項目へ「着手：Iteration {n}（事前登録は journal の Iteration {n}）」を，rc-evaluator が完了時に
+#      「完了：結果の置き場所と判定」を書き足し，d0010 §G.1 の表の状態を直す．journal・backlog では ID の前に必ず「d0010」を付ける
+#      （d0009 の同じ記号の ID と取り違えないため）．
+#  17. （公平性．d0010 E3）P2P の主構成に改良を入れたら，中央にも対応する改良を入れた条件（C*）を dev で選んで並べる．
+#      P2P にだけ入れた改良での「P2P と中央の差」は判定に使わない．対応する改良が中央に無い場合（例：候補の間の選択）は，
+#      その旨と代わりに入れた手順を事前登録に書く．
+#  18. （露出と信頼性の併記．d0010 A・B）P2P の主構成の変更を採用するときは，正答率に加えて，外に出る重複なしの文書の割合
+#      （exposure-eval の定義）と，信頼性の得点（d0010 B1 の CRAG 式）を必ず併記する．差分プライバシーなどの防御を入れた場合は，
+#      保証が及ぶ範囲（公開情報だけ等）を書く．
+#  19. （質問集合．d0010 §2.2）d0010 の新しい判定には H・H2・Q を使わない．H3（d0009.B3_inbox_context_live で作る）と
+#      H4（受信箱ごとの並べ替えの 81〜100 番目．追加だけ）を使い，集合の大きさを事前登録に書く．
+#  20. （攻撃の実験．d0010 A3）抽出の攻撃は自分たちのクラスタと公開データの中に限り，外部の系に向けない．
 
 repo_name: atrium
 
@@ -521,6 +534,50 @@ levers:
             中央集約型 C1-RRF-CE を同じ H3 で流して対応のある比較の記述にするか（B133 (i) の材料）は rc-researcher が事前登録で決める．
             wafl500 は 10 台の負荷で 1〜2 分のうちに 84〜89 °C に達する（Iteration 42）．締め切りのある実機の経路では減速が打ち切りになる（Iteration 35・36．B120 は人間の判断待ち）ので，
             熱の扱い（締め切りを正答率の測定に効かない長さにする，wafl500 の委託先の重み等）を事前登録で決める．gpu4 の GPU は使わない（運用ルール 14）．"}
+  # ---- d0010（輪講の質疑・コメントへの回答．docs/d0010_feedback_response.md．2026-11-13 に登録）----
+  # 上から順に 1 つずつ動かす．d0009.B3_inbox_context_live は d0009 の順のまま先に扱い，d0010.E3 はその直後に置く．
+  # 固定条件は d0010 §2（主構成・中央・質問集合・区間の作り方）．着手・完了の書き込みは運用ルール 16．
+  # d0010 C2・C3・D2 は人間の判断（d0010 §I の U1・U2）まで levers に入れない．
+  - {name: d0010.A1_threat_model, values: [document],
+     note: "d0010 A1（高．文書）．docs/d0001 に脅威モデルの節を追記（守る対象・主体・想定する相手・測るが防がない相手・想定しない相手・保証しないこと）．
+            暗号技術は文献の範囲で整理する．実験は無い．journal には文書の項目として記録する"}
+  - {name: d0010.E1_surname_split, values: [abc_groups],
+     note: "d0010 E1（高．再集計）．header_eval.classify_question の A・B・C 群ごとに，P2P と中央の差・hit@3・分解を test（p0007）・H（d0009 A3）・Q（Iteration 41・42）で出す．記述で判定は無い"}
+  - {name: d0010.E2_decomposition_flows, values: [flow_agnostic],
+     note: "d0010 E2（高．再集計）．分解 (a)・(b)・(c) を流れに依らない定義に直し，P4-1・A4・A5・A6・F-7・R3′・V2 の各構成で出す．「根拠」の定義は事前登録で確定"}
+  - {name: d0010.B1_truthfulness_score, values: [crag_style],
+     note: "d0010 B1（高．再採点）．CRAG 式（正解 +1・わからない 0・誤答 −1）の信頼性の得点を，A5・A6・V2 の両腕・中央 C1-RRF-CE（d0009_a3_c1〜c3 の 3 分類の採点を追加）で出す．
+            人手での確かめの件数は事前登録．wafl500〜509（運用ルール 14）"}
+  - {name: d0010.E3_fair_central_gap, values: [central_star_h3],
+     note: "d0010 E3（最高．実機）．P2P の改良に対応する中央 C* を dev で選び（文脈の選び方の 4 規則．検証で答え直す手順を入れるかは事前登録），
+            d0009.B3_inbox_context_live の H3 で P2P 主構成・C*・oracle を実機で流す（中央の腕が既にあれば使う）．
+            差を 2 段のブートストラップの区間で非劣性 δ = 0.02 と優越（McNemar）で判定し，分解（E2 の定義）を出す．運用ルール 10・11・17"}
+  - {name: d0010.E4_cost_taxonomy, values: [document],
+     note: "d0010 E4（中．文書）．E1〜E3 の結果で「本質的な代償（持ち主の特定）」と「設計の代償（選択・文脈・委託）」を docs/d0008 §15 に書き分ける"}
+  - {name: d0010.A2_dp_adverts, values: [laplace_df, gaussian_centroid, mask_rare_terms],
+     note: "d0010 A2（高．オフライン＋再生）．公開情報（語の文書頻度・重心）に雑音（ε ∈ {∞, 8, 4, 2, 1, 0.5}）・マスク（受信箱の中の文書頻度 k 未満の語を出さない．k ∈ {1, 2, 5, 10}）を入れ，
+            持ち主の特定（top-1・AUC．本文の入力）・hit@3・正答率（hit@3 が変わる問だけ候補を作り直す再生）を出す．採否を決めるなら dev で選び H4 で判定．
+            差分プライバシーの保証は公開情報にだけ及ぶことを全ての記述に添える（運用ルール 18）"}
+  - {name: d0010.F1_permission_exposure, values: [sender_recipient_acl],
+     note: "d0010 F1（高．オフライン＋実機）．送信者と受信者を閲覧権限とし（評価の場面の設定だけ．ルーティングに使わない），質問者を権限あり・なしで選ぶ．
+            P2P はノードで最新の権限で絞る（追加だけの設定キー experiment.acl_filter），中央は権限の反映の遅れ L ∈ {0, 1 分, 1 時間, 1 日}．
+            権限の無い相手へ渡った文書の数・権限のある質問者の正答率・権限の無い質問者に答えない割合．H4 の一部で実機の確かめ．権限の設定の受け入れは d0010 §I の U5"}
+  - {name: d0010.B2_answerability_check, values: [feature, abstain],
+     note: "d0010 B2（中．オフラインの再生）．生成とは別の 1 回の呼び出しで「答えが 5 通に書かれているか」を問い，(feature) V2 の特徴量に足す，(abstain) 全候補で強く『いいえ』なら最終回答を『わからない』にする．
+            dev で選び H4 で判定．正答率と B1 の信頼性の得点の両方"}
+  - {name: d0010.A3_extraction_attack, values: [random_train, query_sampling],
+     note: "d0010 A3（中．実機 retrieval_only）．質問の予算 N に対して質問者が受け取った重複なしの文書の割合．質問者ごとの上限・受信箱ごとの上限の対策も．
+            攻撃は自分たちのクラスタと公開データの中に限る（運用ルール 20）"}
+  - {name: d0010.D3_per_node_load, values: [parallel_1_8_30_60],
+     note: "d0010 D3（中．実機）．主構成と中央を同じ時間帯に交互に流し（d0009 A6 の手順），各ホストの CPU・GPU・送受信バイト・要求数を 1 秒ごとに記録する"}
+  - {name: d0010.F2_tls_auth_cost, values: [tls, tls_token],
+     note: "d0010 F2（中．実機）．質問者とノード・委託先の間を TLS にし，要求ごとの署名付きトークンを加えた費用（待ち時間・処理量・CPU）．追加だけの設定キー"}
+  - {name: d0010.C1_enronqa_internal, values: [inbox_size, duplicated_evidence],
+     note: "d0010 C1（中．再集計＋小さな実機）．受信箱の大きさ別の記述と，除外した 3.0% の問（根拠が複数の受信箱にある）を主構成と中央で流す記述．統合の質問ではないと明記"}
+  - {name: d0010.D1_scale_emulation, values: [devices_15, devices_60, devices_150],
+     note: "d0010 D1（中．実機）．1 台で複数のノードのプロセスを動かし論理的なデバイスの数を変える（追加だけの設定キー cluster.nodes_per_host）．CPU を共有する模擬である点を記録"}
+  - {name: d0010.B3_calibration, values: [reliability_diagram],
+     note: "d0010 B3（低．再集計）．V2 の得点（と B2 の確率）の確信度の較正（ECE）と，判定モデルの 4 分類による部分点を試す"}
 
 # 2026-10-16 凍結（human-decided）．再開は p0006 §9.3 の条件．研究サイクルは次のレバーを選ぶとき，
 # このリストと，RQ-C（参加・離脱）に属する p0004・d0006 の未着手の項目を選ばない．

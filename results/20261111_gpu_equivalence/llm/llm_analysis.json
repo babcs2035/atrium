@@ -1,0 +1,316 @@
+{
+  "run_id": "20261111_gpu_equivalence",
+  "measured_hosts": [
+    "wafl503",
+    "wafl506",
+    "wafl507",
+    "wafl508"
+  ],
+  "aborted_hosts": [
+    "wafl500",
+    "wafl501",
+    "wafl502",
+    "wafl504",
+    "wafl505",
+    "wafl509"
+  ],
+  "n_pairs": 6,
+  "tolerance": [
+    0.95,
+    1.05
+  ],
+  "conditions": {
+    "short_c1": {
+      "pairs": [
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl506",
+          "mean_ratio": 1.0249718106525019,
+          "ci": [
+            1.019276228276604,
+            1.030699219198481
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl507",
+          "mean_ratio": 1.0259202154116087,
+          "ci": [
+            1.025523979000746,
+            1.0263166049181536
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9924260527474414,
+          "ci": [
+            0.9919391102898532,
+            0.9929132342448603
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl506",
+          "host_b": "wafl507",
+          "mean_ratio": 1.0009252983830872,
+          "ci": [
+            0.995328216215761,
+            1.0065538549206536
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl506",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9682471678081159,
+          "ci": [
+            0.9629837498034002,
+            0.9735393542828062
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl507",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9673520784940093,
+          "ci": [
+            0.9668416811956521,
+            0.9678627452319316
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        }
+      ],
+      "cond_verdict": "equivalent",
+      "output_hashes_consistent": true,
+      "distinct_output_hashes": 1
+    },
+    "short_c4": {
+      "pairs": [
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl506",
+          "mean_ratio": 1.0606726074570108,
+          "ci": [
+            1.0483978023282061,
+            1.0730911279204103
+          ],
+          "n_rounds": 10,
+          "verdict": "undetermined"
+        },
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl507",
+          "mean_ratio": 1.0576675317279423,
+          "ci": [
+            1.0476089357736778,
+            1.0678227050873017
+          ],
+          "n_rounds": 10,
+          "verdict": "undetermined"
+        },
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9955026000163422,
+          "ci": [
+            0.9883576569452559,
+            1.002699194644059
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl506",
+          "host_b": "wafl507",
+          "mean_ratio": 0.9971668206495187,
+          "ci": [
+            0.9843001342024593,
+            1.0102016993119138
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl506",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9385578481215657,
+          "ci": [
+            0.9237932308662047,
+            0.9535584423416994
+          ],
+          "n_rounds": 10,
+          "verdict": "undetermined"
+        },
+        {
+          "host_a": "wafl507",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9412245059560073,
+          "ci": [
+            0.9326976680766815,
+            0.9498292972458635
+          ],
+          "n_rounds": 10,
+          "verdict": "performance_difference"
+        }
+      ],
+      "cond_verdict": "performance_difference",
+      "output_hashes_consistent": true,
+      "distinct_output_hashes": 1
+    },
+    "long_c1": {
+      "pairs": [
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl506",
+          "mean_ratio": 1.0255892734310152,
+          "ci": [
+            1.024828400826218,
+            1.0263507109373318
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl507",
+          "mean_ratio": 1.0245263093301762,
+          "ci": [
+            1.0236254736456973,
+            1.025427937789895
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9956243150276021,
+          "ci": [
+            0.9952557114399656,
+            0.9959930551315159
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl506",
+          "host_b": "wafl507",
+          "mean_ratio": 0.9989635577044572,
+          "ci": [
+            0.9975582061810058,
+            1.000370889075192
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl506",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9707826912978837,
+          "ci": [
+            0.969893573318646,
+            0.9716726243467361
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl507",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9717898954479071,
+          "ci": [
+            0.9710647032452787,
+            0.9725156292248804
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        }
+      ],
+      "cond_verdict": "equivalent",
+      "output_hashes_consistent": true,
+      "distinct_output_hashes": 1
+    },
+    "long_c4": {
+      "pairs": [
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl506",
+          "mean_ratio": 1.046246846370377,
+          "ci": [
+            1.038513959731997,
+            1.0540373129143532
+          ],
+          "n_rounds": 10,
+          "verdict": "undetermined"
+        },
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl507",
+          "mean_ratio": 1.0462375649890128,
+          "ci": [
+            1.0414374552808914,
+            1.051059798976507
+          ],
+          "n_rounds": 10,
+          "verdict": "undetermined"
+        },
+        {
+          "host_a": "wafl503",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9953863487618558,
+          "ci": [
+            0.9927538675865949,
+            0.9980258104761651
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl506",
+          "host_b": "wafl507",
+          "mean_ratio": 0.9999911288799613,
+          "ci": [
+            0.9918762526855902,
+            1.0081723956300814
+          ],
+          "n_rounds": 10,
+          "verdict": "equivalent"
+        },
+        {
+          "host_a": "wafl506",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9513876693774844,
+          "ci": [
+            0.9453954680549961,
+            0.9574178510773942
+          ],
+          "n_rounds": 10,
+          "verdict": "undetermined"
+        },
+        {
+          "host_a": "wafl507",
+          "host_b": "wafl508",
+          "mean_ratio": 0.9513961093265745,
+          "ci": [
+            0.9483017130085051,
+            0.9545006029464225
+          ],
+          "n_rounds": 10,
+          "verdict": "undetermined"
+        }
+      ],
+      "cond_verdict": "undetermined",
+      "output_hashes_consistent": true,
+      "distinct_output_hashes": 1
+    }
+  }
+}

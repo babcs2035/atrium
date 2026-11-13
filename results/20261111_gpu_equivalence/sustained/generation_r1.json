@@ -1,0 +1,130 @@
+[
+  {
+    "host": "wafl500",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl500",
+      "kind": "generation",
+      "rep": 1,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl501",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl501",
+      "kind": "generation",
+      "rep": 1,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl502",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl502",
+      "kind": "generation",
+      "rep": 1,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl503",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl503",
+      "kind": "generation",
+      "rep": 1,
+      "aborted": false,
+      "reason": null,
+      "status": "ok",
+      "finished_at": "2026-11-11T16:12:25.513087+00:00"
+    }
+  },
+  {
+    "host": "wafl504",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl504",
+      "kind": "generation",
+      "rep": 1,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl505",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl505",
+      "kind": "generation",
+      "rep": 1,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl506",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl506",
+      "kind": "generation",
+      "rep": 1,
+      "aborted": false,
+      "reason": null,
+      "status": "ok",
+      "finished_at": "2026-11-11T16:12:25.197952+00:00"
+    }
+  },
+  {
+    "host": "wafl507",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl507",
+      "kind": "generation",
+      "rep": 1,
+      "aborted": false,
+      "reason": null,
+      "status": "ok",
+      "finished_at": "2026-11-11T16:12:24.964518+00:00"
+    }
+  },
+  {
+    "host": "wafl508",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl508",
+      "kind": "generation",
+      "rep": 1,
+      "aborted": false,
+      "reason": null,
+      "status": "ok",
+      "finished_at": "2026-11-11T16:12:25.173957+00:00"
+    }
+  },
+  {
+    "host": "wafl509",
+    "kind": "generation",
+    "rep": 1,
+    "status": {
+      "host": "wafl509",
+      "kind": "generation",
+      "rep": 1,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  }
+]

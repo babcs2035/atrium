@@ -1,0 +1,256 @@
+[
+  {
+    "host": "wafl500",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl500",
+        "metric": "embed",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl500",
+        "metric": "score",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  },
+  {
+    "host": "wafl501",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl501",
+        "metric": "embed",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl501",
+        "metric": "score",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  },
+  {
+    "host": "wafl502",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl502",
+        "metric": "embed",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl502",
+        "metric": "score",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  },
+  {
+    "host": "wafl503",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl503",
+        "metric": "embed",
+        "round": 9,
+        "container": "gpu-eq-wafl503-20261111_gpu_equivalence-r9-embed",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T15:22:26.712876+00:00"
+      },
+      {
+        "host": "wafl503",
+        "metric": "score",
+        "round": 9,
+        "container": "gpu-eq-wafl503-20261111_gpu_equivalence-r9-score",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T15:26:55.127422+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl504",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl504",
+        "metric": "embed",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl504",
+        "metric": "score",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  },
+  {
+    "host": "wafl505",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl505",
+        "metric": "embed",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl505",
+        "metric": "score",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  },
+  {
+    "host": "wafl506",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl506",
+        "metric": "embed",
+        "round": 9,
+        "container": "gpu-eq-wafl506-20261111_gpu_equivalence-r9-embed",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T15:22:23.569075+00:00"
+      },
+      {
+        "host": "wafl506",
+        "metric": "score",
+        "round": 9,
+        "container": "gpu-eq-wafl506-20261111_gpu_equivalence-r9-score",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T15:27:08.680560+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl507",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl507",
+        "metric": "embed",
+        "round": 9,
+        "container": "gpu-eq-wafl507-20261111_gpu_equivalence-r9-embed",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T15:22:23.906037+00:00"
+      },
+      {
+        "host": "wafl507",
+        "metric": "score",
+        "round": 9,
+        "container": "gpu-eq-wafl507-20261111_gpu_equivalence-r9-score",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T15:27:08.396352+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl508",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl508",
+        "metric": "embed",
+        "round": 9,
+        "container": "gpu-eq-wafl508-20261111_gpu_equivalence-r9-embed",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T15:22:23.964305+00:00"
+      },
+      {
+        "host": "wafl508",
+        "metric": "score",
+        "round": 9,
+        "container": "gpu-eq-wafl508-20261111_gpu_equivalence-r9-score",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T15:27:05.975972+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl509",
+    "round": 9,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl509",
+        "metric": "embed",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl509",
+        "metric": "score",
+        "round": 9,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  }
+]

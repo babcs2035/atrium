@@ -1,0 +1,775 @@
+{
+  "run_id": "20261111_gpu_equivalence",
+  "finished_at": "2026-11-11T18:55:53.985944+00:00",
+  "reps": 3,
+  "results": [
+    {
+      "host": "wafl500",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl500",
+        "kind": "generation",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl501",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl501",
+        "kind": "generation",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl502",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl502",
+        "kind": "generation",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl503",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl503",
+        "kind": "generation",
+        "rep": 1,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T16:12:25.513087+00:00"
+      }
+    },
+    {
+      "host": "wafl504",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl504",
+        "kind": "generation",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl505",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl505",
+        "kind": "generation",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl506",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl506",
+        "kind": "generation",
+        "rep": 1,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T16:12:25.197952+00:00"
+      }
+    },
+    {
+      "host": "wafl507",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl507",
+        "kind": "generation",
+        "rep": 1,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T16:12:24.964518+00:00"
+      }
+    },
+    {
+      "host": "wafl508",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl508",
+        "kind": "generation",
+        "rep": 1,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T16:12:25.173957+00:00"
+      }
+    },
+    {
+      "host": "wafl509",
+      "kind": "generation",
+      "rep": 1,
+      "status": {
+        "host": "wafl509",
+        "kind": "generation",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl500",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl500",
+        "kind": "generation",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl501",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl501",
+        "kind": "generation",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl502",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl502",
+        "kind": "generation",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl503",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl503",
+        "kind": "generation",
+        "rep": 2,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T16:42:32.200701+00:00"
+      }
+    },
+    {
+      "host": "wafl504",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl504",
+        "kind": "generation",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl505",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl505",
+        "kind": "generation",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl506",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl506",
+        "kind": "generation",
+        "rep": 2,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T16:42:32.350329+00:00"
+      }
+    },
+    {
+      "host": "wafl507",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl507",
+        "kind": "generation",
+        "rep": 2,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T16:42:31.501967+00:00"
+      }
+    },
+    {
+      "host": "wafl508",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl508",
+        "kind": "generation",
+        "rep": 2,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T16:42:31.553942+00:00"
+      }
+    },
+    {
+      "host": "wafl509",
+      "kind": "generation",
+      "rep": 2,
+      "status": {
+        "host": "wafl509",
+        "kind": "generation",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl500",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl500",
+        "kind": "generation",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl501",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl501",
+        "kind": "generation",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl502",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl502",
+        "kind": "generation",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl503",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl503",
+        "kind": "generation",
+        "rep": 3,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:12:38.977887+00:00"
+      }
+    },
+    {
+      "host": "wafl504",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl504",
+        "kind": "generation",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl505",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl505",
+        "kind": "generation",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl506",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl506",
+        "kind": "generation",
+        "rep": 3,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:12:38.915766+00:00"
+      }
+    },
+    {
+      "host": "wafl507",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl507",
+        "kind": "generation",
+        "rep": 3,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:12:38.402948+00:00"
+      }
+    },
+    {
+      "host": "wafl508",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl508",
+        "kind": "generation",
+        "rep": 3,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:12:38.706072+00:00"
+      }
+    },
+    {
+      "host": "wafl509",
+      "kind": "generation",
+      "rep": 3,
+      "status": {
+        "host": "wafl509",
+        "kind": "generation",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl500",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl500",
+        "kind": "score",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl501",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl501",
+        "kind": "score",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl502",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl502",
+        "kind": "score",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl503",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl503",
+        "kind": "score",
+        "rep": 1,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:37:31.601779+00:00"
+      }
+    },
+    {
+      "host": "wafl504",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl504",
+        "kind": "score",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl505",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl505",
+        "kind": "score",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl506",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl506",
+        "kind": "score",
+        "rep": 1,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:47:03.457044+00:00"
+      }
+    },
+    {
+      "host": "wafl507",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl507",
+        "kind": "score",
+        "rep": 1,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:47:03.994814+00:00"
+      }
+    },
+    {
+      "host": "wafl508",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl508",
+        "kind": "score",
+        "rep": 1,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:30:29.347015+00:00"
+      }
+    },
+    {
+      "host": "wafl509",
+      "kind": "score",
+      "rep": 1,
+      "status": {
+        "host": "wafl509",
+        "kind": "score",
+        "rep": 1,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl500",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl500",
+        "kind": "score",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl501",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl501",
+        "kind": "score",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl502",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl502",
+        "kind": "score",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl503",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl503",
+        "kind": "score",
+        "rep": 2,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T17:52:21.494494+00:00"
+      }
+    },
+    {
+      "host": "wafl504",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl504",
+        "kind": "score",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl505",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl505",
+        "kind": "score",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl506",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl506",
+        "kind": "score",
+        "rep": 2,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T18:21:28.271677+00:00"
+      }
+    },
+    {
+      "host": "wafl507",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl507",
+        "kind": "score",
+        "rep": 2,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T18:21:28.227101+00:00"
+      }
+    },
+    {
+      "host": "wafl508",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl508",
+        "kind": "score",
+        "rep": 2,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T18:21:24.217418+00:00"
+      }
+    },
+    {
+      "host": "wafl509",
+      "kind": "score",
+      "rep": 2,
+      "status": {
+        "host": "wafl509",
+        "kind": "score",
+        "rep": 2,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl500",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl500",
+        "kind": "score",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl501",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl501",
+        "kind": "score",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl502",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl502",
+        "kind": "score",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl503",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl503",
+        "kind": "score",
+        "rep": 3,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T18:34:21.688559+00:00"
+      }
+    },
+    {
+      "host": "wafl504",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl504",
+        "kind": "score",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl505",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl505",
+        "kind": "score",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    },
+    {
+      "host": "wafl506",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl506",
+        "kind": "score",
+        "rep": 3,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T18:55:52.415241+00:00"
+      }
+    },
+    {
+      "host": "wafl507",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl507",
+        "kind": "score",
+        "rep": 3,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T18:55:53.971250+00:00"
+      }
+    },
+    {
+      "host": "wafl508",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl508",
+        "kind": "score",
+        "rep": 3,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T18:45:15.634636+00:00"
+      }
+    },
+    {
+      "host": "wafl509",
+      "kind": "score",
+      "rep": 3,
+      "status": {
+        "host": "wafl509",
+        "kind": "score",
+        "rep": 3,
+        "status": "refused",
+        "reason": "host_already_aborted"
+      }
+    }
+  ]
+}

@@ -1,0 +1,672 @@
+[
+  {
+    "host": "wafl500",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl500",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl500-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": true,
+        "reason": "temperature_at_or_above_80C",
+        "status": "aborted",
+        "finished_at": "2026-11-11T08:38:14.017803+00:00"
+      },
+      {
+        "host": "wafl500",
+        "metric": "fp16",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl500",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl500",
+        "metric": "h2d",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl500",
+        "metric": "d2h",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl500",
+        "metric": "vram_check",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  },
+  {
+    "host": "wafl501",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl501",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl501-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": true,
+        "reason": "temperature_at_or_above_80C",
+        "status": "aborted",
+        "finished_at": "2026-11-11T08:40:36.309694+00:00"
+      },
+      {
+        "host": "wafl501",
+        "metric": "fp16",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl501",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl501",
+        "metric": "h2d",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl501",
+        "metric": "d2h",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl501",
+        "metric": "vram_check",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  },
+  {
+    "host": "wafl502",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl502",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl502-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:40:57.808859+00:00"
+      },
+      {
+        "host": "wafl502",
+        "metric": "fp16",
+        "round": 1,
+        "container": "gpu-eq-wafl502-20261111_gpu_equivalence-r1-fp16",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:44:20.442640+00:00"
+      },
+      {
+        "host": "wafl502",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "container": "gpu-eq-wafl502-20261111_gpu_equivalence-r1-vram_bandwidth",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:47:35.367534+00:00"
+      },
+      {
+        "host": "wafl502",
+        "metric": "h2d",
+        "round": 1,
+        "container": "gpu-eq-wafl502-20261111_gpu_equivalence-r1-h2d",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:50:58.810563+00:00"
+      },
+      {
+        "host": "wafl502",
+        "metric": "d2h",
+        "round": 1,
+        "container": "gpu-eq-wafl502-20261111_gpu_equivalence-r1-d2h",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:54:22.452246+00:00"
+      },
+      {
+        "host": "wafl502",
+        "metric": "vram_check",
+        "round": 1,
+        "container": "gpu-eq-wafl502-20261111_gpu_equivalence-r1-vram_check",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:57:45.281536+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl503",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl503",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl503-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:41:00.748096+00:00"
+      },
+      {
+        "host": "wafl503",
+        "metric": "fp16",
+        "round": 1,
+        "container": "gpu-eq-wafl503-20261111_gpu_equivalence-r1-fp16",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:43:45.597278+00:00"
+      },
+      {
+        "host": "wafl503",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "container": "gpu-eq-wafl503-20261111_gpu_equivalence-r1-vram_bandwidth",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:44:07.452955+00:00"
+      },
+      {
+        "host": "wafl503",
+        "metric": "h2d",
+        "round": 1,
+        "container": "gpu-eq-wafl503-20261111_gpu_equivalence-r1-h2d",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:47:30.472647+00:00"
+      },
+      {
+        "host": "wafl503",
+        "metric": "d2h",
+        "round": 1,
+        "container": "gpu-eq-wafl503-20261111_gpu_equivalence-r1-d2h",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:50:53.810293+00:00"
+      },
+      {
+        "host": "wafl503",
+        "metric": "vram_check",
+        "round": 1,
+        "container": "gpu-eq-wafl503-20261111_gpu_equivalence-r1-vram_check",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:54:16.670802+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl504",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl504",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl504-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:40:59.565050+00:00"
+      },
+      {
+        "host": "wafl504",
+        "metric": "fp16",
+        "round": 1,
+        "container": "gpu-eq-wafl504-20261111_gpu_equivalence-r1-fp16",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:44:23.107142+00:00"
+      },
+      {
+        "host": "wafl504",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "container": "gpu-eq-wafl504-20261111_gpu_equivalence-r1-vram_bandwidth",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:47:45.742316+00:00"
+      },
+      {
+        "host": "wafl504",
+        "metric": "h2d",
+        "round": 1,
+        "container": "gpu-eq-wafl504-20261111_gpu_equivalence-r1-h2d",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:51:08.692437+00:00"
+      },
+      {
+        "host": "wafl504",
+        "metric": "d2h",
+        "round": 1,
+        "container": "gpu-eq-wafl504-20261111_gpu_equivalence-r1-d2h",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:54:32.053727+00:00"
+      },
+      {
+        "host": "wafl504",
+        "metric": "vram_check",
+        "round": 1,
+        "container": "gpu-eq-wafl504-20261111_gpu_equivalence-r1-vram_check",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:57:54.361024+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl505",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl505",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl505-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": true,
+        "reason": "temperature_at_or_above_80C",
+        "status": "aborted",
+        "finished_at": "2026-11-11T08:40:49.365461+00:00"
+      },
+      {
+        "host": "wafl505",
+        "metric": "fp16",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl505",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl505",
+        "metric": "h2d",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl505",
+        "metric": "d2h",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl505",
+        "metric": "vram_check",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  },
+  {
+    "host": "wafl506",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl506",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl506-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:40:58.862479+00:00"
+      },
+      {
+        "host": "wafl506",
+        "metric": "fp16",
+        "round": 1,
+        "container": "gpu-eq-wafl506-20261111_gpu_equivalence-r1-fp16",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:44:21.660667+00:00"
+      },
+      {
+        "host": "wafl506",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "container": "gpu-eq-wafl506-20261111_gpu_equivalence-r1-vram_bandwidth",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:47:44.366557+00:00"
+      },
+      {
+        "host": "wafl506",
+        "metric": "h2d",
+        "round": 1,
+        "container": "gpu-eq-wafl506-20261111_gpu_equivalence-r1-h2d",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:51:07.581701+00:00"
+      },
+      {
+        "host": "wafl506",
+        "metric": "d2h",
+        "round": 1,
+        "container": "gpu-eq-wafl506-20261111_gpu_equivalence-r1-d2h",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:54:30.594175+00:00"
+      },
+      {
+        "host": "wafl506",
+        "metric": "vram_check",
+        "round": 1,
+        "container": "gpu-eq-wafl506-20261111_gpu_equivalence-r1-vram_check",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:57:53.014277+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl507",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl507",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl507-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:40:58.919165+00:00"
+      },
+      {
+        "host": "wafl507",
+        "metric": "fp16",
+        "round": 1,
+        "container": "gpu-eq-wafl507-20261111_gpu_equivalence-r1-fp16",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:44:21.808031+00:00"
+      },
+      {
+        "host": "wafl507",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "container": "gpu-eq-wafl507-20261111_gpu_equivalence-r1-vram_bandwidth",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:47:44.029502+00:00"
+      },
+      {
+        "host": "wafl507",
+        "metric": "h2d",
+        "round": 1,
+        "container": "gpu-eq-wafl507-20261111_gpu_equivalence-r1-h2d",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:51:06.692485+00:00"
+      },
+      {
+        "host": "wafl507",
+        "metric": "d2h",
+        "round": 1,
+        "container": "gpu-eq-wafl507-20261111_gpu_equivalence-r1-d2h",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:54:30.027105+00:00"
+      },
+      {
+        "host": "wafl507",
+        "metric": "vram_check",
+        "round": 1,
+        "container": "gpu-eq-wafl507-20261111_gpu_equivalence-r1-vram_check",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:57:52.208230+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl508",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl508",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl508-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:40:57.196307+00:00"
+      },
+      {
+        "host": "wafl508",
+        "metric": "fp16",
+        "round": 1,
+        "container": "gpu-eq-wafl508-20261111_gpu_equivalence-r1-fp16",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:44:20.051144+00:00"
+      },
+      {
+        "host": "wafl508",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "container": "gpu-eq-wafl508-20261111_gpu_equivalence-r1-vram_bandwidth",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:47:42.989957+00:00"
+      },
+      {
+        "host": "wafl508",
+        "metric": "h2d",
+        "round": 1,
+        "container": "gpu-eq-wafl508-20261111_gpu_equivalence-r1-h2d",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:51:05.170479+00:00"
+      },
+      {
+        "host": "wafl508",
+        "metric": "d2h",
+        "round": 1,
+        "container": "gpu-eq-wafl508-20261111_gpu_equivalence-r1-d2h",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:54:27.740836+00:00"
+      },
+      {
+        "host": "wafl508",
+        "metric": "vram_check",
+        "round": 1,
+        "container": "gpu-eq-wafl508-20261111_gpu_equivalence-r1-vram_check",
+        "exit_code": 0,
+        "aborted": false,
+        "reason": null,
+        "status": "ok",
+        "finished_at": "2026-11-11T08:57:50.922737+00:00"
+      }
+    ]
+  },
+  {
+    "host": "wafl509",
+    "round": 1,
+    "returncode": 0,
+    "metrics": [
+      {
+        "host": "wafl509",
+        "metric": "fp32",
+        "round": 1,
+        "container": "gpu-eq-wafl509-20261111_gpu_equivalence-r1-fp32",
+        "exit_code": 0,
+        "aborted": true,
+        "reason": "temperature_at_or_above_80C",
+        "status": "aborted",
+        "finished_at": "2026-11-11T08:39:43.618331+00:00"
+      },
+      {
+        "host": "wafl509",
+        "metric": "fp16",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl509",
+        "metric": "vram_bandwidth",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl509",
+        "metric": "h2d",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl509",
+        "metric": "d2h",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      },
+      {
+        "host": "wafl509",
+        "metric": "vram_check",
+        "round": 1,
+        "aborted": true,
+        "reason": "host_already_aborted",
+        "status": "refused"
+      }
+    ]
+  }
+]

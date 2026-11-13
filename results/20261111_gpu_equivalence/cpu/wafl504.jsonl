@@ -1,0 +1,41 @@
+{"kind": "environment", "python": "3.12.3", "affinity": [0]}
+{"kind": "cpu_sha256", "round": 0, "seconds": 0.4397379888687283, "bytes_per_s": 610444088.9689293, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 0, "seconds": 0.22750685387291014, "bytes_per_s": 9439204188.545578}
+{"kind": "disk_write_fsync", "round": 0, "bytes_per_s": 1261206842.3723261}
+{"kind": "disk_read_advised_cold", "round": 0, "bytes_per_s": 1147974384.7620244}
+{"kind": "cpu_sha256", "round": 1, "seconds": 0.44096545688807964, "bytes_per_s": 608744861.5462207, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 1, "seconds": 0.227351384004578, "bytes_per_s": 9445659006.662382}
+{"kind": "disk_write_fsync", "round": 1, "bytes_per_s": 1395232805.3444977}
+{"kind": "disk_read_advised_cold", "round": 1, "bytes_per_s": 1056686530.4571842}
+{"kind": "cpu_sha256", "round": 2, "seconds": 0.4401266020722687, "bytes_per_s": 609905092.6167897, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 2, "seconds": 0.22721304604783654, "bytes_per_s": 9451409966.784554}
+{"kind": "disk_write_fsync", "round": 2, "bytes_per_s": 1408588432.6965225}
+{"kind": "disk_read_advised_cold", "round": 2, "bytes_per_s": 1104820158.3227174}
+{"kind": "cpu_sha256", "round": 3, "seconds": 0.4445621259510517, "bytes_per_s": 603819894.5214598, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 3, "seconds": 0.227181474911049, "bytes_per_s": 9452723417.87916}
+{"kind": "disk_write_fsync", "round": 3, "bytes_per_s": 1410952640.5732086}
+{"kind": "disk_read_advised_cold", "round": 3, "bytes_per_s": 1095163771.954135}
+{"kind": "cpu_sha256", "round": 4, "seconds": 0.4403223500121385, "bytes_per_s": 609633955.6522624, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 4, "seconds": 0.22732941713184118, "bytes_per_s": 9446571741.986885}
+{"kind": "disk_write_fsync", "round": 4, "bytes_per_s": 1427371002.6862216}
+{"kind": "disk_read_advised_cold", "round": 4, "bytes_per_s": 1062960631.4060953}
+{"kind": "cpu_sha256", "round": 5, "seconds": 0.4405849128961563, "bytes_per_s": 609270649.408889, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 5, "seconds": 0.22759380703791976, "bytes_per_s": 9435597901.142382}
+{"kind": "disk_write_fsync", "round": 5, "bytes_per_s": 1209563081.8467681}
+{"kind": "disk_read_advised_cold", "round": 5, "bytes_per_s": 984912293.5660945}
+{"kind": "cpu_sha256", "round": 6, "seconds": 0.4402124669868499, "bytes_per_s": 609786128.5878093, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 6, "seconds": 0.22737901797518134, "bytes_per_s": 9444511050.858704}
+{"kind": "disk_write_fsync", "round": 6, "bytes_per_s": 1440999419.4174857}
+{"kind": "disk_read_advised_cold", "round": 6, "bytes_per_s": 1176007328.1432827}
+{"kind": "cpu_sha256", "round": 7, "seconds": 0.4400335329119116, "bytes_per_s": 610034090.4104164, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 7, "seconds": 0.22771142702549696, "bytes_per_s": 9430724123.298147}
+{"kind": "disk_write_fsync", "round": 7, "bytes_per_s": 1457005657.667521}
+{"kind": "disk_read_advised_cold", "round": 7, "bytes_per_s": 1057949380.2758857}
+{"kind": "cpu_sha256", "round": 8, "seconds": 0.43976562307216227, "bytes_per_s": 610405729.5900816, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 8, "seconds": 0.2273477960843593, "bytes_per_s": 9445808074.61691}
+{"kind": "disk_write_fsync", "round": 8, "bytes_per_s": 1423608739.5836043}
+{"kind": "disk_read_advised_cold", "round": 8, "bytes_per_s": 1003665678.927555}
+{"kind": "cpu_sha256", "round": 9, "seconds": 0.4399585728533566, "bytes_per_s": 610138027.9035333, "digest": "ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043"}
+{"kind": "ram_copy", "round": 9, "seconds": 0.2271982110105455, "bytes_per_s": 9452027102.010605}
+{"kind": "disk_write_fsync", "round": 9, "bytes_per_s": 1405752564.098801}
+{"kind": "disk_read_advised_cold", "round": 9, "bytes_per_s": 1069175878.9937667}

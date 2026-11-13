@@ -1,0 +1,156 @@
+{
+  "distributed_at": "2026-11-13T01:32:07.232947+00:00",
+  "image": "localhost:5000/atrium-full@sha256:97f37fc180a50fc0012112588d3a203bbc0aceb0c50e545d112f3f42ab706e7f",
+  "expected_hashes": {
+    "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+    "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+    "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+    "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+    "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+    "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+    "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+  },
+  "hosts": [
+    {
+      "host": "wafl500",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl501",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl502",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl503",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl504",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl505",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl506",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl507",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl508",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    },
+    {
+      "host": "wafl509",
+      "status": "ok",
+      "mismatches": [],
+      "hashes": {
+        "workload.py": "e211a683d47f02d759d08a1e1ebe65dad4473042035f8cb5fefecc1bd503e0a8",
+        "safety.py": "f59ecb3cc515387be6ead0bed9dfb8309dea2c4e1c1f1c6a6d6a3857be1aac94",
+        "monitor.py": "1340088a3beb8e6eb15db7d46dac5494e6b5ebda49d0b0b19b5fdc95ed62903b",
+        "run_host.py": "9d96f3e363043b3afc0bb2f6146216e14f0e3efd26d4aeb42bb9bc563054ca85",
+        "llm_client.py": "04411f0610aa6f763e660b510597b1dc1ad2dd72fd75d9b17ecf419a226a3dea",
+        "run_llm_host.py": "2f8a66efd8cddcf7918e7023e95e708898b569a8dfc303acca4fd23799587add",
+        "run_sustained_host.py": "bca1dc9c35c5aa69914a770e195760fef91c7b4ad39c275937ce9fb2da38f542"
+      }
+    }
+  ],
+  "all_ok": true
+}

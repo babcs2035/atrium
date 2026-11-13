@@ -1,0 +1,119 @@
+{
+  "run_id": "20261111_gpu_equivalence",
+  "reps": 3,
+  "sustained_min_ratio": 0.95,
+  "generation": {
+    "kind": "generation",
+    "hosts": [
+      {
+        "host": "wafl503",
+        "n_reps": 3,
+        "ratios": [
+          0.9994637783694835,
+          1.0002730133550886,
+          0.9999062149153528
+        ],
+        "min_ratio": 0.9994637783694835,
+        "max_temp_c": 69.0,
+        "aborted": false,
+        "verdict": "sustained_ok"
+      },
+      {
+        "host": "wafl506",
+        "n_reps": 3,
+        "ratios": [
+          1.0140280218137199,
+          0.9997113987852181,
+          1.0009755509427498
+        ],
+        "min_ratio": 0.9997113987852181,
+        "max_temp_c": 77.0,
+        "aborted": false,
+        "verdict": "sustained_ok"
+      },
+      {
+        "host": "wafl507",
+        "n_reps": 3,
+        "ratios": [
+          0.9995031332522246,
+          0.999705119672738,
+          1.0002019070281387
+        ],
+        "min_ratio": 0.9995031332522246,
+        "max_temp_c": 77.0,
+        "aborted": false,
+        "verdict": "sustained_ok"
+      },
+      {
+        "host": "wafl508",
+        "n_reps": 3,
+        "ratios": [
+          0.9980436387684188,
+          0.9996588261263798,
+          1.0001714170435407
+        ],
+        "min_ratio": 0.9980436387684188,
+        "max_temp_c": 77.0,
+        "aborted": false,
+        "verdict": "sustained_ok"
+      }
+    ]
+  },
+  "score": {
+    "kind": "score",
+    "hosts": [
+      {
+        "host": "wafl503",
+        "n_reps": 3,
+        "ratios": [
+          1.000011434280057,
+          null,
+          null
+        ],
+        "min_ratio": 1.000011434280057,
+        "max_temp_c": 66.0,
+        "aborted": false,
+        "verdict": "sustained_ok"
+      },
+      {
+        "host": "wafl506",
+        "n_reps": 3,
+        "ratios": [
+          0.999962279714492,
+          0.9999867915794599,
+          1.0000026285887507
+        ],
+        "min_ratio": 0.999962279714492,
+        "max_temp_c": 76.0,
+        "aborted": false,
+        "verdict": "sustained_ok"
+      },
+      {
+        "host": "wafl507",
+        "n_reps": 3,
+        "ratios": [
+          0.999961231413721,
+          0.9999931673616422,
+          1.0000305780330319
+        ],
+        "min_ratio": 0.999961231413721,
+        "max_temp_c": 74.0,
+        "aborted": false,
+        "verdict": "sustained_ok"
+      },
+      {
+        "host": "wafl508",
+        "n_reps": 3,
+        "ratios": [
+          null,
+          0.9999569505440626,
+          0.9999464932533652
+        ],
+        "min_ratio": 0.9999464932533652,
+        "max_temp_c": 75.0,
+        "aborted": false,
+        "verdict": "sustained_ok"
+      }
+    ]
+  }
+}

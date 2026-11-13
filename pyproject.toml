@@ -70,6 +70,13 @@ mypy_path = "src"
 module = ["atrium.encoders"]
 disallow_untyped_calls = false
 
+# gpu 同等性調査のノード側スクリプト workload.py は torch.cuda.Event と transformers の
+# from_pretrained を直接呼ぶが，どちらも型注釈を持たない．ノードで実行される独立スクリプトのため，
+# 明示的に型検査した場合だけ untyped call を許す（atrium パッケージの検査には影響しない）
+[[tool.mypy.overrides]]
+module = ["workload"]
+disallow_untyped_calls = false
+
 [[tool.mypy.overrides]]
 module = ["faiss", "faiss.*", "pyarrow", "pyarrow.*", "scipy", "scipy.*", "sentence_transformers", "sentence_transformers.*", "sklearn", "sklearn.*", "transformers", "transformers.*"]
 ignore_missing_imports = true

@@ -1,0 +1,11 @@
+round 1: order=['wafl502', 'wafl504', 'wafl506', 'wafl500', 'wafl501', 'wafl505', 'wafl507', 'wafl509', 'wafl508', 'wafl503']
+round 2: order=['wafl501', 'wafl506', 'wafl504', 'wafl503', 'wafl508', 'wafl505', 'wafl507', 'wafl509', 'wafl500', 'wafl502']
+round 3: order=['wafl502', 'wafl506', 'wafl505', 'wafl500', 'wafl508', 'wafl509', 'wafl504', 'wafl507', 'wafl503', 'wafl501']
+round 4: order=['wafl502', 'wafl508', 'wafl503', 'wafl501', 'wafl509', 'wafl506', 'wafl505', 'wafl507', 'wafl500', 'wafl504']
+round 5: order=['wafl501', 'wafl500', 'wafl508', 'wafl505', 'wafl504', 'wafl502', 'wafl507', 'wafl506', 'wafl509', 'wafl503']
+round 6: order=['wafl507', 'wafl505', 'wafl508', 'wafl504', 'wafl509', 'wafl506', 'wafl501', 'wafl503', 'wafl500', 'wafl502']
+round 7: order=['wafl508', 'wafl502', 'wafl504', 'wafl509', 'wafl507', 'wafl506', 'wafl500', 'wafl501', 'wafl505', 'wafl503']
+round 8: order=['wafl504', 'wafl505', 'wafl501', 'wafl509', 'wafl502', 'wafl500', 'wafl506', 'wafl503', 'wafl508', 'wafl507']
+round 9: order=['wafl509', 'wafl500', 'wafl503', 'wafl504', 'wafl501', 'wafl505', 'wafl502', 'wafl506', 'wafl508', 'wafl507']
+round 10: order=['wafl501', 'wafl503', 'wafl505', 'wafl506', 'wafl500', 'wafl507', 'wafl509', 'wafl504', 'wafl502', 'wafl508']
+wrote results/20261111_gpu_equivalence/benchmarks/benchmarks_summary.json

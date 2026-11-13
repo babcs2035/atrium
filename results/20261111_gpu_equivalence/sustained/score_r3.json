@@ -1,0 +1,130 @@
+[
+  {
+    "host": "wafl500",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl500",
+      "kind": "score",
+      "rep": 3,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl501",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl501",
+      "kind": "score",
+      "rep": 3,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl502",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl502",
+      "kind": "score",
+      "rep": 3,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl503",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl503",
+      "kind": "score",
+      "rep": 3,
+      "aborted": false,
+      "reason": null,
+      "status": "ok",
+      "finished_at": "2026-11-11T18:34:21.688559+00:00"
+    }
+  },
+  {
+    "host": "wafl504",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl504",
+      "kind": "score",
+      "rep": 3,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl505",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl505",
+      "kind": "score",
+      "rep": 3,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  },
+  {
+    "host": "wafl506",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl506",
+      "kind": "score",
+      "rep": 3,
+      "aborted": false,
+      "reason": null,
+      "status": "ok",
+      "finished_at": "2026-11-11T18:55:52.415241+00:00"
+    }
+  },
+  {
+    "host": "wafl507",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl507",
+      "kind": "score",
+      "rep": 3,
+      "aborted": false,
+      "reason": null,
+      "status": "ok",
+      "finished_at": "2026-11-11T18:55:53.971250+00:00"
+    }
+  },
+  {
+    "host": "wafl508",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl508",
+      "kind": "score",
+      "rep": 3,
+      "aborted": false,
+      "reason": null,
+      "status": "ok",
+      "finished_at": "2026-11-11T18:45:15.634636+00:00"
+    }
+  },
+  {
+    "host": "wafl509",
+    "kind": "score",
+    "rep": 3,
+    "status": {
+      "host": "wafl509",
+      "kind": "score",
+      "rep": 3,
+      "status": "refused",
+      "reason": "host_already_aborted"
+    }
+  }
+]

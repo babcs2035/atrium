@@ -1,0 +1,192 @@
+[
+  {
+    "host": "wafl500",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.267609+00:00",
+    "gpu": [
+      "GPU-84656d53-1713-4d93-a914-2644a86c7554",
+      "43",
+      "0 %",
+      "74 MiB",
+      "17.58 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.00 0.00 0.00 1/565 312622"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl501",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.267775+00:00",
+    "gpu": [
+      "GPU-cbea1957-6d94-0278-7761-1c35ec48f324",
+      "45",
+      "0 %",
+      "1 MiB",
+      "21.55 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.00 0.00 0.00 1/360 410994"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl502",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.267939+00:00",
+    "gpu": [
+      "GPU-adb46729-02da-49f4-4e0f-bdbd3e01a9c7",
+      "45",
+      "0 %",
+      "32 MiB",
+      "16.79 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.16 0.11 0.09 3/595 2005555"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl503",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.268398+00:00",
+    "gpu": [
+      "GPU-caee22fe-2ae1-cf04-22dd-04e1f4fa83d7",
+      "40",
+      "0 %",
+      "32 MiB",
+      "14.19 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.01 0.02 0.00 1/591 508463"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl504",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.268661+00:00",
+    "gpu": [
+      "GPU-3f349c65-89f8-f96f-a086-e94869acc9fb",
+      "30",
+      "0 %",
+      "1 MiB",
+      "12.31 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.00 0.00 0.00 1/294 426954"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl505",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.522317+00:00",
+    "gpu": [
+      "GPU-310399c2-c1e7-d87d-fdc7-a5d8bfaa80e3",
+      "30",
+      "0 %",
+      "1 MiB",
+      "14.01 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.08 0.02 0.01 1/289 420905"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl506",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.525516+00:00",
+    "gpu": [
+      "GPU-92fca51a-0896-7cb9-55ff-bf9cff2f8cfb",
+      "29",
+      "0 %",
+      "1 MiB",
+      "12.38 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.00 0.00 0.00 1/292 431336"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl507",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.536314+00:00",
+    "gpu": [
+      "GPU-ef8a849b-524f-8c3c-3fee-f8bc0c1baf50",
+      "54",
+      "0 %",
+      "1 MiB",
+      "17.04 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.00 0.00 0.00 1/294 421108"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl508",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.539105+00:00",
+    "gpu": [
+      "GPU-1b558751-b44c-cc54-7a04-953e77bca6ec",
+      "29",
+      "0 %",
+      "1 MiB",
+      "15.15 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.00 0.00 0.00 1/386 1017910"
+    ],
+    "error": null
+  },
+  {
+    "host": "wafl509",
+    "returncode": 0,
+    "checked_at": "2026-11-11T07:12:09.546105+00:00",
+    "gpu": [
+      "GPU-5c4e99d1-f70b-5f6a-04bc-8a76faeb3af1",
+      "42",
+      "0 %",
+      "1 MiB",
+      "16.20 W",
+      "Not Active"
+    ],
+    "containers": [],
+    "compute_apps": [],
+    "loadavg": [
+      "0.00 0.00 0.00 1/374 999467"
+    ],
+    "error": null
+  }
+]
